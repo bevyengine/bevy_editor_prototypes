@@ -1,16 +1,11 @@
 [package]
-name = "bevy_editor_prototypes"
+name = "undo"
+description = "Subcrate for the editor crate. Contains undo functionality."
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[workspace.dependencies]
-bevy = "0.12.1"
-
 [dependencies]
 bevy.workspace = true
-undo = { path = "crates/undo" }
-
-[workspace]
-members = ["crates/*"]
+pretty-type-name = "1.0.1"

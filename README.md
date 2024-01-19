@@ -1,5 +1,5 @@
 # space_editor: The Bevy Prefab Editor
-License: MIT 
+License: MIT, Apache 2.0
 
 ![Editor screenshot](docs/imgs/showcase-03.png)
 

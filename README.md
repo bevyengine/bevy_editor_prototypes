@@ -1,34 +1,134 @@
-# bevy_editor_prototypes
+# space_editor: The Bevy Prefab Editor
+License: MIT 
 
-Low-friction experiments for the bevy_editor
+![Editor screenshot](docs/imgs/showcase-03.png)
 
-## License
+space_editor is useful tool for scene/prefab/prototyping with bevy engine.  Its allow to create/modify levels/scenes/prefabs in fast gui based way.
 
-Bevy is free, open source and permissively licensed!
-Except where noted (below and/or in individual files), all code in this repository is dual-licensed under either:
+## Project goal
 
-* MIT License ([LICENSE-MIT](LICENSE-MIT) or [http://opensource.org/licenses/MIT](http://opensource.org/licenses/MIT))
-* Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0))
+Aspires to be editor for bevy while there is no official editor.
 
-at your option.
-This means you can select the license you prefer!
-This dual-licensing approach is the de-facto standard in the Rust ecosystem and there are [very good reasons](https://github.com/bevyengine/bevy/issues/2373) to include both.
+## Main features
 
-Some of the engine's code carries additional copyright notices and license terms due to their external origins.
-These are generally BSD-like, but exact details vary by crate:
-If the README of a crate contains a 'License' header (or similar), the additional copyright notices and license terms applicable to that crate will be listed.
-The above licensing requirement still applies to contributions to those crates, and sections of those crates will carry those license terms.
-The [license](https://doc.rust-lang.org/cargo/reference/manifest.html#the-license-and-license-file-fields) field of each crate will also reflect this.
-For example, [`bevy_mikktspace`](./crates/bevy_mikktspace/README.md#license-agreement) has code under the Zlib license (as well as a copyright notice when choosing the MIT license).
+- **Intuitive Scene and Prefab Management**: Space Editor allows you to prepare and save scenes and prefabs with an intuitive user interface. You can easily reuse them in your game development workflow. 
+- **bevy_xpbd_3d compatibility**: Space Editor supports bevy_xpbd_3d, including all editor features. 
+- **Gizmo-Based manipulations**: Manipulate entity positions, rotations, and scales using gizmos. 
+- **Component values editing**: Easily edit component parameters within the editor UI 
+- **Seamless Editor-Game switching**: Switch between the editor UI and the game effortlessly for fast prototyping and testing. 
+- **Prefab Reusability**: Prefabs can be nested within other prefabs, improving reusability and organization in your projects. 
+- **Many custom components**: Space Editor implements various custom components to seamlessly integrate its saving system with the standard Bevy scene format. 
+- **Easy API for customization**: Customize or register your own components within the editor with ease, tailoring it to your specific project needs.
+- **Event dispatching**: Send custom events directly from the editor UI for easier gameplay debugging.  
+- **API for adding tabs**: Extend the functionality of the editor by easily adding new tabs, enhancing your workflow. 
 
-Any assets included in this repository typically fall under different open licenses.
-These will not be included in your game (unless copied in by you), and they are not distributed in the published bevy crates.
-See [CREDITS.md](CREDITS.md) for the details of the licenses of those files.
+Getting Started
+To run the editor, use the following command:
+> cargo run
 
-### Your contributions
+To run platformer example, use the following command:
+> cargo run run --example platformer --features bevy_xpbd_3d
 
-Unless you explicitly state otherwise,
-any contribution intentionally submitted for inclusion in the work by you,
-as defined in the Apache-2.0 license,
-shall be dual licensed as above,
-without any additional terms or conditions.
+## Usage - Game
+
+The following explains how to integrate `space_editor` as a game plugin to use the created prefabs in your game.
+
+### Cargo
+
+Add this line to your Cargo.toml file
+```toml
+space_editor = "0.3.0"
+```
+
+### Prefab spawn system
+To utilize the prefab spawn system, simply add the plugin to your application as follows:
+```rs
+App::default()
+    .add_plugins(DefaultPlugins)
+    .add_plugins(PrefabPlugin)
+```
+
+For spawning, use the PrefabBundle:
+```rs
+ commands.spawn(PrefabBundle::new("tile.scn.ron"))
+        .insert(Name::new("Prefab"));
+```
+
+(More code at examples/spawn_prefab.rs)
+
+
+## Usage - Editor
+The editor is a ready to use executable that can be used and altered at your own necessity. It's base configuration is as follows, with `simple_editor_setup`:
+
+```rs
+fn main() {
+    App::default()
+        .add_plugins(DefaultPlugins)
+        .add_plugins(SpaceEditorPlugin::default())
+        .add_systems(Startup, simple_editor_setup)
+        .run();
+}
+```
+
+(Code from main.rs)
+
+### Editor usage strategy
+
+* Fork this repo.
+* Create a branch to keep up to date with project updates and addressed bugs.
+* Editor is executed with `editor` feature.
+* Feel free to upstream your examples and community modules to enrich space-editor
+
+## Customization
+
+**More detailed information in docs/README.md**
+
+Custom types can be added to the editor gui and prefab spawn system with just a single line:
+
+```rs
+use editor::prelude::EditorRegistryExt;
+
+app.editor_registry::<Name>();
+```
+
+The representation of components in the editor UI can also be customized by bevy_inspector_egui library.
+
+### Events
+
+Custom Events can be added to the editor UI with the following:
+
+```rs
+#[derive(Event, Default, Resource, Reflect, Clone)]
+#[reflect(Resource)]
+pub struct Name;
+
+use editor::prelude::EditorRegistryExt;
+
+app.editor_registry_event::<Name>();
+```
+
+One limitation is that events must implement `Event, Default, Resource, Reflect, Clone`, with `Resource` reflected. Once registered, events can be sent using the `Event Dispatcher` tab.
+
+> Obs: editor already handles internally objects registration and initialization:
+> 
+> `register_type::<T>() and init_resource::<T>()`
+
+> To disable this, use feature `no_event_registration`.
+
+### Prefab
+A prefab is simply a Bevy scene serialized to a readable and editable RON format. However, it needs to be spawned through PrefabBundle to activate custom logic such as adding global transforms to an object.
+
+> More documentation can be found at the [docs folder](docs/README.md)
+
+### Contributing
+Any request for adding functionality to the editor is welcome. Open an issue on the [issue tracker](https://github.com/rewin123/space_editor/issues).
+Any pull request is welcome too:) 
+
+### License
+MIT - https://choosealicense.com/licenses/mit/
+
+
+### Project naming
+
+I'm using the editor to create my own Sci-Fi space game, so the name of the project starts with space_ :)
+

@@ -1,9 +1,59 @@
 [package]
-name = "bevy_editor_prototypes"
-version = "0.1.0"
+name = "bevy_mesh_terrain_editor"
+version = "0.13.2"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "0.12.1"
+bevy = "0.13.0"
+bevy_egui = "0.25.0"
+bevy_mesh_terrain = "0.13.0"
+
+
+bevy_mod_picking = {version="0.17.0", features=["backend_raycast",  "highlight","selection"]}
+bevy_mod_raycast = "0.17.0"
+seldom_fn_plugin = "0.6.0"
+
+
+
+bevy_editor_pls.workspace = true
+bevy_editor_pls_core.workspace = true
+bevy_editor_pls_default_windows = { workspace = true  } 
+ 
+
+
+[workspace.package]
+version = "0.8.1"
+edition = "2021"
+license = "MIT OR Apache-2.0" 
+description = "In-App editor tools for bevy apps"
+readme = "README.md"
+
+
+
+[workspace]
+members = ["crates/*"]
+resolver = "2"
+
+
+ 
+
+[workspace.dependencies]
+bevy_editor_pls = { version = "0.8.0", path = "crates/bevy_editor_pls" }
+bevy_editor_pls_core = { version = "0.8.0", path = "crates/bevy_editor_pls_core" }
+bevy_editor_pls_default_windows = { version = "0.8.0", path = "crates/bevy_editor_pls_default_windows" } 
+
+bevy-inspector-egui = "0.23.0"
+egui = "0.26"
+egui_dock = "0.11"
+egui-gizmo = "0.16"
+
+
+[[example]]
+name = "raycasting"
+path = "examples/raycasting.rs"
+
+[profile.dev.package."*"]
+opt-level = 3
+
+ 

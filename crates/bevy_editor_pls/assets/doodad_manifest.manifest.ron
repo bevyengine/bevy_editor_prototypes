@@ -1,0 +1,14 @@
+  (
+    doodad_definitions: [
+        (
+            name: "birch_yellow",
+            model_path: "models/doodads/birch_yellow.glb",
+        ) ,
+        (
+            name: "bonfire",
+            model_path: "models/doodads/bonfire.glb",
+        ) 
+    ]
+  )
+
+ 

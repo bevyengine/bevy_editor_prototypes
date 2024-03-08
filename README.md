@@ -58,6 +58,8 @@ Also, place doodads in zone files (sub-scenes) which can be saved and loaded.  T
 - Using the Zones window, you can spawn a zone entity.  Right click on this zone entity in the hierarchy to set it as the primary zone.  When a zone is primary, placed doodads will become children of the zone
 
 
+- Right click on the zone entity in the hierarchy to save the zone to a file.  You can use the zone window to load zone files back in later.  
+
 
 ### Exporting files to your game 
 
@@ -65,6 +67,4 @@ Also, place doodads in zone files (sub-scenes) which can be saved and loaded.  T
 
 2. You will need to either save the scene or save your zone files and then move those files over to your game.  I wrote custom import scripts in rust in my games codebase to parse the zone files so my game will know how to spawn the doodads when the player enters the game scene . 
 
-
-- Right click on the zone entity in the hierarchy to save the zone to a file.  You can use the zone window to load zone files back in later.  
 

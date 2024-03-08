@@ -1,0 +1,53 @@
+[package]
+name = "bevy_editor_pls_default_windows"
+version.workspace = true
+edition.workspace = true
+license.workspace = true  
+
+[features]
+highlight_changes = ["bevy-inspector-egui/highlight_changes"]
+
+[dependencies]
+bevy = { version = "0.13", default-features = false, features = [
+    "bevy_scene",
+    "bevy_gltf",
+
+    "bevy_text",
+    "bevy_ui",
+    "bevy_sprite",
+    "bevy_pbr",
+    "bevy_core_pipeline",
+] }
+bevy_editor_pls_core.workspace = true
+bevy-inspector-egui.workspace = true
+# bevy_mod_picking = { git = "https://github.com/aevyrie/bevy_mod_picking", rev = "7a9ffd020b530acef25c8cf8bc9475b7a13bd353", default-features = false, features = [
+#     "backend_raycast",
+#     "backend_egui",
+#     "backend_sprite",
+#     "backend_bevy_ui",
+# ] }
+indexmap = "2"
+pretty-type-name = "1.0"
+bevy_mod_debugdump = "0.10"
+opener = "0.6.0"
+egui-gizmo.workspace = true
+
+rand = "0.8"
+
+bevy_mod_picking = "0.18.0" 
+
+bevy_mod_raycast = { version= "0.17.0"    }
+
+
+serde = { version = "1", features = ["derive"] }
+  
+
+
+ bevy_common_assets = {version="0.10.0", features= ["ron"]}
+
+ anyhow = "1.0 "
+ 
+bevy_mod_sysfail = "7"
+ron = "0.8.1"
+base64="0.21.6"
+

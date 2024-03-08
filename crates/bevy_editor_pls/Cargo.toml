@@ -1,0 +1,42 @@
+[package]
+name = "bevy_editor_pls"
+version.workspace = true
+edition.workspace = true
+license.workspace = true 
+keywords = ["bevy", "editor"]
+categories = ["game-development", "gui", "visualization"]
+exclude = ["assets"]
+
+[features]
+default_windows = [
+    "bevy_editor_pls_default_windows", 
+    "bevy/bevy_render",
+    "bevy/bevy_pbr",
+]
+highlight_changes = ["bevy_editor_pls_default_windows/highlight_changes"]
+default = ["default_windows"]
+
+[dependencies]
+bevy_editor_pls_core.workspace = true
+bevy_editor_pls_default_windows = { workspace = true, optional = true } 
+bevy = { version = "0.13", default-features = false, features = ["x11"] }
+egui.workspace = true
+egui-gizmo.workspace = true
+bevy_mod_raycast = "0.17.0"
+
+# bevy_framepace = { version = "0.12", default-features = false }
+
+[dev-dependencies]
+bevy = { version = "0.13", default-features = false, features = [
+    "bevy_winit",
+    "bevy_core_pipeline",
+    "x11",
+
+    "tonemapping_luts",
+    "zstd",
+    "ktx2",             # https://github.com/bevyengine/bevy/discussions/9100
+] }
+
+[[example]]
+name = "load_gltf"
+required-features = ["bevy/bevy_gltf", "bevy/png", "bevy/ktx2", "bevy/zstd"]

@@ -1,0 +1,15 @@
+  (
+    doodad_definitions: [
+        (
+            name: "birch_yellow_1",
+            model: GltfModel("models/doodads/birch_yellow.glb"),
+        ) ,
+        (
+            name: "bonfire",
+            model: GltfModel("models/doodads/bonfire.glb"),
+            initial_custom_props: Some({ "my_prop": Float(1.0) })
+        ) 
+    ]
+  )
+
+ 

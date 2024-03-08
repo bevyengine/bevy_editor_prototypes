@@ -6,7 +6,9 @@
 
 
 
-Load, Edit, and Save terrain files for bevy_mesh_terrain in a standalone application 
+Load, Edit, and Save terrain files for bevy_mesh_terrain in a standalone application.
+
+Also, place doodads in zone files (sub-scenes) which can be saved and loaded.  These are spawnable entities, used for anything like rocks, trees, even structural GLTFs for your game.  These each have a name, a translation, and CustomProps (a hashmap of values: [ vec3,f32,i32,String ....]).  In this way, you can load them into your game the way that you need specifically.  
 
 
 
@@ -15,7 +17,7 @@ Load, Edit, and Save terrain files for bevy_mesh_terrain in a standalone applica
  
 
 
-### Tips and tricks 
+### Terrain Edit Tips and tricks 
 
 - You dont have to 'save all chunks' unless you need to export collision data to a game.  Often, saving splat and height is sufficient and far faster. 
 

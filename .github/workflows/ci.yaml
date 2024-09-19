@@ -12,6 +12,9 @@ env:
   CARGO_TERM_COLOR: always
   RUSTFLAGS: --deny warnings
   RUSTDOCFLAGS: --deny warnings
+  # This can be any valid Cargo version requirement, but should start with a caret `^` to opt-in to
+  # SemVer-compatible changes.
+  MDBOOK_VERSION: ^0.4.40
 
 jobs:
   # Run tests.
@@ -104,3 +107,22 @@ jobs:
 
       - name: Check documentation
         run: cargo doc --locked --workspace --all-features --document-private-items --no-deps
+
+  # Check design book.
+  book:
+    name: Book
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install mdbook
+        run: cargo install mdbook --version ${{ env.MDBOOK_VERSION }}
+
+      - name: Test code samples
+        working-directory: design-book
+        run: mdbook test

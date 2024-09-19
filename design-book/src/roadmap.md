@@ -20,7 +20,8 @@ The tasks don't need to be done *well* to be considered completed here: the Bevy
 - [x] add a CONTRIBUTING.md
 - [x] add a basic Bevy project
 - [x] define the broad plan for what we're doing
-- [ ] define basic constraints for how we're building the editor
+- [x] define basic constraints for how we're building the editor
+- [x] define a shared vision for what the editor is (and is not)
 
 ## Stage 1: Technically an Editor
 

@@ -1,13 +1,6 @@
 use bevy::prelude::*;
+use bevy_editor_prototypes::EditorPlugin;
 
 fn main() -> AppExit {
-    App::new().add_plugins(DefaultPlugins).run()
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert!(true, "it works!");
-    }
+    App::new().add_plugins((DefaultPlugins, EditorPlugin)).run()
 }

@@ -39,6 +39,8 @@ The tasks don't need to be done *well* to be considered completed here: the Bevy
 - [ ] the list of entities and their components is shown in the inspector
   - [ ] supports hierarchy via a folding tree view
 - [ ] existing component values can be modified using a graphical interface
+- [ ] resources can be inspected
+- [ ] assets can be inspected
 - [ ] scenes can be saved back to disk
 
 ## Stage 2: Fundamentals of Editor-Game Interaction

@@ -1,5 +1,7 @@
 # Vision
 
+**TL;DR:** Think Valve's Hammer editor not Unity-but-Rust.
+
 Bevy's fabled editor has been the subject of much debate and frustration over the years,
 but to actually come together and build it, the team needs to align on a vision for its future.
 What is an editor? Why are we building it? What will change? Why do people think that this will push Bevy from a mere "framework" to a "real game engine"?

@@ -57,6 +57,7 @@ It's best not to plan too far in advance!
   - [ ] manually
   - [ ] by composing scene files
 - [ ] game-specific rendering techniques display correctly in the editor's scene editing
+- [ ] distinct editor and game views that can be run simultaneously
 
 ## Stage 3: UI/UX Foundations
 

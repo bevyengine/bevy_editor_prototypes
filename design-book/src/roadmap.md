@@ -13,6 +13,10 @@ For actionable, well-scoped items, please open issues instead.
 As you complete tasks, check them off here!
 The tasks don't need to be done *well* to be considered completed here: the Bevy community is very good at cleaning up loose strings as we work.
 
+Feel free to tackle any listed item in any order: foundations and primitives can often be built out well before the features that need them are in place.
+This list is not "all of the features that the editor will have": other stages will follow as these features are added.
+It's best not to plan too far in advance!
+
 ## Stage 0: Hello Project
 
 - [x] make a repo
@@ -25,7 +29,7 @@ The tasks don't need to be done *well* to be considered completed here: the Bevy
 
 ## Stage 1: Technically an Editor
 
-- [ ] can load scenes from disk
+- [ ] can load scenes from disk using a file browser
 - [ ] can display scenes in a viewer
   - [ ] 2D
   - [ ] 3D
@@ -39,24 +43,25 @@ The tasks don't need to be done *well* to be considered completed here: the Bevy
 - [ ] the list of entities and their components is shown in the inspector
   - [ ] supports hierarchy via a folding tree view
 - [ ] existing component values can be modified using a graphical interface
-- [ ] resources can be inspected
-- [ ] assets can be inspected
+- [ ] resources can be inspected, showing their values and allowing modification
+- [ ] loaded assets can be inspected, providing basic information about them
 - [ ] scenes can be saved back to disk
 
-## Stage 2: Fundamentals of Editor-Game Interaction
+## Stage 2: Editor-Game Interaction
 
 - [ ] users can press a button in the editor, launching the game from the very beginning
 - [ ] users can press a button in the editor, and their game will run, loading the currently active scene
 - [ ] components can be added and removed, including components specific to the user's game
 - [ ] entities can be spawned and despawned via a GUI
 - [ ] entity hierarchies can be spawned and despawned via a GUI
+  - [ ] manually
+  - [ ] by composing scene files
 - [ ] game-specific rendering techniques display correctly in the editor's scene editing
 
 ## Stage 3: UI/UX Foundations
 
 - [ ] tooltips
-- [ ] rebindable hotkeys
-- [ ] configurable camera controls
+- [ ] hotkeys
 - [ ] basic widgets
   - [ ] text entry
   - [ ] numeric entry
@@ -65,5 +70,21 @@ The tasks don't need to be done *well* to be considered completed here: the Bevy
   - [ ] checkboxes
   - [ ] scrollable lists
 - [ ] resizable panes
+- [ ] Blender-style workspaces
+- [ ] dedicated hotkeys and controls for the most common operations:
+  - [ ] manipulating camera
+  - [ ] modifying transforms
+  - [ ] toggling visibility
+
+## Stage 4: Fundamental Features
+
+- [ ] undo-redo abstraction
+- [ ] preferences
+  - [ ] hotkey rebinding
+  - [ ] camera controls
 - [ ] scene object picking: click on objects in the scene to select them in the inspector
 - [ ] entities can be looked up by name in the inspector
+- [ ] system stepping support
+- [ ] create new Bevy project
+  - [ ] blank
+  - [ ] from template

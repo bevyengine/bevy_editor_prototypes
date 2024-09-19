@@ -8,6 +8,7 @@ fn main() -> AppExit {
 mod tests {
     #[test]
     fn it_works() {
-        assert!(true, "it works!");
+        let foo = true;
+        assert!(foo, "it works!");
     }
 }

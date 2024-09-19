@@ -1,7 +1,7 @@
 # Design Constraints
 
 To help ensure that we're building an editor that's both useful to end users and feasible to maintain,
-we've developed a set of design constraints and desiderata. Please try to follow them when making and reviewing changes!
+we've developed a set of design constraints and goals. Please try to follow them when making and reviewing changes!
 As we're developing, initial prototypes may bend or break the rules: just be mindful of how we can move towards the final desirable end goal.
 
 Below each bullet point, motivation is given.

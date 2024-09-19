@@ -12,6 +12,8 @@ Below each bullet point, motivation is given.
   - This eases project management by separating the work across two repositories, and ensures that we aggressively test each Bevy release's migration path.
 - The Bevy editor must be a Bevy application.
   - This is essential both for dogfooding and to ease development: Bevy contributors all know how to write Bevy!
+- The Bevy editor must run on Windows, Mac and Linux.
+  - These desktop platforms are the key targets, as they are used by professionals for in-depth creative work. Web is a stretch goal, mobile and console need substantially more design.
 
 ## Should
 
@@ -31,6 +33,8 @@ Below each bullet point, motivation is given.
   - Compiling Rust is slow, and more iterations speeds up work and leads to a better result.
 - Version-controllable: assets and settings should be feasible to check into version control and be relatively robust to merge conflicts.
   - This makes sharing settings across teams easier, and reduces confusing and wasteful problems with consolodating changes.
+- Integrate nicely with other related Bevy initiatives, namely dev tools and the Bevy CLI.
+  - We should avoid duplicating work and stepping on each others toes.
 
 ## Should not
 

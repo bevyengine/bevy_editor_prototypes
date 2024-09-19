@@ -1,0 +1,6 @@
+[book]
+authors = ["Alice I Cecile"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Designing the Bevy Editor"

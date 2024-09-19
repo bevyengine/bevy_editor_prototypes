@@ -29,6 +29,8 @@ Below each bullet point, motivation is given.
   - Losing work sucks a lot!
 - Iteration times should be kept fast, using whatever means make sense for a given workflow.
   - Compiling Rust is slow, and more iterations speeds up work and leads to a better result.
+- Version-controllable: assets and settings should be feasible to check into version control and be relatively robust to merge conflicts.
+  - This makes sharing settings across teams easier, and reduces confusing and wasteful problems with consolodating changes.
 
 ## Should not
 

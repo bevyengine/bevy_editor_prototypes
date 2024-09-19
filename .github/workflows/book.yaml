@@ -1,0 +1,54 @@
+name: Build and publish book
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  # This can be any valid Cargo version requirement, but should start with a caret `^` to opt-in to
+  # SemVer-compatible changes. Please keep this in sync with `ci.yaml`.
+  MDBOOK_VERSION: ^0.4.40
+
+permissions:
+  # Required to checkout repository.
+  contents: read
+  # Both are required to deploy to GitHub pages.
+  pages: write
+  id-token: write
+
+# Only allow one deployment to run at a time.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and publish book
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install mdbook
+        run: cargo install mdbook --version ${{ env.MDBOOK_VERSION }}
+
+      - name: Build book
+        working-directory: design-book
+        run: mdbook build
+
+      - name: Upload pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: design-book/book
+
+      - name: Deploy to GitHub pages
+        id: deployment
+        uses: actions/deploy-pages@v4

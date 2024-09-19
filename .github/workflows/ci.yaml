@@ -13,7 +13,7 @@ env:
   RUSTFLAGS: --deny warnings
   RUSTDOCFLAGS: --deny warnings
   # This can be any valid Cargo version requirement, but should start with a caret `^` to opt-in to
-  # SemVer-compatible changes.
+  # SemVer-compatible changes. Please keep this in sync with `book.yaml`.
   MDBOOK_VERSION: ^0.4.40
 
 jobs:

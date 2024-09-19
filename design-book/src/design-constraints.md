@@ -36,7 +36,7 @@ Below each bullet point, motivation is given.
 
 - 3rd party Bevy dependencies should be used sparingly, and only with the consent of the maintainer.
   - Bevy's ecosystem is one of its strengths, and we should lean on it, but being incorporated into the editor is a huge maintenance burden.
-- The editor is not an asset or code creation tool (certainly not in the default configuration). If an established tool does a good job authoring content, focus on importing its output, not reinventing Blender, VSCode Asesprite and Reaper.
+- The editor is not an asset or code creation tool (certainly not in the default configuration). If an established tool does a good job authoring content, focus on importing its output, not reinventing Blender, VSCode, Asesprite, and Reaper.
   - We have limited resources, and this isn't a good use of them. Artists and professionals already know and prefer specialized tools.
 - The Bevy editor should not have a native look-and-feel.
   - This is a poor use of resources, and makes it harder to test across platforms. Instead, focus on the useful behavior and design conventions.

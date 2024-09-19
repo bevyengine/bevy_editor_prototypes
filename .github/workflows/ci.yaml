@@ -123,6 +123,10 @@ jobs:
       - name: Install mdbook
         run: cargo install mdbook --version ${{ env.MDBOOK_VERSION }}
 
+      - name: Build book
+        working-directory: design-book
+        run: mdbook build
+
       - name: Test code samples
         working-directory: design-book
         run: mdbook test

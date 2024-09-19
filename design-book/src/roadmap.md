@@ -6,6 +6,8 @@ Like usual, we're starting by building something small. While we won't be adopti
 
 The stages contained below are a flexible, coarse resolution roadmap to give newcomers and onlookers a sense of the overall plan and progress.
 If you'd like to add items to this roadmap, open a PR and ping `@alice-i-cecile` as needed for dispute resolution.
+Try to keep each stage small, simple, and easily accomplished.
+We can easily add more stages, but trying to jump ahead to a complex feature risks killing all momentum.
 For actionable, well-scoped items, please open issues instead.
 
 As you complete tasks, check them off here!

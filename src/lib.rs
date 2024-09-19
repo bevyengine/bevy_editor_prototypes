@@ -9,12 +9,9 @@ impl Plugin for EditorPlugin {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bevy::winit::WinitPlugin;
 
     #[test]
     fn can_add_plugin() {
-        App::new()
-            .add_plugins(DefaultPlugins.build().disable::<WinitPlugin>())
-            .add_plugins(EditorPlugin);
+        App::new().add_plugins((MinimalPlugins, EditorPlugin));
     }
 }

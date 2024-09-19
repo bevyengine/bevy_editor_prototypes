@@ -82,9 +82,11 @@ It's best not to plan too far in advance!
 - [ ] preferences
   - [ ] hotkey rebinding
   - [ ] camera controls
+  - [ ] preferred language
 - [ ] scene object picking: click on objects in the scene to select them in the inspector
 - [ ] entities can be looked up by name in the inspector
 - [ ] system stepping support
 - [ ] create new Bevy project
   - [ ] blank
   - [ ] from template
+- [ ] localization framework (first-party: English-only)

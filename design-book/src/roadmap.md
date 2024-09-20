@@ -63,19 +63,26 @@ It's best not to plan too far in advance!
 
 - [ ] tooltips
 - [ ] hotkeys
-- [ ] basic widgets
+- [ ] primitive widgets
   - [ ] text entry
   - [ ] numeric entry
   - [ ] radio buttons
   - [ ] dropdown
   - [ ] checkboxes
-  - [ ] scrollable lists
-- [ ] resizable panes
-- [ ] Blender-style workspaces
+- [ ] editor UI foundations
+  - [ ] resizable panes
+  - [ ] scrollable tool detail panels
+  - [ ] toolbar
+  - [ ] Blender-style workspaces
+  - [ ] context menus
+  - [ ] command palette
 - [ ] dedicated hotkeys and controls for the most common operations:
   - [ ] manipulating camera
   - [ ] modifying transforms
   - [ ] toggling visibility
+  - [ ] adding and removing entities
+  - [ ] saving the project
+  - [ ] opening the command palette
 
 ## Stage 4: Fundamental Features
 

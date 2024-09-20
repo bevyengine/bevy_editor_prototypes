@@ -29,7 +29,7 @@ It's best not to plan too far in advance!
 
 ## Stage 1: Technically an Editor
 
-- [ ] can load scenes from disk using a file browser
+- [ ] can load scenes from disk using a native file picking widget
 - [ ] can display scenes in a viewer
   - [ ] 2D
   - [ ] 3D

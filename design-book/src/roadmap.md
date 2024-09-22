@@ -29,6 +29,7 @@ It's best not to plan too far in advance!
 
 ## Stage 1: Technically an Editor
 
+- [ ] undo-redo abstraction
 - [ ] can load scenes from disk using a native file picking widget
 - [ ] can display scenes in a viewer
   - [ ] 2D
@@ -96,7 +97,6 @@ It's best not to plan too far in advance!
 
 ## Stage 4: Fundamental Features
 
-- [ ] undo-redo abstraction
 - [ ] preferences
   - [ ] hotkey rebinding
   - [ ] camera controls

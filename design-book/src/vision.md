@@ -18,6 +18,7 @@ In the context of an "editor" though, the current "code-only" approach has sever
 - authoring game-specific content (custom materials, levels, designed content like items) requires custom tooling
 - Bevy developers are left to piece together their own testing and debugging workflow
 - Rust's compile times make some iteration-heavy tasks (like adjusting UI or tweaking lighting) painfully slow
+- authoring some forms of content (primarily levels and UI) is painfully slow, even for programmers
 
 The Bevy Editor isn't designed to supplant Rust, or to be an all-in-one game making app with everything from a tilemap editor to an IDE baked in.
 Instead, it is a place to manage projects, an empowering frontend for artists, a scaffold for the custom tools each game needs, and a home for the visual tools needed to debug and test Bevy games.

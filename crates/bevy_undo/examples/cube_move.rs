@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use undo::*;
 
-
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
@@ -22,12 +21,10 @@ fn setup(
 ) {
     cmd.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(Cuboid::from_length(2.0))),
-        material: materials.add(
-            StandardMaterial {
-                base_color: Color::srgb(0.3, 0.5, 0.3),
-                ..default()
-            }
-        ),
+        material: materials.add(StandardMaterial {
+            base_color: Color::srgb(0.3, 0.5, 0.3),
+            ..default()
+        }),
         ..default()
     })
     .insert(Controller)
@@ -48,7 +45,8 @@ fn setup(
             ..default()
         },
         ..default()
-    }).with_children(|parent| {
+    })
+    .with_children(|parent| {
         parent.spawn(TextBundle {
             text: Text {
                 sections: vec![],
@@ -60,7 +58,7 @@ fn setup(
 }
 
 fn move_cube(
-    inputs : Res<ButtonInput<KeyCode>>,
+    inputs: Res<ButtonInput<KeyCode>>,
     mut query: Query<&mut Transform, With<Controller>>,
     time: Res<Time>,
 ) {
@@ -78,29 +76,37 @@ fn move_cube(
     }
 }
 
-fn send_undo_event(
-    mut events: EventWriter<UndoRedo>,
-    inputs: Res<ButtonInput<KeyCode>>,
-) {
-    if inputs.just_pressed(KeyCode::KeyZ) && inputs.pressed(KeyCode::ControlLeft) && !inputs.pressed(KeyCode::ShiftLeft) {
+fn send_undo_event(mut events: EventWriter<UndoRedo>, inputs: Res<ButtonInput<KeyCode>>) {
+    if inputs.just_pressed(KeyCode::KeyZ)
+        && inputs.pressed(KeyCode::ControlLeft)
+        && !inputs.pressed(KeyCode::ShiftLeft)
+    {
         events.send(UndoRedo::Undo);
     }
 
-    if inputs.just_pressed(KeyCode::KeyZ) && inputs.pressed(KeyCode::ControlLeft) && inputs.pressed(KeyCode::ShiftLeft) {
+    if inputs.just_pressed(KeyCode::KeyZ)
+        && inputs.pressed(KeyCode::ControlLeft)
+        && inputs.pressed(KeyCode::ShiftLeft)
+    {
         events.send(UndoRedo::Redo);
     }
-    
 }
-    
+
 fn write_undo_text(
     mut query: Query<&mut Text>,
     change_chain: Res<ChangeChain>, //Change chain in UndoPlugin
 ) {
     for mut text in &mut query {
         text.sections.clear();
-        text.sections.push(TextSection::new("Registered changes\n", TextStyle::default()));
+        text.sections.push(TextSection::new(
+            "Registered changes\n",
+            TextStyle::default(),
+        ));
         for change in change_chain.changes.iter() {
-            text.sections.push(TextSection::new(format!("{}\n", change.debug_text()), TextStyle::default()));
+            text.sections.push(TextSection::new(
+                format!("{}\n", change.debug_text()),
+                TextStyle::default(),
+            ));
         }
     }
 }

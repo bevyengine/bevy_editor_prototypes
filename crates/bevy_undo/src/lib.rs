@@ -718,7 +718,8 @@ impl AppAutoUndo for App {
             return self;
         }
 
-        self.world_mut().insert_resource(AutoUndoStorage::<T>::default());
+        self.world_mut()
+            .insert_resource(AutoUndoStorage::<T>::default());
         self.add_event::<UndoRedoApplied<T>>();
 
         self.add_systems(
@@ -743,7 +744,8 @@ impl AppAutoUndo for App {
             return self;
         }
 
-        self.world_mut().insert_resource(AutoUndoStorage::<T>::default());
+        self.world_mut()
+            .insert_resource(AutoUndoStorage::<T>::default());
         self.add_event::<UndoRedoApplied<T>>();
 
         self.add_systems(
@@ -1094,7 +1096,10 @@ mod tests {
             .entity_mut(test_id)
             .insert(Name::default())
             .insert(UndoMarker);
-        app.world_mut().get_mut::<Name>(test_id).unwrap().set_changed();
+        app.world_mut()
+            .get_mut::<Name>(test_id)
+            .unwrap()
+            .set_changed();
 
         app.update();
         app.update();

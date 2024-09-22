@@ -8,8 +8,6 @@ Below each bullet point, motivation is given.
 
 ## Must
 
-- The editor must target the latest stable Bevy release.
-  - This eases project management by separating the work across two repositories, and ensures that we aggressively test each Bevy release's migration path.
 - The Bevy editor must be a Bevy application.
   - This is essential both for dogfooding and to ease development: Bevy contributors all know how to write Bevy!
 - The Bevy editor must run on Windows, Mac and Linux.
@@ -38,8 +36,6 @@ Below each bullet point, motivation is given.
 
 ## Should not
 
-- 3rd party Bevy dependencies should be used sparingly, and only with the consent of the maintainer.
-  - Bevy's ecosystem is one of its strengths, and we should lean on it, but being incorporated into the editor is a huge maintenance burden.
 - The editor is not an asset or code creation tool (certainly not in the default configuration). If an established tool does a good job authoring content, focus on importing its output, not reinventing Blender, VSCode, Aseprite, and Reaper.
   - We have limited resources, and this isn't a good use of them. Artists and professionals already know and prefer specialized tools.
 - The Bevy editor should not have a native look-and-feel, and should not use native menus.
@@ -56,3 +52,24 @@ Below each bullet point, motivation is given.
   - Dogfooding and improving `bevy_ui` is a major goal. If something sucks, fix it upstream!
 - No scripting languages.
   - This targets a very niche audience: Rust is safer and easier to write than C++ and pure artists won't write Lua either. Prefer GUI controls, and then defer to node-based logic for highly complex art/design workflows.
+
+## Open questions
+
+Some questions aren't decided yet, and are highly controversial!
+
+- Should the Bevy Editor live in the Bevy repository (tracking `main`) or its own (tracking `latest`)?
+  - Arguments for tracking `main`
+    - There's no need to duplicate project management and CI processes.
+    - New changes to Bevy can be used immediately.
+    - Emergent editor needs can be addressed and tested in a single PR, without needing to wait a cycle.
+    - The editor serves as a great stress test for all of Bevy's systems.
+    - The editor will never require painful, dedicated migration work, as it must be fixed in each PR.
+    - The editor can be used to aid feature development and testing of Bevy itself.
+    - Users tracking `main` will have a functional, if unstable editor for their games.
+    - Pulling in 3rd party Bevy dependencies is a large maintenance burden and risk.
+    - Functionality that's essential to the editor is often essential to end-users, and should be upstreamed anyways.
+  - Arguments for tracking `latest`
+    - Project management is easier: separate PR queues, issues, and permissions
+    - We can use third-party Bevy dependencies, avoiding reinventing the wheel and exploding scope.
+    - Updating the editor during each stabilization period is a great way to stress test the migration guide.
+    - Users can use unstable versions of the editor in their real projects.

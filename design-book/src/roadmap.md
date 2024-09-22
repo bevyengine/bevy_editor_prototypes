@@ -51,6 +51,7 @@ It's best not to plan too far in advance!
 
 - [ ] users can press a button in the editor, launching the game from the very beginning
 - [ ] users can press a button in the editor, and their game will run, loading the currently active scene
+- [ ] components that reference assets can be changed to load a new asset via a file dialog
 - [ ] components can be added and removed, including components specific to the user's game
 - [ ] entities can be spawned and despawned via a GUI
 - [ ] entity hierarchies can be spawned and despawned via a GUI
@@ -58,6 +59,7 @@ It's best not to plan too far in advance!
   - [ ] by composing scene files
 - [ ] game-specific rendering techniques display correctly in the editor's scene editing
 - [ ] distinct editor and game views that can be run simultaneously
+- [ ] live edit resource and component data in the editor view while the game is running
 
 ## Stage 3: UI/UX Foundations
 

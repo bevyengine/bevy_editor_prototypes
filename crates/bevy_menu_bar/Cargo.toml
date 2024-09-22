@@ -1,5 +1,5 @@
 [package]
-name = "bevy_dropdown_menus"
+name = "bevy_menu_bar"
 version = "0.1.0"
 edition = "2021"
 

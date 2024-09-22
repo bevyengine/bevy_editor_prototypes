@@ -1,3 +1,5 @@
+//! A tooltip system for Bevy applications, providing contextual information on hover.
+
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
 }

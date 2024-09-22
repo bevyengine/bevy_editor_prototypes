@@ -1,3 +1,5 @@
+//! An interactive, collapsible tree view for hierarchical ECS data in Bevy.
+
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
 }

@@ -1,3 +1,5 @@
+//! An action-based undo-redo system for Bevy ECS data.
+
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
 }

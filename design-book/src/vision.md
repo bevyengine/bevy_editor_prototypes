@@ -22,6 +22,8 @@ In the context of an "editor" though, the current "code-only" approach has sever
 
 The Bevy Editor isn't designed to supplant Rust, or to be an all-in-one game making app with everything from a tilemap editor to an IDE baked in.
 Instead, it is a place to manage projects, an empowering frontend for artists, a scaffold for the custom tools each game needs, and a home for the visual tools needed to debug and test Bevy games.
-Users will author their assets in code in their favorite applications, import it into the Bevy editor to perform any Bevy- or game-specific modifications and then use the editor to rapidly tweak, test and debug their games.
+Users will author their assets and code in their favorite applications, import it into the Bevy editor to perform any Bevy- or game-specific modifications and then use the editor to rapidly tweak, test and debug their games.
+
+Over time, game devs will customize Bevy's editor to meet their needs: both of their project and their role, adding community-created extensions, customizing the workspaces they need for each task, and even writing their own extensions to meet the needs of their game.
 
 Now, let's build this together!

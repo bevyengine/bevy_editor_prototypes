@@ -1,0 +1,6 @@
+[package]
+name = "bevy_editor_camera"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]

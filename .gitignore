@@ -17,3 +17,6 @@ Cargo.lock
 # Added by cargo
 
 /target
+
+# mdbook generated files
+design-book/book

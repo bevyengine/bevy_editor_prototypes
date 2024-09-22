@@ -1,6 +1,8 @@
 # bevy_editor_prototypes
 
-Low-friction experiments for the bevy_editor
+Low-friction experiments for the bevy_editor.
+
+Read about what we're building in the [Design Book](https://bevyengine.github.io/bevy_editor_prototypes/)!
 
 ## License
 

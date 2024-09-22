@@ -49,15 +49,17 @@ It's best not to plan too far in advance!
 
 ## Stage 2: Editor-Game Interaction
 
+- [ ] provide the editor with access to the game's code, allowing it to correctly initialize objects
+  - [ ] game-specific rendering techniques display correctly in the editor's scene editing
 - [ ] users can press a button in the editor, launching the game from the very beginning
 - [ ] users can press a button in the editor, and their game will run, loading the currently active scene
+- [ ] asset hotreloading, allowing changes in the asset file to be reflected in the editor and game views
 - [ ] components that reference assets can be changed to load a new asset via a file dialog
 - [ ] components can be added and removed, including components specific to the user's game
 - [ ] entities can be spawned and despawned via a GUI
 - [ ] entity hierarchies can be spawned and despawned via a GUI
   - [ ] manually
   - [ ] by composing scene files
-- [ ] game-specific rendering techniques display correctly in the editor's scene editing
 - [ ] distinct editor and game views that can be run simultaneously
 - [ ] live edit resource and component data in the editor view while the game is running
 
@@ -71,6 +73,12 @@ It's best not to plan too far in advance!
   - [ ] radio buttons
   - [ ] dropdown
   - [ ] checkboxes
+  - [ ] slider
+  - [ ] color selector
+  - [ ] image preview
+  - [ ] file path entry
+  - [ ] progress bar
+  - [ ] audio playback widget
 - [ ] editor UI foundations
   - [ ] resizable panes
   - [ ] scrollable tool detail panels
@@ -100,3 +108,24 @@ It's best not to plan too far in advance!
   - [ ] blank
   - [ ] from template
 - [ ] localization framework (first-party: English-only)
+
+## Uncategorized work
+
+There's a great deal of further feature work that needs to be done beyond the current milestones.
+They haven't been forgotten, and are listed in no particular order here:
+
+- [ ] editor extensions, for adding custom functionality
+- [ ] a central hub for hosting (and selling?) editor extensions and assets
+- [ ] performance overlays of all kinds
+- [ ] system graph visualizer
+- [ ] investigate a separate process model using Bevy Remote Protocol
+- [ ] investigate code hot reloading and dynamic linking
+- [ ] animation graph editor
+- [ ] particle effects editor
+- [ ] tilemap support
+- [ ] edit the abstract syntax tree (AST) of the Bevy Scene Notation (.bsn) format
+- [ ] in-game dev console
+- [ ] MaterialX custom material creator
+
+While there are also important engine features that will unblock or improve various parts of the editor (relations! BSN!),
+this should not be tracked here: the emphasis is on user-facing goals, not any particular path.

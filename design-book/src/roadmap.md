@@ -27,7 +27,7 @@ It's best not to plan too far in advance!
 - [x] define basic constraints for how we're building the editor
 - [x] define a shared vision for what the editor is (and is not)
 
-## Stage 1: Technically an Editor
+## Stage 1: Standalone Scene Editor
 
 - [ ] undo-redo abstraction
 - [ ] can load scenes from disk using a native file picking widget

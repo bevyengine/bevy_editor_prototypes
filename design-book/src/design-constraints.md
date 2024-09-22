@@ -25,6 +25,7 @@ Below each bullet point, motivation is given.
   - Every game needs a different set of features. We need to allow teams to expose or extend what they care about, and hide what they don't.
 - Industry-standard conventions for controls, UX and so on should be followed unless there's a good reason not to.
   - Learning a new tool is hard enough: please don't make it any harder.
+  - When multiple competing standards exist (or the standards are bad), we should offer preset control schemes that map directly to familiar tools.
 - The Bevy editor should be stable, and recover from crashes in the game or the editor as gracefully as possible.
   - Losing work sucks a lot!
 - Iteration times should be kept fast, using whatever means make sense for a given workflow.

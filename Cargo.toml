@@ -10,5 +10,5 @@ bevy = "0.14.0"
 members = ["crates/*"]
 
 [[bin]]
-name = "bevy_editor"
+name = "bevy_editor_standalone"
 path = "crates/bevy_editor/src/main.rs"

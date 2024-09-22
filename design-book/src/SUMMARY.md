@@ -1,3 +1,5 @@
 # Summary
 
-- [Chapter 1](./chapter_1.md)
+- [Vision](./vision.md)
+- [Roadmap](./roadmap.md)
+- [Design Constraints](./design-constraints.md)

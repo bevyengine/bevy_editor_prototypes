@@ -21,8 +21,13 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     cmd.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(shape::Cube { size: 2.0 })),
-        material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
+        mesh: meshes.add(Mesh::from(Cuboid::from_length(2.0))),
+        material: materials.add(
+            StandardMaterial {
+                base_color: Color::srgb(0.3, 0.5, 0.3),
+                ..default()
+            }
+        ),
         ..default()
     })
     .insert(Controller)
@@ -55,18 +60,18 @@ fn setup(
 }
 
 fn move_cube(
-    inputs : Res<Input<KeyCode>>,
+    inputs : Res<ButtonInput<KeyCode>>,
     mut query: Query<&mut Transform, With<Controller>>,
     time: Res<Time>,
 ) {
     let speed = 10.0;
-    if inputs.pressed(KeyCode::A) {
+    if inputs.pressed(KeyCode::KeyA) {
         for mut transform in &mut query {
             transform.translation += Vec3::new(-1.0, 0.0, 0.0) * time.delta_seconds() * speed;
         }
     }
 
-    if inputs.pressed(KeyCode::D) {
+    if inputs.pressed(KeyCode::KeyD) {
         for mut transform in &mut query {
             transform.translation += Vec3::new(1.0, 0.0, 0.0) * time.delta_seconds() * speed;
         }
@@ -75,15 +80,16 @@ fn move_cube(
 
 fn send_undo_event(
     mut events: EventWriter<UndoRedo>,
-    inputs : Res<Input<KeyCode>>,
+    inputs: Res<ButtonInput<KeyCode>>,
 ) {
-    if inputs.just_pressed(KeyCode::Z) && inputs.pressed(KeyCode::ControlLeft) && !inputs.pressed(KeyCode::ShiftLeft) {
+    if inputs.just_pressed(KeyCode::KeyZ) && inputs.pressed(KeyCode::ControlLeft) && !inputs.pressed(KeyCode::ShiftLeft) {
         events.send(UndoRedo::Undo);
     }
 
-    if inputs.just_pressed(KeyCode::Z) && inputs.pressed(KeyCode::ControlLeft) && inputs.pressed(KeyCode::ShiftLeft) {
+    if inputs.just_pressed(KeyCode::KeyZ) && inputs.pressed(KeyCode::ControlLeft) && inputs.pressed(KeyCode::ShiftLeft) {
         events.send(UndoRedo::Redo);
     }
+    
 }
     
 fn write_undo_text(

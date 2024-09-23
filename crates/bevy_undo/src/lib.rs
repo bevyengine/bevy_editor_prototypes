@@ -31,7 +31,6 @@
 //!
 //! fn main() {
 //!     App::new()
-//!         .add_plugins(DefaultPlugins)
 //!         .add_plugins(UndoPlugin)
 //!         .auto_reflected_undo::<Transform>()
 //!         .add_systems(Update, (handle_input, apply_transform));
@@ -1076,12 +1075,11 @@ pub struct UndoIngnoreStorage {
 /// use bevy::prelude::*;
 /// use bevy_undo::*;
 ///
-/// fn main() {
-///     App::new()
-///         .add_plugins(DefaultPlugins)
-///         .add_plugins(UndoPlugin)
-///         .auto_undo::<Transform>();
-/// }
+///
+/// App::new()
+///     .add_plugins(UndoPlugin)
+///     .auto_undo::<Transform>();
+///
 /// ```
 ///
 /// In this example, `AutoUndoStorage<Transform>` will be automatically created and managed
@@ -1123,13 +1121,12 @@ impl<T: Component> Default for AutoUndoStorage<T> {
 /// use bevy::prelude::*;
 /// use bevy_undo::*;
 ///
-/// 
+///
 ///  App::new()
-///       .add_plugins(DefaultPlugins)
 ///       .add_plugins(UndoPlugin)
 ///       .auto_undo::<Transform>()
 ///       .auto_reflected_undo::<MyReflectedComponent>();
-/// 
+///
 ///
 /// #[derive(Component, Reflect)]
 /// struct MyReflectedComponent {

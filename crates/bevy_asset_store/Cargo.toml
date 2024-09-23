@@ -1,0 +1,7 @@
+[package]
+name = "bevy_asset_store"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+async-stripe = "0.39.1"

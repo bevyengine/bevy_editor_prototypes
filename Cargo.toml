@@ -4,7 +4,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", branch = "main" }
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "9386bd0114c44c9f00a2e9c41db1225aaa78d159" }
 
 [workspace]
 members = ["crates/*"]

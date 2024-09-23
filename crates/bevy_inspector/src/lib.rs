@@ -2,6 +2,7 @@
 //!
 //! Data can be viewed and modified in real-time, with changes being reflected in the application.
 
+/// an add function that adds two numbers
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
 }

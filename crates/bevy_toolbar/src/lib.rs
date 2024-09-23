@@ -3,6 +3,7 @@
 //! Toolbars are a common UI element in many applications, providing quick access to frequently used commands,
 //! and typically display small icons with on-hover tooltips.
 
+/// an add function that adds two numbers
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
 }

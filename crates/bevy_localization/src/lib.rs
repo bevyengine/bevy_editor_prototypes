@@ -1,5 +1,6 @@
 //! A localization framework for Bevy applications, backed by Fluent.
 
+/// an add function that adds two numbers
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
 }

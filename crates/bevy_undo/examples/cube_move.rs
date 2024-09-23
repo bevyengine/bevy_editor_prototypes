@@ -1,5 +1,43 @@
+//! # Undo/Redo Example for Bevy
+//!
+//! This example demonstrates how to use the undo/redo functionality in a simple Bevy application.
+//! It creates a cube that can be moved left and right, with the ability to undo and redo these movements.
+//!
+//! ## Features
+//!
+//! - A movable cube controlled by keyboard input
+//! - Undo/redo functionality for cube movements
+//! - Visual display of the undo history
+//!
+//! ## Controls
+//!
+//! - `A`: Move the cube left
+//! - `D`: Move the cube right
+//! - `Ctrl + Z`: Undo the last movement
+//! - `Ctrl + Shift + Z`: Redo the last undone movement
+//!
+//! ## Code Overview
+//!
+//! The example consists of several key components:
+//!
+//! 1. `setup`: Initializes the scene with a cube, camera, and UI text.
+//! 2. `move_cube`: Handles the cube movement based on keyboard input.
+//! 3. `send_undo_event`: Listens for undo/redo key combinations and sends appropriate events.
+//! 4. `write_undo_text`: Updates the UI text to display the current undo history.
+//!
+//! ## Important Notes
+//!
+//! - The `UndoMarker` component is added to the cube to enable undo/redo functionality for it.
+//! - `OneFrameUndoIgnore` is used to prevent the initial Transform component addition from being recorded in the undo history.
+//! - The `auto_reflected_undo::<Transform>()` call sets up automatic undo/redo tracking for the Transform component.
+//!
+//! ## Running the Example
+//!
+//! To run this example, ensure you have Bevy and the undo plugin added to your project's dependencies.
+//! Then, you can run it using `cargo run --example undo_demo` (assuming you've named this file `examples/undo_demo.rs`).
+
 use bevy::prelude::*;
-use undo::*;
+use bevy_undo::*;
 
 fn main() {
     App::new()

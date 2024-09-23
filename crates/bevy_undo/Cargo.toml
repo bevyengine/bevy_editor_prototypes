@@ -1,5 +1,5 @@
 [package]
-name = "undo"
+name = "bevy_undo"
 description = "Subcrate for the editor crate. Contains undo functionality."
 version = "0.1.0"
 edition = "2021"

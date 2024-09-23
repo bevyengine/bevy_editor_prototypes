@@ -1,3 +1,137 @@
+//! Undo/Redo functionality for Bevy applications
+//! 
+//! This crate provides a flexible, memory-efficient, and easy-to-use undo/redo system for Bevy applications.
+//! It allows you to track changes to entities and components, and revert or reapply those
+//! changes as needed.
+//!
+//! # Features
+//!
+//! - Automatic undo/redo for components
+//! - Support for custom undo/redo commands
+//! - Integration with Bevy's entity and component system
+//! - Efficient change tracking and storage
+//! - Memory-efficient design using Arc for change storage
+//!
+//! # Usage
+//!
+//! To use this crate in your Bevy application:
+//!
+//! 1. Add the `UndoPlugin` to your app
+//! 2. Use the `auto_undo` or `auto_reflected_undo` methods to enable automatic undo for specific components
+//! 3. Mark entities that should support undo/redo with the `UndoMarker` component
+//! 4. Use `UndoRedo` events to trigger undo and redo operations
+//!
+//! # Example
+//!
+//! ```rust
+//! use bevy::prelude::*;
+//! use bevy_undo::*;
+//! use std::sync::Arc;
+//! use bevy::utils::hashbrown::HashMap;
+//! 
+//! fn main() {
+//!     App::new()
+//!         .add_plugins(DefaultPlugins)
+//!         .add_plugins(UndoPlugin)
+//!         .auto_reflected_undo::<Transform>()
+//!         .add_systems(Update, (handle_input, apply_transform));
+//!         //.run();
+//! }
+//!
+//! fn handle_input(
+//!     keys: Res<ButtonInput<KeyCode>>,
+//!     mut undo_redo: EventWriter<UndoRedo>,
+//! ) {
+//!     if keys.just_pressed(KeyCode::KeyZ) {
+//!         undo_redo.send(UndoRedo::Undo);
+//!     }
+//!     if keys.just_pressed(KeyCode::KeyY) {
+//!         undo_redo.send(UndoRedo::Redo);
+//!     }
+//! }
+//!
+//! fn apply_transform(
+//!     mut query: Query<(Entity, &mut Transform), With<UndoMarker>>,
+//!     mut new_changes: EventWriter<NewChange>,
+//! ) {
+//!     for (entity, mut transform) in query.iter_mut() {
+//!         // Apply some change
+//!         let old_transform = transform.clone();
+//!         transform.translation.x += 1.0;
+//!         
+//!         // Register custom change
+//!         new_changes.send(NewChange::new(CustomTransformChange {
+//!             entity: entity,
+//!             old_transform,
+//!             new_transform: transform.clone(),
+//!         }));
+//!     }
+//! }
+//!
+//! #[derive(Clone)]
+//! struct CustomTransformChange {
+//!     entity: Entity,
+//!     old_transform: Transform,
+//!     new_transform: Transform,
+//! }
+//!
+//! impl EditorChange for CustomTransformChange {
+//!     fn revert(&self, world: &mut World, entity_remap: &HashMap<Entity, Entity>) -> Result<ChangeResult, String> {
+//!         // Implementation details...
+//!         Err("Not implemented".to_string())
+//!     }
+//!
+//!     fn debug_text(&self) -> String {
+//!         format!("Custom transform change for entity {:?}", self.entity)
+//!     }
+//!
+//!     fn get_inverse(&self) -> Arc<dyn EditorChange + Send + Sync> {
+//!         Arc::new(CustomTransformChange {
+//!             entity: self.entity,
+//!             old_transform: self.new_transform.clone(),
+//!             new_transform: self.old_transform.clone(),
+//!         })
+//!     }
+//! }
+//! ```
+//!
+//! This example demonstrates:
+//! - Setting up automatic undo/redo for the `Transform` component
+//! - Handling input to trigger undo and redo operations
+//! - Registering custom changes for more complex operations
+//!
+//! # Memory Efficiency
+//!
+//! # Memory Efficiency
+//!
+//! This crate uses a design that aims for efficiency:
+//!
+//! - Changes are stored individually, allowing for fine-grained control over the undo/redo history.
+//! - Only the differences between states are stored, not entire world snapshots.
+//! - The undo history has a configurable maximum size to prevent unbounded memory growth.
+//! - For complex operations involving multiple changes, the `ManyChanges` struct is used to group
+//!   related changes together, reducing overhead.
+//!
+//! The overall
+//! design still promotes efficient memory usage by storing only necessary information for
+//! each change and allowing for batching of related changes.
+//!
+//! # Custom Undo/Redo Commands
+//!
+//! For complex undo/redo operations, you can implement the `EditorChange` trait
+//! and use the `NewChange` event to register custom changes. This allows you to
+//! define precisely how changes should be applied and reverted for any type of operation.
+//!
+//! # Limitations
+//!
+//! - The undo system may not capture all types of changes automatically. Complex operations
+//!   might require custom `EditorChange` implementations.
+//! - Performance impact should be considered when enabling undo/redo for frequently changing components.
+//!
+//! For more advanced usage and API details, refer to the documentation of individual
+//! types and traits in this crate.
+        
+
 // Remove after update to newer rust version
 #![allow(clippy::type_complexity)]
 use std::sync::Arc;
@@ -7,7 +141,7 @@ use bevy::{prelude::*, utils::HashMap};
 const MAX_REFLECT_RECURSION: i32 = 10;
 const AUTO_UNDO_LATENCY: i32 = 2;
 
-// Plugin for implementing undo/redo functionality
+/// Plugin for implementing undo/redo functionality
 #[derive(Default)]
 pub struct UndoPlugin;
 
@@ -73,26 +207,83 @@ fn sync_system<M: Component>(
     }
 }
 
+/// Defines the set of systems related to undo/redo functionality.
 #[derive(SystemSet, Hash, PartialEq, Eq, Debug, Clone)]
 pub enum UndoSet {
-    /// Per component systems
+    /// Systems that handle per-component undo/redo operations.
     PerType,
-    /// System which working with change chain and global logic
+    
+    /// Systems that manage the global undo/redo chain and logic.
     UpdateAll,
-    /// Remap entities
+    
+    /// Systems responsible for remapping entities after undo/redo operations.
     Remaping,
-    ///Contains all undo sets
+    
+    /// A set containing all undo-related systems.
     Global,
 }
 
+/// An event that is sent when an undo or redo operation is applied to a component of type T.
+///
+/// This event is useful for systems that need to react to undo/redo operations
+/// on specific component types, such as updating derived data or triggering side effects.
+///
+/// # Type Parameters
+///
+/// * `T`: The component type that was affected by the undo/redo operation.
+///
+/// # Fields
+///
+/// * `entity`: The entity that owns the component that was modified.
+/// * `_phantom`: A zero-sized type used to carry the generic type information.
+///
+/// # Example
+///
+/// ```rust
+/// use bevy::prelude::*;
+/// use bevy_undo::*;
+/// fn react_to_transform_undo_redo(mut events: EventReader<UndoRedoApplied<Transform>>) {
+///     for event in events.read() {
+///         println!("Transform of entity {:?} was modified by undo/redo", event.entity);
+///         // Perform any necessary updates or side effects
+///     }
+/// }
+/// ```
 #[derive(Event)]
 pub struct UndoRedoApplied<T> {
+    /// The entity that was modified.
     pub entity: Entity,
     _phantom: std::marker::PhantomData<T>,
 }
 
+/// A component that marks an entity to be ignored by the undo system for a short period.
+///
+/// This component is typically added to entities that have just been modified by an undo/redo
+/// operation to prevent these changes from being immediately recorded as new changes.
+///
+/// # Fields
+///
+/// * `counter`: The number of frames remaining before the entity is no longer ignored.
+///   This value decreases by 1 each frame until it reaches 0, at which point the component is removed.
+///
+/// # Example
+///
+/// ```rust
+/// use bevy::prelude::*;
+/// use bevy_undo::*;
+/// 
+/// fn apply_undo(mut commands: Commands, entity: Entity) {
+///     // Apply undo changes
+///     // ...
+///     
+///     // Mark the entity to be ignored by the undo system for the next 10 frames
+///     commands.entity(entity).insert(OneFrameUndoIgnore::default());
+/// }
+/// ```
 #[derive(Component)]
 pub struct OneFrameUndoIgnore {
+    /// How many frames entity still must be ignored
+    /// Will reduce by 1 each frame until it reaches 0, at which point the OneFrameUndoIgnore will be removed.
     pub counter: i32,
 }
 
@@ -199,21 +390,23 @@ fn undo_redo_logic(world: &mut World) {
     });
 }
 
-// Resource for storing the chain of changes
-// All undo/redo moving of world state will be in this change
+/// Resource for storing the chain of changes
+/// All undo/redo moving of world state will be in this change
 #[derive(Resource, Default)]
 pub struct ChangeChain {
-    // Changes that were applied to world and registered in this change_chain
+    /// Changes that were applied to world and registered in this change_chain
     pub changes: Vec<Arc<dyn EditorChange + Send + Sync>>,
-    // Changes for redo
+    /// Changes for redo
     pub changes_for_redo: Vec<Arc<dyn EditorChange + Send + Sync>>,
-    // We need to store entity remapping if any of entities was changed thair id by destroying/spawning and to handle entity links in component fileds
+    /// We need to store entity remapping if any of entities was changed thair id by destroying/spawning and to handle entity links in component fileds
     entity_remap: HashMap<Entity, Entity>,
 }
 
+/// Settings for ChangeChain resource
 #[derive(Resource, Reflect)]
 #[reflect(Resource, Default)]
 pub struct ChangeChainSettings {
+    /// Maximum number of changes in the change chain that can be stored
     pub max_change_chain_size: usize,
 }
 
@@ -226,7 +419,7 @@ impl Default for ChangeChainSettings {
 }
 
 impl ChangeChain {
-    // Undo last registered change
+    /// Undo last registered change
     pub fn undo(&mut self, world: &mut World) {
         if let Some(change) = self.changes.pop() {
             let res = change.revert(world, &self.entity_remap).unwrap();
@@ -235,7 +428,7 @@ impl ChangeChain {
         }
     }
 
-    // Redo last undone change
+    /// Redo last undone change
     pub fn redo(&mut self, world: &mut World) {
         if let Some(change) = self.changes_for_redo.pop() {
             let inverse_change = change.get_inverse();
@@ -245,7 +438,7 @@ impl ChangeChain {
         }
     }
 
-    // Update destroyed-entity->new-entity mapping for handling entities links after undo / redo
+    /// Update destroyed-entity->new-entity mapping for handling entities links after undo / redo
     fn update_remap(&mut self, result: ChangeResult) {
         match result {
             ChangeResult::Success => {}
@@ -258,49 +451,71 @@ impl ChangeChain {
     }
 }
 
-// Returns the entity with the given Entity. If the entity was remapped, the remapped entity is returned.
+/// Returns the entity with the given Entity. If the entity was remapped, the remapped entity is returned.
 pub fn get_entity_with_remap(entity: Entity, entity_remap: &HashMap<Entity, Entity>) -> Entity {
     *entity_remap.get(&entity).unwrap_or(&entity)
 }
 
-// Change, which can be stored in the change chain
+/// Change, which can be stored in the change chain
 pub trait EditorChange {
-    // Revert all changes applied to the world by this change
+    /// Revert all changes applied to the world by this change
     fn revert(
         &self,
         world: &mut World,
         entity_remap: &HashMap<Entity, Entity>,
     ) -> Result<ChangeResult, String>;
 
-    // Returns a human-readable text describing the change
+    /// Returns a human-readable text describing the change
     fn debug_text(&self) -> String;
 
-    // Returns the inverse of this change.
-    // For example:
-    // for spawn() -> despawn()
-    // for despawn() -> spawn()
-    // for insert component -> remove component
+    /// Returns the inverse of this change.
+    /// For example:
+    /// for spawn() -> despawn()
+    /// for despawn() -> spawn()
+    /// for insert component -> remove component
     fn get_inverse(&self) -> Arc<dyn EditorChange + Send + Sync>;
 }
 
-// If some entities was created/destroyed, revert must return SuccessWithRemap
+/// Represents the result of applying or reverting a change in the undo/redo system.
 pub enum ChangeResult {
+    /// The change was applied or reverted successfully without any entity remapping.
     Success,
+    
+    /// The change was applied or reverted successfully, but some entities were remapped.
+    /// Contains a vector of (old_entity, new_entity) pairs representing the remapping.
     SuccessWithRemap(Vec<(Entity, Entity)>),
 }
-
+/// Represents an undo or redo operation to be performed on the change chain.
 #[derive(Event)]
 pub enum UndoRedo {
+    /// Requests to undo the last change in the change chain.
     Undo,
+    
+    /// Requests to redo the last undone change in the change chain.
     Redo,
 }
 
+/// Represents a new change to be added to the change chain.
 #[derive(Event, Clone)]
 pub struct NewChange {
+    /// The change to be added to the change chain, wrapped in an Arc for shared ownership.
     pub change: Arc<dyn EditorChange + Send + Sync>,
 }
 
+impl NewChange {
+    /// Creates a new [`NewChange`] with the given [`EditorChange`].
+    pub fn new<T: EditorChange + Send + Sync + 'static>(change: T) -> NewChange {
+        NewChange { change: Arc::new(change) }
+    }
+}
+
+
+/// Represents an change for adding an entity to the world.
+///
+/// This struct is used to revert the spawning of an entity by storing its ID,
+/// allowing the undo system to remove it when necessary.
 pub struct AddedEntity {
+    /// The ID of the entity that was added to the world.
     pub entity: Entity,
 }
 
@@ -331,7 +546,12 @@ impl EditorChange for AddedEntity {
     }
 }
 
+/// Represents an change for removing an entity from the world.
+///
+/// This struct is used to revert the removal of an entity by storing its ID,
+/// allowing the undo system to respawn entity when necessary.
 pub struct RemovedEntity {
+    /// The ID of the entity that was removed from the world.
     pub entity: Entity,
 }
 
@@ -374,9 +594,20 @@ impl EditorChange for RemovedEntity {
     }
 }
 
+/// Represents an changing a component in an entity.
+///
+/// This struct stores both the old and new values of a component, as well as
+/// the entity ID, allowing the undo system to revert changes to components.
+///
+/// # Type Parameters
+///
+/// * `T`: The type of the component that was changed. Must implement the `Component` trait.
 pub struct ComponentChange<T: Component> {
+    /// The previous value of the component before the change.
     old_value: T,
+    /// The new value of the component after the change.
     new_value: T,
+    /// The ID of the entity whose component was changed.
     entity: Entity,
 }
 
@@ -409,9 +640,33 @@ impl<T: Component + Clone> EditorChange for ComponentChange<T> {
     }
 }
 
+/// Represents a change in a component that supports reflection.
+///
+/// This struct is used to track changes to components that implement `Component`, `Reflect`, and `FromReflect` traits.
+/// It stores both the old and new values of the component, as well as the entity ID, allowing the undo system 
+/// to revert changes to reflected components.
+///
+/// # Type Parameters
+///
+/// * `T`: The type of the component that was changed. Must implement `Component`, `Reflect`, and `FromReflect` traits.
+///
+/// # Fields
+///
+/// * `old_value`: The previous value of the component before the change.
+/// * `new_value`: The new value of the component after the change.
+/// * `entity`: The ID of the entity whose component was changed.
+///
+/// # Usage
+///
+/// This struct is primarily used internally by the undo system to track and revert changes to reflected components.
+/// It's particularly useful for components that haven't clone and partial equal triats.
+/// Note: This struct is part of the internal undo system and is typically not used directly in user code.
 pub struct ReflectedComponentChange<T: Component + Reflect + FromReflect> {
+    /// The old value of the component
     old_value: T,
+    /// The new value of the component
     new_value: T,
+    /// The ID of the entity whose component was changed
     entity: Entity,
 }
 
@@ -456,8 +711,18 @@ impl<T: Component + Reflect + FromReflect> EditorChange for ReflectedComponentCh
     }
 }
 
+/// Represents a change for adding a component to an entity.
+///
+/// This struct is used to track the addition of a component to an entity,
+/// allowing the undo system to remove it when necessary.
+///
+/// # Type Parameters
+///
+/// * `T`: The type of the component that was added. Must implement the `Component` trait.
 pub struct AddedComponent<T: Component> {
+    /// The value of the component that was added.
     new_value: T,
+    /// The ID of the entity to which the component was added.
     entity: Entity,
 }
 
@@ -497,8 +762,19 @@ impl<T: Component + Clone> EditorChange for AddedComponent<T> {
     }
 }
 
+/// Represents a change for adding a reflected component to an entity.
+///
+/// This struct is used to track the addition of a component that supports reflection
+/// to an entity, allowing the undo system to remove it when necessary.
+///
+/// # Type Parameters
+///
+/// * `T`: The type of the component that was added. Must implement `Component`, `Reflect`,
+///   and `FromReflect` traits.
 pub struct ReflectedAddedComponent<T: Component + Reflect + FromReflect> {
+    /// The value of the component that was added.
     new_value: T,
+    /// The ID of the entity to which the component was added.
     entity: Entity,
 }
 
@@ -543,10 +819,21 @@ impl<T: Component + Reflect + FromReflect> EditorChange for ReflectedAddedCompon
     }
 }
 
+/// Represents a change for removing a component from an entity.
+///
+/// This struct is used to track the removal of a component from an entity,
+/// allowing the undo system to re-add it when necessary.
+///
+/// # Type Parameters
+///
+/// * `T`: The type of the component that was removed. Must implement the `Component` and `Clone` traits.
 pub struct RemovedComponent<T: Component + Clone> {
+    /// The value of the component that was removed.
     old_value: T,
+    /// The ID of the entity from which the component was removed.
     entity: Entity,
 }
+
 
 impl<T: Component + Clone> EditorChange for RemovedComponent<T> {
     fn revert(
@@ -590,8 +877,18 @@ impl<T: Component + Clone> EditorChange for RemovedComponent<T> {
     }
 }
 
+/// Represents a change for removing a reflected component from an entity.
+///
+/// This struct is used to track the removal of a component that supports reflection
+/// from an entity, allowing the undo system to re-add it when necessary.
+///
+/// # Type Parameters
+///
+/// * `T`: The type of the component that was removed. Must implement `Component` and `Reflect` traits.
 pub struct ReflectedRemovedComponent<T: Component + Reflect> {
+    /// The value of the component that was removed.
     old_value: T,
+    /// The ID of the entity from which the component was removed.
     entity: Entity,
 }
 
@@ -644,6 +941,17 @@ impl<T: Component + Reflect + FromReflect> EditorChange for ReflectedRemovedComp
     }
 }
 
+/// Represents a collection of multiple changes that occurred simultaneously and should be applied or reverted together.
+///
+/// `ManyChanges` is automatically generated by the undo system to group multiple `EditorChange` 
+/// instances that occur within the same frame or update cycle. This allows complex or multi-part 
+/// operations to be treated as a single, atomic change for undo/redo purposes.
+///
+/// # Implementation
+///
+/// `ManyChanges` implements the `EditorChange` trait, allowing it to be treated as a single change
+/// in the undo/redo system. When reverted, it applies all contained changes in reverse order 
+/// to ensure proper undo behavior.
 pub struct ManyChanges {
     changes: Vec<Arc<dyn EditorChange + Send + Sync>>,
 }
@@ -690,11 +998,30 @@ impl EditorChange for ManyChanges {
     }
 }
 
+/// A component that marks an entity as having a changed component of type `T`.
+///
+/// This marker is used internally by the undo system to track changes to components
+/// and manage the timing of when these changes should be recorded for undo operations.
+///
+/// # Type Parameters
+///
+/// * `T`: The type of the component that has changed.
+///
+/// # Fields
+///
+/// * `latency`: An integer representing the number of frames to wait before recording the change.
+///   This helps to batch rapid changes and avoid creating unnecessary undo entries.
+///
+/// # Usage
+///
+/// This component is automatically added and removed by the undo system and should not
+/// be manipulated directly by users.
 #[derive(Component)]
 pub struct ChangedMarker<T> {
     latency: i32,
     _phantom: std::marker::PhantomData<T>,
 }
+
 
 impl<T> Default for ChangedMarker<T> {
     fn default() -> Self {
@@ -705,13 +1032,65 @@ impl<T> Default for ChangedMarker<T> {
     }
 }
 
+/// A resource that stores entities that should be ignored by the undo system for a short period.
+///
+/// This storage is used to prevent newly undone or redone changes from immediately
+/// triggering new undo entries, which could lead to infinite loops or unexpected behavior.
+///
+/// # Fields
+///
+/// * `storage`: A HashMap that associates entities with `OneFrameUndoIgnore` components.
+///
+/// # Usage
+///
+/// This resource is managed internally by the undo system. It is updated automatically
+/// when undo or redo operations are performed, and its contents are used to filter
+/// which entity changes should be recorded for future undo operations.
 #[derive(Resource, Default)]
 pub struct UndoIngnoreStorage {
+    /// A HashMap that associates entities which should be ignored by the undo system for a short period.
     pub storage: HashMap<Entity, OneFrameUndoIgnore>,
 }
 
+/// A resource that stores the previous state of components for automatic undo functionality.
+///
+/// `AutoUndoStorage<T>` is used internally by the undo system to keep track of component values
+/// before they are changed. This allows the system to revert components to their previous state
+/// when an undo operation is performed.
+///
+/// # Type Parameters
+///
+/// * `T`: The type of component being stored. Must implement the `Component` trait.
+///
+/// # Fields
+///
+/// * `storage`: A `HashMap` that associates entity IDs with their corresponding component values.
+///
+/// # Usage
+///
+/// This resource is automatically created and managed by the undo system when you use the
+/// `auto_undo` or `auto_reflected_undo` methods. You typically don't need to interact with
+/// this resource directly in your application code.
+///
+/// # Example
+///
+/// ```rust
+/// use bevy::prelude::*;
+/// use bevy_undo::*;
+///
+/// fn main() {
+///     App::new()
+///         .add_plugins(DefaultPlugins)
+///         .add_plugins(UndoPlugin)
+///         .auto_undo::<Transform>();
+/// }
+/// ```
+///
+/// In this example, `AutoUndoStorage<Transform>` will be automatically created and managed
+/// by the undo system.
 #[derive(Resource)]
 pub struct AutoUndoStorage<T: Component> {
+    /// The storage of "old" components values to allow store "old" component value in ComponentChange<T> change
     pub storage: HashMap<Entity, T>,
 }
 
@@ -723,10 +1102,50 @@ impl<T: Component> Default for AutoUndoStorage<T> {
     }
 }
 
+/// A trait that extends `App` with methods for setting up automatic undo functionality.
+///
+/// `AppAutoUndo` provides methods to easily configure automatic undo/redo support for
+/// specific component types in your Bevy application.
+///
+/// # Methods
+///
+/// * `auto_undo<T: Component + Clone>`: Sets up automatic undo for components that implement
+///   `Clone`.
+/// * `auto_reflected_undo<T: Component + Reflect + FromReflect>`: Sets up automatic undo for
+///   components that support reflection.
+///
+/// # Usage
+///
+/// Import this trait and use its methods in your `App` setup to enable automatic undo
+/// functionality for specific components.
+///
+/// # Example
+///
+/// ```rust
+/// use bevy::prelude::*;
+/// use bevy_undo::*;
+///
+/// fn main() {
+///     App::new()
+///         .add_plugins(DefaultPlugins)
+///         .add_plugins(UndoPlugin)
+///         .auto_undo::<Transform>()
+///         .auto_reflected_undo::<MyReflectedComponent>();
+///         //.run()
+/// }
+///
+/// #[derive(Component, Reflect)]
+/// struct MyReflectedComponent {
+///     // fields...
+/// }
+/// ```
+///
+/// This example sets up automatic undo for the `Transform` component and a custom
+/// `MyReflectedComponent` that supports reflection.
 pub trait AppAutoUndo {
+    /// Sets up automatic undo logic for components that implement `Clone`.
     fn auto_undo<T: Component + Clone>(&mut self) -> &mut Self;
-
-    //Allow more complex undo and auto entity remaping
+    /// Sets up automatic undo logic for components that implement `Reflect` and `FromReflect`.
     fn auto_reflected_undo<T: Component + Reflect + FromReflect>(&mut self) -> &mut Self;
 }
 
@@ -923,12 +1342,12 @@ fn auto_undo_add_init<T: Component + Clone>(
     for (e, data) in query.iter() {
         storage.storage.insert(e, data.clone());
         commands.entity(e).insert(OneFrameUndoIgnore::default());
-        new_changes.send(NewChange {
-            change: Arc::new(AddedComponent {
+        new_changes.send(NewChange::new(
+           AddedComponent {
                 new_value: data.clone(),
                 entity: e,
-            }),
-        });
+           }
+        ));
     }
 
     for (e, data) in just_maker_added_query.iter() {

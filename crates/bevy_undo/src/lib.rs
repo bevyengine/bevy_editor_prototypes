@@ -7,6 +7,7 @@ use bevy::{prelude::*, utils::HashMap};
 const MAX_REFLECT_RECURSION: i32 = 10;
 const AUTO_UNDO_LATENCY: i32 = 2;
 
+// Plugin for implementing undo/redo functionality
 #[derive(Default)]
 pub struct UndoPlugin;
 
@@ -198,10 +199,15 @@ fn undo_redo_logic(world: &mut World) {
     });
 }
 
+// Resource for storing the chain of changes
+// All undo/redo moving of world state will be in this change
 #[derive(Resource, Default)]
 pub struct ChangeChain {
+    // Changes that were applied to world and registered in this change_chain
     pub changes: Vec<Arc<dyn EditorChange + Send + Sync>>,
+    // Changes for redo
     pub changes_for_redo: Vec<Arc<dyn EditorChange + Send + Sync>>,
+    // We need to store entity remapping if any of entities was changed thair id by destroying/spawning and to handle entity links in component fileds
     entity_remap: HashMap<Entity, Entity>,
 }
 
@@ -220,6 +226,7 @@ impl Default for ChangeChainSettings {
 }
 
 impl ChangeChain {
+    // Undo last registered change
     pub fn undo(&mut self, world: &mut World) {
         if let Some(change) = self.changes.pop() {
             let res = change.revert(world, &self.entity_remap).unwrap();
@@ -228,6 +235,7 @@ impl ChangeChain {
         }
     }
 
+    // Redo last undone change
     pub fn redo(&mut self, world: &mut World) {
         if let Some(change) = self.changes_for_redo.pop() {
             let inverse_change = change.get_inverse();
@@ -237,6 +245,7 @@ impl ChangeChain {
         }
     }
 
+    // Update destroyed-entity->new-entity mapping for handling entities links after undo / redo
     fn update_remap(&mut self, result: ChangeResult) {
         match result {
             ChangeResult::Success => {}
@@ -249,22 +258,32 @@ impl ChangeChain {
     }
 }
 
+// Returns the entity with the given Entity. If the entity was remapped, the remapped entity is returned.
 pub fn get_entity_with_remap(entity: Entity, entity_remap: &HashMap<Entity, Entity>) -> Entity {
     *entity_remap.get(&entity).unwrap_or(&entity)
 }
 
+// Change, which can be stored in the change chain
 pub trait EditorChange {
+    // Revert all changes applied to the world by this change
     fn revert(
         &self,
         world: &mut World,
         entity_remap: &HashMap<Entity, Entity>,
     ) -> Result<ChangeResult, String>;
 
+    // Returns a human-readable text describing the change
     fn debug_text(&self) -> String;
 
+    // Returns the inverse of this change.
+    // For example:
+    // for spawn() -> despawn()
+    // for despawn() -> spawn()
+    // for insert component -> remove component
     fn get_inverse(&self) -> Arc<dyn EditorChange + Send + Sync>;
 }
 
+// If some entities was created/destroyed, revert must return SuccessWithRemap
 pub enum ChangeResult {
     Success,
     SuccessWithRemap(Vec<(Entity, Entity)>),
@@ -273,7 +292,6 @@ pub enum ChangeResult {
 #[derive(Event)]
 pub enum UndoRedo {
     Undo,
-    // TODO in 0.4
     Redo,
 }
 

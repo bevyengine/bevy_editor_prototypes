@@ -4,7 +4,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "9386bd0114c44c9f00a2e9c41db1225aaa78d159" }
+bevy.workspace = true
 
 [workspace]
 members = ["crates/*"]
@@ -37,3 +37,6 @@ unused_qualifications = "warn"
 
 [lints]
 workspace = true
+
+[workspace.dependencies]
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "9386bd0114c44c9f00a2e9c41db1225aaa78d159" }

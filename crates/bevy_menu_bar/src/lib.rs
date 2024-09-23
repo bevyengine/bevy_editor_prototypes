@@ -3,6 +3,7 @@
 //! This runs along the top of the screen and provides a list of options to the user,
 //! such as "File", "Edit", "View", etc.
 
+/// an add function that adds two numbers
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
 }

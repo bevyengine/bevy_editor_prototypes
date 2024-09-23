@@ -178,9 +178,9 @@ impl Plugin for UndoPlugin {
     }
 }
 
-/// Allows to make UndoMarker attached to another marker M so that
-/// if there is an entity with marker M, then UndoMarker will be added to that entity,
-/// and likewise, if there is an entity with UndoMarker but without marker M, then UndoMarker will be removed
+/// Allows to make `UndoMarker` attached to another marker M so that
+/// if there is an entity with marker M, then `UndoMarker` will be added to that entity,
+/// and likewise, if there is an entity with `UndoMarker` but without marker M, then `UndoMarker` will be removed
 #[derive(Default)]
 pub struct SyncUndoMarkersPlugin<M: Component> {
     _phantom: std::marker::PhantomData<M>,
@@ -282,7 +282,7 @@ pub struct UndoRedoApplied<T> {
 #[derive(Component)]
 pub struct OneFrameUndoIgnore {
     /// How many frames entity still must be ignored
-    /// Will reduce by 1 each frame until it reaches 0, at which point the OneFrameUndoIgnore will be removed.
+    /// Will reduce by 1 each frame until it reaches 0, at which point the `OneFrameUndoIgnore` will be removed.
     pub counter: i32,
 }
 
@@ -393,7 +393,7 @@ fn undo_redo_logic(world: &mut World) {
 /// All undo/redo moving of world state will be in this change
 #[derive(Resource, Default)]
 pub struct ChangeChain {
-    /// Changes that were applied to world and registered in this change_chain
+    /// Changes that were applied to world and registered in this `change_chain`
     pub changes: Vec<Arc<dyn EditorChange + Send + Sync>>,
     /// Changes for redo
     pub changes_for_redo: Vec<Arc<dyn EditorChange + Send + Sync>>,
@@ -401,7 +401,7 @@ pub struct ChangeChain {
     entity_remap: HashMap<Entity, Entity>,
 }
 
-/// Settings for ChangeChain resource
+/// Settings for `ChangeChain` resource
 #[derive(Resource, Reflect)]
 #[reflect(Resource, Default)]
 pub struct ChangeChainSettings {
@@ -469,8 +469,8 @@ pub trait EditorChange {
 
     /// Returns the inverse of this change.
     /// For example:
-    /// for spawn() -> despawn()
-    /// for despawn() -> spawn()
+    /// for `spawn()` -> `despawn()`
+    /// for `despawn()` -> `spawn()`
     /// for insert component -> remove component
     fn get_inverse(&self) -> Arc<dyn EditorChange + Send + Sync>;
 }
@@ -481,7 +481,7 @@ pub enum ChangeResult {
     Success,
 
     /// The change was applied or reverted successfully, but some entities were remapped.
-    /// Contains a vector of (old_entity, new_entity) pairs representing the remapping.
+    /// Contains a vector of (`old_entity`, `new_entity`) pairs representing the remapping.
     SuccessWithRemap(Vec<(Entity, Entity)>),
 }
 /// Represents an undo or redo operation to be performed on the change chain.
@@ -1037,7 +1037,7 @@ impl<T> Default for ChangedMarker<T> {
 ///
 /// # Fields
 ///
-/// * `storage`: A HashMap that associates entities with `OneFrameUndoIgnore` components.
+/// * `storage`: A `HashMap` that associates entities with `OneFrameUndoIgnore` components.
 ///
 /// # Usage
 ///
@@ -1046,7 +1046,7 @@ impl<T> Default for ChangedMarker<T> {
 /// which entity changes should be recorded for future undo operations.
 #[derive(Resource, Default)]
 pub struct UndoIngnoreStorage {
-    /// A HashMap that associates entities which should be ignored by the undo system for a short period.
+    /// A `HashMap` that associates entities which should be ignored by the undo system for a short period.
     pub storage: HashMap<Entity, OneFrameUndoIgnore>,
 }
 
@@ -1088,7 +1088,7 @@ pub struct UndoIngnoreStorage {
 /// by the undo system.
 #[derive(Resource)]
 pub struct AutoUndoStorage<T: Component> {
-    /// The storage of "old" components values to allow store "old" component value in ComponentChange<T> change
+    /// The storage of "old" components values to allow store "old" component value in `ComponentChange`<T> change
     pub storage: HashMap<Entity, T>,
 }
 
@@ -1123,14 +1123,13 @@ impl<T: Component> Default for AutoUndoStorage<T> {
 /// use bevy::prelude::*;
 /// use bevy_undo::*;
 ///
-/// fn main() {
-///     App::new()
-///         .add_plugins(DefaultPlugins)
-///         .add_plugins(UndoPlugin)
-///         .auto_undo::<Transform>()
-///         .auto_reflected_undo::<MyReflectedComponent>();
-///         //.run()
-/// }
+/// 
+///  App::new()
+///       .add_plugins(DefaultPlugins)
+///       .add_plugins(UndoPlugin)
+///       .auto_undo::<Transform>()
+///       .auto_reflected_undo::<MyReflectedComponent>();
+/// 
 ///
 /// #[derive(Component, Reflect)]
 /// struct MyReflectedComponent {
@@ -1252,7 +1251,7 @@ fn apply_for_every_typed_field<D: Reflect>(
                         s.get_mut(field_idx).unwrap(),
                         applyer,
                         max_recursion - 1,
-                    )
+                    );
                 }
             }
             bevy::reflect::ReflectMut::Array(s) => {

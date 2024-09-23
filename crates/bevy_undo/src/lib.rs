@@ -1086,7 +1086,7 @@ pub struct UndoIngnoreStorage {
 /// by the undo system.
 #[derive(Resource)]
 pub struct AutoUndoStorage<T: Component> {
-    /// The storage of "old" components values to allow store "old" component value in ComponentChange<T> change
+    /// The storage of "old" components values to allow store "old" component value in `ComponentChange<T>` change
     pub storage: HashMap<Entity, T>,
 }
 

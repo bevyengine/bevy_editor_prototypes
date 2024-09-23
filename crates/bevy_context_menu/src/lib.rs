@@ -3,6 +3,7 @@
 //! This crate opens up a menu with a list of options when the user right-clicks (or otherwise triggers the context menu),
 //! based on what the user has clicked on.
 
+/// an add function that adds two numbers
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
 }

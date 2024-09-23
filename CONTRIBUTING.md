@@ -19,3 +19,7 @@ Work to be done is tracked in the issues; feel free to pick one up and get start
 The Design Book is written in `mdbook`, a very simple Rust-based tool for writing long-form documents.
 To install it, use `cargo install mdbook`.
 To open the book, change into the `design-book` folder in your terminal, then run `mdbook serve --open`.
+
+## Before Submitting a PR:
+1. Ensure you are up to date with the repo's `main` branch by doing a pull.
+2. Try to be as clear as possible with the intent of the PR.

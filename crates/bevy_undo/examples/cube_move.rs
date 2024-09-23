@@ -67,7 +67,7 @@ fn setup(
     })
     .insert(Controller)
     .insert(UndoMarker) //Only entities with this marker will be able to undo
-    .insert(OneFrameUndoIgnore::default()); // To prevert add "Transform add" change in change chain
+    .insert(OneFrameUndoIgnore::default()); // To prevent adding "Transform add" change in change chain
 
     cmd.spawn(Camera3dBundle {
         transform: Transform::from_xyz(0.0, 5.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),

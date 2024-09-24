@@ -21,11 +21,9 @@ mod tests {
 #[derive(Component)]
 pub struct RootPaneLayoutNode;
 
-
 /// Root node for each pane, holds all event nodes for layout and the basic structure for all Panes.
 #[derive(Component)]
 pub struct PaneRootNode;
-
 
 /// Node to denote the content area of the Pane.
 #[derive(Component)]
@@ -39,11 +37,9 @@ pub struct PaneHeaderNode;
 #[derive(Component)]
 pub struct PaneMenuButtonNode;
 
-
 /// Represents the corners and holds an observer to split/merge panes.
 #[derive(Component)]
 pub struct PaneSplitterNode;
-
 
 /// Resizing bar for top of the pane.
 #[derive(Component)]
@@ -52,7 +48,6 @@ pub struct TopResizeBarNode;
 /// Resizing bar for bottom of the pane.
 #[derive(Component)]
 pub struct BottomResizeBarNode;
-
 
 /// Left hand resize bar.
 #[derive(Component)]

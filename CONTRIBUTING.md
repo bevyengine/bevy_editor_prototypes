@@ -19,3 +19,7 @@ Work to be done is tracked in the issues; feel free to pick one up and get start
 The Design Book is written in `mdbook`, a very simple Rust-based tool for writing long-form documents.
 To install it, use `cargo install mdbook`.
 To open the book, change into the `design-book` folder in your terminal, then run `mdbook serve --open`.
+
+## Before Submitting a PR
+
+- Ensure you are up-to-date locally with the main bevy repo, we track bevy's `main` branch as a dependecy.

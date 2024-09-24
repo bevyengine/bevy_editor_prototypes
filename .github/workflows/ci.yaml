@@ -85,6 +85,23 @@ jobs:
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
 
+  # Check for typos.
+  typos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for typos
+        uses: crate-ci/typos@v1.24.6
+      - name: Typos info
+        if: failure()
+        run: |
+          echo 'To fix typos, please run `typos -w`'
+          echo 'To check for a diff, run `typos`'
+          echo 'You can find typos here: https://crates.io/crates/typos'
+          echo 'if you use VSCode, you can also install `Typos Spell Checker'
+          echo 'You can find the extension here: https://marketplace.visualstudio.com/items?itemName=tekumara.typos-vscode'
+
   # Check documentation.
   doc:
     name: Docs

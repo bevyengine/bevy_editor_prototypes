@@ -396,8 +396,8 @@ pub struct ChangeChain {
     pub changes: Vec<Arc<dyn EditorChange + Send + Sync>>,
     /// Changes for redo
     pub changes_for_redo: Vec<Arc<dyn EditorChange + Send + Sync>>,
-    /// We need to store entity remapping if any of entities was changed thair id by
-    /// destroying/spawning and to handle entity links in component fields
+    /// We need to store entity remapping if any of the entities changed their id by
+    /// destroying/spawning, and to handle entity links in component fields.
     entity_remap: HashMap<Entity, Entity>,
 }
 

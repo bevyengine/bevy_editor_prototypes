@@ -85,7 +85,6 @@ jobs:
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
 
-
   # Check for typos.
   typos:
     runs-on: ubuntu-latest

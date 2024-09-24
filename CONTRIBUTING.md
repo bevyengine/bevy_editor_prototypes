@@ -22,4 +22,4 @@ To open the book, change into the `design-book` folder in your terminal, then ru
 
 ## Before Submitting a PR
 
-- Ensure you are up-to-date locally with the main bevy repo, we track bevy's `main` branch as a dependecy.
+- Ensure you are up-to-date locally with the main bevy repo, we track bevy's `main` branch as a dependency.

@@ -1,0 +1,55 @@
+name: Update Bevy Dependency
+
+on:
+  schedule:
+    - cron: "0 0 * * 1" # Every Monday at 00:00 UTC
+  workflow_dispatch: # Allows manual trigger as well
+
+jobs:
+  update-bevy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up GitHub CLI
+        run: |
+          gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Fetch the latest Bevy commit
+        run: |
+          BEVY_MAIN_COMMIT=$(git ls-remote https://github.com/bevyengine/bevy.git main | awk '{print $1}')
+          echo "Latest Bevy commit: $BEVY_MAIN_COMMIT"
+          echo "BEVY_MAIN_COMMIT=$BEVY_MAIN_COMMIT" >> $GITHUB_ENV
+
+      - name: Update Cargo.toml
+        run: |
+          sed -i 's/\(bevy = { git = "https:\/\/github.com\/bevyengine\/bevy.git", rev = "\)[^"]*/\1'"$BEVY_MAIN_COMMIT"'/' Cargo.toml
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git commit -am "Update Bevy to $BEVY_MAIN_COMMIT"
+
+      - name: Check for existing branch and PR
+        id: check_branch_pr
+        run: |
+          BRANCH_EXISTS=$(git ls-remote --heads origin update-bevy)
+          PR_URL=$(gh pr list --head update-bevy --state open --json url,author --jq '.[] | select(.author.login | contains("github-actions")) | .url')
+
+          echo "BRANCH_EXISTS=$([ -z "$BRANCH_EXISTS" ] && echo "false" || echo "true")" >> $GITHUB_ENV
+          echo "PR_URL=$PR_URL" >> $GITHUB_ENV
+
+      - name: Push changes or create PR
+        run: |
+          if [ "${{ env.BRANCH_EXISTS }}" == "true" ] && [ -n "${{ env.PR_URL }}" ]; then
+            git fetch origin
+            git checkout update-bevy
+            git pull origin update-bevy
+            git push origin update-bevy --force
+            echo "Updated existing PR: ${{ env.PR_URL }}"
+          else
+            git checkout -b update-bevy
+            git push origin update-bevy
+            gh pr create --title "Update Bevy to $BEVY_MAIN_COMMIT" --body "This PR updates Bevy to the latest commit from the main branch: $BEVY_MAIN_COMMIT" --base main --head update-bevy
+            echo "Created new PR"
+          fi

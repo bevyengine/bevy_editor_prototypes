@@ -11,6 +11,15 @@
 //!     which transforms the user's application into an editor that runs their game.
 //! - Finally, it will be a standalone application that communicates with a running Bevy game via the Bevy Remote Protocol.
 
+use bevy::prelude::*;
+
 fn main() {
-    println!("Hello, world!");
+    App::new()
+        .add_plugins(DefaultPlugins)
+        .add_systems(Startup, camera_setup)
+        .run();
+}
+
+fn camera_setup(mut commands: Commands) {
+    commands.spawn(Camera2dBundle::default());
 }

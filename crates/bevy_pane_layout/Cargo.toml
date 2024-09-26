@@ -1,5 +1,5 @@
 [package]
-name = "bevy_panes"
+name = "bevy_pane_layout"
 version = "0.1.0"
 edition = "2021"
 

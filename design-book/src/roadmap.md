@@ -124,6 +124,10 @@ They haven't been forgotten, and are listed in no particular order here:
 - [ ] a central hub for hosting (and selling?) editor extensions and assets
 - [ ] performance overlays of all kinds
 - [ ] system graph visualizer
+  - [ ] filter systems by data access
+  - [ ] filter by system set
+- [ ] systems affecting the selected entity
+- [ ] Tracy-powered runtime profiling
 - [ ] investigate a separate process model using Bevy Remote Protocol
 - [ ] investigate code hot reloading and dynamic linking
 - [ ] animation graph editor
@@ -132,6 +136,12 @@ They haven't been forgotten, and are listed in no particular order here:
 - [ ] edit the abstract syntax tree (AST) of the Bevy Scene Notation (.bsn) format
 - [ ] in-game dev console
 - [ ] MaterialX custom material creator
+- [ ] basic audio editing
+- [ ] graph visualization of component values
+- [ ] entity clustering with a memory usage breakdown
+- [ ] generated in-editor documentation for Component/Resource types
+- [ ] go to definition support that opens the relevant code in your IDE of choice
+- [ ] event diagnostics
 
 While there are also important engine features that will unblock or improve various parts of the editor (relations! BSN!),
 this should not be tracked here: the emphasis is on user-facing goals, not any particular path.

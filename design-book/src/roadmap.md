@@ -108,6 +108,12 @@ It's best not to plan too far in advance!
   - [ ] blank
   - [ ] from template
 - [ ] localization framework (first-party: English-only)
+- [ ] launch targets/profiles
+  - [ ] launch a prebuilt binary (for non-technical users)
+  - [ ] cargo workspace apps and examples (for developers using the editor from the codebase)
+    - [ ] set feature flags
+    - [ ] (stretch goal. maybe as part of a possible vscode integration) read/write `.vscode/launch.json`
+  - [ ] option to launch with a default profile when the editor opens
 
 ## Uncategorized work
 

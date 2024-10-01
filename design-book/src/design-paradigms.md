@@ -16,7 +16,7 @@ The UI should stay responsive whenever possible. Tools and interface options sho
 
 User input should remain as consistent and predictable as possible, do not change what inputs do on the fly without clear communication.
 
-All input behavior changes should be "Temporary" modes, immediately ending the operation when a user stops with actions.
+When input behavior changes (e.g. a special camera mode that overrides normal controls), the change in behavior should be temporary, and require continuous user input (typically pressing a key or holding a click) to remain active.
 
 ## Select -> Operate
 

@@ -51,8 +51,7 @@ It's best not to plan too far in advance!
 
 - [ ] undo-redo abstraction
 - [ ] entities can be added and removed
-- [ ] components can be added, removed, and modified
-- [ ] resources can be modified
+- [ ] components and resources can be added, removed, and modified
 - [ ] scenes can be saved back to disk
 - [ ] interactive transform gizmo in the viewport
   - [ ] translation

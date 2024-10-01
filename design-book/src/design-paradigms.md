@@ -20,7 +20,7 @@ All input behavior changes should be "Temporary" modes, immediately ending the o
 
 ## Select -> Operate
 
-In Blender you first indicate which data you work on, and then what you want to do. The same applies for Bevy. This follows the non-modal principle; there's no active tool mode you need to set first to be able to use the tool on what you select after. This concept enables a fast and flexible work flow.
+In [Blender](https://developer.blender.org/docs/features/interface/human_interface_guidelines/paradigms/#select-operate) you first indicate which data you work on, and then what you want to do. The same applies for Bevy. Quote from Blender's guidelines: "This follows the non-modal principle; there's no active tool mode you need to set first to be able to use the tool on what you select after. This concept enables a fast and flexible work flow."
 
 ## Bevy Editor is for Artists
 

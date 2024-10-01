@@ -1,6 +1,7 @@
 # General Patterns
 
-- Try to ensure that the reading direction of information: data, is carried in the same direction as the user's language. (Until localization is available only consider Left-to-Right, Top-to_bottom reading directions.)
+- Try to ensure that the reading direction of information: data, is carried in the same direction as the user's language.
+- Until localization is available only consider Left-to-Right, Top-to_bottom reading directions.
 
 ## Editors
 

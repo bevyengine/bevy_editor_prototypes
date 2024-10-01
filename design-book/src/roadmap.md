@@ -42,7 +42,7 @@ It's best not to plan too far in advance!
   - [ ] AABBs
 - [ ] lists entities in scene
   - [ ] supports hierarchy via a folding tree view
-- [ ] components of selected entity show in inspector with component values
+- [ ] components of selected entity shown in the inspector with component values
 - [ ] resources can be inspected, showing their values
 - [ ] loaded assets can be inspected, providing basic information about them
 
@@ -53,6 +53,10 @@ It's best not to plan too far in advance!
 - [ ] existing component values can be modified using a graphical interface
 - [ ] resources can be inspected, showing their values and allowing modification
 - [ ] scenes can be saved back to disk
+- [ ] interactive transform gizmo in the viewport
+  - [ ] translation
+  - [ ] scale
+  - [ ] rotation
 
 ## Stage 3: Editor-Game Interaction
 

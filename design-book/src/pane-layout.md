@@ -1,0 +1,21 @@
+# Pane Layout
+
+## Order of Importance
+
+- Generally, the most important fields/or the must used, should be at the top, quickly accessible. Less important widgets should be placed lower or in sub-panels
+- If every setting in a sub-panel is predicated on something being enabled, the toggle should be in the header.
+
+## Enums
+
+- If a enum is more than 3 items, it should be a drop down.
+- If the field's can be represented as icons then this can be bypassed.
+
+## Sub-Panels
+
+- Should be used when multiple options/buttons/fields are all related and a label would help add context to them.
+- This allows for collapsing enabling a user to minimize noise from things they aren't using.
+
+## THIS SHOULD BE IMPROVED OVER TIME
+
+- These layout rules are not set in stone.
+- If you have an idea for improvement, make a PR so it can be discussed.

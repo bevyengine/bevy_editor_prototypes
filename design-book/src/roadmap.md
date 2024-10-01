@@ -42,7 +42,8 @@ It's best not to plan too far in advance!
   - [ ] AABBs
 - [ ] lists entities in the scene
   - [ ] supports hierarchy via a folding tree view
-- [ ] components of selected entity shown in the inspector with component values
+- [ ] scene object picking: click on objects in the scene to select them in the inspector
+- [ ] components of selected entity are shown in the inspector with component values, including components specific to the user's game
 - [ ] resources can be inspected, showing their values
 - [ ] loaded assets can be inspected, providing basic information about them
 
@@ -50,8 +51,8 @@ It's best not to plan too far in advance!
 
 - [ ] undo-redo abstraction
 - [ ] entities can be added and removed
-- [ ] existing component values can be modified using a graphical interface
-- [ ] resources can be inspected, showing their values and allowing modification
+- [ ] components can be added, removed, and modified
+- [ ] resources can be modified
 - [ ] scenes can be saved back to disk
 - [ ] interactive transform gizmo in the viewport
   - [ ] translation
@@ -66,8 +67,6 @@ It's best not to plan too far in advance!
 - [ ] users can press a button in the editor, and their game will run, loading the currently active scene
 - [ ] asset hotreloading, allowing changes in the asset file to be reflected in the editor and game views
 - [ ] components that reference assets can be changed to load a new asset via a file dialog
-- [ ] components can be added and removed, including components specific to the user's game
-- [ ] entities can be spawned and despawned via a GUI
 - [ ] entity hierarchies can be spawned and despawned via a GUI
   - [ ] manually
   - [ ] by composing scene files
@@ -111,7 +110,6 @@ It's best not to plan too far in advance!
   - [ ] hotkey rebinding
   - [ ] camera controls
   - [ ] preferred language
-- [ ] scene object picking: click on objects in the scene to select them in the inspector
 - [ ] entities can be looked up by name in the inspector
 - [ ] system stepping support
 - [ ] create new Bevy project

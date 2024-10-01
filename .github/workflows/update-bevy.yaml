@@ -8,6 +8,10 @@ on:
 jobs:
   update-bevy:
     runs-on: ubuntu-latest
+      
+    permissions:
+      # Allows pushing to the repository
+      contents: write
 
     steps:
       - name: Checkout repository

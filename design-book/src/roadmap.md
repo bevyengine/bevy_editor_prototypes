@@ -27,9 +27,8 @@ It's best not to plan too far in advance!
 - [x] define basic constraints for how we're building the editor
 - [x] define a shared vision for what the editor is (and is not)
 
-## Stage 1: Standalone Scene Editor
+## Stage 1: Standalone Read-Only Editor
 
-- [ ] undo-redo abstraction
 - [ ] can load scenes from disk using a native file picking widget
 - [ ] can display scenes in a viewer
   - [ ] 2D
@@ -41,14 +40,25 @@ It's best not to plan too far in advance!
   - [ ] UI outlines
   - [ ] lights
   - [ ] AABBs
-- [ ] the list of entities and their components is shown in the inspector
+- [ ] lists entities in the scene
   - [ ] supports hierarchy via a folding tree view
-- [ ] existing component values can be modified using a graphical interface
-- [ ] resources can be inspected, showing their values and allowing modification
+- [ ] click entities in the list to select them.
+- [ ] components of selected entity are shown in the inspector with component values, including components specific to the user's game
+- [ ] resources can be inspected, showing their values
 - [ ] loaded assets can be inspected, providing basic information about them
-- [ ] scenes can be saved back to disk
 
-## Stage 2: Editor-Game Interaction
+## Stage 2: Basic Editing Capabilities
+
+- [ ] undo-redo abstraction
+- [ ] entities can be added and removed
+- [ ] components and resources can be added, removed, and modified
+- [ ] scenes can be saved back to disk
+- [ ] interactive transform gizmo in the viewport
+  - [ ] translation
+  - [ ] scale
+  - [ ] rotation
+
+## Stage 3: Editor-Game Interaction
 
 - [ ] provide the editor with access to the game's code, allowing it to correctly initialize objects
   - [ ] game-specific rendering techniques display correctly in the editor's scene editing
@@ -56,15 +66,13 @@ It's best not to plan too far in advance!
 - [ ] users can press a button in the editor, and their game will run, loading the currently active scene
 - [ ] asset hotreloading, allowing changes in the asset file to be reflected in the editor and game views
 - [ ] components that reference assets can be changed to load a new asset via a file dialog
-- [ ] components can be added and removed, including components specific to the user's game
-- [ ] entities can be spawned and despawned via a GUI
 - [ ] entity hierarchies can be spawned and despawned via a GUI
   - [ ] manually
   - [ ] by composing scene files
 - [ ] distinct editor and game views that can be run simultaneously
 - [ ] live edit resource and component data in the editor view while the game is running
 
-## Stage 3: UI/UX Foundations
+## Stage 4: UI/UX Foundations
 
 - [ ] tooltips
 - [ ] hotkeys
@@ -95,7 +103,7 @@ It's best not to plan too far in advance!
   - [ ] saving the project
   - [ ] opening the command palette
 
-## Stage 4: Fundamental Features
+## Stage 5: Fundamental Features
 
 - [ ] preferences
   - [ ] hotkey rebinding
@@ -108,6 +116,12 @@ It's best not to plan too far in advance!
   - [ ] blank
   - [ ] from template
 - [ ] localization framework (first-party: English-only)
+- [ ] launch targets/profiles
+  - [ ] launch a prebuilt binary (for non-technical users)
+  - [ ] cargo workspace apps and examples (for developers using the editor from the codebase)
+    - [ ] set feature flags
+    - [ ] (stretch goal. maybe as part of a possible vscode integration) read/write `.vscode/launch.json`
+  - [ ] option to launch with a default profile when the editor opens
 
 ## Uncategorized work
 
@@ -118,6 +132,10 @@ They haven't been forgotten, and are listed in no particular order here:
 - [ ] a central hub for hosting (and selling?) editor extensions and assets
 - [ ] performance overlays of all kinds
 - [ ] system graph visualizer
+  - [ ] filter systems by data access
+  - [ ] filter by system set
+- [ ] systems affecting the selected entity
+- [ ] Tracy-powered runtime profiling
 - [ ] investigate a separate process model using Bevy Remote Protocol
 - [ ] investigate code hot reloading and dynamic linking
 - [ ] animation graph editor
@@ -126,6 +144,12 @@ They haven't been forgotten, and are listed in no particular order here:
 - [ ] edit the abstract syntax tree (AST) of the Bevy Scene Notation (.bsn) format
 - [ ] in-game dev console
 - [ ] MaterialX custom material creator
+- [ ] basic audio editing
+- [ ] graph visualization of component values
+- [ ] entity clustering with a memory usage breakdown
+- [ ] generated in-editor documentation for Component/Resource types
+- [ ] go to definition support that opens the relevant code in your IDE of choice
+- [ ] event diagnostics
 
 While there are also important engine features that will unblock or improve various parts of the editor (relations! BSN!),
 this should not be tracked here: the emphasis is on user-facing goals, not any particular path.

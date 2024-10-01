@@ -12,9 +12,3 @@
 
 When addressing things in the Ui, focus on actions not things. This means use verbs over nouns. Its common to think everything needs a name and names should be nouns. Think like a user instead, you don't care what a button is, you care what it *does*. What is the quickest, most natural feeling way to describe what the user is trying to do? Verbs are a powerful aspect of language, and often fit mental model better.
 
-- Examples:
-
-  - What is a more natural/usable expression: "Make a vertex selection" or "select a vertex"? "Make a connection between two vertices", "Create an edge between two vertices" or "connect two vertices"?
-  - The context menu is an action/workflow oriented UI: A simple right click immediately provides common actions (usually a list of verbs). You don't have to first open a Context (noun) > Common Actions (another noun) menu first.
-  - Instead of a Text or Font menu, place text formatting (bold, italic, etc.) in a Format menu.
-  - A menu entry like Create Asset Data could be named Package as Asset or Mark as Asset instead.

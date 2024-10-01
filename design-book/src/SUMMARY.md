@@ -3,7 +3,7 @@
 - [Vision](./vision.md)
 - [Roadmap](./roadmap.md)
 - [Design Constraints](./design-constraints.md)
-- [Human Interface Guidelines](./human-interface-guidlines.md)
+- [Human Interface Guidelines](./human-interface-guidelines.md)
   - [Design Paradigms](./design-paradigms.md)
   - [General Patterns](./general-patterns.md)
     - [Best Practices](./best-practices.md)

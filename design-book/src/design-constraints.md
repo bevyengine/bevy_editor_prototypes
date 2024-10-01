@@ -55,6 +55,7 @@ Below each bullet point, motivation is given.
 - No scripting languages.
   - This targets a very niche audience: Rust is safer and easier to write than C++ and pure artists won't write Lua either. Prefer GUI controls, and then defer to node-based logic for highly complex art/design workflows.
 - The Bevy Editor is not a plugin for a third-party editor like Blender or LDTK. While tools like [Blenvy](https://github.com/kaosat-dev/Blenvy) can be very productive for a team making a specific game, they're not a replacement for the Bevy Editor.
+  - The existence of a standalone Bevy Editor tool (even with relatively limited capabilities) is valuable for helping new users get comfortable with the idea of making games in Bevy and become a functional member of a team.
   - Each of these tools focuses on a single style of game: primarily 2D vs 3D.
   - Being able to see your scene *as it appears in the game* is a vital requirement for effective scene creation: third party tools will not have the appropriate level of integration and come with their own subtly different rendering engines.
   - These tools have their own specialized learning curve, and a huge quantity of unrelated functionality. This comes at a cost in terms of performance, learning curves and usability.

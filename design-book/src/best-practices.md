@@ -2,7 +2,7 @@
 
 ## Keep the UI calm
 
-- Avoid strong changes in colors, big jumps in layouts, or popping elements on simple interactions. For example strong mouse hover highlights can be very flashy and cause distracting visual noise; some subtle changes can be okay.
+- Avoid strong changes in colors, big jumps in layouts, or popping elements on simple interactions.
 
 - Avoid strong accent colors for no reason. Using accent colors when you aren't trying to get the user's attention only creates visual noise and clutter that harms the user experience. The UI should be calm with slight contrasts unless there's good reason to do so. Getting this right early on will do good for long term editor-user communication.
 

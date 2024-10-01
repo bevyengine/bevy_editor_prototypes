@@ -2,7 +2,7 @@
 
 ## Order of Importance
 
-- Generally, the most important fields/or the must used, should be at the top, quickly accessible. Less important widgets should be placed lower or in sub-panels
+- More important fields and tools should be given more visual prominence. This can be achieved with positioning, size, contrast or folding elements.
 - If every setting in a sub-panel is predicated on something being enabled, the toggle should be in the header.
 
 ## Enums

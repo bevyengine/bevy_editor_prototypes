@@ -42,7 +42,7 @@ It's best not to plan too far in advance!
   - [ ] AABBs
 - [ ] lists entities in the scene
   - [ ] supports hierarchy via a folding tree view
-- [ ] scene object picking: click on objects in the scene to select them in the inspector
+- [ ] click entities in the list to select them.
 - [ ] components of selected entity are shown in the inspector with component values, including components specific to the user's game
 - [ ] resources can be inspected, showing their values
 - [ ] loaded assets can be inspected, providing basic information about them
@@ -110,6 +110,7 @@ It's best not to plan too far in advance!
   - [ ] hotkey rebinding
   - [ ] camera controls
   - [ ] preferred language
+- [ ] scene object picking: click on objects in the scene to select them in the inspector
 - [ ] entities can be looked up by name in the inspector
 - [ ] system stepping support
 - [ ] create new Bevy project

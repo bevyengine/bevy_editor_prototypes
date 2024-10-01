@@ -8,7 +8,7 @@
 - Language should be targeted at the lowest level of technical expertise needed to clearly understand an explanation.
 - Entity, component, resource, system, event and asset are the critical technical vocabulary for all Bevy users to learn, no matter what their role is.
 - Do not use English contractions like aren’t, can’t, etc.
-- Single character identifiers, like X, Y, Z, R, G, B, etc. are always capitalized.
+- Single characters like X/Y/Z are always capitalized.
 - Do not use implementation specific language.
   - Don't use "int" or "struct"
   - Instead use "Number" or "Data"

@@ -10,5 +10,5 @@
 
 ## Workflow Oriented
 
-When addressing things in the Ui, focus on actions not things. This means use verbs over nouns. Its common to think everything needs a name and names should be nouns. Think like a user instead, you don't care what a button is, you care what it *does*. What is the quickest, most natural feeling way to describe what the user is trying to do? Verbs are a powerful aspect of language, and often fit mental model better.
+When addressing things in the Ui, focus on actions not things. Prefer verbs over nouns.
 

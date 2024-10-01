@@ -10,5 +10,5 @@
 
 ## Workflow Oriented
 
-When addressing things in the Ui, focus on actions not things. Prefer verbs over nouns.
+When naming tools and UI elements, focus on actions not things. Prefer verbs over nouns.
 

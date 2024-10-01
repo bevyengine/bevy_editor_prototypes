@@ -8,7 +8,6 @@
 ## Enums
 
 - If a enum is more than 3 items, it should be a drop down.
-- If the field's can be represented as icons then this can be bypassed.
 
 ## Sub-Panels
 

@@ -39,7 +39,8 @@ Below each bullet point, motivation is given.
 
 - The editor is not an asset or code creation tool (certainly not in the default configuration). If an established tool does a good job authoring content, focus on importing its output, not reinventing Blender, VSCode, Asesprite, and Reaper.  
   - We have limited resources, and this isn't a good use of them. Artists and professionals already know and prefer specialized tools.
-- The Bevy editor should not have a native look-and-feel, and should not use native menus.
+  - Instead, the Bevy Editor is a scene creation tool with powerful Bevy-specific debugging capabilities, with limited asset-tweaking capabilities for quick and simple tasks.
+- The Bevy Editor should not have a native look-and-feel, and should not use native menus.
   - This is a poor use of resources, leads to inconsistent aesthetics, and makes it harder to test and teach across platforms. Instead, focus on the useful behavior and design conventions.
   - File picking widgets are an exception: these are non-intrusive, good crates exist and are not central to the user experience.
 - End users should not have to install or update Rust.
@@ -53,6 +54,13 @@ Below each bullet point, motivation is given.
   - Dogfooding and improving `bevy_ui` is a major goal. If something sucks, fix it upstream!
 - No scripting languages.
   - This targets a very niche audience: Rust is safer and easier to write than C++ and pure artists won't write Lua either. Prefer GUI controls, and then defer to node-based logic for highly complex art/design workflows.
+- The Bevy Editor is not a plugin for a third-party editor like Blender or LDTK. While tools like [Blenvy](https://github.com/kaosat-dev/Blenvy) can be very productive for a team making a specific game, they're not a replacement for the Bevy Editor.
+  - Each of these tools focuses on a single style of game: primarily 2D vs 3D.
+  - Being able to see your scene *as it appears in the game* is a vital requirement for effective scene creation: third party tools will not have the appropriate level of integration and come with their own subtly different rendering engines.
+  - These tools have their own specialized learning curve, and a huge quantity of unrelated functionality. This comes at a cost in terms of performance, learning curves and usability.
+  - The editor components (cameras, transform gizmos, UI elements, inspector and more) are incredibly valuable for the Bevy ecosystem as a whole and will be reused in other tooling and Bevy projects.
+  - While some functionality (primarily level editing) is shared, much of the more specialized functionality (the system graph visualizer and system stepping for example) is Bevy specific and requires tight integration.
+  - Coupling Bevy's development to an external tool makes project management and the developer learning curve much more painful, and introduces a large amount of external risk as the projects we depend on can make serious breaking changes or go defunct without warning.
 
 ## Open questions
 

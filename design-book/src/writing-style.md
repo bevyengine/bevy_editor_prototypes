@@ -11,5 +11,5 @@
 
 ## UI
 
-- Use MLA Title case for UI labels. (See this [overview](https://titlecaseconverter.com/rules/#MLA))
+- Use [MLA title case](https://titlecaseconverter.com/rules/#MLA) for UI labels.
 - Avoid redundancy. For example do not use Enable, Activate, Is, Use, or similar words for boolean properties, just a checkbox.

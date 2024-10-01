@@ -11,7 +11,7 @@
 
 ## Sub-Panels
 
-- Should be used when multiple options/buttons/fields are all related and a label would help add context to them.
+- When you have closely related options you should group them into a sub-panel.
 - This allows for collapsing enabling a user to minimize noise from things they aren't using.
 
 ## THIS SHOULD BE IMPROVED OVER TIME

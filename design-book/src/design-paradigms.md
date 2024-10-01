@@ -10,7 +10,7 @@ The Ui should enable you to always view all relevant information and tools at an
 
 ## Non-Blocking
 
-Tools and interface options are being designed to not block the user from using any other parts of Bevy Editor. Bevy Editor doesn't pop-up forms that the user must fill. The UI should stay responsive by all means, at least for the common and most used operations. When things exceptionally do block (Like Running the game) it should be clearly indicated and allow an immediate exit. User's don't like their workflow being interrupted.
+The UI should stay responsive whenever possible. Tools and interface options should not block the user from using any other parts of Bevy Editor. When long-running blocking tasks are required, it should be clearly indicated and allow an immediate exit. Users don't like their workflow being interrupted!
 
 ## Non-Modal
 

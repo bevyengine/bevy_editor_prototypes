@@ -40,7 +40,7 @@ It's best not to plan too far in advance!
   - [ ] UI outlines
   - [ ] lights
   - [ ] AABBs
-- [ ] lists entities in scene
+- [ ] lists entities in the scene
   - [ ] supports hierarchy via a folding tree view
 - [ ] components of selected entity shown in the inspector with component values
 - [ ] resources can be inspected, showing their values

@@ -6,7 +6,7 @@
 
 - Avoid strong accent colors for no reason. Using accent colors when you aren't trying to get the user's attention only creates visual noise and clutter that harms the user experience. The UI should be calm with slight contrasts unless there's good reason to do so. Getting this right early on will do good for long term editor-user communication.
 
-- When ever Ui breaks away from Bevy Editor's design practices, the reasoning should be well thought and documented. Consistency is a double edge sword, it can just as easily harm usability as it helps. Breaking away can be an acceptable trade if there are good reasons to do so, and only then.
+- If the design breaks away from Bevy Editor's design practices, the reasoning should be well thought and documented. Consistency is a double edge sword, it can just as easily harm usability as it helps. Breaking away can be an acceptable choice if there are good reasons to do so, and only then.
 
 ## Workflow Oriented
 

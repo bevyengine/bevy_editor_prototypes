@@ -27,9 +27,8 @@ It's best not to plan too far in advance!
 - [x] define basic constraints for how we're building the editor
 - [x] define a shared vision for what the editor is (and is not)
 
-## Stage 1: Standalone Scene Editor
+## Stage 1: Standalone Read-Only Editor
 
-- [ ] undo-redo abstraction
 - [ ] can load scenes from disk using a native file picking widget
 - [ ] can display scenes in a viewer
   - [ ] 2D
@@ -41,14 +40,21 @@ It's best not to plan too far in advance!
   - [ ] UI outlines
   - [ ] lights
   - [ ] AABBs
-- [ ] the list of entities and their components is shown in the inspector
+- [ ] lists entities in scene
   - [ ] supports hierarchy via a folding tree view
+- [ ] components of selected entity show in inspector with component values
+- [ ] resources can be inspected, showing their values
+- [ ] loaded assets can be inspected, providing basic information about them
+
+## Stage 2: Basic Editing Capabilities
+
+- [ ] undo-redo abstraction
+- [ ] entities can be added and removed
 - [ ] existing component values can be modified using a graphical interface
 - [ ] resources can be inspected, showing their values and allowing modification
-- [ ] loaded assets can be inspected, providing basic information about them
 - [ ] scenes can be saved back to disk
 
-## Stage 2: Editor-Game Interaction
+## Stage 3: Editor-Game Interaction
 
 - [ ] provide the editor with access to the game's code, allowing it to correctly initialize objects
   - [ ] game-specific rendering techniques display correctly in the editor's scene editing
@@ -64,7 +70,7 @@ It's best not to plan too far in advance!
 - [ ] distinct editor and game views that can be run simultaneously
 - [ ] live edit resource and component data in the editor view while the game is running
 
-## Stage 3: UI/UX Foundations
+## Stage 4: UI/UX Foundations
 
 - [ ] tooltips
 - [ ] hotkeys
@@ -95,7 +101,7 @@ It's best not to plan too far in advance!
   - [ ] saving the project
   - [ ] opening the command palette
 
-## Stage 4: Fundamental Features
+## Stage 5: Fundamental Features
 
 - [ ] preferences
   - [ ] hotkey rebinding

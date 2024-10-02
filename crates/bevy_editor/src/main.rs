@@ -12,6 +12,7 @@
 //! - Finally, it will be a standalone application that communicates with a running Bevy game via the Bevy Remote Protocol.
 
 use bevy::prelude::*;
+use bevy_editor_camera::*;
 
 fn main() {
     App::new()

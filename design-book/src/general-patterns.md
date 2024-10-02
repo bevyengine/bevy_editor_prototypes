@@ -5,4 +5,4 @@
 
 ## Editors
 
-- Editor views such as 3D scene/2D scene, where exact coordinates matter, should have a grid background (In a 3d context this means the "ground" plane.)
+- Editor views such as 3D scene/2D scene, where exact coordinates matter, should have a grid background. In a 3d context this means the "ground" plane.

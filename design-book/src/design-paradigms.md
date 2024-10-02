@@ -11,6 +11,12 @@ That means:
 2. The Editor must be customizable to meet the unique needs of each user and project.
 3. Art, audio, writing and design-centric workflows should require a minimal level of technical expertise.
 
+## Group tools by task into workspaces
+
+Tools should be grouped together into customizable workspaces to reflect the needs of common tasks: creating a level, debugging and optimizing a game, writing dialog, and so on.
+
+It's okay for tools to be duplicated across the default workspaces if they're needed by more than one workflow!
+
 ## Redundant interaction paradigms for accessibility
 
 1. Anything that can be done via a mouse click can be done via a hotkey.

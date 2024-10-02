@@ -11,6 +11,14 @@ That means:
 2. The Editor must be customizable to meet the unique needs of each user and project.
 3. Art, audio, writing and design-centric workflows should require a minimal level of technical expertise.
 
+## Redundant interaction paradigms for accessibility
+
+1. Anything that can be done via a mouse click can be done via a hotkey.
+2. Anything that can be found in a menu can be found in the command palette.
+3. Anything that can be configured via setting a menu option can be done by editing a config file.
+
+To be completely clear: the same should be true in the opposite directions!
+
 ## Non-Overlapping
 
 The UI should enable you to always view all relevant information and tools at any given moment, you should never have to move a window out of your way, for that reason, as well as sticking with bevy's modular structure, Bevy uses a divided window layout we call Panes.

@@ -5,7 +5,6 @@ edition = "2021"
 
 [dependencies]
 bevy.workspace = true
-bevy_editor_camera = { path = "../bevy_editor_camera" }
 
 [lints]
 workspace = true

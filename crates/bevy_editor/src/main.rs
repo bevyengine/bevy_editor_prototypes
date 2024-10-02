@@ -15,6 +15,7 @@ use bevy::prelude::*;
 use bevy_editor_camera::*;
 
 fn main() {
+    add(1, 2);
     App::new()
         .add_plugins(DefaultPlugins)
         .add_systems(Startup, camera_setup)

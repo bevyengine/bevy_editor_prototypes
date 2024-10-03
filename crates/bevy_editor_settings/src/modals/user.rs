@@ -1,4 +1,4 @@
-//! this is for the user to overide workspace settings
+//! this is for the user to override workspace settings
 
 use bevy::reflect::Reflect;
 use serde::{Deserialize, Serialize};

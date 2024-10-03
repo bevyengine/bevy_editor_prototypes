@@ -3,7 +3,7 @@
 use bevy::prelude::*;
 
 pub mod modals;
-mod persistant;
+mod persistent;
 
 /// A Bevy plugin for editor settings.
 /// This plugin loads the workspace settings, user settings, and project settings.
@@ -42,9 +42,9 @@ impl Settings {
     }
 
     /// Save the user settings.
-    pub fn save_user_settings(&self) -> Result<(), persistant::PersistantError> {
+    pub fn save_user_settings(&self) -> Result<(), persistent::PersistentError> {
         if let Some(user_settings) = &self.user_settings {
-            persistant::save_user_settings(user_settings)?;
+            persistent::save_user_settings(user_settings)?;
             Ok(())
         } else {
             warn!("No user settings to save.");
@@ -55,12 +55,12 @@ impl Settings {
 
 impl Plugin for EditorSettingsPlugin {
     fn build(&self, app: &mut App) {
-        let workspace_settings = persistant::load_workspace_settings()
+        let workspace_settings = persistent::load_workspace_settings()
             .inspect_err(|error| {
                 error!("Error loading workspace settings: {:?}", error);
             })
             .ok();
-        let user_settings = persistant::load_user_settings()
+        let user_settings = persistent::load_user_settings()
             .inspect_err(|error| {
                 error!("Error loading user settings: {:?}", error);
             })

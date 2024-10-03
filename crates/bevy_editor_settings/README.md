@@ -7,7 +7,7 @@ There are three types of settings in order of precedence:
 - Default settings
 
 ## User settings
-User settings are settings that are specific to the user. They are stored in the porject at the top level in `user.toml`
+User settings are settings that are specific to the user. They are stored in the project at the top level in `user.toml`
 these will be moved when the editor is a standalone application
 
 ## Workspace settings

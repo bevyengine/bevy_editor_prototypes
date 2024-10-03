@@ -1,5 +1,5 @@
 /// Load a type implementing `serde::Deserialize` from a TOML file.
-pub fn load<T>(path: impl AsRef<std::path::Path>) -> Result<T, PersistantError>
+pub fn load<T>(path: impl AsRef<std::path::Path>) -> Result<T, PersistentError>
 where
     T: serde::de::DeserializeOwned,
 {
@@ -9,18 +9,18 @@ where
 }
 
 #[inline]
-/// TODO: when the editor is an external applcation this should be moved to the user's configuration directory
-fn user_settings_path() -> Result<std::path::PathBuf, PersistantError> {
+/// TODO: when the editor is an external application this should be moved to the user's configuration directory
+fn user_settings_path() -> Result<std::path::PathBuf, PersistentError> {
     Ok(std::env::var("CARGO_MANIFEST_DIR")
         .map(std::path::PathBuf::from)
-        .map_err(|_| PersistantError::WorkspaceConfigDirs)?
+        .map_err(|_| PersistentError::WorkspaceConfigDirs)?
         .join("user.toml"))
 }
 
 /// Save the user settings to the default location.
 pub fn save_user_settings(
     settings: &crate::modals::user::UserSettings,
-) -> Result<(), PersistantError> {
+) -> Result<(), PersistentError> {
     let path = user_settings_path()?;
     let toml_string = toml::to_string(settings)?;
 
@@ -30,7 +30,7 @@ pub fn save_user_settings(
 }
 
 /// Load the user settings from the default location.
-pub fn load_user_settings() -> Result<crate::modals::user::UserSettings, PersistantError> {
+pub fn load_user_settings() -> Result<crate::modals::user::UserSettings, PersistentError> {
     let path = user_settings_path()?;
 
     load(path)
@@ -38,17 +38,17 @@ pub fn load_user_settings() -> Result<crate::modals::user::UserSettings, Persist
 
 /// Load the workspace settings from the default location.
 pub fn load_workspace_settings(
-) -> Result<crate::modals::workspace::WorkspaceSettings, PersistantError> {
+) -> Result<crate::modals::workspace::WorkspaceSettings, PersistentError> {
     let path = std::env::var("CARGO_MANIFEST_DIR")
         .map(std::path::PathBuf::from)
-        .map_err(|_| PersistantError::WorkspaceConfigDirs)?;
+        .map_err(|_| PersistentError::WorkspaceConfigDirs)?;
 
     load(path.join("Bevy.toml"))
 }
 
 /// Errors that can occur when loading a TOML file.
 #[derive(Debug, thiserror::Error)]
-pub enum PersistantError {
+pub enum PersistentError {
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
     #[error("TOML deserialization error: {0}")]

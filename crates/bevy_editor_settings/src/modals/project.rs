@@ -19,4 +19,3 @@ impl Default for ProjectSettings {
         }
     }
 }
-

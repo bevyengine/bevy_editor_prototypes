@@ -2,9 +2,8 @@
 
 use bevy::prelude::*;
 
-mod persistant;
 pub mod modals;
-
+mod persistant;
 
 /// A Bevy plugin for editor settings.
 /// This plugin loads the workspace settings, user settings, and project settings.
@@ -24,7 +23,7 @@ pub struct Settings {
 
 impl Settings {
     /// Get the project settings.
-    /// 
+    ///
     /// TODO this needs to do some kind of merging of settings
     /// the order of precedence should be from highest to lowest:
     /// 1. user settings
@@ -34,7 +33,11 @@ impl Settings {
         self.user_settings
             .as_ref()
             .map(|settings| &settings.project_settings)
-            .or_else(|| self.workspace_settings.as_ref().map(|settings| &settings.editor_settings))
+            .or_else(|| {
+                self.workspace_settings
+                    .as_ref()
+                    .map(|settings| &settings.editor_settings)
+            })
             .unwrap_or(&self.project_settings)
     }
 

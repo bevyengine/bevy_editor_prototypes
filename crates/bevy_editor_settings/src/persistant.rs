@@ -18,7 +18,9 @@ fn user_settings_path() -> Result<std::path::PathBuf, PersistantError> {
 }
 
 /// Save the user settings to the default location.
-pub fn save_user_settings(settings: &crate::modals::user::UserSettings) -> Result<(), PersistantError> {
+pub fn save_user_settings(
+    settings: &crate::modals::user::UserSettings,
+) -> Result<(), PersistantError> {
     let path = user_settings_path()?;
     let toml_string = toml::to_string(settings)?;
 
@@ -26,7 +28,6 @@ pub fn save_user_settings(settings: &crate::modals::user::UserSettings) -> Resul
 
     Ok(())
 }
-   
 
 /// Load the user settings from the default location.
 pub fn load_user_settings() -> Result<crate::modals::user::UserSettings, PersistantError> {
@@ -36,8 +37,8 @@ pub fn load_user_settings() -> Result<crate::modals::user::UserSettings, Persist
 }
 
 /// Load the workspace settings from the default location.
-pub fn load_workspace_settings() -> Result<crate::modals::workspace::WorkspaceSettings, PersistantError>
-{
+pub fn load_workspace_settings(
+) -> Result<crate::modals::workspace::WorkspaceSettings, PersistantError> {
     let path = std::env::var("CARGO_MANIFEST_DIR")
         .map(|p| std::path::PathBuf::from(p))
         .map_err(|_| PersistantError::WorkspaceConfigDirs)?;

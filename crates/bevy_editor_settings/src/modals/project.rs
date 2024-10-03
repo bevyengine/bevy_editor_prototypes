@@ -4,7 +4,7 @@ use bevy::reflect::Reflect;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, Reflect)]
-#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 /// Settings for the editor
 #[serde(default)]
 pub struct ProjectSettings {

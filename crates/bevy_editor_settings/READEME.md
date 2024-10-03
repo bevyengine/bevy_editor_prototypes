@@ -20,4 +20,4 @@ Default settings are the settings chosen by the plugins or the editor and are st
 ## TODO
 
 - [x] Add a settings editor
-- [ ] Add a way for plugins(part of the editor) to add and fetch settings
+- [ ] Add a way for plugins(part of the editor) to add and fetch settings ([bevy_basic_prefs](https://github.com/viridia/bevy_basic_prefs) should be used as a point of start)

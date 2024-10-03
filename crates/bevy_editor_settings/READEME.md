@@ -1,7 +1,7 @@
 # Bevy Editor Settings
 
 This crate provides a way to have settings for the editor.
-There are three types of settings:
+There are three types of settings in order of precedence:
 - User settings
 - Workspace settings
 - Default settings

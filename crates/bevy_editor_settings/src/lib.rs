@@ -5,8 +5,6 @@ use bevy::prelude::*;
 mod persistant;
 pub mod modals;
 
-/// The directory where preferences are stored. under the user's configuration directory.
-pub(crate) const DEFAULT_APP_NAME: &str = "bevy_editor";
 
 /// A Bevy plugin for editor settings.
 /// This plugin loads the workspace settings, user settings, and project settings.
@@ -17,11 +15,11 @@ pub struct EditorSettingsPlugin;
 /// This includes workspace settings, user settings, and project settings.
 pub struct Settings {
     /// Settings for the workspace
-    workspace_settings: Option<modals::workspace::WorkspaceSettings>,
+    pub workspace_settings: Option<modals::workspace::WorkspaceSettings>,
     /// Settings for the user
-    user_settings: Option<modals::user::UserSettings>,
+    pub user_settings: Option<modals::user::UserSettings>,
     /// default project settings used when no workspace or user settings are present for a given setting
-    project_settings: modals::project::ProjectSettings,
+    pub project_settings: modals::project::ProjectSettings,
 }
 
 impl Settings {
@@ -38,6 +36,17 @@ impl Settings {
             .map(|settings| &settings.project_settings)
             .or_else(|| self.workspace_settings.as_ref().map(|settings| &settings.editor_settings))
             .unwrap_or(&self.project_settings)
+    }
+
+    /// Save the user settings.
+    pub fn save_user_settings(&self) -> Result<(), persistant::PersistantError> {
+        if let Some(user_settings) = &self.user_settings {
+            persistant::save_user_settings(user_settings)?;
+            Ok(())
+        } else {
+            warn!("No user settings to save.");
+            Ok(())
+        }
     }
 }
 

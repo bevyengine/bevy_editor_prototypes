@@ -64,7 +64,7 @@ pub struct EditorCamera2d {
     pub zoom_to_cursor: bool,
     /// The number of pixels the camera should scroll per line.
     ///
-    /// This is used to convert [`MouseScrollUnity::Line`] to [`MouseScrollUnity::Pixel`].
+    /// This is used to convert [`MouseScrollUnit::Line`] to [`MouseScrollUnit::Pixel`].
     pub scroll_pixels_per_line: f32,
 }
 
@@ -112,7 +112,7 @@ impl Default for EditorCamera2d {
 ///
 /// This makes sure the bounded area does not go outside the bound.
 ///
-/// ```
+/// ```text
 /// +-------Bound------------+
 /// |  +---Bounded Area--+   |
 /// |  |                 |   |

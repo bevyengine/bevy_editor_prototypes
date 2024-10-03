@@ -12,7 +12,7 @@ where
 /// TODO: when the editor is an external applcation this should be moved to the user's configuration directory
 fn user_settings_path() -> Result<std::path::PathBuf, PersistantError> {
     Ok(std::env::var("CARGO_MANIFEST_DIR")
-        .map(|p| std::path::PathBuf::from(p))
+        .map(std::path::PathBuf::from)
         .map_err(|_| PersistantError::WorkspaceConfigDirs)?
         .join("user.toml"))
 }
@@ -40,7 +40,7 @@ pub fn load_user_settings() -> Result<crate::modals::user::UserSettings, Persist
 pub fn load_workspace_settings(
 ) -> Result<crate::modals::workspace::WorkspaceSettings, PersistantError> {
     let path = std::env::var("CARGO_MANIFEST_DIR")
-        .map(|p| std::path::PathBuf::from(p))
+        .map(std::path::PathBuf::from)
         .map_err(|_| PersistantError::WorkspaceConfigDirs)?;
 
     load(path.join("Bevy.toml"))

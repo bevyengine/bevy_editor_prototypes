@@ -11,5 +11,6 @@ use super::project::ProjectSettings;
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
 /// Settings for the user
 pub struct UserSettings {
+    /// project settings for the user
     pub project_settings: ProjectSettings,
 }

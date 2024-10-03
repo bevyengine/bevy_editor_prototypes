@@ -1,8 +1,33 @@
 # Design Paradigms
 
+## Bevy is for Teams
+
+Bevy (and especially its Editor) is a tool for cross-disciplinary teams to work together.
+Each user will have their own unique strengths and weaknesses and tasks to perform.
+
+That means:
+
+1. Collaboration should be pleasant.
+2. The Editor must be customizable to meet the unique needs of each user and project.
+3. Art, audio, writing and design-centric workflows should require a minimal level of technical expertise.
+
+## Group tools by task into workspaces
+
+Tools should be grouped together into customizable workspaces to reflect the needs of common tasks: creating a level, debugging and optimizing a game, writing dialog, and so on.
+
+It's okay for tools to be duplicated across the default workspaces if they're needed by more than one workflow!
+
+## Redundant interaction paradigms for accessibility
+
+1. Anything that can be done via a mouse click can be done via a hotkey.
+2. Anything that can be found in a menu can be found in the command palette.
+3. Anything that can be configured via setting a menu option can be done by editing a config file.
+
+To be completely clear: the same should be true in the opposite directions!
+
 ## Non-Overlapping
 
-The Ui should enable you to always view all relevant information and tools at any given moment, you should never have to move a window out of your way, for that reason, as well as sticking with bevy's modular structure, Bevy uses a divided window layout we call Panes.
+The UI should enable you to always view all relevant information and tools at any given moment, you should never have to move a window out of your way, for that reason, as well as sticking with bevy's modular structure, Bevy uses a divided window layout we call Panes.
 
 1. Screens; the entire window enables you to configure workspaces using multiple editors.
 2. Panes; the container of an editor. Editors can each operate similar to a stand alone editor, like for modeling, painting or scripting. Editors can both follow Screen level user context ("Active" or "Selected") and offer local context browsing.
@@ -21,8 +46,3 @@ When input behavior changes (e.g. a special camera mode that overrides normal co
 ## Select -> Operate
 
 In [Blender](https://developer.blender.org/docs/features/interface/human_interface_guidelines/paradigms/#select-operate) you first indicate which data you work on, and then what you want to do. The same applies for Bevy. Quote from Blender's guidelines: "This follows the non-modal principle; there's no active tool mode you need to set first to be able to use the tool on what you select after. This concept enables a fast and flexible work flow."
-
-## Bevy Editor is for Artists
-
-Bevy Editor is for the people on teams you don't/shouldn't expect to know how to code.
-Ex: A level designer should not have to touch Rust just to place a door.

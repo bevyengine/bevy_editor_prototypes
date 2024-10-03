@@ -1,4 +1,5 @@
 [workspace]
+resolver = "2"
 members = ["crates/*", "bevy_editor_panes/*", "bevy_widgets/*"]
 
 [workspace.lints.clippy]
@@ -25,3 +26,5 @@ unused_qualifications = "warn"
 
 [workspace.dependencies]
 bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "9386bd0114c44c9f00a2e9c41db1225aaa78d159" }
+thiserror = "1"
+serde = { version = "1", features = ["derive"] }

@@ -5,12 +5,10 @@ use serde::{Deserialize, Serialize};
 
 use super::project::ProjectSettings;
 
-
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, Reflect)]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
 /// Settings for the editor
 pub struct EditorSettings {
     /// current project settings
-    project_settings: ProjectSettings,
+    pub project_settings: ProjectSettings,
 }
-

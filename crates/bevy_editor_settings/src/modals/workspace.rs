@@ -11,9 +11,9 @@ use super::project::ProjectSettings;
 /// This should be in the root of your project
 pub struct WorkspaceSettings {
     /// Settings for the editor per workspace
-    editor_settings: ProjectSettings,
+    pub editor_settings: ProjectSettings,
     /// Settings for building the project
-    build: Build,
+    pub build: Build,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, Reflect)]

@@ -24,7 +24,22 @@ pub struct Settings {
     project_settings: modals::project::ProjectSettings,
 }
 
-impl Settings {}
+impl Settings {
+    /// Get the project settings.
+    /// 
+    /// TODO this needs to do some kind of merging of settings
+    /// the order of precedence should be from highest to lowest:
+    /// 1. user settings
+    /// 2. workspace settings
+    /// 3. default project settings
+    pub fn project_settings(&self) -> &modals::project::ProjectSettings {
+        self.user_settings
+            .as_ref()
+            .map(|settings| &settings.project_settings)
+            .or_else(|| self.workspace_settings.as_ref().map(|settings| &settings.editor_settings))
+            .unwrap_or(&self.project_settings)
+    }
+}
 
 impl Plugin for EditorSettingsPlugin {
     fn build(&self, app: &mut App) {

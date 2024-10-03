@@ -14,20 +14,28 @@
 /// - Panes must not interfere with each other, only temporary/absolute positioned elements are allowed to overlap panes.
 use bevy::prelude::*;
 
-/// Basic add function, will be removed later.
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+/// The Bevy Pane Layout Plugin.
+pub struct PaneLayoutPlugin;
+
+impl Plugin for PaneLayoutPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, setup);
+    }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+fn setup(mut commands: Commands) {
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                ..Default::default()
+            },
+            background_color: BackgroundColor(Color::oklaba(0.7, 0.1, 0.47, 1.0)),
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+            ..Default::default()
+        })
+        .insert(RootPaneLayoutNode);
 }
 
 /// Root node to capture all editor UI elements, nothing but the layout system should modify this.

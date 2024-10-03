@@ -1,9 +1,0 @@
-[package]
-name = "bevy_color_picker"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-
-[lints]
-workspace = true

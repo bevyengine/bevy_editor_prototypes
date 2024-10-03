@@ -13,9 +13,11 @@
 
 use bevy::prelude::*;
 
+use bevy_pane_layout::PaneLayoutPlugin;
+
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins((DefaultPlugins, PaneLayoutPlugin))
         .add_systems(Startup, camera_setup)
         .run();
 }

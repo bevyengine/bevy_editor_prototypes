@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/*"]
+members = ["crates/*", "bevy_editor_panes/*", "bevy_widgets/*"]
 
 [workspace.lints.clippy]
 doc_markdown = "warn"

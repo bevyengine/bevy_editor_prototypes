@@ -41,7 +41,7 @@ pub struct EditorCamera2d {
     pub bound: Rect,
     /// The current zoom level of the camera.
     ///
-    /// This value is clamped to the [`zoom_range`].
+    /// This value is clamped to the [`Self::zoom_range`].
     pub zoom: f32,
     /// The range of zoom the allowed zoom the camera will be clamped to.
     ///

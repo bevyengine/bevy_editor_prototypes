@@ -120,38 +120,6 @@ fn clamp_area_to_bound(pos: Vec2, bounded_area_size: Vec2, bound: Aabb2d) -> Vec
     pos.clamp(aabb.min, aabb.max)
 }
 
-/// Updates all values of the [`ScalingMode`] using the `update` closure.
-///
-// TODO: This should probably be upstreamed.
-fn update_scaling_mode<F>(scaling_mode: ScalingMode, update: F) -> ScalingMode
-where
-    F: Fn(f32) -> f32,
-{
-    match scaling_mode {
-        ScalingMode::Fixed { width, height } => ScalingMode::Fixed {
-            width: update(width),
-            height: update(height),
-        },
-        ScalingMode::WindowSize(scale) => ScalingMode::WindowSize(update(scale)),
-        ScalingMode::AutoMin {
-            min_width,
-            min_height,
-        } => ScalingMode::AutoMin {
-            min_width: update(min_width),
-            min_height: update(min_height),
-        },
-        ScalingMode::AutoMax {
-            max_width,
-            max_height,
-        } => ScalingMode::AutoMax {
-            max_width: update(max_width),
-            max_height: update(max_height),
-        },
-        ScalingMode::FixedVertical(scale) => ScalingMode::FixedVertical(update(scale)),
-        ScalingMode::FixedHorizontal(scale) => ScalingMode::FixedHorizontal(update(scale)),
-    }
-}
-
 /// Returns the [`ScalingMode`] as a Vec2.
 ///
 /// If a mode provides two values they are put into x and y respectively,
@@ -242,6 +210,8 @@ fn camera_zoom(
             continue;
         };
 
+        // This may be incorrect :/ but it seems to work good enough for now.
+        // We should probably handle each scaling mode specifically to get the correct result.
         let proj_size = projection.area.max / scaling_mode_as_vec2(&old_projection_scale);
 
         let cursor_world_pos = transform.translation.truncate()

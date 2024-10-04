@@ -26,6 +26,12 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         })
         .insert(EditorCamera2d {
             pan_mouse_buttons: vec![MouseButton::Left, MouseButton::Middle, MouseButton::Right],
+            bound: Rect {
+                min: Vec2::new(-1000.0, -1000.0),
+                max: Vec2::new(1000.0, 1000.0),
+            },
+            zoom_range: 0.4..=10.0,
+            zoom: 0.4, // Set the initial zoom level.
             ..Default::default()
         });
 

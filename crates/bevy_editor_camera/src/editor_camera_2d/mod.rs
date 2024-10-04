@@ -8,11 +8,8 @@
 use std::ops::RangeInclusive;
 
 use bevy::{
-    input::mouse::{MouseScrollUnit, MouseWheel},
-    math::bounding::{Aabb2d, BoundingVolume},
-    prelude::*,
-    render::camera::{CameraProjection, ScalingMode},
-    window::PrimaryWindow,
+    input::mouse::AccumulatedMouseScroll, math::bounding::Aabb2d, prelude::*,
+    render::camera::ScalingMode, window::PrimaryWindow,
 };
 
 /// Plugin which adds necessary components and systems for 2d editor cameras to work.
@@ -42,19 +39,14 @@ pub struct EditorCamera2d {
     /// The bound which the camera will be clamped to when panning
     /// and zooming. Use infinity values to disable any clamping.
     pub bound: Rect,
-    /// The minimum allowed zoom of the camera.
+    /// The current zoom level of the camera.
     ///
-    /// The orthographic projection's scale will be clamped
-    /// at this value when zooming in. Use [`f32::NEG_INFINITY`]
-    /// to disable clamping.
-    // TODO: Figure out if negative infinity or 0.0 makes more sense since
-    pub min_scale: f32,
-    /// The maximum allowed zoom of the camera.
+    /// This value is clamped to the [`Self::zoom_range`].
+    pub zoom: f32,
+    /// The range of zoom the allowed zoom the camera will be clamped to.
     ///
-    /// The orthographic projection's scale will be clamped
-    /// at this value when zooming out. Use [`f32::INFINITY`]
-    /// to disable clamping.
-    pub max_scale: f32,
+    /// To disable clamping set the range to [`f32::NEG_INFINITY`]..=[`f32::INFINITY`].
+    pub zoom_range: RangeInclusive<f32>,
     /// The sensitivity of the mouse wheel input when zooming.
     pub zoom_sensitivity: f32,
     /// When true, zooming the camera will center on the mouse cursor
@@ -62,10 +54,6 @@ pub struct EditorCamera2d {
     /// When false, the camera will stay in place, zooming towards the
     /// middle of the screen
     pub zoom_to_cursor: bool,
-    /// The number of pixels the camera should scroll per line.
-    ///
-    /// This is used to convert [`MouseScrollUnit::Line`] to [`MouseScrollUnit::Pixel`].
-    pub scroll_pixels_per_line: f32,
 }
 
 impl EditorCamera2d {
@@ -74,11 +62,6 @@ impl EditorCamera2d {
             min: self.bound.min,
             max: self.bound.max,
         }
-    }
-
-    /// Returns the scale inclusive range
-    fn scale_range(&self) -> RangeInclusive<f32> {
-        self.min_scale..=self.max_scale
     }
 }
 
@@ -91,11 +74,10 @@ impl Default for EditorCamera2d {
                 min: Vec2::ONE * f32::NEG_INFINITY,
                 max: Vec2::ONE * f32::INFINITY,
             },
-            min_scale: f32::NEG_INFINITY,
-            max_scale: f32::INFINITY,
-            zoom_sensitivity: 0.001,
+            zoom: 1.0,
+            zoom_range: f32::NEG_INFINITY..=f32::INFINITY,
+            zoom_sensitivity: 0.1,
             zoom_to_cursor: true,
-            scroll_pixels_per_line: 100.0,
         }
     }
 }
@@ -122,40 +104,20 @@ impl Default for EditorCamera2d {
 /// +------------------------+
 /// ```
 fn clamp_area_to_bound(pos: Vec2, bounded_area_size: Vec2, bound: Aabb2d) -> Vec2 {
-    let aabb = bound.shrink(bounded_area_size / 2.0);
-    pos.clamp(aabb.min, aabb.max)
-}
+    // We are manually implementing the `bound.shrink()` functionality
+    // because the existing one is unsafe and can panic when the bounded
+    // area size does not fit within the bound.
+    let aabb = Aabb2d {
+        min: bound.min + bounded_area_size / 2.0,
+        max: bound.max - bounded_area_size / 2.0,
+    };
 
-/// Updates all values of the [`ScalingMode`] using the `update` closure.
-///
-// TODO: This should probably be upstreamed.
-fn update_scaling_mode<F>(scaling_mode: ScalingMode, update: F) -> ScalingMode
-where
-    F: Fn(f32) -> f32,
-{
-    match scaling_mode {
-        ScalingMode::Fixed { width, height } => ScalingMode::Fixed {
-            width: update(width),
-            height: update(height),
-        },
-        ScalingMode::WindowSize(scale) => ScalingMode::WindowSize(update(scale)),
-        ScalingMode::AutoMin {
-            min_width,
-            min_height,
-        } => ScalingMode::AutoMin {
-            min_width: update(min_width),
-            min_height: update(min_height),
-        },
-        ScalingMode::AutoMax {
-            max_width,
-            max_height,
-        } => ScalingMode::AutoMax {
-            max_width: update(max_width),
-            max_height: update(max_height),
-        },
-        ScalingMode::FixedVertical(scale) => ScalingMode::FixedVertical(update(scale)),
-        ScalingMode::FixedHorizontal(scale) => ScalingMode::FixedHorizontal(update(scale)),
+    if aabb.min.x > aabb.max.x || aabb.min.y > aabb.max.y {
+        // Return center of bound
+        return (aabb.min + aabb.max) / 2.0;
     }
+
+    pos.clamp(aabb.min, aabb.max)
 }
 
 /// Returns the [`ScalingMode`] as a Vec2.
@@ -179,47 +141,11 @@ fn scaling_mode_as_vec2(scaling_mode: &ScalingMode) -> Vec2 {
     }
 }
 
-/// This is used to find the maximum safe zoom out/projection
-/// scale when we have been provided with minimum and maximum x boundaries for
-/// the camera.
-fn max_scale_within_bounds(
-    bounded_area_size: Vec2,
-    proj: &OrthographicProjection,
-    window_size: Vec2, //viewport?
-) -> Vec2 {
-    let mut proj = proj.clone();
-    proj.scaling_mode = update_scaling_mode(proj.scaling_mode, |_| 1.0);
-    proj.update(window_size.x, window_size.y);
-    let base_world_size = proj.area.size();
-    bounded_area_size / base_world_size
-}
-
-/// Makes sure that the camera projection scale stays in the provided bounds
-/// and range.
-fn clamp_scale_to_bound(
-    proj: &mut OrthographicProjection,
-    bounded_area_size: Vec2,
-    scale_range: &RangeInclusive<f32>,
-    window_size: Vec2,
-) {
-    proj.scaling_mode = update_scaling_mode(proj.scaling_mode, |v| {
-        v.clamp(*scale_range.start(), *scale_range.end())
-    });
-    // If there is both a min and max boundary, that limits how far we can zoom.
-    // Make sure we don't exceed that
-    if bounded_area_size.x.is_finite() || bounded_area_size.y.is_finite() {
-        let max_safe_scale = max_scale_within_bounds(bounded_area_size, proj, window_size);
-        proj.scaling_mode = update_scaling_mode(proj.scaling_mode, |v| {
-            v.min(max_safe_scale.x).min(max_safe_scale.y)
-        });
-    }
-}
-
 fn camera_zoom(
     primary_window: Query<&Window, With<PrimaryWindow>>,
-    mut mouse_wheel: EventReader<MouseWheel>,
+    mouse_wheel: Res<AccumulatedMouseScroll>,
     mut query: Query<(
-        &EditorCamera2d,
+        &mut EditorCamera2d,
         &Camera,
         &mut OrthographicProjection,
         &mut Transform,
@@ -230,33 +156,32 @@ fn camera_zoom(
         return;
     };
 
-    for (e_camera, camera, mut projection, mut transform) in query.iter_mut() {
+    for (mut e_camera, camera, mut projection, mut transform) in query.iter_mut() {
         if !e_camera.enabled {
             return;
         }
 
-        let scroll_delta = mouse_wheel
-            .read()
-            .map(|ev| match ev.unit {
-                MouseScrollUnit::Pixel => ev.y,
-                MouseScrollUnit::Line => ev.y * e_camera.scroll_pixels_per_line,
-            })
-            .sum::<f32>();
-
-        if scroll_delta == 0.0 {
+        if mouse_wheel.delta.y == 0.0 {
             continue;
         }
 
         let viewport_size = camera.logical_viewport_size().unwrap_or(window.size());
         let old_projection_scale = projection.scaling_mode;
-        projection.scaling_mode *= 1.0 - scroll_delta * e_camera.zoom_sensitivity;
 
-        clamp_scale_to_bound(
-            &mut projection,
-            e_camera.bound.size(),
-            &e_camera.scale_range(),
-            viewport_size,
-        );
+        let scroll_delta = 1.0 - mouse_wheel.delta.y * e_camera.zoom_sensitivity;
+        let zoom = e_camera.zoom / scroll_delta;
+
+        // Clamp the scroll delta so that it will never go beyond the zoom range.
+        let zoom_delta = if zoom < *e_camera.zoom_range.start() {
+            e_camera.zoom / *e_camera.zoom_range.start()
+        } else if zoom > *e_camera.zoom_range.end() {
+            e_camera.zoom / *e_camera.zoom_range.end()
+        } else {
+            scroll_delta
+        };
+
+        e_camera.zoom /= zoom_delta;
+        projection.scaling_mode *= zoom_delta;
 
         let cursor_normalized_viewport_pos = window
             .cursor_position()
@@ -268,7 +193,15 @@ fn camera_zoom(
 
                 ((cursor_pos - view_pos) / viewport_size) * 2. - Vec2::ONE
             })
-            .map(|p| Vec2::new(-p.x, p.y));
+            .map(|p| {
+                Vec2::new(p.x, -p.y)
+                    // This is a fix because somehow in window scaling mode everything is reversed.
+                    * if let ScalingMode::WindowSize(_) = projection.scaling_mode {
+                        -1.0
+                    } else {
+                        1.0
+                    }
+            });
 
         // Move the camera position to normalize the projection window
         let (Some(cursor_normalized_view_pos), true) =
@@ -277,6 +210,8 @@ fn camera_zoom(
             continue;
         };
 
+        // This may be incorrect :/ but it seems to work good enough for now.
+        // We should probably handle each scaling mode specifically to get the correct result.
         let proj_size = projection.area.max / scaling_mode_as_vec2(&old_projection_scale);
 
         let cursor_world_pos = transform.translation.truncate()
@@ -356,4 +291,48 @@ fn camera_pan(
     }
 
     *prev_mouse_pos = Some(mouse_pos);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_clamp_area_to_bound() {
+        let bound = Aabb2d {
+            min: Vec2::new(-10.0, -10.0),
+            max: Vec2::new(10.0, 10.0),
+        };
+
+        let bounded_area_size = Vec2::new(5.0, 5.0);
+
+        // Test when the bounded area is within the bound
+        let pos = Vec2::new(0.0, 0.0);
+        assert_eq!(clamp_area_to_bound(pos, bounded_area_size, bound), pos);
+
+        // Test when the bounded area is outside the bound
+        let pos = Vec2::new(-10.0, -10.0);
+        assert_eq!(
+            clamp_area_to_bound(pos, bounded_area_size, bound),
+            Vec2::new(-7.5, -7.5)
+        );
+
+        let pos = Vec2::new(10.0, 10.0);
+        assert_eq!(
+            clamp_area_to_bound(pos, bounded_area_size, bound),
+            Vec2::new(7.5, 7.5)
+        );
+
+        let pos = Vec2::new(10.0, -10.0);
+        assert_eq!(
+            clamp_area_to_bound(pos, bounded_area_size, bound),
+            Vec2::new(7.5, -7.5)
+        );
+
+        let pos = Vec2::new(-10.0, 10.0);
+        assert_eq!(
+            clamp_area_to_bound(pos, bounded_area_size, bound),
+            Vec2::new(-7.5, 7.5)
+        );
+    }
 }

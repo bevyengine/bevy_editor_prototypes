@@ -1,0 +1,45 @@
+use bevy::prelude::*;
+
+use bevy_menu_bar::{MenuBarNode, MenuBarPlugin, MenuBarSet};
+use bevy_pane_layout::{PaneLayoutPlugin, PaneLayoutSet, RootPaneLayoutNode};
+
+/// The Bevy Editor UI Plugin.
+pub struct BevyEditorUIPlugin;
+
+impl Plugin for BevyEditorUIPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, ui_setup.in_set(UISet))
+            .configure_sets(Startup, (PaneLayoutSet, MenuBarSet).after(UISet))
+            .add_plugins((PaneLayoutPlugin, MenuBarPlugin));
+    }
+}
+
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub struct UISet;
+
+/// The root node for the UI.
+#[derive(Component)]
+pub struct RootUINode;
+
+fn ui_setup(mut commands: Commands) {
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+
+                display: Display::Flex,
+                flex_direction: FlexDirection::Column,
+                flex_basis: Val::Percent(100.0),
+
+                ..Default::default()
+            },
+            background_color: BackgroundColor(Color::oklab(0.540, 0.249, 0.022)),
+            ..Default::default()
+        })
+        .insert(RootUINode)
+        .with_children(|parent| {
+            parent.spawn(MenuBarNode);
+            parent.spawn(RootPaneLayoutNode);
+        });
+}

@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 bevy.workspace = true
+bevy_editor_palette = { path = "../../crates/bevy_editor_palette" }
 
 [lints]
 workspace = true

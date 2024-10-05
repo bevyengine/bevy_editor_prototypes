@@ -19,23 +19,27 @@ pub struct PaneLayoutPlugin;
 
 impl Plugin for PaneLayoutPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup);
+        app.add_systems(Startup, pane_layout_setup.in_set(PaneLayoutSet));
     }
 }
 
-fn setup(mut commands: Commands) {
-    commands
-        .spawn(NodeBundle {
-            style: Style {
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                ..Default::default()
-            },
-            background_color: BackgroundColor(Color::oklaba(0.7, 0.1, 0.47, 1.0)),
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PaneLayoutSet;
 
+/// The setup system for the Pane Layout.
+fn pane_layout_setup(mut commands: Commands, root: Query<Entity, With<RootPaneLayoutNode>>) {
+    commands.entity(root.single()).insert(NodeBundle {
+        style: Style {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            display: Display::Flex,
+            flex_direction: FlexDirection::Column,
+            flex_basis: Val::Percent(100.0),
             ..Default::default()
-        })
-        .insert(RootPaneLayoutNode);
+        },
+
+        ..Default::default()
+    });
 }
 
 /// Root node to capture all editor UI elements, nothing but the layout system should modify this.

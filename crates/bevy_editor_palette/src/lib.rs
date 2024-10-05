@@ -16,6 +16,7 @@ impl Plugin for PalettePlugin {
 #[derive(Resource)]
 pub struct Theme {
     pub background_color: Color,
+    pub pane_background_color: Color,
     pub text_color: Color,
 }
 
@@ -23,6 +24,7 @@ impl Default for Theme {
     fn default() -> Self {
         Self {
             background_color: Color::oklch(0.209, 0.0, 0.0),
+            pane_background_color: Color::oklch(0.45, 0.0, 0.0),
             text_color: Color::oklch(0.9219, 0.0, 0.0),
         }
     }

@@ -28,13 +28,14 @@ pub struct PaneLayoutSet;
 
 /// The setup system for the Pane Layout.
 fn pane_layout_setup(mut commands: Commands, root: Query<Entity, With<RootPaneLayoutNode>>) {
+    // All Panes exist as children of this Node.
     commands.entity(root.single()).insert(NodeBundle {
         style: Style {
             width: Val::Percent(100.0),
             height: Val::Percent(100.0),
-            display: Display::Flex,
-            flex_direction: FlexDirection::Column,
-            flex_basis: Val::Percent(100.0),
+            display: Display::Grid,
+            grid_template_columns: vec![GridTrack::percent(100.0)],
+            grid_template_rows: vec![GridTrack::percent(100.0)],
             ..Default::default()
         },
 

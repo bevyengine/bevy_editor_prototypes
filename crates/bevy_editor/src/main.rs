@@ -19,7 +19,7 @@ mod ui;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(ui::BevyEditorUIPlugin)
+        .add_plugins(ui::EditorUIPlugin)
         .add_plugins(PalettePlugin)
         .add_systems(Startup, camera_setup)
         .run();

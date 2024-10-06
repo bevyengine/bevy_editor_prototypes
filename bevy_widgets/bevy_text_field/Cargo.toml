@@ -1,0 +1,11 @@
+[package]
+name = "bevy_text_field"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy.workspace = true
+bevy_focus = {path = "../bevy_focus"}
+
+[lints]
+workspace = true

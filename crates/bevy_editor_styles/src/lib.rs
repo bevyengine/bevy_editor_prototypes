@@ -12,7 +12,7 @@ impl Plugin for StylesPlugin {
 
 /// The core resource for the editor's color palette. This resource is used to store the current theme of the editor.
 /// All colors in the editor should be derived from this resource.
-/// All colors should use OKLCH color space. This ensures that the colors are perceptually uniform and work well for accessibility such as color blind adjustments.
+/// All colors should use OKLCH color space, use <https://oklch.com/> to get colors. This ensures that the colors are perceptually uniform and work well for accessibility such as color blind adjustments.
 #[derive(Resource)]
 pub struct Theme {
     /// The background color of the editor.

@@ -18,8 +18,8 @@ use std::marker::PhantomData;
 /// Under the hood, this is done using component lifecycle hooks.
 ///
 /// ```rust
-/// use bevy_ecs::prelude::*;
-/// use i_cant_believe_its_not_bsn::WithChild;
+/// use bevy::ecs::prelude::*;
+/// use bevy_i_cant_believe_its_not_bsn::WithChild;
 ///
 /// #[derive(Component)]
 /// struct A;
@@ -106,8 +106,8 @@ impl<B: Bundle> Command for WithChildCommand<B> {
 /// Working with vectors and other collections is straightforward:
 ///
 /// ```rust
-/// use bevy_ecs::prelude::*;
-/// use i_cant_believe_its_not_bsn::WithChildren;
+/// use bevy::ecs::prelude::*;
+/// use bevy_i_cant_believe_its_not_bsn::WithChildren;
 ///
 /// #[derive(Component)]
 /// struct Name(&'static str);
@@ -123,8 +123,8 @@ impl<B: Bundle> Command for WithChildCommand<B> {
 /// However, generator-style iterators can also be used to dynamically vary the number and property of children:
 ///
 /// ```rust
-/// use bevy_ecs::prelude::*;
-/// use i_cant_believe_its_not_bsn::WithChildren;
+/// use bevy::ecs::prelude::*;
+/// use bevy_i_cant_believe_its_not_bsn::WithChildren;
 ///
 /// #[derive(Component)]
 /// struct A;

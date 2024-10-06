@@ -1,0 +1,10 @@
+[package]
+name = "bevy_i-cant-believe-its-not-bsn"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy.workspace = true
+
+[lints]
+workspace = true

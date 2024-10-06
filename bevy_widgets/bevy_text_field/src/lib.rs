@@ -7,7 +7,7 @@ const BORDER_COLOR: Color = Color::srgb(56.0 / 255.0, 56.0 / 255.0, 56.0 / 255.0
 const HIGHLIGHT_COLOR: Color = Color::srgb(107.0 / 255.0, 107.0 / 255.0, 107.0 / 255.0);
 const BACKGROUND_COLOR: Color = Color::srgb(43.0 / 255.0, 44.0 / 255.0, 47.0 / 255.0);
 
-use bevy::prelude::*;
+use bevy::{input::keyboard::{Key, KeyboardInput}, prelude::*};
 use bevy_focus::Focus;
 
 pub struct LineTextFieldPlugin;
@@ -22,6 +22,23 @@ impl Plugin for LineTextFieldPlugin {
         app.observe(text_field_on_click);
 
         app.add_systems(PreUpdate, (spawn_render_text_field, trigger_render_on_change).chain());
+        app.add_systems(Update, update_cursor);
+        app.add_systems(Update, keyboard_input);
+    }
+}
+
+#[derive(Component)]
+pub struct Cursor {
+    timer: Timer,
+    visible: bool
+}
+
+impl Default for Cursor {
+    fn default() -> Self {
+        Self { 
+            timer: Timer::from_seconds(0.5, TimerMode::Repeating),
+            visible: true
+        }
     }
 }
 
@@ -41,8 +58,8 @@ pub struct LineTextField {
 struct LineTextFieldLinks {
     canvas: Entity,
     text: Entity,
-    text_right: Option<Entity>,
-    cursor: Option<Entity>,
+    text_right: Entity,
+    cursor: Entity,
 }
 
 impl LineTextField {
@@ -100,6 +117,7 @@ fn text_field_on_click(
     mut commands: Commands,
     mut q_text_fields: Query<(&mut LineTextField, Option<&Focus>)>,
 ) {
+    info!("Click: {:?}", click.entity());
     let entity = click.entity();
 
     let Ok((mut text_field, focus)) = q_text_fields.get_mut(entity) else {
@@ -114,12 +132,17 @@ fn text_field_on_click(
 
     commands.entity(entity).insert(Focus);
     text_field.cursor_position = Some(text_field.text.len());
+    commands.trigger_targets(RenderTextField, entity);
 }
 
 fn trigger_render_on_change(
     mut commands: Commands,
     q_fields: Query<Entity, Changed<LineTextField>>,
 ) {
+    if q_fields.is_empty() {
+        return;
+    }
+    info!("Changed: {:?}", q_fields.iter().collect::<Vec<_>>());
     commands.trigger_targets(RenderTextField, q_fields.iter().collect::<Vec<_>>());
 }
 
@@ -151,8 +174,13 @@ fn spawn_render_text_field(
             TextStyle::default(),
         )).id();
 
+        let text_field_right = commands.spawn(TextBundle::from_section("", TextStyle::default())).id();
+        let cursor = commands.spawn(NodeBundle::default()).id();
+
         commands.entity(entity).add_child(canvas);
         commands.entity(canvas).add_child(text_field);
+        commands.entity(canvas).add_child(cursor);
+        commands.entity(canvas).add_child(text_field_right);
         commands.entity(entity).insert(Pickable {
             is_hoverable: true,
             should_block_lower: true
@@ -162,23 +190,27 @@ fn spawn_render_text_field(
         let links = LineTextFieldLinks {
             canvas,
             text: text_field,
-            text_right: None,
-            cursor: None,
+            text_right: text_field_right,
+            cursor: cursor,
         };
         commands.entity(entity).insert(links);
     }
 }
 
 fn render_text_field(
-    trigger: Trigger<RenderTextField>,
+    mut trigger: Trigger<RenderTextField>,
     mut commands: Commands,
     q_text_fields: Query<(&LineTextField, &LineTextFieldLinks, &Interaction)>,
     mut q_border_color: Query<&mut BorderColor>,
 ) {
     let entity = trigger.entity();
+    trigger.propagate(false);
+
     let Ok((text_field, links, highlighted)) = q_text_fields.get(entity) else {
         return;
     };
+
+    info!("Render: {:?}", trigger.entity());
 
     let border_color = if *highlighted == Interaction::Hovered || *highlighted == Interaction::Pressed {
         HIGHLIGHT_COLOR
@@ -191,4 +223,104 @@ fn render_text_field(
     };
 
     *canvas_border_color = BorderColor(border_color);
+
+    if let Some(cursor) = text_field.cursor_position {
+        let left_text = text_field.text[..cursor].to_string();
+        let right_text = text_field.text[cursor..].to_string();
+        commands.entity(links.text).insert(TextBundle::from_section(left_text, TextStyle::default()));
+        commands.entity(links.text_right).insert(TextBundle::from_section(right_text, TextStyle::default()));
+        commands.entity(links.cursor).insert(NodeBundle {
+            style: Style {
+                height: Val::Percent(100.0),
+                width: Val::Px(2.0),
+                ..default()
+            },
+            background_color: BackgroundColor(Color::WHITE),
+            ..default()
+        }).insert(Cursor::default());
+    } else {
+        commands.entity(links.text).insert(TextBundle::from_section(text_field.text.clone(), TextStyle::default()));
+        commands.entity(links.cursor).insert(NodeBundle::default()).remove::<Cursor>();
+        commands.entity(links.text_right).insert(TextBundle::from_section("", TextStyle::default()));
+    }
+}
+
+fn update_cursor(
+    time: Res<Time>,
+    mut q_cursors: Query<(&mut Cursor, &mut Visibility)>
+) {
+    for (mut cursor, mut visibility) in q_cursors.iter_mut() {
+        if cursor.timer.tick(time.delta()).just_finished() {
+            cursor.visible = !cursor.visible;
+            if cursor.visible {
+                *visibility = Visibility::Visible;
+            } else {
+                *visibility = Visibility::Hidden;
+            }
+        }
+    }
+}
+
+
+fn keyboard_input(
+    mut commands: Commands,
+    mut q_text_fields: Query<(Entity, &mut LineTextField), With<Focus>>,
+    mut events: EventReader<KeyboardInput>,
+) {
+    let Ok((entity, mut text_field)) = q_text_fields.get_single_mut() else {
+        return;
+    };
+
+    let Some(mut current_cursor) = text_field.cursor_position else {
+        return;
+    };
+
+    let mut need_render = false;
+
+    for event in events.read() {
+        if !event.state.is_pressed() {
+            continue;
+        }
+
+        match &event.logical_key {
+            Key::Space => {
+                need_render = true;
+                text_field.text.insert(current_cursor, ' ');
+                text_field.cursor_position = Some(current_cursor + 1);
+            }
+            Key::Backspace => {
+                need_render = true;
+                if current_cursor > 0 {
+                    text_field.text.remove(current_cursor - 1);
+                    text_field.cursor_position = Some(current_cursor - 1);
+                }
+            }
+            Key::Character(c) => {
+                need_render = true;
+                for c in c.chars() {
+                    text_field.text.insert(current_cursor, c);
+                    current_cursor += 1;
+                }
+                text_field.cursor_position = Some(current_cursor);
+            },
+            Key::ArrowLeft => {
+                if current_cursor > 0 {
+                    text_field.cursor_position = Some(current_cursor - 1);
+                    need_render = true;
+                }
+            }
+            Key::ArrowRight => {
+                if current_cursor < text_field.text.len() {
+                    text_field.cursor_position = Some(current_cursor + 1);
+                    need_render = true;
+                }
+            }
+            _ => {}
+        }
+    }
+
+    if need_render {
+        commands.trigger_targets(RenderTextField, entity);
+    }
+
 }

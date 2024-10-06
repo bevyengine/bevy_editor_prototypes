@@ -23,6 +23,7 @@ impl Plugin for PaneLayoutPlugin {
     }
 }
 
+/// System Set to set up the Pane Layout.
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PaneLayoutSet;
 

@@ -20,6 +20,7 @@ impl Plugin for MenuBarPlugin {
     }
 }
 
+/// System Set to set up the menu bar.
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct MenuBarSet;
 

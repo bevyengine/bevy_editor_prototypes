@@ -15,8 +15,11 @@ impl Plugin for PalettePlugin {
 /// All colors should use OKLCH color space. This ensures that the colors are perceptually uniform and work well for accessibility such as color blind adjustments.
 #[derive(Resource)]
 pub struct Theme {
+    /// The background color of the editor.
     pub background_color: Color,
+    /// The background color of the panes in the editor.
     pub pane_background_color: Color,
+    /// The text color of the editor.
     pub text_color: Color,
 }
 

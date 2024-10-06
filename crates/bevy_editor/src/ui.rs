@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+use bevy_editor_styles::Theme;
 use bevy_menu_bar::{MenuBarNode, MenuBarPlugin, MenuBarSet};
 use bevy_pane_layout::{PaneLayoutPlugin, PaneLayoutSet, RootPaneLayoutNode};
 
@@ -21,7 +22,9 @@ pub struct UISet;
 #[derive(Component)]
 pub struct RootUINode;
 
-fn ui_setup(mut commands: Commands) {
+fn ui_setup(mut commands: Commands, theme: Res<Theme>) {
+    commands.spawn(Camera2dBundle::default());
+
     commands
         .spawn(NodeBundle {
             style: Style {
@@ -34,7 +37,7 @@ fn ui_setup(mut commands: Commands) {
 
                 ..Default::default()
             },
-            background_color: BackgroundColor(Color::oklab(0.540, 0.249, 0.022)),
+            background_color: theme.background_color,
             ..Default::default()
         })
         .insert(RootUINode)

@@ -2,9 +2,9 @@
 use bevy::prelude::*;
 
 /// The Pallet Plugin.
-pub struct PalettePlugin;
+pub struct StylesPlugin;
 
-impl Plugin for PalettePlugin {
+impl Plugin for StylesPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<Theme>();
     }
@@ -16,19 +16,30 @@ impl Plugin for PalettePlugin {
 #[derive(Resource)]
 pub struct Theme {
     /// The background color of the editor.
-    pub background_color: Color,
+    pub background_color: BackgroundColor,
     /// The background color of the panes in the editor.
-    pub pane_background_color: Color,
+    pub pane_background_color: BackgroundColor,
     /// The text color of the editor.
     pub text_color: Color,
+    /// The color of the menu bar.
+    pub menu_bar_color: BackgroundColor,
+    /// The Common Border Radius for the Editor.
+    pub border_radius: BorderRadius,
 }
 
 impl Default for Theme {
     fn default() -> Self {
         Self {
-            background_color: Color::oklch(0.209, 0.0, 0.0),
-            pane_background_color: Color::oklch(0.45, 0.0, 0.0),
+            background_color: BackgroundColor(Color::oklch(0.209, 0.0, 0.0)),
+            pane_background_color: BackgroundColor(Color::oklch(0.45, 0.0, 0.0)),
             text_color: Color::oklch(0.9219, 0.0, 0.0),
+            menu_bar_color: BackgroundColor(Color::oklch(0.209, 0.0, 0.0)),
+            border_radius: BorderRadius {
+                top_left: Val::Px(8.0),
+                top_right: Val::Px(8.0),
+                bottom_left: Val::Px(8.0),
+                bottom_right: Val::Px(8.0),
+            },
         }
     }
 }

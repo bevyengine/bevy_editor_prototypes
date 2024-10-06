@@ -12,19 +12,14 @@
 //! - Finally, it will be a standalone application that communicates with a running Bevy game via the Bevy Remote Protocol.
 
 use bevy::prelude::*;
-use bevy_editor_palette::PalettePlugin;
+use bevy_editor_styles::StylesPlugin;
 
 mod ui;
 
 fn main() {
     App::new()
+        .add_plugins(StylesPlugin)
         .add_plugins(DefaultPlugins)
         .add_plugins(ui::EditorUIPlugin)
-        .add_plugins(PalettePlugin)
-        .add_systems(Startup, camera_setup)
         .run();
-}
-
-fn camera_setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default());
 }

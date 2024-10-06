@@ -7,7 +7,7 @@ edition = "2021"
 bevy.workspace = true
 bevy_pane_layout = { path = "../bevy_pane_layout" }
 bevy_menu_bar = { path = "../../bevy_widgets/bevy_menu_bar" }
-bevy_editor_palette = { path = "../bevy_editor_palette" }
+bevy_editor_styles = { path = "../bevy_editor_styles" }
 
 [lints]
 workspace = true

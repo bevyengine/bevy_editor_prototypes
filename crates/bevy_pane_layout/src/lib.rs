@@ -13,6 +13,7 @@
 ///   - If a pane can not be sensibly resized, it can overflow under the other panes.
 /// - Panes must not interfere with each other, only temporary/absolute positioned elements are allowed to overlap panes.
 use bevy::prelude::*;
+use bevy_editor_styles::Theme;
 
 /// The Bevy Pane Layout Plugin.
 pub struct PaneLayoutPlugin;
@@ -28,20 +29,41 @@ impl Plugin for PaneLayoutPlugin {
 pub struct PaneLayoutSet;
 
 /// The setup system for the Pane Layout.
-fn pane_layout_setup(mut commands: Commands, root: Query<Entity, With<RootPaneLayoutNode>>) {
+fn pane_layout_setup(
+    mut commands: Commands,
+    root: Query<Entity, With<RootPaneLayoutNode>>,
+    theme: Res<Theme>,
+) {
     // All Panes exist as children of this Node.
-    commands.entity(root.single()).insert(NodeBundle {
-        style: Style {
-            width: Val::Percent(100.0),
-            height: Val::Percent(100.0),
-            display: Display::Grid,
-            grid_template_columns: vec![GridTrack::percent(100.0)],
-            grid_template_rows: vec![GridTrack::percent(100.0)],
+    commands
+        .entity(root.single())
+        .insert(NodeBundle {
+            style: Style {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                display: Display::Grid,
+                grid_template_columns: vec![GridTrack::percent(100.0)],
+                grid_template_rows: vec![GridTrack::percent(100.0)],
+                ..Default::default()
+            },
+            background_color: theme.background_color,
             ..Default::default()
-        },
+        })
+        .with_children(|parent| {
+            parent
+                .spawn(NodeBundle {
+                    style: Style {
+                        width: Val::Percent(100.0),
+                        height: Val::Percent(100.0),
 
-        ..Default::default()
-    });
+                        ..Default::default()
+                    },
+                    background_color: theme.pane_background_color,
+                    border_radius: theme.border_radius,
+                    ..Default::default()
+                })
+                .insert(PaneRootNode);
+        });
 }
 
 /// Root node to capture all editor UI elements, nothing but the layout system should modify this.

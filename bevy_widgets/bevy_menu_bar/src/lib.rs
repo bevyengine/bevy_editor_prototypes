@@ -5,7 +5,7 @@
 
 use bevy::prelude::*;
 
-use bevy_editor_palette::Theme;
+use bevy_editor_styles::Theme;
 
 /// The root node for the menu bar.
 #[derive(Component)]
@@ -45,7 +45,7 @@ fn menu_setup(mut commands: Commands, root: Query<Entity, With<MenuBarNode>>, th
                 },
                 ..Default::default()
             },
-            background_color: BackgroundColor(theme.background_color),
+            background_color: theme.background_color,
             ..Default::default()
         })
         .with_children(|parent| {

@@ -32,6 +32,8 @@ fn setup(mut commands: Commands) {
                 height: Val::Percent(100.0),
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
+                flex_direction: FlexDirection::Column,
+                display: Display::Flex,
                 ..Default::default()
             },
             ..Default::default()
@@ -42,11 +44,38 @@ fn setup(mut commands: Commands) {
                     style: Style {
                         width: Val::Px(300.0),
                         height: Val::Px(40.0),
+                        margin: UiRect::all(Val::Px(20.0)),
                         ..default()
                     },
                     ..Default::default()
                 },
                 LineTextField::new("Bevy Engine"),
+            ));
+
+            cmd.spawn((
+                NodeBundle {
+                    style: Style {
+                        width: Val::Px(300.0),
+                        height: Val::Px(40.0),
+                        margin: UiRect::all(Val::Px(20.0)),
+                        ..default()
+                    },
+                    ..Default::default()
+                },
+                LineTextField::new("Bevy Engine 2"),
+            ));
+
+            cmd.spawn((
+                NodeBundle {
+                    style: Style {
+                        width: Val::Px(300.0),
+                        height: Val::Px(40.0),
+                        margin: UiRect::all(Val::Px(20.0)),
+                        ..default()
+                    },
+                    ..Default::default()
+                },
+                LineTextField::new("Bevy Engine 3"),
             ));
         });
 }

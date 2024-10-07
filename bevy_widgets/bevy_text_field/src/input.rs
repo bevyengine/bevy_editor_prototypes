@@ -93,12 +93,13 @@ pub(crate) fn text_field_on_click(
 }
 
 pub(crate) fn lost_focus(
-    _: Trigger<LostFocus>,
+    lost_focus: Trigger<LostFocus>,
     mut commands: Commands,
-    mut q_text_fields: Query<(Entity, &mut LineTextField, &LineTextFieldLinks)>,
+    mut q_text_fields: Query<(&mut LineTextField, &LineTextFieldLinks)>,
 ) {
-    info!("Lost focus");
-    let Ok((entity, mut text_field, links)) = q_text_fields.get_single_mut() else {
+    let entity = lost_focus.entity();
+    info!("Lost focus {:?}", entity);
+    let Ok((mut text_field, _)) = q_text_fields.get_mut(entity) else {
         return;
     };
 

@@ -7,7 +7,7 @@ use bevy::prelude::*;
 #[derive(Event)]
 pub struct RenderTextField;
 
-pub fn trigger_render_on_change(
+pub(crate) fn trigger_render_on_change(
     mut commands: Commands,
     q_fields: Query<Entity, Changed<LineTextField>>,
 ) {
@@ -18,7 +18,7 @@ pub fn trigger_render_on_change(
     commands.trigger_targets(RenderTextField, q_fields.iter().collect::<Vec<_>>());
 }
 
-pub fn render_text_field(
+pub(crate) fn render_text_field(
     mut trigger: Trigger<RenderTextField>,
     mut commands: Commands,
     q_text_fields: Query<(&LineTextField, &LineTextFieldLinks, &Interaction)>,

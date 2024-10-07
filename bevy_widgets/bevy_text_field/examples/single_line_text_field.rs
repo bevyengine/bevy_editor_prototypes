@@ -41,7 +41,7 @@ fn setup(mut commands: Commands) {
                 NodeBundle {
                     style: Style {
                         width: Val::Px(300.0),
-                        height: Val::Px(50.0),
+                        height: Val::Px(40.0),
                         ..default()
                     },
                     ..Default::default()

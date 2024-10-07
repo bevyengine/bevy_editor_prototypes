@@ -44,7 +44,7 @@ pub(crate) fn text_field_on_click(
     click: Trigger<GotFocus>,
     mut commands: Commands,
     mut q_text_fields: Query<(&mut LineTextField, &LineTextFieldLinks)>,
-    q_nodes: Query<(&GlobalTransform, &Node)>
+    q_nodes: Query<(&GlobalTransform, &Node)>,
 ) {
     let entity = click.entity();
     let click_data = &click.event().0;
@@ -76,7 +76,7 @@ pub(crate) fn text_field_on_click(
             if rect.contains(click_data.pointer_location.position) {
                 let dx = click_data.pointer_location.position.x - rect.min.x;
                 let dx_relative = dx / rect.width();
-                
+
                 if let Some(cursor) = text_field.cursor_position {
                     let text_right_width = text_field.text.len() - cursor;
                     let relative_cursor = (dx_relative * text_right_width as f32).round() as usize;

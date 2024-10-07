@@ -23,7 +23,6 @@ pub struct LineTextFieldPlugin;
 
 impl Plugin for LineTextFieldPlugin {
     fn build(&self, app: &mut App) {
-
         if !app.is_plugin_added::<FocusPlugin>() {
             app.add_plugins(FocusPlugin);
         }
@@ -117,11 +116,13 @@ fn spawn_render_text_field(
         commands.entity(canvas).add_child(text_field);
         commands.entity(canvas).add_child(cursor);
         commands.entity(canvas).add_child(text_field_right);
-        commands.entity(entity).insert(Pickable {
-            is_hoverable: true,
-            should_block_lower: true,
-        })
-        .insert(Focusable);
+        commands
+            .entity(entity)
+            .insert(Pickable {
+                is_hoverable: true,
+                should_block_lower: true,
+            })
+            .insert(Focusable);
 
         commands.entity(entity).insert(Interaction::default());
 

@@ -1,7 +1,6 @@
 //! This crate contains input focus management for Bevy widgets.
 //! Currently only one entity can hold focus at a time.
 
-
 use bevy::{ecs::observer::TriggerTargets, prelude::*};
 
 pub struct FocusPlugin;
@@ -17,10 +16,12 @@ impl Plugin for FocusPlugin {
         app.observe(clear_focus);
         app.observe(mouse_click);
 
-        app.add_systems(Last, clear_focus_after_click.run_if(resource_exists::<NeedClearFocus>));
+        app.add_systems(
+            Last,
+            clear_focus_after_click.run_if(resource_exists::<NeedClearFocus>),
+        );
     }
 }
-
 
 /// Component which indicates that a widget is focused and can receive input events.
 #[derive(Component)]
@@ -108,7 +109,6 @@ fn mouse_click(
     }
     let entity = click.entity();
     if q_focusable.contains(entity) {
-
         commands.insert_resource(NeedClearFocus(false));
 
         click.propagate(false);
@@ -126,10 +126,7 @@ fn mouse_click(
     }
 }
 
-fn clear_focus_after_click(
-    mut commands: Commands,
-    need_clear_focus: Res<NeedClearFocus>,
-) {
+fn clear_focus_after_click(mut commands: Commands, need_clear_focus: Res<NeedClearFocus>) {
     if need_clear_focus.0 {
         commands.clear_focus();
         commands.remove_resource::<NeedClearFocus>();

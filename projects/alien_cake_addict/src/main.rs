@@ -133,8 +133,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
     });
 
     // spawn the game board
-    let cell_scene =
-        asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/tile.glb"));
+    let cell_scene = asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/tile.glb"));
     game.board = (0..BOARD_SIZE_J)
         .map(|j| {
             (0..BOARD_SIZE_I)
@@ -164,8 +163,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
                     rotation: Quat::from_rotation_y(-PI / 2.),
                     ..default()
                 },
-                scene: asset_server
-                    .load(GltfAssetLabel::Scene(0).from_asset("models/alien.glb")),
+                scene: asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/alien.glb")),
                 ..default()
             })
             .id(),

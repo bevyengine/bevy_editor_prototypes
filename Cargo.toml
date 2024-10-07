@@ -55,6 +55,7 @@ bevy_asset_preview = { path = "crates/bevy_asset_preview" }
 bevy_editor = { path = "crates/bevy_editor" }
 bevy_editor_camera = { path = "crates/bevy_editor_camera" }
 bevy_editor_settings = { path = "crates/bevy_editor_settings" }
+bevy_editor_styles = { path = "crates/bevy_editor_styles" }
 bevy_localization = { path = "crates/bevy_localization" }
 bevy_pane_layout = { path = "crates/bevy_pane_layout" }
 bevy_transform_gizmos = { path = "crates/bevy_transform_gizmos" }

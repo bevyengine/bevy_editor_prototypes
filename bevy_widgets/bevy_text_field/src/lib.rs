@@ -15,7 +15,7 @@ use bevy::{
     input::keyboard::{Key, KeyboardInput},
     prelude::*,
 };
-use bevy_focus::Focus;
+use bevy_focus::{Focus, FocusPlugin, Focusable};
 use cursor::Cursor;
 use render::RenderTextField;
 
@@ -23,12 +23,18 @@ pub struct LineTextFieldPlugin;
 
 impl Plugin for LineTextFieldPlugin {
     fn build(&self, app: &mut App) {
+
+        if !app.is_plugin_added::<FocusPlugin>() {
+            app.add_plugins(FocusPlugin);
+        }
+
         app.add_event::<RenderTextField>();
 
         app.observe(render::render_text_field);
         app.observe(input::text_field_on_over);
         app.observe(input::text_field_on_out);
         app.observe(input::text_field_on_click);
+        app.observe(input::lost_focus);
 
         app.add_systems(PreUpdate, input::keyboard_input);
 
@@ -114,7 +120,9 @@ fn spawn_render_text_field(
         commands.entity(entity).insert(Pickable {
             is_hoverable: true,
             should_block_lower: true,
-        });
+        })
+        .insert(Focusable);
+
         commands.entity(entity).insert(Interaction::default());
 
         let links = LineTextFieldLinks {

@@ -5,9 +5,9 @@ use bevy::{
     input::keyboard::{Key, KeyboardInput},
     prelude::*,
 };
-use bevy_focus::Focus;
+use bevy_focus::{Focus, GotFocus, LostFocus};
 
-use crate::{render::RenderTextField, LineTextField, LineTextFieldLinks};
+use crate::{cursor::Cursor, render::RenderTextField, LineTextField, LineTextFieldLinks};
 
 pub(crate) fn text_field_on_over(
     over: Trigger<Pointer<Over>>,
@@ -41,52 +41,68 @@ pub(crate) fn text_field_on_out(
 }
 
 pub(crate) fn text_field_on_click(
-    click: Trigger<Pointer<Click>>,
+    click: Trigger<GotFocus>,
     mut commands: Commands,
-    mut q_text_fields: Query<(&mut LineTextField, &LineTextFieldLinks, Option<&Focus>)>,
+    mut q_text_fields: Query<(&mut LineTextField, &LineTextFieldLinks)>,
     q_nodes: Query<(&GlobalTransform, &Node)>
 ) {
-    info!("Click: {:?}", click.entity());
     let entity = click.entity();
-    let click_data = click.event();
+    let click_data = &click.event().0;
 
-    let Ok((mut text_field, links, focus)) = q_text_fields.get_mut(entity) else {
+    let Ok((mut text_field, links)) = q_text_fields.get_mut(entity) else {
+        return;
+    };
+    info!("Click: {:?}", click.entity());
+
+    let mut cursor_pos = text_field.text.len();
+    // If we got focus by mouse click, we need to calculate cursor position
+    if let Some(click_data) = click_data {
+        if let Ok((pos, text_left)) = q_nodes.get(links.text) {
+            let rect = text_left.logical_rect(pos);
+            if rect.contains(click_data.pointer_location.position) {
+                let dx = click_data.pointer_location.position.x - rect.min.x;
+                let dx_relative = dx / rect.width();
+
+                if let Some(cursor) = text_field.cursor_position {
+                    cursor_pos = (cursor as f32 * dx_relative).round() as usize;
+                } else {
+                    cursor_pos = (dx_relative * text_field.text.len() as f32).round() as usize;
+                }
+            }
+        }
+
+        if let Ok((pos, text_right)) = q_nodes.get(links.text_right) {
+            let rect = text_right.logical_rect(pos);
+            if rect.contains(click_data.pointer_location.position) {
+                let dx = click_data.pointer_location.position.x - rect.min.x;
+                let dx_relative = dx / rect.width();
+                
+                if let Some(cursor) = text_field.cursor_position {
+                    let text_right_width = text_field.text.len() - cursor;
+                    let relative_cursor = (dx_relative * text_right_width as f32).round() as usize;
+                    cursor_pos = cursor + relative_cursor;
+                } else {
+                    // Unexpected
+                }
+            }
+        }
+    }
+
+    text_field.cursor_position = Some(cursor_pos);
+    commands.trigger_targets(RenderTextField, entity);
+}
+
+pub(crate) fn lost_focus(
+    _: Trigger<LostFocus>,
+    mut commands: Commands,
+    mut q_text_fields: Query<(Entity, &mut LineTextField, &LineTextFieldLinks)>,
+) {
+    info!("Lost focus");
+    let Ok((entity, mut text_field, links)) = q_text_fields.get_single_mut() else {
         return;
     };
 
-    let mut cursor_pos = text_field.text.len();
-    if let Ok((pos, text_left)) = q_nodes.get(links.text) {
-        let rect = text_left.logical_rect(pos);
-        if rect.contains(click_data.pointer_location.position) {
-            let dx = click_data.pointer_location.position.x - rect.min.x;
-            let dx_relative = dx / rect.width();
-
-            if let Some(cursor) = text_field.cursor_position {
-                cursor_pos = (cursor as f32 * dx_relative).round() as usize;
-            } else {
-                cursor_pos = (dx_relative * text_field.text.len() as f32).round() as usize;
-            }
-        }
-    }
-
-    if let Ok((pos, text_right)) = q_nodes.get(links.text_right) {
-        let rect = text_right.logical_rect(pos);
-        if rect.contains(click_data.pointer_location.position) {
-            let dx = click_data.pointer_location.position.x - rect.min.x;
-            let dx_relative = dx / rect.width();
-            
-            if let Some(cursor) = text_field.cursor_position {
-                let text_right_width = text_field.text.len() - cursor;
-                let relative_cursor = (dx_relative * text_right_width as f32).round() as usize;
-                cursor_pos = cursor + relative_cursor;
-            } else {
-                // Unexpected
-            }
-        }
-    }
-
-    commands.entity(entity).insert(Focus);
-    text_field.cursor_position = Some(cursor_pos);
+    text_field.cursor_position = None;
     commands.trigger_targets(RenderTextField, entity);
 }
 

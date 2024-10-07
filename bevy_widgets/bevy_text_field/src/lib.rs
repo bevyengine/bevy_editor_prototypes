@@ -51,7 +51,7 @@ pub struct LineTextField {
 }
 
 #[derive(Component)]
-struct LineTextFieldLinks {
+pub(crate) struct LineTextFieldLinks {
     canvas: Entity,
     text: Entity,
     text_right: Entity,

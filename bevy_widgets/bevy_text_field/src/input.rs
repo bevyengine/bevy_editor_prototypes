@@ -7,9 +7,9 @@ use bevy::{
 };
 use bevy_focus::Focus;
 
-use crate::{render::RenderTextField, LineTextField};
+use crate::{render::RenderTextField, LineTextField, LineTextFieldLinks};
 
-pub fn text_field_on_over(
+pub(crate) fn text_field_on_over(
     over: Trigger<Pointer<Over>>,
     mut commands: Commands,
     q_text_fields: Query<&LineTextField>,
@@ -25,7 +25,7 @@ pub fn text_field_on_over(
     commands.trigger_targets(RenderTextField, entity);
 }
 
-pub fn text_field_on_out(
+pub(crate) fn text_field_on_out(
     out: Trigger<Pointer<Out>>,
     mut commands: Commands,
     q_text_fields: Query<&LineTextField>,
@@ -40,30 +40,57 @@ pub fn text_field_on_out(
     commands.trigger_targets(RenderTextField, entity);
 }
 
-pub fn text_field_on_click(
+pub(crate) fn text_field_on_click(
     click: Trigger<Pointer<Click>>,
     mut commands: Commands,
-    mut q_text_fields: Query<(&mut LineTextField, Option<&Focus>)>,
+    mut q_text_fields: Query<(&mut LineTextField, &LineTextFieldLinks, Option<&Focus>)>,
+    q_nodes: Query<(&GlobalTransform, &Node)>
 ) {
     info!("Click: {:?}", click.entity());
     let entity = click.entity();
+    let click_data = click.event();
 
-    let Ok((mut text_field, focus)) = q_text_fields.get_mut(entity) else {
+    let Ok((mut text_field, links, focus)) = q_text_fields.get_mut(entity) else {
         return;
     };
 
-    if focus.is_some() {
-        commands.entity(entity).remove::<Focus>();
-        text_field.cursor_position = None;
-        return;
+    let mut cursor_pos = text_field.text.len();
+    if let Ok((pos, text_left)) = q_nodes.get(links.text) {
+        let rect = text_left.logical_rect(pos);
+        if rect.contains(click_data.pointer_location.position) {
+            let dx = click_data.pointer_location.position.x - rect.min.x;
+            let dx_relative = dx / rect.width();
+
+            if let Some(cursor) = text_field.cursor_position {
+                cursor_pos = (cursor as f32 * dx_relative).round() as usize;
+            } else {
+                cursor_pos = (dx_relative * text_field.text.len() as f32).round() as usize;
+            }
+        }
+    }
+
+    if let Ok((pos, text_right)) = q_nodes.get(links.text_right) {
+        let rect = text_right.logical_rect(pos);
+        if rect.contains(click_data.pointer_location.position) {
+            let dx = click_data.pointer_location.position.x - rect.min.x;
+            let dx_relative = dx / rect.width();
+            
+            if let Some(cursor) = text_field.cursor_position {
+                let text_right_width = text_field.text.len() - cursor;
+                let relative_cursor = (dx_relative * text_right_width as f32).round() as usize;
+                cursor_pos = cursor + relative_cursor;
+            } else {
+                // Unexpected
+            }
+        }
     }
 
     commands.entity(entity).insert(Focus);
-    text_field.cursor_position = Some(text_field.text.len());
+    text_field.cursor_position = Some(cursor_pos);
     commands.trigger_targets(RenderTextField, entity);
 }
 
-pub fn keyboard_input(
+pub(crate) fn keyboard_input(
     mut commands: Commands,
     mut q_text_fields: Query<(Entity, &mut LineTextField), With<Focus>>,
     mut events: EventReader<KeyboardInput>,

@@ -20,6 +20,7 @@ pub(crate) fn spawn_numeric_field<T: NumericFieldValue>(
                 last_val: field.value,
                 failed_convert: false,
                 ignore_text_changes: false,
+                accumulated_delta: 0.0,
             });
     }
 }

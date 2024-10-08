@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_focus::{Focus, LostFocus};
-use bevy_text_field::{LineTextField, TextChanged};
+use bevy_text_field::{render::RenderTextField, LineTextField, TextChanged};
 
 use crate::{InnerNumericField, NewValue, NumericField, NumericFieldValue, SetValue};
 
@@ -98,32 +98,54 @@ pub fn react_on_drag<T: NumericFieldValue>(
     let Ok((mut field, mut inner_field, mut text_field)) = q_fields.get_mut(entity) else {
         return;
     };
-    let Some(drag_step) = field.drag_step.clone() else {
+
+    let Some(drag_step) = field.drag_step else {
         return;
     };
     let old_val = field.value;
 
-    // Calculate delta based on drag direction and step
-    let delta = if trigger.event().event.delta.x >= 0.0 {
-        T::from(drag_step.to_f32().unwrap() * trigger.event().event.delta.x)
-            .unwrap_or(T::default_drag_step())
-    } else {
-        T::from(drag_step.to_f32().unwrap() * -trigger.event().event.delta.x)
-            .unwrap_or(T::default_drag_step())
-    };
+    // Вычисляем дельту с учетом направления перетаскивания
+    let delta = drag_step * trigger.event().event.delta.x as f64;
 
-    // Apply delta based on drag direction
-    let new_val = if trigger.event().event.delta.x >= 0.0 {
-        old_val.checked_add(&delta).unwrap_or_else(T::max_value)
-    } else {
-        old_val.checked_sub(&delta).unwrap_or_else(T::min_value)
-    };
+    // Аккумулируем дельту
+    inner_field.accumulated_delta += delta;
 
-    field.set_value(new_val);
-    text_field.set_text(field.value.to_string());
-    inner_field.failed_convert = false;
-    if inner_field.last_val != field.value {
-        commands.trigger_targets(NewValue(field.value), entity);
-        inner_field.last_val = field.value;
+    // Проверяем, достаточно ли накопилось для изменения значения
+    if inner_field.accumulated_delta.abs() >= 1.0 {
+        let change = inner_field.accumulated_delta.trunc() as i64;
+        inner_field.accumulated_delta -= change as f64;
+
+        let new_val = if change > 0 {
+            (0..change).fold(Some(old_val), |acc, _| {
+                acc.and_then(|v| v.checked_add(&T::from(1).unwrap()))
+            })
+        } else {
+            (0..change.abs()).fold(Some(old_val), |acc, _| {
+                acc.and_then(|v| v.checked_sub(&T::from(1).unwrap()))
+            })
+        };
+
+        if let Some(new_val) = new_val {
+            field.set_value(new_val);
+            text_field.set_text(field.value.to_string());
+            inner_field.failed_convert = false;
+            if inner_field.last_val != field.value {
+                commands.trigger_targets(NewValue(field.value), entity);
+                inner_field.last_val = field.value;
+            }
+        }
     }
+}
+
+pub fn react_on_drag_end<T: NumericFieldValue>(
+    trigger: Trigger<Pointer<DragEnd>>,
+    mut commands: Commands,
+    q_fields: Query<(), With<NumericField<T>>>,
+) {
+    let entity = trigger.entity();
+    let Ok(_) = q_fields.get(entity) else {
+        return;
+    };
+
+    commands.trigger_targets(RenderTextField::default(), entity)
 }

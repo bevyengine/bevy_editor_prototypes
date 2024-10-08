@@ -7,8 +7,10 @@ use crate::{
 };
 use bevy::prelude::*;
 
+/// Trigger for rerender text field
 #[derive(Event, Default)]
-pub(crate) struct RenderTextField {
+pub struct RenderTextField {
+    /// Force show cursor (disable cursor blinking if spamming with this event)
     pub force_show_cursor: bool,
 }
 

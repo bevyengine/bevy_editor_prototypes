@@ -14,7 +14,7 @@ pub struct NumericField<T: NumericFieldValue> {
     /// Maximum allowed value
     pub max: Option<T>,
     /// Value change per logical pixel during mouse drag
-    pub drag_step: Option<T>,
+    pub drag_step: Option<f64>,
 }
 
 /// Internal state for numeric field
@@ -26,6 +26,8 @@ pub(crate) struct InnerNumericField<T: NumericFieldValue> {
     pub failed_convert: bool,
     /// Flag to ignore text input changes
     pub ignore_text_changes: bool,
+    /// Accumulated drag delta
+    pub accumulated_delta: f64,
 }
 
 /// Trait defining requirements for numeric field values
@@ -44,7 +46,7 @@ pub trait NumericFieldValue:
     + Bounded
 {
     /// Default change per logical pixel during dragging
-    fn default_drag_step() -> Self;
+    fn default_drag_step() -> f64;
     /// Chars allowed in text field for this type
     fn allowed_chars() -> Vec<char>;
 
@@ -99,7 +101,7 @@ macro_rules! impl_signed_numeric_field_value {
     ($($t:ty),*) => {
         $(
             impl NumericFieldValue for $t {
-                fn default_drag_step() -> Self { 1 }
+                fn default_drag_step() -> f64 { 0.1 }
                 fn allowed_chars() -> Vec<char> {
                     vec!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-']
                 }
@@ -120,7 +122,7 @@ macro_rules! impl_unsigned_numeric_field_value {
     ($($t:ty),*) => {
         $(
             impl NumericFieldValue for $t {
-                fn default_drag_step() -> Self { 1 }
+                fn default_drag_step() -> f64 { 0.1 }
                 fn allowed_chars() -> Vec<char> {
                     vec!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
                 }
@@ -142,7 +144,7 @@ impl_unsigned_numeric_field_value!(u8, u16, u32, u64, u128);
 
 // Implement NumericFieldValue for f32
 impl NumericFieldValue for f32 {
-    fn default_drag_step() -> Self {
+    fn default_drag_step() -> f64 {
         0.1
     }
     fn allowed_chars() -> Vec<char> {
@@ -160,7 +162,7 @@ impl NumericFieldValue for f32 {
 
 // Implement NumericFieldValue for f64
 impl NumericFieldValue for f64 {
-    fn default_drag_step() -> Self {
+    fn default_drag_step() -> f64 {
         0.1
     }
     fn allowed_chars() -> Vec<char> {

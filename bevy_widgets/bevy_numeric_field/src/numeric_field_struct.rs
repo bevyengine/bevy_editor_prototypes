@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use num_traits::{Bounded, NumCast, One, Zero};
+use num_traits::NumCast;
 use std::cmp::PartialOrd;
 use std::ops::{Add, Sub};
 use std::str::FromStr;
@@ -34,9 +34,6 @@ pub trait NumericFieldValue:
     + PartialOrd
     + Add<Output = Self>
     + Sub<Output = Self>
-    + Zero
-    + One
-    + Bounded
     + NumCast
     + PartialEq
     + Send
@@ -59,8 +56,8 @@ where
     pub fn new(value: T) -> Self {
         NumericField {
             value,
-            min: Some(T::min_value()),
-            max: Some(T::max_value()),
+            min: None,
+            max: None,
             drag_step: Some(T::default_drag_step()),
         }
     }
@@ -96,7 +93,7 @@ macro_rules! impl_signed_numeric_field_value {
     ($($t:ty),*) => {
         $(
             impl NumericFieldValue for $t {
-                fn default_drag_step() -> Self { One::one() }
+                fn default_drag_step() -> Self { 1 }
                 fn allowed_chars() -> Vec<char> {
                     vec!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-']
                 }
@@ -110,7 +107,7 @@ macro_rules! impl_unsigned_numeric_field_value {
     ($($t:ty),*) => {
         $(
             impl NumericFieldValue for $t {
-                fn default_drag_step() -> Self { One::one() }
+                fn default_drag_step() -> Self { 1 }
                 fn allowed_chars() -> Vec<char> {
                     vec!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
                 }

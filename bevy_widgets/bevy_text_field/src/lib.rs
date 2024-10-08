@@ -13,7 +13,7 @@ const HIGHLIGHT_COLOR: Color = Color::srgb(107.0 / 255.0, 107.0 / 255.0, 107.0 /
 const BACKGROUND_COLOR: Color = Color::srgb(43.0 / 255.0, 44.0 / 255.0, 47.0 / 255.0);
 const TEXT_SELECTION_COLOR: Color = Color::srgb(0.0 / 255.0, 122.0 / 255.0, 255.0 / 255.0);
 
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::hashbrown::HashSet};
 use bevy_focus::{FocusPlugin, Focusable};
 use render::RenderTextField;
 
@@ -63,6 +63,8 @@ pub struct LineTextField {
     pub(crate) cursor_position: Option<usize>,
     /// Selection start
     pub(crate) selection_start: Option<usize>,
+    /// Allowed chars
+    pub(crate) allowed_chars: Option<HashSet<char>>,
 }
 
 impl LineTextField {
@@ -93,21 +95,31 @@ impl LineTextField {
     }
 }
 
+/// Trigger for new text
+#[derive(Event)]
+pub struct TextChanged;
+
+/// Triggered when focus is lost (or any other event that will lead to finishing editing)
+#[derive(Event)]
+pub struct TextEditingFinished;
+
 #[derive(Component)]
-pub(crate) struct LineTextFieldLinks {
-    canvas: Entity,
-    sub_canvas: Entity,
-    text: Entity,
-    text_right: Entity,
-    cursor: Entity,
-    selection_shift: Entity,
-    selection: Entity,
+pub struct LineTextFieldLinks {
+    pub canvas: Entity,
+    pub sub_canvas: Entity,
+    pub text: Entity,
+    pub text_right: Entity,
+    pub cursor: Entity,
+    pub selection_shift: Entity,
+    pub selection: Entity,
 }
 
 #[derive(Component, Default, Reflect)]
 pub(crate) struct InnerFieldParams {
     /// Text shift (used for text longer than the text field)
     pub(crate) text_shift: f32,
+
+    pub(crate) last_text: String,
 }
 
 impl LineTextField {
@@ -117,6 +129,7 @@ impl LineTextField {
             text: text.into(),
             cursor_position: None,
             selection_start: None,
+            allowed_chars: None,
         }
     }
     /// Set text and return self
@@ -137,6 +150,25 @@ impl LineTextField {
             self.cursor_position = None;
             self.selection_start = None;
         }
+    }
+    /// Set allowed chars that can be written in the text field
+    /// By default all chars are allowed
+    pub fn set_allowed_chars(&mut self, chars: impl IntoIterator<Item = char>) {
+        let new_chars = chars.into_iter().collect::<HashSet<_>>();
+
+        let chars_in_text = self.text.chars().collect::<HashSet<_>>();
+        for c in chars_in_text {
+            if !new_chars.contains(&c) {
+                self.text = self.text.replace(c, "");
+            }
+        }
+
+        self.allowed_chars = Some(new_chars);
+    }
+
+    /// Get allowed chars
+    pub fn allowed_chars(&self) -> Option<&HashSet<char>> {
+        self.allowed_chars.as_ref()
     }
 }
 

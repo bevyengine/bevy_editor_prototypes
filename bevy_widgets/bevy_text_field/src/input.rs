@@ -251,13 +251,23 @@ pub(crate) fn keyboard_input(
                     text_field.selection_start = None; // clear selection if we write any text
                 }
                 Key::Character(c) => {
+                    let mut chars = c.chars().collect::<Vec<_>>();
+                    if let Some(allowed) = text_field.allowed_chars.as_ref() {
+                        chars = chars
+                            .iter()
+                            .map(|c| *c)
+                            .filter(|c| allowed.contains(c))
+                            .collect();
+                    }
                     need_render = true;
 
                     if let Some((start, end)) = text_field.get_selected_range() {
-                        text_field.text.replace_range(start..end, c);
+                        text_field
+                            .text
+                            .replace_range(start..end, chars.iter().collect::<String>().as_str());
                         current_cursor = start + c.len();
                     } else {
-                        for c in c.chars() {
+                        for c in chars {
                             text_field.text.insert(current_cursor, c);
                             current_cursor += c.len_utf8();
                         }

@@ -1,0 +1,13 @@
+[package]
+name = "bevy_numeric_field"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy.workspace = true
+bevy_text_field = { path = "../bevy_text_field" }
+bevy_focus = { path = "../bevy_focus" }
+num-traits = "0.2.19"
+
+[lints]
+workspace = true

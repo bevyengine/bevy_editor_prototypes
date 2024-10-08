@@ -2,7 +2,7 @@
 //!
 
 use crate::{
-    cursor::Cursor, InnerFieldParams, LineTextField, LineTextFieldLinks, BORDER_COLOR,
+    cursor::Cursor, InnerFieldParams, LineTextField, LineTextFieldLinks, TextChanged, BORDER_COLOR,
     HIGHLIGHT_COLOR,
 };
 use bevy::prelude::*;
@@ -17,16 +17,19 @@ pub(crate) struct SkipCursorCheck(pub(crate) usize);
 
 pub(crate) fn trigger_render_on_change(
     mut commands: Commands,
-    q_fields: Query<Entity, Changed<LineTextField>>,
+    mut q_fields: Query<(Entity, &LineTextField, &mut InnerFieldParams), Changed<LineTextField>>,
 ) {
     if q_fields.is_empty() {
         return;
     }
-    info!("Changed: {:?}", q_fields.iter().collect::<Vec<_>>());
-    commands.trigger_targets(
-        RenderTextField::default(),
-        q_fields.iter().collect::<Vec<_>>(),
-    );
+
+    for (entity, text_field, mut inner_field_param) in q_fields.iter_mut() {
+        commands.trigger_targets(RenderTextField::default(), entity);
+        if inner_field_param.last_text != text_field.text() {
+            commands.trigger_targets(TextChanged, entity);
+            inner_field_param.last_text = text_field.text().to_string();
+        }
+    }
 }
 
 pub(crate) fn render_text_field(

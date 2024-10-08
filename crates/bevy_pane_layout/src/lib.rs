@@ -13,29 +13,118 @@
 ///   - If a pane can not be sensibly resized, it can overflow under the other panes.
 /// - Panes must not interfere with each other, only temporary/absolute positioned elements are allowed to overlap panes.
 use bevy::prelude::*;
+use bevy_editor_styles::Theme;
+
+use bevy_3d_viewport::Bevy3DViewport;
 
 /// The Bevy Pane Layout Plugin.
 pub struct PaneLayoutPlugin;
 
 impl Plugin for PaneLayoutPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup);
+        app.add_systems(Startup, pane_layout_setup.in_set(PaneLayoutSet));
     }
 }
 
-fn setup(mut commands: Commands) {
+/// System Set to set up the Pane Layout.
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PaneLayoutSet;
+
+/// The setup system for the Pane Layout.
+fn pane_layout_setup(
+    mut commands: Commands,
+    root: Query<Entity, With<RootPaneLayoutNode>>,
+    theme: Res<Theme>,
+) {
+    // All Panes exist as children of this Node.
     commands
-        .spawn(NodeBundle {
+        .entity(root.single())
+        .insert(NodeBundle {
             style: Style {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
+                display: Display::Grid,
+                grid_template_columns: vec![GridTrack::percent(100.0)],
+                grid_template_rows: vec![GridTrack::percent(100.0)],
                 ..Default::default()
             },
-            background_color: BackgroundColor(Color::oklaba(0.7, 0.1, 0.47, 1.0)),
-
+            background_color: theme.background_color,
             ..Default::default()
         })
-        .insert(RootPaneLayoutNode);
+        .with_children(|parent| {
+            parent
+                .spawn(NodeBundle {
+                    style: Style {
+                        width: Val::Percent(100.0),
+                        height: Val::Percent(100.0),
+                        display: Display::Grid,
+                        grid_template_columns: vec![
+                            GridTrack::px(15.0),
+                            GridTrack::auto(),
+                            GridTrack::px(15.0),
+                        ],
+                        grid_template_rows: vec![
+                            GridTrack::px(15.0),
+                            GridTrack::auto(),
+                            GridTrack::px(15.0),
+                        ],
+                        align_content: AlignContent::Stretch,
+                        justify_content: JustifyContent::Stretch,
+                        ..Default::default()
+                    },
+                    background_color: theme.background_color,
+                    ..Default::default()
+                })
+                .insert(PaneRootNode)
+                .with_children(|parent| {
+                    parent
+                        .spawn(NodeBundle {
+                            style: Style {
+                                grid_row: GridPlacement::start(2),
+                                grid_column: GridPlacement::start(2),
+                                display: Display::Grid,
+                                grid_template_columns: vec![GridTrack::percent(100.0)],
+                                grid_template_rows: vec![GridTrack::px(25.0), GridTrack::auto()],
+                                ..Default::default()
+                            },
+                            background_color: theme.pane_area_background_color,
+                            border_radius: theme.border_radius,
+                            ..Default::default()
+                        })
+                        .insert(PaneAreaNode)
+                        .with_children(|parent| {
+                            parent
+                                .spawn(NodeBundle {
+                                    style: Style {
+                                        width: Val::Percent(100.0),
+                                        height: Val::Px(25.0),
+                                        padding: UiRect {
+                                            left: Val::Px(10.0),
+                                            right: Val::Px(10.0),
+                                            top: Val::Px(0.0),
+                                            bottom: Val::Px(0.0),
+                                        },
+                                        ..Default::default()
+                                    },
+                                    background_color: theme.pane_background_color,
+                                    border_radius: theme.pane_header_border_radius,
+                                    ..Default::default()
+                                })
+                                .insert(PaneHeaderNode);
+                            parent
+                                .spawn(NodeBundle {
+                                    style: Style {
+                                        ..Default::default()
+                                    },
+                                    background_color: theme.pane_area_background_color,
+                                    border_radius: theme.border_radius,
+                                    ..Default::default()
+                                })
+                                .insert(PaneContentNode)
+                                .insert(Bevy3DViewport);
+                        });
+                });
+        });
 }
 
 /// Root node to capture all editor UI elements, nothing but the layout system should modify this.
@@ -46,13 +135,17 @@ pub struct RootPaneLayoutNode;
 #[derive(Component)]
 pub struct PaneRootNode;
 
-/// Node to denote the content area of the Pane.
+/// Node to denote the area of the Pane.
 #[derive(Component)]
 pub struct PaneAreaNode;
 
 /// Node to add widgets into the header of a Pane.
 #[derive(Component)]
 pub struct PaneHeaderNode;
+
+/// Node to denote the content space of the Pane.
+#[derive(Component)]
+pub struct PaneContentNode;
 
 /// Button to open up Pane selection menu.
 #[derive(Component)]

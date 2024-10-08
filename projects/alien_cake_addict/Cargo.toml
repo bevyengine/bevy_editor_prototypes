@@ -1,11 +1,12 @@
 [package]
-name = "bevy_menu_bar"
+name = "alien_cake_addict"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 bevy.workspace = true
-bevy_editor_styles.workspace = true
+rand = "0.8.5"
+rand_chacha = "0.3.1"
 
 [lints]
 workspace = true

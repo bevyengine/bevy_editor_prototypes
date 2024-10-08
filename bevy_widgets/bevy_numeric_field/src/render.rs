@@ -14,7 +14,6 @@ pub(crate) fn set_borders<T: NumericFieldValue>(
 
         if inner.failed_convert {
             canvas_border_color.0 = Color::srgb(1.0, 0.0, 0.0);
-        } else {
-        }
+        } 
     }
 }

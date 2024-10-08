@@ -202,6 +202,8 @@ pub(crate) fn keyboard_input(
             need_render = true;
             text_field.selection_start = Some(0);
             text_field.cursor_position = Some(text_field.text.len());
+            current_cursor = text_field.text.len();
+            events.clear();
         } else if key_states.pressed(KeyCode::KeyA) {
             events.clear(); // clear events that were triggered by pasting (for example it can be holded and we need to process it only once)
         }
@@ -254,6 +256,9 @@ pub(crate) fn keyboard_input(
                     text_field.selection_start = None; // clear selection if we write any text
                 }
                 Key::Character(c) => {
+                    if key_states.pressed(KeyCode::ControlLeft) {
+                        continue; // ignore control characters
+                    }
                     let mut chars = c.chars().collect::<Vec<_>>();
                     if let Some(allowed) = text_field.allowed_chars.as_ref() {
                         chars = chars

@@ -40,8 +40,7 @@ pub struct GotFocus(pub Option<Pointer<Click>>);
 #[derive(Event)]
 pub struct LostFocus;
 
-/// Example:
-/// commands.trigger_targets(SetFocus, vec![entity1, entity2]);
+/// Set focus to a widget
 #[derive(Event)]
 pub struct SetFocus;
 

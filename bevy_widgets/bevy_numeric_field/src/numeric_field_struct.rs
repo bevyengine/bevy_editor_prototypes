@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use num_traits::NumCast;
+use num_traits::{Bounded, CheckedAdd, CheckedSub, NumCast};
 use std::cmp::PartialOrd;
 use std::ops::{Add, Sub};
 use std::str::FromStr;
@@ -41,11 +41,17 @@ pub trait NumericFieldValue:
     + 'static
     + ToString
     + FromStr
+    + Bounded
 {
     /// Default change per logical pixel during dragging
     fn default_drag_step() -> Self;
     /// Chars allowed in text field for this type
     fn allowed_chars() -> Vec<char>;
+
+    /// Checked addition
+    fn checked_add(&self, rhs: &Self) -> Option<Self>;
+    /// Checked subtraction
+    fn checked_sub(&self, rhs: &Self) -> Option<Self>;
 }
 
 impl<T> NumericField<T>
@@ -97,6 +103,13 @@ macro_rules! impl_signed_numeric_field_value {
                 fn allowed_chars() -> Vec<char> {
                     vec!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-']
                 }
+
+                fn checked_add(&self, rhs: &Self) -> Option<Self> {
+                    <Self as CheckedAdd>::checked_add(self, rhs)
+                }
+                fn checked_sub(&self, rhs: &Self) -> Option<Self> {
+                    <Self as CheckedSub>::checked_sub(self, rhs)
+                }
             }
         )*
     }
@@ -110,6 +123,13 @@ macro_rules! impl_unsigned_numeric_field_value {
                 fn default_drag_step() -> Self { 1 }
                 fn allowed_chars() -> Vec<char> {
                     vec!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+                }
+
+                fn checked_add(&self, rhs: &Self) -> Option<Self> {
+                    <Self as CheckedAdd>::checked_add(self, rhs)
+                }
+                fn checked_sub(&self, rhs: &Self) -> Option<Self> {
+                    <Self as CheckedSub>::checked_sub(self, rhs)
                 }
             }
         )*
@@ -128,6 +148,14 @@ impl NumericFieldValue for f32 {
     fn allowed_chars() -> Vec<char> {
         vec!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-']
     }
+
+    fn checked_add(&self, rhs: &Self) -> Option<Self> {
+        Some(*self + *rhs)
+    }
+
+    fn checked_sub(&self, rhs: &Self) -> Option<Self> {
+        Some(*self - *rhs)
+    }
 }
 
 // Implement NumericFieldValue for f64
@@ -137,5 +165,13 @@ impl NumericFieldValue for f64 {
     }
     fn allowed_chars() -> Vec<char> {
         vec!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-']
+    }
+
+    fn checked_add(&self, rhs: &Self) -> Option<Self> {
+        Some(*self + *rhs)
+    }
+
+    fn checked_sub(&self, rhs: &Self) -> Option<Self> {
+        Some(*self - *rhs)
     }
 }

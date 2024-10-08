@@ -102,9 +102,24 @@ pub fn react_on_drag<T: NumericFieldValue>(
         return;
     };
     let old_val = field.value;
-    field.set_value(
-        old_val + T::from(drag_step.to_f32().unwrap() * trigger.event().event.delta.x).unwrap(),
-    );
+
+    // Calculate delta based on drag direction and step
+    let delta = if trigger.event().event.delta.x >= 0.0 {
+        T::from(drag_step.to_f32().unwrap() * trigger.event().event.delta.x)
+            .unwrap_or(T::default_drag_step())
+    } else {
+        T::from(drag_step.to_f32().unwrap() * -trigger.event().event.delta.x)
+            .unwrap_or(T::default_drag_step())
+    };
+
+    // Apply delta based on drag direction
+    let new_val = if trigger.event().event.delta.x >= 0.0 {
+        old_val.checked_add(&delta).unwrap_or_else(T::max_value)
+    } else {
+        old_val.checked_sub(&delta).unwrap_or_else(T::min_value)
+    };
+
+    field.set_value(new_val);
     text_field.set_text(field.value.to_string());
     inner_field.failed_convert = false;
     if inner_field.last_val != field.value {

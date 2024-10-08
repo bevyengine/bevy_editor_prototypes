@@ -46,7 +46,7 @@ impl Plugin for LineTextFieldPlugin {
 
         app.add_systems(
             PreUpdate,
-            (spawn_render_text_field, render::trigger_render_on_change).chain(),
+            (spawn_render_text_field, render::trigger_render_on_change, despawn_render_text_field).chain(),
         );
 
         app.add_plugins(cursor::CursorPlugin);
@@ -312,5 +312,26 @@ fn spawn_render_text_field(
             selection,
         };
         commands.entity(entity).insert(links);
+    }
+}
+
+fn despawn_render_text_field(
+    mut commands: Commands,
+    q_entity: Query<&LineTextFieldLinks>,
+    mut q_removed: RemovedComponents<LineTextField>
+) {
+    for entity in q_removed.read() {
+        let Ok(links) = q_entity.get(entity) else {
+            continue;
+        };
+        commands.entity(entity).remove::<LineTextFieldLinks>();
+        commands.entity(links.canvas).despawn_recursive();
+        commands.entity(links.sub_canvas).despawn_recursive();
+        commands.entity(links.text).despawn_recursive();
+        commands.entity(links.text_right).despawn_recursive();
+        commands.entity(links.cursor).despawn_recursive();
+        commands.entity(links.selection_shift).despawn_recursive();
+        commands.entity(links.selection).despawn_recursive();
+        commands.entity(entity).remove::<InnerFieldParams>();
     }
 }

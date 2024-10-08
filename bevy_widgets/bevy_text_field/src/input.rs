@@ -335,7 +335,7 @@ pub(crate) fn keyboard_input(
     }
 
     if need_render {
-        // cursor position changed hided in if to prevert infinite change triggering
+        // cursor position changed hided in if to pervert infinite change triggering
         text_field.cursor_position = Some(current_cursor);
         commands.trigger_targets(
             RenderTextField {

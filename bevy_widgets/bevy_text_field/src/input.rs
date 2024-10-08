@@ -180,6 +180,12 @@ pub(crate) fn keyboard_input(
                         current_cursor -= prev_char_index;
                     }
                 }
+                Key::Delete => {
+                    need_render = true;
+                    if current_cursor < text_field.text.len() {
+                        text_field.text.remove(current_cursor);
+                    }
+                }
                 Key::Character(c) => {
                     need_render = true;
                     for c in c.chars() {

@@ -104,13 +104,32 @@ pub fn react_on_drag<T: NumericFieldValue>(
     };
     let old_val = field.value;
 
-    // Вычисляем дельту с учетом направления перетаскивания
+    // Calculate delta with drag direction
     let delta = drag_step * trigger.event().event.delta.x as f64;
 
     // Аккумулируем дельту
     inner_field.accumulated_delta += delta;
 
-    // Проверяем, достаточно ли накопилось для изменения значения
+    let val_from_accum = T::from(inner_field.accumulated_delta);
+    if let Some(val_from_accum) = val_from_accum {
+        if val_from_accum != T::from(0).unwrap() {
+            // Its float we can just add delta
+            let new_val = field.value + val_from_accum;
+            field.set_value(new_val);
+            text_field.set_text(field.value.to_string());
+            inner_field.failed_convert = false;
+            if inner_field.last_val != field.value {
+                commands.trigger_targets(NewValue(field.value), entity);
+                inner_field.last_val = field.value;
+            }
+
+            inner_field.accumulated_delta = 0.0;
+
+            return;
+        }
+    }
+
+    // Check if we can add delta to integer
     if inner_field.accumulated_delta.abs() >= 1.0 {
         let change = inner_field.accumulated_delta.trunc() as i64;
         inner_field.accumulated_delta -= change as f64;

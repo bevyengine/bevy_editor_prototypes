@@ -40,6 +40,7 @@ pub(crate) fn render_text_field(
     )>,
     mut q_border_color: Query<&mut BorderColor>,
     mut q_styles: Query<&mut Style>,
+    mut q_texts: Query<&mut Text>,
     q_cursors: Query<Entity, With<Cursor>>,
 ) {
     let entity = trigger.entity();
@@ -62,7 +63,15 @@ pub(crate) fn render_text_field(
         return;
     };
 
-    let Ok(mut sub_canvas_style) = q_styles.get_mut(links.sub_canvas) else {
+    let Ok([mut sub_canvas_style, mut selection_style]) =
+        q_styles.get_many_mut([links.sub_canvas, links.selection])
+    else {
+        return;
+    };
+
+    let Ok([mut selection_text, mut pre_selection_text]) =
+        q_texts.get_many_mut([links.selection, links.selection_shift])
+    else {
         return;
     };
 
@@ -108,6 +117,28 @@ pub(crate) fn render_text_field(
         commands
             .entity(links.text_right)
             .insert(TextBundle::from_section(right_text, TextStyle::default()).with_no_wrap());
+
+        if let Some(selection_start) = text_field.selection_start {
+            // Show text selection
+            let selection_text_part = if selection_start < cursor {
+                &text_field.text[selection_start..cursor]
+            } else {
+                &text_field.text[cursor..selection_start]
+            };
+
+            let selection_pre = if selection_start < cursor {
+                &text_field.text[..selection_start]
+            } else {
+                &text_field.text[..cursor]
+            };
+
+            // Set fake text
+            selection_text.sections[0].value = selection_text_part.to_string();
+            pre_selection_text.sections[0].value = selection_pre.to_string();
+        } else {
+            selection_text.sections[0].value = "".to_string();
+            pre_selection_text.sections[0].value = "".to_string();
+        }
     } else {
         commands.entity(links.text).insert(
             TextBundle::from_section(text_field.text.clone(), TextStyle::default()).with_no_wrap(),
@@ -119,6 +150,9 @@ pub(crate) fn render_text_field(
         commands
             .entity(links.text_right)
             .insert(TextBundle::from_section("", TextStyle::default()));
+
+        selection_text.sections[0].value = "".to_string();
+        pre_selection_text.sections[0].value = "".to_string();
     }
 }
 

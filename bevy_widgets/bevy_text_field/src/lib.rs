@@ -11,6 +11,7 @@ pub mod render;
 const BORDER_COLOR: Color = Color::srgb(56.0 / 255.0, 56.0 / 255.0, 56.0 / 255.0);
 const HIGHLIGHT_COLOR: Color = Color::srgb(107.0 / 255.0, 107.0 / 255.0, 107.0 / 255.0);
 const BACKGROUND_COLOR: Color = Color::srgb(43.0 / 255.0, 44.0 / 255.0, 47.0 / 255.0);
+const TEXT_SELECTION_COLOR: Color = Color::srgb(0.0 / 255.0, 122.0 / 255.0, 255.0 / 255.0);
 
 use bevy::{
     input::keyboard::{Key, KeyboardInput},
@@ -63,6 +64,36 @@ pub struct LineTextField {
     pub text: String,
     /// Cursor position
     pub cursor_position: Option<usize>,
+    /// Selection start
+    pub selection_start: Option<usize>,
+}
+
+impl LineTextField {
+    /// Get selected text by selection start and cursor position
+    pub fn get_selected_text(&self) -> Option<String> {
+        if let (Some(start), Some(end)) = (self.selection_start, self.cursor_position) {
+            if start < end {
+                Some(self.text[start..end].to_string())
+            } else {
+                Some(self.text[end..start].to_string())
+            }
+        } else {
+            None
+        }
+    }
+
+    /// Get selected text range
+    pub fn get_selected_range(&self) -> Option<(usize, usize)> {
+        if let (Some(start), Some(end)) = (self.selection_start, self.cursor_position) {
+            if start < end {
+                Some((start, end))
+            } else {
+                Some((end, start))
+            }
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Component)]
@@ -72,6 +103,8 @@ pub(crate) struct LineTextFieldLinks {
     text: Entity,
     text_right: Entity,
     cursor: Entity,
+    selection_shift: Entity,
+    selection: Entity,
 }
 
 #[derive(Component, Default, Reflect)]
@@ -85,6 +118,7 @@ impl LineTextField {
         Self {
             text: text.into(),
             cursor_position: None,
+            selection_start: None,
         }
     }
 
@@ -147,11 +181,64 @@ fn spawn_render_text_field(
             })
             .id();
 
+        let text_selection_style = TextStyle {
+            color: Color::srgba(0.0, 0.0, 0.0, 0.0), // transparent
+            ..Default::default()
+        };
+
+        let selection = commands
+            .spawn(TextBundle {
+                style: Style {
+                    height: Val::Percent(100.0),
+                    ..default()
+                },
+                background_color: BackgroundColor(TEXT_SELECTION_COLOR.clone()),
+                text: Text::from_section("", text_selection_style.clone()),
+                ..default()
+            })
+            .id();
+
+        let selection_shift = commands
+            .spawn(TextBundle {
+                style: Style {
+                    height: Val::Percent(100.0),
+                    ..default()
+                },
+                text: Text::from_section("", text_selection_style),
+                ..default()
+            })
+            .id();
+
+        let selection_root = commands
+            .spawn(NodeBundle {
+                style: Style {
+                    position_type: PositionType::Absolute,
+                    left: Val::Px(5.0),
+                    width: Val::Auto,
+                    height: Val::Percent(100.0),
+                    justify_content: JustifyContent::Start,
+                    display: Display::Flex,
+                    ..Default::default()
+                },
+                z_index: ZIndex::Local(-2),
+                ..Default::default()
+            })
+            .id();
+
+        commands
+            .entity(selection_root)
+            .add_child(selection_shift)
+            .add_child(selection);
+        commands.entity(shifting_canvas).add_child(selection_root);
+
         commands.entity(entity).add_child(canvas);
         commands.entity(canvas).add_child(shifting_canvas);
+
+        commands.entity(shifting_canvas);
         commands.entity(shifting_canvas).add_child(text_field);
         commands.entity(shifting_canvas).add_child(cursor);
         commands.entity(shifting_canvas).add_child(text_field_right);
+
         commands
             .entity(entity)
             .insert(Pickable {
@@ -169,6 +256,8 @@ fn spawn_render_text_field(
             text: text_field,
             text_right: text_field_right,
             cursor: cursor,
+            selection_shift,
+            selection,
         };
         commands.entity(entity).insert(links);
     }

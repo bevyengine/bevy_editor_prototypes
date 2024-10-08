@@ -46,6 +46,7 @@ pub(crate) fn text_field_on_click(
     mut commands: Commands,
     mut q_text_fields: Query<(&mut LineTextField, &LineTextFieldLinks)>,
     q_nodes: Query<(&GlobalTransform, &Node)>,
+    pressed_keys: Res<ButtonInput<KeyCode>>,
 ) {
     let entity = click.entity();
     let click_data = &click.event().0;
@@ -89,7 +90,18 @@ pub(crate) fn text_field_on_click(
         }
     }
 
+    if pressed_keys.pressed(KeyCode::ShiftLeft) {
+        if text_field.selection_start.is_none() {
+            if let Some(last_cursor) = text_field.cursor_position {
+                text_field.selection_start = Some(last_cursor); // selection by mouse
+            }
+        }
+    } else {
+        text_field.selection_start = None;
+    }
+
     text_field.cursor_position = Some(cursor_pos);
+
     commands.trigger_targets(
         RenderTextField {
             force_show_cursor: true,
@@ -110,6 +122,7 @@ pub(crate) fn lost_focus(
     };
 
     text_field.cursor_position = None;
+    text_field.selection_start = None;
     commands.trigger_targets(RenderTextField::default(), entity);
 }
 
@@ -136,8 +149,10 @@ pub(crate) fn keyboard_input(
             need_render = true;
             events.clear(); // clear events that were triggered by pasting
 
-            if let Err(e) = clipboard.set_text(text_field.text.clone()) {
-                warn!("Clipboard error: {}", e);
+            if let Some(selected_text) = text_field.get_selected_text() {
+                if let Err(e) = clipboard.set_text(selected_text) {
+                    warn!("Clipboard error: {}", e);
+                }
             }
         } else if key_states.just_pressed(KeyCode::KeyV) {
             need_render = true;
@@ -145,14 +160,49 @@ pub(crate) fn keyboard_input(
 
             match clipboard.get_text() {
                 Ok(text) => {
-                    text_field.text.insert_str(current_cursor, &text);
-                    current_cursor += text.len();
+                    if text_field.selection_start.is_none() {
+                        text_field.text.insert_str(current_cursor, &text);
+                        current_cursor += text.len();
+                    } else {
+                        let selected_range = text_field.get_selected_range().unwrap();
+
+                        text_field
+                            .text
+                            .replace_range(selected_range.0..selected_range.1, &text);
+                        current_cursor = selected_range.0 + text.len();
+
+                        text_field.selection_start = None;
+                    }
                 }
                 Err(e) => {
                     warn!("Clipboard error: {}", e);
                 }
             }
         } else if key_states.pressed(KeyCode::KeyV) {
+            events.clear(); // clear events that were triggered by pasting (for example it can be holded and we need to process it only once)
+        } else if key_states.just_pressed(KeyCode::KeyX) {
+            need_render = true;
+            events.clear(); // clear events that were triggered by cut
+            if let Some(selected_text) = text_field.get_selected_text() {
+                if let Err(e) = clipboard.set_text(selected_text) {
+                    warn!("Clipboard error: {}", e);
+                }
+            }
+            if let Some(selected_range) = text_field.get_selected_range() {
+                text_field
+                    .text
+                    .replace_range(selected_range.0..selected_range.1, "");
+                current_cursor = selected_range.0;
+                text_field.selection_start = None;
+            }
+        } else if key_states.pressed(KeyCode::KeyX) {
+            events.clear(); // clear events that were triggered by pasting (for example it can be holded and we need to process it only once)
+        } else if key_states.just_pressed(KeyCode::KeyA) {
+            // Select all text
+            need_render = true;
+            text_field.selection_start = Some(0);
+            text_field.cursor_position = Some(text_field.text.len());
+        } else if key_states.pressed(KeyCode::KeyA) {
             events.clear(); // clear events that were triggered by pasting (for example it can be holded and we need to process it only once)
         }
     }
@@ -165,12 +215,24 @@ pub(crate) fn keyboard_input(
             match &event.logical_key {
                 Key::Space => {
                     need_render = true;
-                    text_field.text.insert(current_cursor, ' ');
-                    current_cursor += 1;
+
+                    if let Some((start, end)) = text_field.get_selected_range() {
+                        text_field.text.replace_range(start..end, " ");
+                        current_cursor = start + 1;
+                    } else {
+                        text_field.text.insert(current_cursor, ' ');
+                        current_cursor += 1;
+                    }
+
+                    text_field.selection_start = None; // clear selection if we write any text
                 }
                 Key::Backspace => {
                     need_render = true;
-                    if current_cursor > 0 {
+
+                    if let Some((start, end)) = text_field.get_selected_range() {
+                        text_field.text.replace_range(start..end, "");
+                        current_cursor = start;
+                    } else if current_cursor > 0 {
                         let prev_char_index = text_field.text[..current_cursor]
                             .chars()
                             .next_back()
@@ -179,22 +241,42 @@ pub(crate) fn keyboard_input(
                         text_field.text.remove(current_cursor - prev_char_index);
                         current_cursor -= prev_char_index;
                     }
+                    text_field.selection_start = None; // clear selection if we write any text
                 }
                 Key::Delete => {
                     need_render = true;
-                    if current_cursor < text_field.text.len() {
+                    if let Some((start, end)) = text_field.get_selected_range() {
+                        text_field.text.replace_range(start..end, "");
+                        current_cursor = start;
+                    } else if current_cursor < text_field.text.len() {
                         text_field.text.remove(current_cursor);
                     }
+                    text_field.selection_start = None; // clear selection if we write any text
                 }
                 Key::Character(c) => {
                     need_render = true;
-                    for c in c.chars() {
-                        text_field.text.insert(current_cursor, c);
-                        current_cursor += c.len_utf8();
+
+                    if let Some((start, end)) = text_field.get_selected_range() {
+                        text_field.text.replace_range(start..end, c);
+                        current_cursor = start + c.len();
+                    } else {
+                        for c in c.chars() {
+                            text_field.text.insert(current_cursor, c);
+                            current_cursor += c.len_utf8();
+                        }
                     }
+                    text_field.selection_start = None; // clear selection if we write any text
                 }
                 Key::ArrowLeft => {
                     if current_cursor > 0 {
+                        if key_states.pressed(KeyCode::ShiftLeft) {
+                            if text_field.selection_start.is_none() {
+                                text_field.selection_start = Some(current_cursor);
+                            }
+                        } else {
+                            text_field.selection_start = None;
+                        }
+
                         let prev_char_index = text_field.text[..current_cursor]
                             .chars()
                             .next_back()
@@ -206,6 +288,14 @@ pub(crate) fn keyboard_input(
                 }
                 Key::ArrowRight => {
                     if current_cursor < text_field.text.len() {
+                        if key_states.pressed(KeyCode::ShiftLeft) {
+                            if text_field.selection_start.is_none() {
+                                text_field.selection_start = Some(current_cursor);
+                            }
+                        } else {
+                            text_field.selection_start = None;
+                        }
+
                         let next_char_index = text_field.text[current_cursor..]
                             .chars()
                             .next()

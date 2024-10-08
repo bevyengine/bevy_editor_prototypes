@@ -2,7 +2,7 @@
 
 use bevy::prelude::*;
 
-pub struct CursorPlugin;
+pub(crate) struct CursorPlugin;
 
 impl Plugin for CursorPlugin {
     fn build(&self, app: &mut App) {
@@ -11,7 +11,7 @@ impl Plugin for CursorPlugin {
 }
 
 #[derive(Component)]
-pub struct Cursor {
+pub(crate) struct Cursor {
     timer: Timer,
     visible: bool,
 }

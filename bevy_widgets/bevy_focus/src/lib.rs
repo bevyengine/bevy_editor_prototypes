@@ -1,8 +1,9 @@
 //! This crate contains input focus management for Bevy widgets.
 //! Currently only one entity can hold focus at a time.
 
-use bevy::{ecs::observer::TriggerTargets, prelude::*};
+use bevy::prelude::*;
 
+/// Plugin for input focus logic
 pub struct FocusPlugin;
 
 impl Plugin for FocusPlugin {

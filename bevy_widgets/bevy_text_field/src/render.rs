@@ -5,10 +5,10 @@ use crate::{
     cursor::Cursor, InnerFieldParams, LineTextField, LineTextFieldLinks, BORDER_COLOR,
     HIGHLIGHT_COLOR,
 };
-use bevy::{prelude::*, text::TextLayoutInfo};
+use bevy::prelude::*;
 
 #[derive(Event, Default)]
-pub struct RenderTextField {
+pub(crate) struct RenderTextField {
     pub force_show_cursor: bool,
 }
 
@@ -46,7 +46,7 @@ pub(crate) fn render_text_field(
     let entity = trigger.entity();
     trigger.propagate(false);
 
-    let Ok((mut text_field, links, inner, highlighted)) = q_text_fields.get(entity) else {
+    let Ok((text_field, links, inner, highlighted)) = q_text_fields.get(entity) else {
         return;
     };
 
@@ -63,9 +63,7 @@ pub(crate) fn render_text_field(
         return;
     };
 
-    let Ok([mut sub_canvas_style, mut selection_style]) =
-        q_styles.get_many_mut([links.sub_canvas, links.selection])
-    else {
+    let Ok(mut sub_canvas_style) = q_styles.get_mut(links.sub_canvas) else {
         return;
     };
 

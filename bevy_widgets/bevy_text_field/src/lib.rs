@@ -13,14 +13,11 @@ const HIGHLIGHT_COLOR: Color = Color::srgb(107.0 / 255.0, 107.0 / 255.0, 107.0 /
 const BACKGROUND_COLOR: Color = Color::srgb(43.0 / 255.0, 44.0 / 255.0, 47.0 / 255.0);
 const TEXT_SELECTION_COLOR: Color = Color::srgb(0.0 / 255.0, 122.0 / 255.0, 255.0 / 255.0);
 
-use bevy::{
-    input::keyboard::{Key, KeyboardInput},
-    prelude::*,
-};
-use bevy_focus::{Focus, FocusPlugin, Focusable};
-use cursor::Cursor;
+use bevy::prelude::*;
+use bevy_focus::{FocusPlugin, Focusable};
 use render::RenderTextField;
 
+/// Plugin for text field logic
 pub struct LineTextFieldPlugin;
 
 impl Plugin for LineTextFieldPlugin {
@@ -61,11 +58,11 @@ impl Plugin for LineTextFieldPlugin {
 #[derive(Component, Default, Reflect)]
 pub struct LineTextField {
     /// Text in the text field
-    pub text: String,
+    pub(crate) text: String,
     /// Cursor position
-    pub cursor_position: Option<usize>,
+    pub(crate) cursor_position: Option<usize>,
     /// Selection start
-    pub selection_start: Option<usize>,
+    pub(crate) selection_start: Option<usize>,
 }
 
 impl LineTextField {
@@ -114,6 +111,7 @@ pub(crate) struct InnerFieldParams {
 }
 
 impl LineTextField {
+    /// Create new text field
     pub fn new(text: impl Into<String>) -> Self {
         Self {
             text: text.into(),
@@ -121,10 +119,24 @@ impl LineTextField {
             selection_start: None,
         }
     }
-
+    /// Set text and return self
     pub fn with_text(mut self, text: impl Into<String>) -> Self {
         self.text = text.into();
         self
+    }
+    /// Return text stored in the text field
+    pub fn text(&self) -> &str {
+        &self.text
+    }
+    /// Store text in the text field
+    pub fn set_text(&mut self, text: impl Into<String>) {
+        let text = text.into();
+        if self.text != text {
+            self.text = text;
+            // Reset cursor and selection by default
+            self.cursor_position = None;
+            self.selection_start = None;
+        }
     }
 }
 

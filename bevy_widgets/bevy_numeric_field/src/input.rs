@@ -116,13 +116,9 @@ pub fn react_on_drag<T: NumericFieldValue>(
         inner_field.accumulated_delta -= change as f64;
 
         let new_val = if change > 0 {
-            (0..change).try_fold(old_val, |v, _| {
-                v.checked_add(&T::from(1).unwrap())
-            })
+            (0..change).try_fold(old_val, |v, _| v.checked_add(&T::from(1).unwrap()))
         } else {
-            (0..change.abs()).try_fold(old_val, |v, _| {
-                v.checked_sub(&T::from(1).unwrap())
-            })
+            (0..change.abs()).try_fold(old_val, |v, _| v.checked_sub(&T::from(1).unwrap()))
         };
 
         if let Some(new_val) = new_val {

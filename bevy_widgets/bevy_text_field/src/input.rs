@@ -53,7 +53,7 @@ pub(crate) fn text_field_on_click(
     };
     info!("Click: {:?}", click.entity());
 
-    let mut cursor_pos = text_field.text.len();
+    let mut char_cursor_pos = text_field.text.chars().count();
     // If we got focus by mouse click, we need to calculate cursor position
     if let Some(click_data) = click_data {
         if let Ok((pos, text_left)) = q_nodes.get(links.text) {
@@ -63,9 +63,10 @@ pub(crate) fn text_field_on_click(
                 let dx_relative = dx / rect.width();
 
                 if let Some(cursor) = text_field.cursor_position {
-                    cursor_pos = (cursor as f32 * dx_relative).round() as usize;
+                    let char_cursor = text_field.text[..cursor].chars().count();
+                    char_cursor_pos = (char_cursor as f32 * dx_relative).round() as usize;
                 } else {
-                    cursor_pos = (dx_relative * text_field.text.len() as f32).round() as usize;
+                    char_cursor_pos = (dx_relative * text_field.text.chars().count() as f32).round() as usize;
                 }
             }
         }
@@ -77,9 +78,10 @@ pub(crate) fn text_field_on_click(
                 let dx_relative = dx / rect.width();
 
                 if let Some(cursor) = text_field.cursor_position {
-                    let text_right_width = text_field.text.len() - cursor;
+                    let char_cursor = text_field.text[..cursor].chars().count();
+                    let text_right_width = text_field.text.chars().count() - char_cursor;
                     let relative_cursor = (dx_relative * text_right_width as f32).round() as usize;
-                    cursor_pos = cursor + relative_cursor;
+                    char_cursor_pos = char_cursor + relative_cursor;
                 } else {
                     // Unexpected
                 }
@@ -97,6 +99,7 @@ pub(crate) fn text_field_on_click(
         text_field.selection_start = None;
     }
 
+    let cursor_pos = text_field.text.char_indices().nth(char_cursor_pos).map(|(i, _)| i).unwrap_or(text_field.text.len());
     text_field.cursor_position = Some(cursor_pos);
 
     commands.trigger_targets(

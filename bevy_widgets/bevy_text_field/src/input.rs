@@ -271,7 +271,8 @@ pub(crate) fn keyboard_input(
                     let mut chars = c.chars().collect::<Vec<_>>();
                     if let Some(allowed) = text_field.allowed_chars.as_ref() {
                         chars = chars
-                            .iter().copied()
+                            .iter()
+                            .copied()
                             .filter(|c| allowed.contains(c))
                             .collect();
                     }

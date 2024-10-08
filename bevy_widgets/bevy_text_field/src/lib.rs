@@ -249,7 +249,7 @@ fn spawn_render_text_field(
         let text_selection_style = TextStyle {
             color: Color::srgba(0.0, 0.0, 0.0, 0.0), // transparent
             font: text_style.font.clone(),
-            font_size: text_style.font_size
+            font_size: text_style.font_size,
         };
 
         let selection = commands

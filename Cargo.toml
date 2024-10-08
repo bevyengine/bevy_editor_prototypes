@@ -49,6 +49,9 @@ bevy_i-cant-believe-its-not-bsn = { path = "bevy_widgets/bevy_i-cant-believe-its
 bevy_menu_bar = { path = "bevy_widgets/bevy_menu_bar" }
 bevy_toolbar = { path = "bevy_widgets/bevy_toolbar" }
 bevy_tooltips = { path = "bevy_widgets/bevy_tooltips" }
+bevy_text_field = { path = "bevy_widgets/bevy_text_field" }
+bevy_numeric_field = { path = "bevy_widgets/bevy_numeric_field" }
+bevy_focus = { path = "bevy_widgets/bevy_focus" }
 
 # general crates
 bevy_asset_preview = { path = "crates/bevy_asset_preview" }

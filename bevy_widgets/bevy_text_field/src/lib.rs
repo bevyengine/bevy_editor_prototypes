@@ -103,14 +103,22 @@ pub struct TextChanged;
 #[derive(Event)]
 pub struct TextEditingFinished;
 
+/// Contains links to all entities that required to render text field
 #[derive(Component)]
 pub struct LineTextFieldLinks {
+    /// Main entity, contains border and background colors
     pub canvas: Entity,
+    /// Single child of canvas. Contains text and cursor. Moving it if text is longer than text field
     pub sub_canvas: Entity,
+    /// All text node or text before cursor position
     pub text: Entity,
+    /// Text after cursor position
     pub text_right: Entity,
+    /// Cursor node
     pub cursor: Entity,
+    /// Contains invisible text before selection start. Used for precise selection rendering
     pub selection_shift: Entity,
+    /// Contains selected text background (Also con)
     pub selection: Entity,
 }
 

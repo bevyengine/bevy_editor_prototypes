@@ -12,7 +12,6 @@ use std::marker::PhantomData;
 
 pub use events::*;
 pub use numeric_field_struct::*;
-pub use spawn::*;
 
 /// Contains default numeric field plugins for all basic numeric types (u8, u16, u32, u64, u128, i8, i16, i32, i64, i128, f32, f64)
 pub struct DefaultNumericFieldPlugin;

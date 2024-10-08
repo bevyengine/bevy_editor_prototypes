@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 bevy.workspace = true
-bevy_focus = {path = "../bevy_focus"}
+bevy_focus.workspace = true
 arboard = "3.4.1"
 
 [lints]

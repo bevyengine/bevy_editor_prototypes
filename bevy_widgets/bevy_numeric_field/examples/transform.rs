@@ -1,7 +1,6 @@
 //! Contains example for spawning many numeric fields
 
-use bevy::{math::VectorSpace, prelude::*};
-use bevy_focus::Focus;
+use bevy::prelude::*;
 use bevy_numeric_field::*;
 
 fn main() {

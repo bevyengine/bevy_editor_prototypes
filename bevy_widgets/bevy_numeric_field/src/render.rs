@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_text_field::{LineTextField, LineTextFieldLinks};
+use bevy_text_field::LineTextFieldLinks;
 
 use crate::{InnerNumericField, NumericFieldValue};
 

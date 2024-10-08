@@ -2,6 +2,7 @@
 //!
 //! Currently only single line text input is supported. (multiline text input is coming some time)
 
+pub mod clipboard;
 pub mod cursor;
 pub mod input;
 pub mod render;
@@ -51,6 +52,7 @@ impl Plugin for LineTextFieldPlugin {
         );
 
         app.add_plugins(cursor::CursorPlugin);
+        app.add_plugins(clipboard::ClipboardPlugin);
     }
 }
 

@@ -7,7 +7,10 @@ use bevy::{
 };
 use bevy_focus::{Focus, GotFocus, LostFocus};
 
-use crate::{cursor::Cursor, render::RenderTextField, LineTextField, LineTextFieldLinks};
+use crate::{
+    clipboard::BevyClipboard, cursor::Cursor, render::RenderTextField, LineTextField,
+    LineTextFieldLinks,
+};
 
 pub(crate) fn text_field_on_over(
     over: Trigger<Pointer<Over>>,
@@ -114,6 +117,8 @@ pub(crate) fn keyboard_input(
     mut commands: Commands,
     mut q_text_fields: Query<(Entity, &mut LineTextField), With<Focus>>,
     mut events: EventReader<KeyboardInput>,
+    key_states: Res<ButtonInput<KeyCode>>,
+    mut clipboard: ResMut<BevyClipboard>,
 ) {
     let Ok((entity, mut text_field)) = q_text_fields.get_single_mut() else {
         return;
@@ -125,59 +130,87 @@ pub(crate) fn keyboard_input(
 
     let mut need_render = false;
 
-    for event in events.read() {
-        if !event.state.is_pressed() {
-            continue;
-        }
+    // check for Ctrl-C, Ctrl-V, Ctrl-A etc
+    if key_states.pressed(KeyCode::ControlLeft) {
+        if key_states.pressed(KeyCode::KeyC) {
+            need_render = true;
+            events.clear(); // clear events that were triggered by pasting
 
-        match &event.logical_key {
-            Key::Space => {
-                need_render = true;
-                text_field.text.insert(current_cursor, ' ');
-                current_cursor += 1;
+            if let Err(e) = clipboard.set_text(text_field.text.clone()) {
+                warn!("Clipboard error: {}", e);
             }
-            Key::Backspace => {
-                need_render = true;
-                if current_cursor > 0 {
-                    let prev_char_index = text_field.text[..current_cursor]
-                        .chars()
-                        .next_back()
-                        .map(char::len_utf8)
-                        .unwrap_or(0);
-                    text_field.text.remove(current_cursor - prev_char_index);
-                    current_cursor -= prev_char_index;
+        } else if key_states.just_pressed(KeyCode::KeyV) {
+            need_render = true;
+            events.clear(); // clear events that were triggered by pasting
+
+            match clipboard.get_text() {
+                Ok(text) => {
+                    text_field.text.insert_str(current_cursor, &text);
+                    current_cursor += text.len();
+                }
+                Err(e) => {
+                    warn!("Clipboard error: {}", e);
                 }
             }
-            Key::Character(c) => {
-                need_render = true;
-                for c in c.chars() {
-                    text_field.text.insert(current_cursor, c);
-                    current_cursor += c.len_utf8();
-                }
+        } else if key_states.pressed(KeyCode::KeyV) {
+            events.clear(); // clear events that were triggered by pasting (for example it can be holded and we need to process it only once)
+        }
+    }
+
+    if !need_render {
+        for event in events.read() {
+            if !event.state.is_pressed() {
+                continue;
             }
-            Key::ArrowLeft => {
-                if current_cursor > 0 {
-                    let prev_char_index = text_field.text[..current_cursor]
-                        .chars()
-                        .next_back()
-                        .map(char::len_utf8)
-                        .unwrap_or(0);
-                    current_cursor -= prev_char_index;
+            match &event.logical_key {
+                Key::Space => {
                     need_render = true;
+                    text_field.text.insert(current_cursor, ' ');
+                    current_cursor += 1;
                 }
-            }
-            Key::ArrowRight => {
-                if current_cursor < text_field.text.len() {
-                    let next_char_index = text_field.text[current_cursor..]
-                        .chars()
-                        .next()
-                        .map(char::len_utf8)
-                        .unwrap_or(0);
-                    current_cursor += next_char_index;
+                Key::Backspace => {
                     need_render = true;
+                    if current_cursor > 0 {
+                        let prev_char_index = text_field.text[..current_cursor]
+                            .chars()
+                            .next_back()
+                            .map(char::len_utf8)
+                            .unwrap_or(0);
+                        text_field.text.remove(current_cursor - prev_char_index);
+                        current_cursor -= prev_char_index;
+                    }
                 }
+                Key::Character(c) => {
+                    need_render = true;
+                    for c in c.chars() {
+                        text_field.text.insert(current_cursor, c);
+                        current_cursor += c.len_utf8();
+                    }
+                }
+                Key::ArrowLeft => {
+                    if current_cursor > 0 {
+                        let prev_char_index = text_field.text[..current_cursor]
+                            .chars()
+                            .next_back()
+                            .map(char::len_utf8)
+                            .unwrap_or(0);
+                        current_cursor -= prev_char_index;
+                        need_render = true;
+                    }
+                }
+                Key::ArrowRight => {
+                    if current_cursor < text_field.text.len() {
+                        let next_char_index = text_field.text[current_cursor..]
+                            .chars()
+                            .next()
+                            .map(char::len_utf8)
+                            .unwrap_or(0);
+                        current_cursor += next_char_index;
+                        need_render = true;
+                    }
+                }
+                _ => {}
             }
-            _ => {}
         }
     }
 

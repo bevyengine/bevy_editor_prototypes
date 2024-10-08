@@ -88,6 +88,7 @@ pub(crate) fn render_text_field(
             Style {
                 height: Val::Percent(100.0),
                 width: Val::Px(2.0),
+                margin: UiRect::horizontal(Val::Px(-1.0)),
                 ..default()
             },
             BackgroundColor(Color::WHITE),

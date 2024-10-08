@@ -140,6 +140,7 @@ fn spawn_render_text_field(
                     justify_content: JustifyContent::Start,
                     display: Display::Flex,
                     align_items: AlignItems::Center,
+                    padding: UiRect::all(Val::Px(5.0)),
                     ..Default::default()
                 },
                 ..Default::default()

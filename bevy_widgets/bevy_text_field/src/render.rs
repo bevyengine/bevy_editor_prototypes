@@ -48,7 +48,7 @@ pub(crate) fn render_text_field(
     mut q_styles: Query<&mut Style>,
     mut q_texts: Query<&mut Text>,
     q_cursors: Query<Entity, With<Cursor>>,
-    theme: Option<Res<Theme>>
+    theme: Option<Res<Theme>>,
 ) {
     let text_style = if let Some(theme) = theme {
         theme.normal_text_style()

@@ -66,7 +66,8 @@ pub(crate) fn text_field_on_click(
                     let char_cursor = text_field.text[..cursor].chars().count();
                     char_cursor_pos = (char_cursor as f32 * dx_relative).round() as usize;
                 } else {
-                    char_cursor_pos = (dx_relative * text_field.text.chars().count() as f32).round() as usize;
+                    char_cursor_pos =
+                        (dx_relative * text_field.text.chars().count() as f32).round() as usize;
                 }
             }
         }
@@ -99,7 +100,12 @@ pub(crate) fn text_field_on_click(
         text_field.selection_start = None;
     }
 
-    let cursor_pos = text_field.text.char_indices().nth(char_cursor_pos).map(|(i, _)| i).unwrap_or(text_field.text.len());
+    let cursor_pos = text_field
+        .text
+        .char_indices()
+        .nth(char_cursor_pos)
+        .map(|(i, _)| i)
+        .unwrap_or(text_field.text.len());
     text_field.cursor_position = Some(cursor_pos);
 
     commands.trigger_targets(

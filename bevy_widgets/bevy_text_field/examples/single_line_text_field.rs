@@ -55,7 +55,7 @@ fn setup(mut commands: Commands) {
             cmd.spawn((
                 NodeBundle {
                     style: Style {
-                        width: Val::Px(300.0),
+                        width: Val::Px(600.0),
                         height: Val::Px(40.0),
                         margin: UiRect::all(Val::Px(20.0)),
                         ..default()
@@ -68,7 +68,7 @@ fn setup(mut commands: Commands) {
             cmd.spawn((
                 NodeBundle {
                     style: Style {
-                        width: Val::Px(300.0),
+                        width: Val::Px(100.0),
                         height: Val::Px(40.0),
                         margin: UiRect::all(Val::Px(20.0)),
                         ..default()

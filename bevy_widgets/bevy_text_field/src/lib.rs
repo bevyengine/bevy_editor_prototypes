@@ -29,6 +29,14 @@ impl Plugin for LineTextFieldPlugin {
 
         app.add_event::<RenderTextField>();
 
+        app.add_systems(
+            PreUpdate,
+            (
+                render::check_cursor_overflow,
+                render::update_skip_cursor_check,
+            )
+                .chain(),
+        );
         app.observe(render::render_text_field);
         app.observe(input::text_field_on_over);
         app.observe(input::text_field_on_out);
@@ -58,9 +66,16 @@ pub struct LineTextField {
 #[derive(Component)]
 pub(crate) struct LineTextFieldLinks {
     canvas: Entity,
+    sub_canvas: Entity,
     text: Entity,
     text_right: Entity,
     cursor: Entity,
+}
+
+#[derive(Component, Default, Reflect)]
+pub(crate) struct InnerFieldParams {
+    /// Text shift (used for text longer than the text field)
+    pub(crate) text_shift: f32,
 }
 
 impl LineTextField {
@@ -87,10 +102,10 @@ fn spawn_render_text_field(
                 style: Style {
                     width: Val::Percent(100.0),
                     height: Val::Percent(100.0),
-                    justify_content: JustifyContent::Start,
                     align_items: AlignItems::Center,
                     border: UiRect::all(Val::Px(2.0)),
                     padding: UiRect::all(Val::Px(5.0)),
+                    overflow: Overflow::clip(),
                     ..Default::default()
                 },
                 background_color: BackgroundColor(BACKGROUND_COLOR.clone()),
@@ -112,22 +127,42 @@ fn spawn_render_text_field(
             .id();
         let cursor = commands.spawn(NodeBundle::default()).id();
 
+        // Move text field left/right in the canvas for text longer than the text field
+        let shifting_canvas = commands
+            .spawn(NodeBundle {
+                style: Style {
+                    position_type: PositionType::Absolute,
+                    left: Val::Px(0.0),
+                    width: Val::Auto,
+                    height: Val::Percent(100.0),
+                    justify_content: JustifyContent::Start,
+                    display: Display::Flex,
+                    align_items: AlignItems::Center,
+                    ..Default::default()
+                },
+                ..Default::default()
+            })
+            .id();
+
         commands.entity(entity).add_child(canvas);
-        commands.entity(canvas).add_child(text_field);
-        commands.entity(canvas).add_child(cursor);
-        commands.entity(canvas).add_child(text_field_right);
+        commands.entity(canvas).add_child(shifting_canvas);
+        commands.entity(shifting_canvas).add_child(text_field);
+        commands.entity(shifting_canvas).add_child(cursor);
+        commands.entity(shifting_canvas).add_child(text_field_right);
         commands
             .entity(entity)
             .insert(Pickable {
                 is_hoverable: true,
                 should_block_lower: true,
             })
+            .insert(InnerFieldParams::default())
             .insert(Focusable);
 
         commands.entity(entity).insert(Interaction::default());
 
         let links = LineTextFieldLinks {
             canvas,
+            sub_canvas: shifting_canvas,
             text: text_field,
             text_right: text_field_right,
             cursor: cursor,

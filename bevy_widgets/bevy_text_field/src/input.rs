@@ -15,14 +15,13 @@ pub(crate) fn text_field_on_over(
     q_text_fields: Query<&LineTextField>,
 ) {
     let entity = over.entity();
-    info!("Over: {:?}", entity);
 
     // Observers attached to child of LineTextField, so we must get text field entity from parent componeny
     let Ok(_) = q_text_fields.get(entity) else {
         return;
     };
 
-    commands.trigger_targets(RenderTextField, entity);
+    commands.trigger_targets(RenderTextField::default(), entity);
 }
 
 pub(crate) fn text_field_on_out(
@@ -31,13 +30,12 @@ pub(crate) fn text_field_on_out(
     q_text_fields: Query<&LineTextField>,
 ) {
     let entity = out.entity();
-    info!("Out: {:?}", entity);
     // Observers attached to child of LineTextField, so we must get text field entity from parent componeny
     let Ok(_) = q_text_fields.get(entity) else {
         return;
     };
 
-    commands.trigger_targets(RenderTextField, entity);
+    commands.trigger_targets(RenderTextField::default(), entity);
 }
 
 pub(crate) fn text_field_on_click(
@@ -89,7 +87,12 @@ pub(crate) fn text_field_on_click(
     }
 
     text_field.cursor_position = Some(cursor_pos);
-    commands.trigger_targets(RenderTextField, entity);
+    commands.trigger_targets(
+        RenderTextField {
+            force_show_cursor: true,
+        },
+        entity,
+    );
 }
 
 pub(crate) fn lost_focus(
@@ -104,7 +107,7 @@ pub(crate) fn lost_focus(
     };
 
     text_field.cursor_position = None;
-    commands.trigger_targets(RenderTextField, entity);
+    commands.trigger_targets(RenderTextField::default(), entity);
 }
 
 pub(crate) fn keyboard_input(
@@ -181,6 +184,11 @@ pub(crate) fn keyboard_input(
     if need_render {
         // cursor position changed hided in if to prevert infinite change triggering
         text_field.cursor_position = Some(current_cursor);
-        commands.trigger_targets(RenderTextField, entity);
+        commands.trigger_targets(
+            RenderTextField {
+                force_show_cursor: true,
+            },
+            entity,
+        );
     }
 }

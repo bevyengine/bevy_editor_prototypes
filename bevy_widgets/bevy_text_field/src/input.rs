@@ -137,12 +137,13 @@ pub(crate) fn keyboard_input(
     let Some(mut current_cursor) = text_field.cursor_position.clone() else {
         return;
     };
+    current_cursor = current_cursor.clamp(0, text_field.text.len());
 
     let mut need_render = false;
 
     // check for Ctrl-C, Ctrl-V, Ctrl-A etc
     if key_states.pressed(KeyCode::ControlLeft) {
-        if key_states.pressed(KeyCode::KeyC) {
+        if key_states.just_pressed(KeyCode::KeyC) {
             need_render = true;
             events.clear(); // clear events that were triggered by pasting
 
@@ -151,6 +152,8 @@ pub(crate) fn keyboard_input(
                     warn!("Clipboard error: {}", e);
                 }
             }
+        } else if key_states.pressed(KeyCode::KeyC) {
+            events.clear(); // clear events that were triggered by pasting (for example it can be holded and we need to process it only once)
         } else if key_states.just_pressed(KeyCode::KeyV) {
             need_render = true;
             events.clear(); // clear events that were triggered by pasting

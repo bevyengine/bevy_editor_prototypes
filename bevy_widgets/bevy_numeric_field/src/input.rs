@@ -79,3 +79,31 @@ pub fn react_on_lost_focus<T: NumericFieldValue>(
     inner_field.failed_convert = false;
     inner_field.last_val = field.value;
 }
+
+pub fn react_on_drag<T: NumericFieldValue>(
+    trigger: Trigger<Pointer<Drag>>,
+    mut commands: Commands,
+    mut q_fields: Query<(
+        &mut NumericField<T>,
+        &mut InnerNumericField<T>,
+        &mut LineTextField,
+    )>,
+) {
+    let entity = trigger.entity();
+    let Ok((mut field, mut inner_field, mut text_field)) = q_fields.get_mut(entity) else {
+        return;
+    };
+    let Some(drag_step) = field.drag_step.clone() else {
+        return;
+    };
+    let old_val = field.value;
+    field.set_value(
+        old_val + T::from(drag_step.to_f32().unwrap() * trigger.event().event.delta.x).unwrap(),
+    );
+    text_field.set_text(field.value.to_string());
+    inner_field.failed_convert = false;
+    if inner_field.last_val != field.value {
+        commands.trigger_targets(NewValue(field.value), entity);
+        inner_field.last_val = field.value;
+    }
+}

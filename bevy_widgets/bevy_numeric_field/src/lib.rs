@@ -65,5 +65,6 @@ impl<T: NumericFieldValue> Plugin for NumericFieldPlugin<T> {
         app.observe(input::react_to_text_changes::<T>);
         app.observe(input::react_on_set_value::<T>);
         app.observe(input::react_on_lost_focus::<T>);
+        app.observe(input::react_on_drag::<T>);
     }
 }

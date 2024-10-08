@@ -79,6 +79,7 @@ pub(crate) fn render_text_field(
     *canvas_border_color = BorderColor(border_color);
 
     if let Some(cursor) = text_field.cursor_position {
+        let cursor = cursor.clamp(0, text_field.text.len());
         let (left_text, right_text) = text_field.text.split_at(cursor);
         info!("Text {} | {}", left_text, right_text);
 

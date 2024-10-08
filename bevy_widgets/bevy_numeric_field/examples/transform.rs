@@ -41,8 +41,8 @@ fn setup(
     });
 
     commands.spawn(DirectionalLightBundle {
-        transform: Transform::from_translation(Vec3::new(2.0, 5.0, 4.0))
-            .looking_at(Vec3::ZERO, Vec3::Y),
+        transform: Transform::from_translation(Vec3::new(0.0, 5.0, 1.0))
+            .looking_at(Vec3::ZERO, Vec3::X),
         ..default()
     });
 

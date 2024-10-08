@@ -49,12 +49,13 @@ pub fn react_on_self_changes<T: NumericFieldValue>(
 
 pub fn react_on_set_value<T: NumericFieldValue>(
     trigger: Trigger<SetValue<T>>,
-    mut q_fields: Query<(&mut NumericField<T>, &mut InnerNumericField<T>)>,
+    mut q_fields: Query<(&mut NumericField<T>, &mut InnerNumericField<T>, &mut LineTextField)>,
 ) {
-    if let Ok((mut field, mut inner_field)) = q_fields.get_mut(trigger.entity()) {
+    if let Ok((mut field, mut inner_field, mut text_field)) = q_fields.get_mut(trigger.entity()) {
         field.set_value(trigger.event().0);
         inner_field.last_val = field.value;
         inner_field.failed_convert = false;
+        text_field.set_text(field.value.to_string());
     }
 }
 

@@ -46,7 +46,12 @@ impl Plugin for LineTextFieldPlugin {
 
         app.add_systems(
             PreUpdate,
-            (spawn_render_text_field, render::trigger_render_on_change, despawn_render_text_field).chain(),
+            (
+                spawn_render_text_field,
+                render::trigger_render_on_change,
+                despawn_render_text_field,
+            )
+                .chain(),
         );
 
         app.add_plugins(cursor::CursorPlugin);
@@ -318,7 +323,7 @@ fn spawn_render_text_field(
 fn despawn_render_text_field(
     mut commands: Commands,
     q_entity: Query<&LineTextFieldLinks>,
-    mut q_removed: RemovedComponents<LineTextField>
+    mut q_removed: RemovedComponents<LineTextField>,
 ) {
     for entity in q_removed.read() {
         let Ok(links) = q_entity.get(entity) else {

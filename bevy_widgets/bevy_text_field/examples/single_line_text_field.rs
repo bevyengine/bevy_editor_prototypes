@@ -7,6 +7,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(LineTextFieldPlugin)
+        .add_plugins(bevy_editor_styles::StylesPlugin)
         .add_systems(Startup, setup)
         .run();
 }

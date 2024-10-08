@@ -6,6 +6,7 @@ use crate::{
     HIGHLIGHT_COLOR,
 };
 use bevy::prelude::*;
+use bevy_editor_styles::Theme;
 
 /// Trigger for rerender text field
 #[derive(Event, Default)]
@@ -47,7 +48,13 @@ pub(crate) fn render_text_field(
     mut q_styles: Query<&mut Style>,
     mut q_texts: Query<&mut Text>,
     q_cursors: Query<Entity, With<Cursor>>,
+    theme: Option<Res<Theme>>
 ) {
+    let text_style = if let Some(theme) = theme {
+        theme.normal_text_style()
+    } else {
+        TextStyle::default()
+    };
     let entity = trigger.entity();
     trigger.propagate(false);
 
@@ -90,7 +97,7 @@ pub(crate) fn render_text_field(
 
         commands
             .entity(links.text)
-            .insert(TextBundle::from_section(left_text, TextStyle::default()).with_no_wrap());
+            .insert(TextBundle::from_section(left_text, text_style.clone()).with_no_wrap());
 
         if !q_cursors.contains(links.cursor) {
             // If we spawn new cursor than we need to skip checks for cursor overflow for some frames needed to compute correct cursor position by bevy systems
@@ -120,7 +127,7 @@ pub(crate) fn render_text_field(
 
         commands
             .entity(links.text_right)
-            .insert(TextBundle::from_section(right_text, TextStyle::default()).with_no_wrap());
+            .insert(TextBundle::from_section(right_text, text_style.clone()).with_no_wrap());
 
         if let Some(selection_start) = text_field.selection_start {
             // Show text selection
@@ -139,13 +146,18 @@ pub(crate) fn render_text_field(
             // Set fake text
             selection_text.sections[0].value = selection_text_part.to_string();
             pre_selection_text.sections[0].value = selection_pre.to_string();
+
+            selection_text.sections[0].style.font = text_style.font.clone();
+            selection_text.sections[0].style.font_size = text_style.font_size;
+            pre_selection_text.sections[0].style.font = text_style.font.clone();
+            pre_selection_text.sections[0].style.font_size = text_style.font_size;
         } else {
             selection_text.sections[0].value = "".to_string();
             pre_selection_text.sections[0].value = "".to_string();
         }
     } else {
         commands.entity(links.text).insert(
-            TextBundle::from_section(text_field.text.clone(), TextStyle::default()).with_no_wrap(),
+            TextBundle::from_section(text_field.text.clone(), text_style.clone()).with_no_wrap(),
         );
         commands
             .entity(links.cursor)
@@ -153,7 +165,7 @@ pub(crate) fn render_text_field(
             .remove::<Cursor>();
         commands
             .entity(links.text_right)
-            .insert(TextBundle::from_section("", TextStyle::default()));
+            .insert(TextBundle::from_section("", text_style.clone()));
 
         selection_text.sections[0].value = "".to_string();
         pre_selection_text.sections[0].value = "".to_string();

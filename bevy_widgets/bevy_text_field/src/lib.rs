@@ -14,6 +14,7 @@ const BACKGROUND_COLOR: Color = Color::srgb(43.0 / 255.0, 44.0 / 255.0, 47.0 / 2
 const TEXT_SELECTION_COLOR: Color = Color::srgb(0.0 / 255.0, 122.0 / 255.0, 255.0 / 255.0);
 
 use bevy::{prelude::*, utils::hashbrown::HashSet};
+use bevy_editor_styles::Theme;
 use bevy_focus::{FocusPlugin, Focusable};
 use render::RenderTextField;
 
@@ -188,7 +189,14 @@ impl LineTextField {
 fn spawn_render_text_field(
     mut commands: Commands,
     q_text_fields: Query<(Entity, &LineTextField), Added<LineTextField>>,
+    theme: Option<Res<Theme>>,
 ) {
+    let (text_style, border_radius) = if let Some(theme) = theme {
+        (theme.normal_text_style(), theme.border_radius.clone())
+    } else {
+        (TextStyle::default(), BorderRadius::all(Val::Px(5.0)))
+    };
+
     for (entity, text_field) in q_text_fields.iter() {
         let canvas = commands
             .spawn(NodeBundle {
@@ -203,7 +211,7 @@ fn spawn_render_text_field(
                 },
                 background_color: BackgroundColor(BACKGROUND_COLOR.clone()),
                 border_color: BorderColor(BORDER_COLOR.clone()),
-                border_radius: BorderRadius::all(Val::Px(5.0)),
+                border_radius: border_radius,
                 ..Default::default()
             })
             .id();
@@ -211,12 +219,12 @@ fn spawn_render_text_field(
         let text_field = commands
             .spawn(TextBundle::from_section(
                 text_field.text.clone(),
-                TextStyle::default(),
+                text_style.clone(),
             ))
             .id();
 
         let text_field_right = commands
-            .spawn(TextBundle::from_section("", TextStyle::default()))
+            .spawn(TextBundle::from_section("", text_style.clone()))
             .id();
         let cursor = commands.spawn(NodeBundle::default()).id();
 
@@ -240,6 +248,8 @@ fn spawn_render_text_field(
 
         let text_selection_style = TextStyle {
             color: Color::srgba(0.0, 0.0, 0.0, 0.0), // transparent
+            font: text_style.font.clone(),
+            font_size: text_style.font_size,
             ..Default::default()
         };
 

@@ -6,6 +6,8 @@ edition = "2021"
 [dependencies]
 bevy.workspace = true
 bevy_focus.workspace = true
+bevy_editor_styles.workspace = true
+
 arboard = "3.4.1"
 
 [lints]

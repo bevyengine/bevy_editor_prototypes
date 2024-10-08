@@ -1,6 +1,8 @@
 //! Contains code for rendering text fields.
 //!
 
+#![allow(clippy::too_many_arguments)]
+
 use crate::{
     cursor::Cursor, InnerFieldParams, LineTextField, LineTextFieldLinks, TextChanged, BORDER_COLOR,
     HIGHLIGHT_COLOR,
@@ -178,7 +180,7 @@ pub(crate) fn update_skip_cursor_check(
 ) {
     for (entity, mut skip_check) in q_skip_check.iter_mut() {
         skip_check.0 -= 1;
-        if skip_check.0 <= 0 {
+        if skip_check.0 == 0 {
             commands.entity(entity).remove::<SkipCursorCheck>();
         }
     }
@@ -213,7 +215,7 @@ pub(crate) fn check_cursor_overflow(
             return;
         };
 
-        if let Some(_) = text_field.cursor_position {
+        if text_field.cursor_position.is_some() {
             let Ok(cursor_transform) = q_cursors.get(links.cursor) else {
                 return;
             };
@@ -255,13 +257,11 @@ pub(crate) fn check_cursor_overflow(
                     commands.trigger_targets(RenderTextField::default(), entity);
                 }
             }
-        } else {
-            if inner.text_shift != 0.0 {
-                info!("Reset shift {:?}", entity);
-                inner.text_shift = 0.0;
-                sub_canvas_style.left = Val::Px(0.0);
-                commands.trigger_targets(RenderTextField::default(), entity);
-            }
+        } else if inner.text_shift != 0.0 {
+            info!("Reset shift {:?}", entity);
+            inner.text_shift = 0.0;
+            sub_canvas_style.left = Val::Px(0.0);
+            commands.trigger_targets(RenderTextField::default(), entity);
         }
     }
 }

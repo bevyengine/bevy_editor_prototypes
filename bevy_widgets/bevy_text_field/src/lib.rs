@@ -11,7 +11,7 @@ pub mod render;
 const BORDER_COLOR: Color = Color::srgb(56.0 / 255.0, 56.0 / 255.0, 56.0 / 255.0);
 const HIGHLIGHT_COLOR: Color = Color::srgb(107.0 / 255.0, 107.0 / 255.0, 107.0 / 255.0);
 const BACKGROUND_COLOR: Color = Color::srgb(43.0 / 255.0, 44.0 / 255.0, 47.0 / 255.0);
-const TEXT_SELECTION_COLOR: Color = Color::srgb(0.0 / 255.0, 122.0 / 255.0, 255.0 / 255.0);
+const TEXT_SELECTION_COLOR: Color = Color::srgb(0.0 / 255.0, 122.0 / 255.0, 1.0);
 
 use bevy::{prelude::*, utils::hashbrown::HashSet};
 use bevy_editor_styles::Theme;
@@ -192,7 +192,7 @@ fn spawn_render_text_field(
     theme: Option<Res<Theme>>,
 ) {
     let (text_style, border_radius) = if let Some(theme) = theme {
-        (theme.normal_text_style(), theme.border_radius.clone())
+        (theme.normal_text_style(), theme.border_radius)
     } else {
         (TextStyle::default(), BorderRadius::all(Val::Px(5.0)))
     };
@@ -209,9 +209,9 @@ fn spawn_render_text_field(
                     overflow: Overflow::clip(),
                     ..Default::default()
                 },
-                background_color: BackgroundColor(BACKGROUND_COLOR.clone()),
-                border_color: BorderColor(BORDER_COLOR.clone()),
-                border_radius: border_radius,
+                background_color: BackgroundColor(BACKGROUND_COLOR),
+                border_color: BorderColor(BORDER_COLOR),
+                border_radius,
                 ..Default::default()
             })
             .id();
@@ -249,8 +249,7 @@ fn spawn_render_text_field(
         let text_selection_style = TextStyle {
             color: Color::srgba(0.0, 0.0, 0.0, 0.0), // transparent
             font: text_style.font.clone(),
-            font_size: text_style.font_size,
-            ..Default::default()
+            font_size: text_style.font_size
         };
 
         let selection = commands
@@ -259,7 +258,7 @@ fn spawn_render_text_field(
                     height: Val::Percent(100.0),
                     ..default()
                 },
-                background_color: BackgroundColor(TEXT_SELECTION_COLOR.clone()),
+                background_color: BackgroundColor(TEXT_SELECTION_COLOR),
                 text: Text::from_section("", text_selection_style.clone()),
                 ..default()
             })
@@ -322,7 +321,7 @@ fn spawn_render_text_field(
             sub_canvas: shifting_canvas,
             text: text_field,
             text_right: text_field_right,
-            cursor: cursor,
+            cursor,
             selection_shift,
             selection,
         };

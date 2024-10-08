@@ -143,7 +143,7 @@ pub(crate) fn keyboard_input(
         return;
     };
 
-    let Some(mut current_cursor) = text_field.cursor_position.clone() else {
+    let Some(mut current_cursor) = text_field.cursor_position else {
         return;
     };
     current_cursor = current_cursor.clamp(0, text_field.text.len());
@@ -271,8 +271,7 @@ pub(crate) fn keyboard_input(
                     let mut chars = c.chars().collect::<Vec<_>>();
                     if let Some(allowed) = text_field.allowed_chars.as_ref() {
                         chars = chars
-                            .iter()
-                            .map(|c| *c)
+                            .iter().copied()
                             .filter(|c| allowed.contains(c))
                             .collect();
                     }

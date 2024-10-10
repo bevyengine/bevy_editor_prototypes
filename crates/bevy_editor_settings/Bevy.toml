@@ -1,3 +1,10 @@
 
 [basic_settings]
 name = "bevy_editor_settings"
+
+
+[list_testing]
+list = ["three", "four"]
+
+[list_testing_append]
+list = ["three", "four"]

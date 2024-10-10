@@ -3,8 +3,8 @@ use std::any::TypeId;
 use bevy::{
     prelude::*,
     reflect::{
-        DynamicEnum, DynamicTuple, DynamicVariant, Enum, EnumInfo, ReflectFromPtr, ReflectMut,
-        TypeInfo, ValueInfo, VariantInfo,
+        Array, ArrayInfo, DynamicEnum, DynamicTuple, DynamicVariant, Enum, EnumInfo, List,
+        ListInfo, ReflectFromPtr, ReflectMut, TypeInfo, ValueInfo, VariantInfo,
     },
     scene::ron::{de, value},
 };
@@ -98,7 +98,24 @@ fn load_struct(registry: &AppTypeRegistry, strct: &mut dyn Struct, table: &toml:
                     load_struct(registry, strct, table);
                 }
             }
-            TypeInfo::Enum(_) => {}
+            TypeInfo::List(list_info) => {
+                if let Some(table) = table.get(&key).and_then(|v| v.as_array()) {
+                    let ReflectMut::List(list) = field_mut.reflect_mut() else {
+                        warn!("Preferences: Expected List");
+                        continue;
+                    };
+                    load_list(list, list_info, table);
+                }
+            }
+            TypeInfo::Array(array_info) => {
+                if let Some(table) = table.get(&key).and_then(|v| v.as_array()) {
+                    let ReflectMut::Array(array) = field_mut.reflect_mut() else {
+                        warn!("Preferences: Expected Array");
+                        continue;
+                    };
+                    load_array(array, array_info, table);
+                }
+            }
             _ => {
                 warn!(
                     "Preferences: Unsupported type: {:?}",
@@ -107,6 +124,11 @@ fn load_struct(registry: &AppTypeRegistry, strct: &mut dyn Struct, table: &toml:
             }
         }
     }
+}
+
+fn load_list(list: &mut dyn List, list_info: &ListInfo, table: &toml::value::Array) {}
+
+fn load_array(array: &mut dyn Array, array_info: &ArrayInfo, table: &toml::value::Array) {
 }
 
 fn load_value(field: &mut dyn PartialReflect, value_info: &ValueInfo, value: &toml::Value) {

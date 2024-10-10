@@ -4,6 +4,7 @@ use bevy::prelude::*;
 
 mod file_system;
 pub mod modals;
+mod local_prefs;
 
 /// Annotation for a type to show which type of settings it belongs to.
 #[derive(Debug, Clone, PartialEq, Eq, Reflect)]
@@ -23,6 +24,17 @@ pub enum SettingsType {
     /// - Inheriting - No override is set. Users can freely change the preference. Users can use what they have set within the global/workspace preferences.
     /// - Modified - When an override has been set, users can no longer change the preference without modifying the project settings. You can switch between inheriting and modified at any time without consequence.
     Project,
+}
+
+#[derive(Debug, Clone, Reflect, Default)]
+/// Annotation for a type to show how to merge lists when loading settings.
+/// if not set, the default is to replace the existing list.
+pub enum ListLoad {
+    #[default]
+    /// When Mergeing the list, the new list will replace the existing list.
+    Replace,
+    /// When Mergeing the list, the new list will be appended to the existing list.
+    Append,
 }
 
 #[derive(Debug, Clone, Reflect)]
@@ -78,7 +90,7 @@ mod tests {
     }
 
     #[test]
-    fn loading() {
+    fn basic_test() {
         let mut app = App::new();
 
         app.register_type::<BasicSettings>();
@@ -95,4 +107,45 @@ mod tests {
         assert_eq!(settings.name, "bevy_editor_settings");
         assert_eq!(settings.age, 25);
     }
+
+
+    #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
+    #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
+    struct ListTesing {
+        pub list: Vec<String>,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
+    #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
+    struct ListTesingAppend {
+        #[reflect(@ListLoad::Append)]
+        pub list: Vec<String>,
+    }
+
+    #[test]
+    fn test_lists() {
+        let mut app = App::new();
+
+        app.register_type::<ListTesing>();
+        app.register_type::<ListTesingAppend>();
+
+        app.insert_resource(ListTesing {
+            list: vec!["one".to_string(), "two".to_string()],
+        });
+
+        app.insert_resource(ListTesingAppend {
+            list: vec!["one".to_string(), "two".to_string()],
+        });
+
+        file_system::load_project_settings(app.world_mut());
+
+        let settings = app.world().get_resource::<ListTesing>().unwrap();
+
+        assert_eq!(settings.list, vec!["three".to_string(), "four".to_string()]);
+
+        let settings = app.world().get_resource::<ListTesingAppend>().unwrap();
+
+        assert_eq!(settings.list, vec!["one".to_string(), "two".to_string(), "three".to_string(), "four".to_string()]);
+    }
+
 }

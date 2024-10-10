@@ -9,6 +9,7 @@ bevy.workspace = true
 thiserror.workspace = true
 toml = "0.8.19"
 directories = "5.0.1"
+heck = "0.5.0"
 
 [lints]
 workspace = true

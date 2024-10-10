@@ -53,7 +53,7 @@ impl Plugin for EditorSettingsPlugin {
             Some(path) => {
                 debug!("Global settings path: {:?}", path);
                 app.insert_resource(GlobalSettingsPath(path));
-            },
+            }
             None => {
                 warn!("Failed to load global settings");
             }
@@ -62,5 +62,37 @@ impl Plugin for EditorSettingsPlugin {
 
     fn finish(&self, app: &mut App) {
         file_system::load_settings(app);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
+    #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
+    struct BasicSettings {
+        pub name: String,
+        pub age: u32,
+    }
+
+    #[test]
+    fn loading() {
+        let mut app = App::new();
+
+        app.register_type::<BasicSettings>();
+
+        app.insert_resource(BasicSettings {
+            name: "John".to_string(),
+            age: 25,
+        });
+
+        file_system::load_project_settings(app.world_mut());
+
+        let settings = app.world().get_resource::<BasicSettings>().unwrap();
+
+        assert_eq!(settings.name, "bevy_editor_settings");
+        assert_eq!(settings.age, 25);
     }
 }

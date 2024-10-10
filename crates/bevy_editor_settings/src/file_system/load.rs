@@ -8,6 +8,7 @@ use bevy::{
     },
     scene::ron::{de, value},
 };
+use heck::ToSnakeCase;
 
 use crate::{SettingsTags, SettingsType};
 
@@ -61,7 +62,12 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                         else {
                             panic!("Expected Struct");
                         };
-                        load_struct(&registry, strct,  &table);
+
+                        let name = strct.reflect_type_ident().unwrap().to_snake_case();
+
+                        if let Some(table) = table.get(&name).and_then(|v| v.as_table()) {
+                            load_struct(&registry, strct, table);
+                        }
                     }
                 }
 
@@ -73,11 +79,7 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
     }
 }
 
-fn load_struct(
-    registry: &AppTypeRegistry,
-    strct: &mut dyn Struct,
-    table: &toml::Table,
-) {
+fn load_struct(registry: &AppTypeRegistry, strct: &mut dyn Struct, table: &toml::Table) {
     for i in 0..strct.field_len() {
         let key = strct.name_at(i).unwrap().to_string();
         let field_mut = strct.field_at_mut(i).unwrap();

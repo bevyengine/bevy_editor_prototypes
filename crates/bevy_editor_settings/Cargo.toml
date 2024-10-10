@@ -3,19 +3,12 @@ name = "bevy_editor_settings"
 version = "0.1.0"
 edition = "2021"
 
-[features]
-default = []
-schema = ["schemars"]
 
 [dependencies]
 bevy.workspace = true
-serde.workspace = true
 thiserror.workspace = true
 toml = "0.8.19"
 directories = "5.0.1"
-
-# used for generating a json schema which can be used with toml 
-schemars = { version = "0.8.21", features = ["semver"], optional = true}
 
 [lints]
 workspace = true

@@ -1,24 +1,18 @@
 //! Workspace settings
 
 use bevy::reflect::Reflect;
-use serde::{Deserialize, Serialize};
 
-use super::project::ProjectSettings;
-
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, Reflect)]
-#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[derive(Debug, Clone, PartialEq, Eq, Reflect)]
 /// Settings for the entire workspace
 /// This should be in the root of your project
 pub struct WorkspaceSettings {
     /// Settings for the editor per workspace
-    pub editor_settings: ProjectSettings,
+    pub editor: String,
     /// Settings for building the project
     pub build: Build,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, Reflect)]
-#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[serde(default)]
+#[derive(Debug, Clone, PartialEq, Eq, Reflect)]
 /// Settings for building the project
 pub struct Build {
     /// The Command for building the project in debug mode

@@ -2,8 +2,36 @@
 
 use bevy::prelude::*;
 
+mod file_system;
 pub mod modals;
-mod persistent;
+
+/// Annotation for a type to show which type of settings it belongs to.
+#[derive(Debug, Clone, PartialEq, Eq, Reflect)]
+pub enum SettingsType {
+    /// These are settings that are saved in the os user's configuration directory. \
+    /// These settings are global to the user and are not tied to a specific project. \
+    /// Settings are along the lines of hotkeys etc.
+    Global,
+    /// Workspace preferences use the global preferences by default. End users can modify them, customizing their layout, theming and hotkeys. \
+    /// The file is created when the user applies changes to their workspace preferences within the editor. \
+    /// Workspace preferences can be shared between multiple projects and are not isolated to project folders.*
+    Workspace,
+    /// Project preference overrides are empty and stored within the project settings. \
+    ///  When a project overrides a global/workspace preference, it is no longer possible to change them. \
+    ///  In order to modify the preference, users must modify the project settings instead.
+    /// There are two states that overrides can be in:
+    /// - Inheriting - No override is set. Users can freely change the preference. Users can use what they have set within the global/workspace preferences.
+    /// - Modified - When an override has been set, users can no longer change the preference without modifying the project settings. You can switch between inheriting and modified at any time without consequence.
+    Project,
+}
+
+#[derive(Debug, Clone, Reflect)]
+/// Annotation for a type to add tags to the settings. these tags can be used to filter settings in the editor.
+pub struct SettingsTags(pub Vec<&'static str>);
+
+#[derive(Resource)]
+/// Store the path for the global preferences directory.
+pub struct GlobalSettingsPath(pub std::path::PathBuf);
 
 /// A Bevy plugin for editor settings.
 /// This plugin loads the workspace settings, user settings, and project settings.
@@ -14,64 +42,25 @@ pub struct EditorSettingsPlugin;
 /// This includes workspace settings, user settings, and project settings.
 pub struct Settings {
     /// Settings for the workspace
-    pub workspace_settings: Option<modals::workspace::WorkspaceSettings>,
+    pub workspace_settings: modals::workspace::WorkspaceSettings,
     /// Settings for the user
-    pub user_settings: Option<modals::user::UserSettings>,
-    /// default project settings used when no workspace or user settings are present for a given setting
-    pub project_settings: modals::project::ProjectSettings,
-}
-
-impl Settings {
-    /// Get the project settings.
-    ///
-    /// TODO this needs to do some kind of merging of settings
-    /// the order of precedence should be from highest to lowest:
-    /// 1. user settings
-    /// 2. workspace settings
-    /// 3. default project settings
-    pub fn project_settings(&self) -> &modals::project::ProjectSettings {
-        self.user_settings
-            .as_ref()
-            .map(|settings| &settings.project_settings)
-            .or_else(|| {
-                self.workspace_settings
-                    .as_ref()
-                    .map(|settings| &settings.editor_settings)
-            })
-            .unwrap_or(&self.project_settings)
-    }
-
-    /// Save the user settings.
-    pub fn save_user_settings(&self) -> Result<(), persistent::PersistentError> {
-        if let Some(user_settings) = &self.user_settings {
-            persistent::save_user_settings(user_settings)?;
-            Ok(())
-        } else {
-            warn!("No user settings to save.");
-            Ok(())
-        }
-    }
+    pub user_settings: modals::user::UserSettings,
 }
 
 impl Plugin for EditorSettingsPlugin {
     fn build(&self, app: &mut App) {
-        let workspace_settings = persistent::load_workspace_settings()
-            .inspect_err(|error| {
-                error!("Error loading workspace settings: {:?}", error);
-            })
-            .ok();
-        let user_settings = persistent::load_user_settings()
-            .inspect_err(|error| {
-                error!("Error loading user settings: {:?}", error);
-            })
-            .ok();
+        match file_system::global_settings_path() {
+            Some(path) => {
+                debug!("Global settings path: {:?}", path);
+                app.insert_resource(GlobalSettingsPath(path));
+            },
+            None => {
+                warn!("Failed to load global settings");
+            }
+        };
+    }
 
-        let project_settings = modals::project::ProjectSettings::default();
-
-        app.insert_resource(Settings {
-            workspace_settings,
-            user_settings,
-            project_settings,
-        });
+    fn finish(&self, app: &mut App) {
+        file_system::load_settings(app);
     }
 }

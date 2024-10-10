@@ -111,13 +111,13 @@ mod tests {
 
     #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
     #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
-    struct ListTesing {
+    struct ListTesting {
         pub list: Vec<String>,
     }
 
     #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
     #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
-    struct ListTesingAppend {
+    struct ListTestingAppend {
         #[reflect(@ListLoad::Append)]
         pub list: Vec<String>,
     }
@@ -126,24 +126,24 @@ mod tests {
     fn test_lists() {
         let mut app = App::new();
 
-        app.register_type::<ListTesing>();
-        app.register_type::<ListTesingAppend>();
+        app.register_type::<ListTesting>();
+        app.register_type::<ListTestingAppend>();
 
-        app.insert_resource(ListTesing {
+        app.insert_resource(ListTesting {
             list: vec!["one".to_string(), "two".to_string()],
         });
 
-        app.insert_resource(ListTesingAppend {
+        app.insert_resource(ListTestingAppend {
             list: vec!["one".to_string(), "two".to_string()],
         });
 
         file_system::load_project_settings(app.world_mut());
 
-        let settings = app.world().get_resource::<ListTesing>().unwrap();
+        let settings = app.world().get_resource::<ListTesting>().unwrap();
 
         assert_eq!(settings.list, vec!["three".to_string(), "four".to_string()]);
 
-        let settings = app.world().get_resource::<ListTesingAppend>().unwrap();
+        let settings = app.world().get_resource::<ListTestingAppend>().unwrap();
 
         assert_eq!(settings.list, vec!["one".to_string(), "two".to_string(), "three".to_string(), "four".to_string()]);
     }

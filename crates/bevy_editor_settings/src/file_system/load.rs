@@ -3,14 +3,15 @@ use std::any::TypeId;
 use bevy::{
     prelude::*,
     reflect::{
-        Array, ArrayInfo, DynamicEnum, DynamicTuple, DynamicVariant, Enum, EnumInfo, List,
-        ListInfo, ReflectFromPtr, ReflectMut, TypeInfo, ValueInfo, VariantInfo,
+        attributes::CustomAttributes, Array, ArrayInfo, DynamicEnum, DynamicTuple, DynamicVariant,
+        Enum, EnumInfo, List, ListInfo, ReflectFromPtr, ReflectMut, StructInfo, TypeInfo,
+        ValueInfo, VariantInfo,
     },
     scene::ron::{de, value},
 };
 use heck::ToSnakeCase;
 
-use crate::{SettingsTags, SettingsType};
+use crate::{ListLoad, SettingsTags, SettingsType};
 
 /// Load a toml file from the given path
 pub fn load_toml_file(path: impl AsRef<std::path::Path>) -> Result<toml::Table, LoadError> {
@@ -66,7 +67,7 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                         let name = strct.reflect_type_ident().unwrap().to_snake_case();
 
                         if let Some(table) = table.get(&name).and_then(|v| v.as_table()) {
-                            load_struct(&registry, strct, table);
+                            load_struct(strct, struct_info, table);
                         }
                     }
                 }
@@ -79,10 +80,11 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
     }
 }
 
-fn load_struct(registry: &AppTypeRegistry, strct: &mut dyn Struct, table: &toml::Table) {
+fn load_struct(strct: &mut dyn Struct, struct_info: &StructInfo, table: &toml::Table) {
     for i in 0..strct.field_len() {
         let key = strct.name_at(i).unwrap().to_string();
         let field_mut = strct.field_at_mut(i).unwrap();
+        let field_attrs = struct_info.field_at(i).unwrap().custom_attributes();
         match field_mut.get_represented_type_info().unwrap() {
             TypeInfo::Value(value_info) => {
                 if let Some(value) = table.get(&key) {
@@ -95,7 +97,7 @@ fn load_struct(registry: &AppTypeRegistry, strct: &mut dyn Struct, table: &toml:
                         warn!("Preferences: Expected Struct");
                         continue;
                     };
-                    load_struct(registry, strct, table);
+                    load_struct(strct, struct_info, table);
                 }
             }
             TypeInfo::List(list_info) => {
@@ -104,7 +106,7 @@ fn load_struct(registry: &AppTypeRegistry, strct: &mut dyn Struct, table: &toml:
                         warn!("Preferences: Expected List");
                         continue;
                     };
-                    load_list(list, list_info, table);
+                    load_list(list, list_info, table, field_attrs);
                 }
             }
             TypeInfo::Array(array_info) => {
@@ -126,9 +128,46 @@ fn load_struct(registry: &AppTypeRegistry, strct: &mut dyn Struct, table: &toml:
     }
 }
 
-fn load_list(list: &mut dyn List, list_info: &ListInfo, table: &toml::value::Array) {}
+fn load_list(
+    list: &mut dyn List,
+    list_info: &ListInfo,
+    array: &toml::value::Array,
+    attrs: &CustomAttributes,
+) {
+    let default = ListLoad::default();
+    let merge_strategy = attrs.get::<ListLoad>().unwrap_or(&default);
+
+    if list_info
+        .item_info()
+        .is_some_and(|info| info.is::<String>())
+        && array.iter().all(|v| v.is_str())
+    {
+        let items = array
+            .iter()
+            .map(|v| v.as_str().unwrap().to_string())
+            .collect::<Vec<_>>();
+        match merge_strategy {
+            ListLoad::Replace => {
+                while list.len() > 0 {
+                    list.remove(list.len() - 1);
+                }
+                for item in items {
+                    list.push(Box::new(item));
+                }
+            }
+            ListLoad::Append => {
+                for item in items {
+                    list.push(Box::new(item));
+                }
+            }
+        }
+    } else {
+        warn!("Preferences: Unsupported list type");
+    }
+}
 
 fn load_array(array: &mut dyn Array, array_info: &ArrayInfo, table: &toml::value::Array) {
+    warn!("Preferences: Arrays are not supported yet");
 }
 
 fn load_value(field: &mut dyn PartialReflect, value_info: &ValueInfo, value: &toml::Value) {

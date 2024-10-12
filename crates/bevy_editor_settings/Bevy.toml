@@ -7,4 +7,4 @@ name = "bevy_editor_settings"
 list = ["three", "four"]
 
 [list_testing_append]
-list = ["three", "four"]
+list = [3,4]

@@ -119,7 +119,7 @@ mod tests {
     #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
     struct ListTestingAppend {
         #[reflect(@ListLoad::Append)]
-        pub list: Vec<String>,
+        pub list: Vec<i32>,
     }
 
     #[test]
@@ -134,7 +134,7 @@ mod tests {
         });
 
         app.insert_resource(ListTestingAppend {
-            list: vec!["one".to_string(), "two".to_string()],
+            list: vec![1, 2],
         });
 
         file_system::load_project_settings(app.world_mut());
@@ -145,7 +145,7 @@ mod tests {
 
         let settings = app.world().get_resource::<ListTestingAppend>().unwrap();
 
-        assert_eq!(settings.list, vec!["one".to_string(), "two".to_string(), "three".to_string(), "four".to_string()]);
+        assert_eq!(settings.list, vec![1, 2, 3, 4]);
     }
 
 }

@@ -137,32 +137,91 @@ fn load_list(
     let default = ListLoad::default();
     let merge_strategy = attrs.get::<ListLoad>().unwrap_or(&default);
 
-    if list_info
-        .item_info()
-        .is_some_and(|info| info.is::<String>())
-        && array.iter().all(|v| v.is_str())
-    {
-        let items = array
-            .iter()
-            .map(|v| v.as_str().unwrap().to_string())
-            .collect::<Vec<_>>();
+    if let Some(item_info) = list_info.item_info() {
         match merge_strategy {
             ListLoad::Replace => {
                 while list.len() > 0 {
                     list.remove(list.len() - 1);
                 }
-                for item in items {
-                    list.push(Box::new(item));
-                }
             }
             ListLoad::Append => {
-                for item in items {
-                    list.push(Box::new(item));
-                }
+                // do nothing
             }
         }
-    } else {
-        warn!("Preferences: Unsupported list type");
+        for value in array.iter() {
+            load_list_value(list, list_info, value, item_info);
+        }
+    }
+}
+
+fn load_list_value(
+    list: &mut dyn List,
+    list_info: &ListInfo,
+    value: &toml::Value,
+    value_info: &TypeInfo,
+) {
+    match value {
+        toml::Value::String(str_val) => {
+            if value_info.is::<String>() {
+                list.push(Box::new(str_val.clone()));
+            } else {
+                warn!("Preferences: Expected {:?}, got String", list_info);
+            }
+        }
+        toml::Value::Integer(int_val) => {
+            if value_info.is::<f64>() {
+                list.push(Box::new(*int_val as f64));
+            } else if value_info.is::<f32>() {
+                list.push(Box::new(
+                    (*int_val).clamp(f32::MIN as i64, f32::MAX as i64) as f32
+                ));
+            } else if value_info.is::<i64>() {
+                list.push(Box::new(*int_val));
+            } else if value_info.is::<i32>() {
+                list.push(Box::new(
+                    (*int_val).clamp(i32::MIN as i64, i32::MAX as i64) as i32
+                ));
+            } else if value_info.is::<i16>() {
+                list.push(Box::new(
+                    (*int_val).clamp(i16::MIN as i64, i16::MAX as i64) as i16
+                ));
+            } else if value_info.is::<i8>() {
+                list.push(Box::new(
+                    (*int_val).clamp(i8::MIN as i64, i8::MAX as i64) as i8
+                ));
+            } else if value_info.is::<u64>() {
+                list.push(Box::new((*int_val).max(0) as u64));
+            } else if value_info.is::<u32>() {
+                list.push(Box::new((*int_val).max(0) as u32));
+            } else if value_info.is::<u16>() {
+                list.push(Box::new((*int_val).max(0) as u16));
+            } else if value_info.is::<u8>() {
+                list.push(Box::new((*int_val).max(0) as u8));
+            } else {
+                warn!("Preferences: Expected {:?}, got Integer", list_info);
+            }
+        }
+        toml::Value::Float(float_val) => {
+            if value_info.is::<f64>() {
+                list.push(Box::new(*float_val));
+            } else if value_info.is::<f32>() {
+                list.push(Box::new(
+                    float_val.clamp(f32::MIN as f64, f32::MAX as f64) as f32
+                ));
+            } else {
+                warn!("Preferences: Expected {:?}, got Float", list_info);
+            }
+        }
+        toml::Value::Boolean(bool_val) => {
+            if value_info.is::<bool>() {
+                list.push(Box::new(*bool_val));
+            } else {
+                warn!("Preferences: Expected {:?}, got Bool", list_info);
+            }
+        }
+        _ => {
+            warn!("Preferences: Unsupported type: {:?}", value);
+        }
     }
 }
 

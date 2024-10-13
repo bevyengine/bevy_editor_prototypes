@@ -3,7 +3,7 @@
 /// The asset browser is a replica of the your asset directory on disk and get's automatically updated when the directory is modified.
 use std::{path::PathBuf, time::SystemTime};
 
-use bevy::prelude::*;
+use bevy::{asset::embedded_asset, prelude::*};
 use bevy_editor_styles::Theme;
 use directory_content::{DirectoryContentNode, ScrollingList};
 use top_bar::TopBarNode;
@@ -19,6 +19,8 @@ pub struct AssetBrowserPlugin;
 
 impl Plugin for AssetBrowserPlugin {
     fn build(&self, app: &mut App) {
+        embedded_asset!(app, "assets/directory_icon.png");
+        embedded_asset!(app, "assets/file_icon.png");
         app.insert_resource(AssetBrowserLocation(PathBuf::from(ASSETS_DIRECTORY_PATH)))
             .insert_resource(DirectoryLastModifiedTime(SystemTime::UNIX_EPOCH))
             .add_systems(Startup, ui_setup.in_set(AssetBrowserSet))
@@ -118,8 +120,10 @@ pub fn content_button_to_icon<A: Asset>(
     asset_server: &Res<AssetServer>,
 ) -> Handle<A> {
     match asset_type {
-        AssetType::Directory => asset_server.load::<A>("directory_icon.png"),
-        _ => asset_server.load::<A>("file_icon.png"),
+        AssetType::Directory => {
+            asset_server.load::<A>("embedded://bevy_asset_browser/assets/directory_icon.png")
+        }
+        _ => asset_server.load::<A>("embedded://bevy_asset_browser/assets/file_icon.png"),
     }
 }
 

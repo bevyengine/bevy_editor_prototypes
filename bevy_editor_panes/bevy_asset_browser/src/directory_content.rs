@@ -85,7 +85,7 @@ pub fn fetch_directory_content(
         .unwrap()
         .map(|entry| entry.unwrap().path())
         .collect::<Vec<_>>();
-    // Sort, directorys first in alphabetical order, then files in alphabetical order toot
+    // Sort, directories first in alphabetical order, then files in alphabetical order toot
     dir_content.sort_by(|a, b| {
         if a.is_dir() && b.is_file() {
             std::cmp::Ordering::Less
@@ -95,7 +95,7 @@ pub fn fetch_directory_content(
             a.cmp(b)
         }
     });
-    return FetchDirectoryContentResult::Success(dir_content);
+    FetchDirectoryContentResult::Success(dir_content)
 }
 
 #[derive(Component, Default)]
@@ -137,14 +137,14 @@ pub fn refresh_content(
 ) {
     match fetch_directory_content(location, last_modified_time) {
         FetchDirectoryContentResult::Success(directory_content) => {
-            let (content_list_entity, content_list_childs) = content_list_query.single();
-            if let Some(content_list_childs) = content_list_childs {
-                for child in content_list_childs.iter() {
+            let (content_list_entity, content_list_children) = content_list_query.single();
+            if let Some(content_list_children) = content_list_children {
+                for child in content_list_children {
                     commands.entity(*child).despawn_recursive();
                 }
                 commands
                     .entity(content_list_entity)
-                    .remove_children(content_list_childs);
+                    .remove_children(content_list_children);
             }
             commands
                 .entity(content_list_entity)
@@ -172,7 +172,7 @@ pub fn refresh_content(
                                     border_radius: theme.border_radius,
                                     ..default()
                                 },
-                                crate::ButtonType::AssetButton(asset_type.clone()),
+                                crate::ButtonType::AssetButton(asset_type),
                             ))
                             .with_children(|parent| {
                                 parent.spawn(ImageBundle {
@@ -191,7 +191,6 @@ pub fn refresh_content(
                                         sections: vec![TextSection {
                                             value: entry
                                                 .file_name()
-                                                .to_owned()
                                                 .unwrap()
                                                 .to_str()
                                                 .unwrap()

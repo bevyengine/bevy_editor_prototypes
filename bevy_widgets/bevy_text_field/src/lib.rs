@@ -256,11 +256,11 @@ fn spawn_render_text_field(
             .spawn(TextBundle {
                 style: Style {
                     height: Val::Percent(100.0),
-                    ..default()
+                    ..Default::default()
                 },
                 background_color: BackgroundColor(TEXT_SELECTION_COLOR),
                 text: Text::from_section("", text_selection_style.clone()),
-                ..default()
+                ..Default::default()
             })
             .id();
 
@@ -268,10 +268,10 @@ fn spawn_render_text_field(
             .spawn(TextBundle {
                 style: Style {
                     height: Val::Percent(100.0),
-                    ..default()
+                    ..Default::default()
                 },
                 text: Text::from_section("", text_selection_style),
-                ..default()
+                ..Default::default()
             })
             .id();
 

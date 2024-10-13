@@ -60,7 +60,7 @@ impl Theme {
     pub fn normal_text_style(&self) -> TextStyle {
         TextStyle {
             color: self.text_color,
-            ..default()
+            ..Default::default()
         }
     }
 }

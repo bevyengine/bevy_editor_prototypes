@@ -21,9 +21,9 @@ fn setup(mut commands: Commands) {
                 34.0 / 255.0,
                 34.0 / 255.0,
             )),
-            ..default()
+            ..Default::default()
         },
-        ..default()
+        ..Default::default()
     });
 
     commands
@@ -46,7 +46,7 @@ fn setup(mut commands: Commands) {
                         width: Val::Px(300.0),
                         height: Val::Px(40.0),
                         margin: UiRect::all(Val::Px(20.0)),
-                        ..default()
+                        ..Default::default()
                     },
                     ..Default::default()
                 },
@@ -59,7 +59,7 @@ fn setup(mut commands: Commands) {
                         width: Val::Px(600.0),
                         height: Val::Px(40.0),
                         margin: UiRect::all(Val::Px(20.0)),
-                        ..default()
+                        ..Default::default()
                     },
                     ..Default::default()
                 },
@@ -72,7 +72,7 @@ fn setup(mut commands: Commands) {
                         width: Val::Px(100.0),
                         height: Val::Px(40.0),
                         margin: UiRect::all(Val::Px(20.0)),
-                        ..default()
+                        ..Default::default()
                     },
                     ..Default::default()
                 },

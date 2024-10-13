@@ -33,23 +33,23 @@ fn setup(
                 34.0 / 255.0,
                 34.0 / 255.0,
             )),
-            ..default()
+            ..Default::default()
         },
         transform: Transform::from_translation(Vec3::splat(5.0)).looking_at(Vec3::ZERO, Vec3::Y),
-        ..default()
+        ..Default::default()
     });
 
     commands.spawn(DirectionalLightBundle {
         transform: Transform::from_translation(Vec3::new(0.0, 5.0, 1.0))
             .looking_at(Vec3::ZERO, Vec3::X),
-        ..default()
+        ..Default::default()
     });
 
     let target = commands
         .spawn(PbrBundle {
             mesh: meshes.add(Cuboid::from_length(1.0)),
             material: materials.add(StandardMaterial::default()),
-            ..default()
+            ..Default::default()
         })
         .id();
 
@@ -152,7 +152,7 @@ fn spawn_field(
                     width: Val::Px(300.0),
                     height: Val::Px(30.0),
                     margin: UiRect::all(Val::Px(5.0)),
-                    ..default()
+                    ..Default::default()
                 },
                 ..Default::default()
             },
@@ -183,7 +183,7 @@ fn header_text(commands: &mut Commands, root: Entity, text: &str) {
         .spawn(
             TextBundle::from_section(text, TextStyle::default()).with_style(Style {
                 grid_column: GridPlacement::span(2),
-                ..default()
+                ..Default::default()
             }),
         )
         .id();

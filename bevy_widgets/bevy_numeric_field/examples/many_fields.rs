@@ -19,9 +19,9 @@ fn setup(mut commands: Commands) {
                 34.0 / 255.0,
                 34.0 / 255.0,
             )),
-            ..default()
+            ..Default::default()
         },
-        ..default()
+        ..Default::default()
     });
 
     commands
@@ -46,9 +46,9 @@ fn setup(mut commands: Commands) {
                         grid_template_columns: vec![GridTrack::auto(), GridTrack::auto()],
                         align_items: AlignItems::Center,
                         margin: UiRect::all(Val::Px(10.0)),
-                        ..default()
+                        ..Default::default()
                     },
-                    ..default()
+                    ..Default::default()
                 })
                 .with_children(|column| {
                     spawn_numeric_field::<u8>(column, "u8");
@@ -66,9 +66,9 @@ fn setup(mut commands: Commands) {
                         grid_template_columns: vec![GridTrack::auto(), GridTrack::auto()],
                         align_items: AlignItems::Center,
                         margin: UiRect::all(Val::Px(10.0)),
-                        ..default()
+                        ..Default::default()
                     },
-                    ..default()
+                    ..Default::default()
                 })
                 .with_children(|column| {
                     spawn_numeric_field::<i8>(column, "i8");
@@ -86,9 +86,9 @@ fn setup(mut commands: Commands) {
                         grid_template_columns: vec![GridTrack::auto(), GridTrack::auto()],
                         align_items: AlignItems::Center,
                         margin: UiRect::all(Val::Px(10.0)),
-                        ..default()
+                        ..Default::default()
                     },
-                    ..default()
+                    ..Default::default()
                 })
                 .with_children(|column| {
                     spawn_numeric_field::<f32>(column, "f32");
@@ -103,7 +103,7 @@ fn spawn_numeric_field<T: NumericFieldValue + Default>(row: &mut ChildBuilder, l
         TextStyle {
             font_size: 20.0,
             color: Color::WHITE,
-            ..default()
+            ..Default::default()
         },
     ));
     row.spawn((
@@ -112,7 +112,7 @@ fn spawn_numeric_field<T: NumericFieldValue + Default>(row: &mut ChildBuilder, l
                 width: Val::Px(150.0),
                 height: Val::Px(30.0),
                 margin: UiRect::left(Val::Px(10.0)),
-                ..default()
+                ..Default::default()
             },
             ..Default::default()
         },

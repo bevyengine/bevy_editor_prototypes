@@ -138,42 +138,31 @@ macro_rules! impl_unsigned_numeric_field_value {
     }
 }
 
+// Macro to implement NumericFieldValue for floating-point types
+macro_rules! impl_float_numeric_field_value {
+    ($($t:ty),*) => {
+        $(
+            impl NumericFieldValue for $t {
+                fn default_drag_step() -> f64 { 0.1 }
+                fn allowed_chars() -> Vec<char> {
+                    vec!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-']
+                }
+
+                fn checked_add(&self, rhs: &Self) -> Option<Self> {
+                    Some(*self + *rhs)
+                }
+
+                fn checked_sub(&self, rhs: &Self) -> Option<Self> {
+                    Some(*self - *rhs)
+                }
+            }
+        )*
+    }
+}
+
 // Implement NumericFieldValue for signed and unsigned integer types
 impl_signed_numeric_field_value!(i8, i16, i32, i64, i128);
 impl_unsigned_numeric_field_value!(u8, u16, u32, u64, u128);
 
-// Implement NumericFieldValue for f32
-impl NumericFieldValue for f32 {
-    fn default_drag_step() -> f64 {
-        0.1
-    }
-    fn allowed_chars() -> Vec<char> {
-        vec!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-']
-    }
-
-    fn checked_add(&self, rhs: &Self) -> Option<Self> {
-        Some(*self + *rhs)
-    }
-
-    fn checked_sub(&self, rhs: &Self) -> Option<Self> {
-        Some(*self - *rhs)
-    }
-}
-
-// Implement NumericFieldValue for f64
-impl NumericFieldValue for f64 {
-    fn default_drag_step() -> f64 {
-        0.1
-    }
-    fn allowed_chars() -> Vec<char> {
-        vec!['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-']
-    }
-
-    fn checked_add(&self, rhs: &Self) -> Option<Self> {
-        Some(*self + *rhs)
-    }
-
-    fn checked_sub(&self, rhs: &Self) -> Option<Self> {
-        Some(*self - *rhs)
-    }
-}
+// Implement NumericFieldValue for floating-point types
+impl_float_numeric_field_value!(f32, f64);

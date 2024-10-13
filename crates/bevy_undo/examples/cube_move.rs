@@ -61,9 +61,9 @@ fn setup(
         mesh: meshes.add(Mesh::from(Cuboid::from_length(2.0))),
         material: materials.add(StandardMaterial {
             base_color: Color::srgb(0.3, 0.5, 0.3),
-            ..default()
+            ..Default::default()
         }),
-        ..default()
+        ..Default::default()
     })
     .insert(Controller)
     .insert(UndoMarker) //Only entities with this marker will be able to undo
@@ -71,7 +71,7 @@ fn setup(
 
     cmd.spawn(Camera3dBundle {
         transform: Transform::from_xyz(0.0, 5.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
-        ..default()
+        ..Default::default()
     });
 
     cmd.spawn(NodeBundle {
@@ -80,17 +80,17 @@ fn setup(
             height: Val::Percent(100.0),
             justify_content: JustifyContent::Start,
             align_items: AlignItems::Start,
-            ..default()
+            ..Default::default()
         },
-        ..default()
+        ..Default::default()
     })
     .with_children(|parent| {
         parent.spawn(TextBundle {
             text: Text {
                 sections: vec![],
-                ..default()
+                ..Default::default()
             },
-            ..default()
+            ..Default::default()
         });
     });
 }

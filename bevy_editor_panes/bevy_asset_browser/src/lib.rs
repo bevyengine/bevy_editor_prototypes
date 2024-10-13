@@ -42,6 +42,8 @@ pub struct AssetBrowserSet;
 #[derive(Resource)]
 pub struct AssetBrowserLocation(pub PathBuf);
 
+/// The last time the current directory was modified
+/// Used to check if the directory content needs to be refreshed
 #[derive(Resource)]
 pub struct DirectoryLastModifiedTime(pub SystemTime);
 
@@ -109,7 +111,7 @@ pub enum AssetType {
     /// A type of asset that is not supported
     #[default]
     Unknown,
-    /// A directory assset
+    /// A directory asset
     /// When clicked, the asset browser will step into the directory
     Directory,
 }
@@ -148,26 +150,26 @@ pub fn button_interaction(
     mut last_modified_time: ResMut<DirectoryLastModifiedTime>,
     asset_server: Res<AssetServer>,
 ) {
-    for (button_entity, interaction, button_type, mut background_color, button_childs) in
+    for (button_entity, interaction, button_type, mut background_color, button_children) in
         &mut interaction_query
     {
         match *interaction {
             Interaction::Pressed => {
                 let location_has_changed = match button_type {
                     ButtonType::LocationSegment => {
-                        let (path_list_entity, path_list_childs) = path_list_query.single();
+                        let (path_list_entity, path_list_children) = path_list_query.single();
                         // Last segment is the current directory, no need to reload
-                        if button_entity == *path_list_childs.last().unwrap() {
+                        if button_entity == *path_list_children.last().unwrap() {
                             return;
                         }
-                        let segment_position = path_list_childs
+                        let segment_position = path_list_children
                             .iter()
                             .skip(1) // First child is a separator
                             .step_by(2) // Step by 2 to go through each segment, skipping the separators
                             .position(|child| *child == button_entity)
                             .unwrap();
                         location.0 = location.0.iter().take(segment_position + 2).collect();
-                        let child_to_remove = &path_list_childs[(segment_position + 1) * 2..];
+                        let child_to_remove = &path_list_children[(segment_position + 1) * 2..];
                         for child in child_to_remove {
                             commands.entity(*child).despawn_recursive();
                         }
@@ -178,7 +180,7 @@ pub fn button_interaction(
                     }
                     ButtonType::AssetButton(AssetType::Directory) => {
                         let directory_name =
-                            &text_query.get(button_childs[1]).unwrap().sections[0].value;
+                            &text_query.get(button_children[1]).unwrap().sections[0].value;
                         location.0.push(directory_name.clone());
                         let (path_list_entity, _) = path_list_query.single();
                         commands.entity(path_list_entity).with_children(|parent| {
@@ -206,10 +208,7 @@ pub fn button_interaction(
                 }
             }
             Interaction::Hovered => match button_type {
-                ButtonType::LocationSegment => {
-                    background_color.0 = Color::srgb(0.5, 0.5, 0.5); // TODO: Use theme
-                }
-                ButtonType::AssetButton(AssetType::Directory) => {
+                ButtonType::LocationSegment | ButtonType::AssetButton(AssetType::Directory) => {
                     background_color.0 = Color::srgb(0.5, 0.5, 0.5); // TODO: Use theme
                 }
                 _ => {}

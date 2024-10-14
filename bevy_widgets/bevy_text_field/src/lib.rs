@@ -2,7 +2,6 @@
 //!
 //! Currently only single line text input is supported. (multiline text input is coming some time)
 
-pub mod clipboard;
 pub mod cursor;
 pub mod input;
 pub mod render;
@@ -14,6 +13,7 @@ const BACKGROUND_COLOR: Color = Color::srgb(43.0 / 255.0, 44.0 / 255.0, 47.0 / 2
 const TEXT_SELECTION_COLOR: Color = Color::srgb(0.0 / 255.0, 122.0 / 255.0, 1.0);
 
 use bevy::{prelude::*, utils::hashbrown::HashSet};
+use bevy_clipboard::ClipboardPlugin;
 use bevy_editor_styles::Theme;
 use bevy_focus::{FocusPlugin, Focusable};
 use render::RenderTextField;
@@ -56,7 +56,11 @@ impl Plugin for LineTextFieldPlugin {
         );
 
         app.add_plugins(cursor::CursorPlugin);
-        app.add_plugins(clipboard::ClipboardPlugin);
+
+        if !app.is_plugin_added::<ClipboardPlugin>() {
+            app.add_plugins(ClipboardPlugin);
+        }
+
     }
 }
 

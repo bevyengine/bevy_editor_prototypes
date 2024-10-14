@@ -63,3 +63,4 @@ bevy_localization = { path = "crates/bevy_localization" }
 bevy_pane_layout = { path = "crates/bevy_pane_layout" }
 bevy_transform_gizmos = { path = "crates/bevy_transform_gizmos" }
 bevy_undo = { path = "crates/bevy_undo" }
+bevy_clipboard = { path = "crates/bevy_clipboard" }

@@ -5,9 +5,10 @@ use bevy::{
     input::keyboard::{Key, KeyboardInput},
     prelude::*,
 };
+use bevy_clipboard::BevyClipboard;
 use bevy_focus::{Focus, GotFocus, LostFocus};
 
-use crate::{clipboard::BevyClipboard, render::RenderTextField, LineTextField, LineTextFieldLinks};
+use crate::{render::RenderTextField, LineTextField, LineTextFieldLinks};
 
 pub(crate) fn text_field_on_over(
     over: Trigger<Pointer<Over>>,

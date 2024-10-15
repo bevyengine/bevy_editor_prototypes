@@ -57,22 +57,24 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    cmd.spawn(PbrBundle {
-        mesh: meshes.add(Mesh::from(Cuboid::from_length(2.0))),
-        material: materials.add(StandardMaterial {
-            base_color: Color::srgb(0.3, 0.5, 0.3),
-            ..Default::default()
-        }),
+    let cube_mesh = meshes.add(Cuboid::from_length(1.0));
+    let material = materials.add(StandardMaterial {
+        base_color: Color::srgb(0.3, 0.5, 0.3),
         ..Default::default()
-    })
+    });
+
+    cmd.spawn((
+        Mesh3d(cube_mesh),
+        MeshMaterial3d(material),
+    ))
     .insert(Controller)
     .insert(UndoMarker) //Only entities with this marker will be able to undo
     .insert(OneFrameUndoIgnore::default()); // To prevent adding "Transform add" change in change chain
 
-    cmd.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(0.0, 5.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
-        ..Default::default()
-    });
+    cmd.spawn((
+        Transform::from_xyz(0.0, 5.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
+        Camera3d::default()
+    ));
 
     cmd.spawn(NodeBundle {
         style: Style {
@@ -85,13 +87,10 @@ fn setup(
         ..Default::default()
     })
     .with_children(|parent| {
-        parent.spawn(TextBundle {
-            text: Text {
-                sections: vec![],
-                ..Default::default()
-            },
-            ..Default::default()
-        });
+        parent.spawn((
+            Text::new(""),
+            TextFont::default(),
+        ));
     });
 }
 
@@ -135,16 +134,12 @@ fn write_undo_text(
     change_chain: Res<ChangeChain>, //Change chain in UndoPlugin
 ) {
     for mut text in &mut query {
-        text.sections.clear();
-        text.sections.push(TextSection::new(
-            "Registered changes\n",
-            TextStyle::default(),
-        ));
+        let mut t = "Registered changes\n".to_string();
+       
         for change in change_chain.changes.iter() {
-            text.sections.push(TextSection::new(
-                format!("{}\n", change.debug_text()),
-                TextStyle::default(),
-            ));
+            t = format!("{}{}\n", t, change.debug_text())
         }
+
+        text.0 = t;
     }
 }

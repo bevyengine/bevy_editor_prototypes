@@ -54,13 +54,3 @@ impl Default for Theme {
         }
     }
 }
-
-impl Theme {
-    /// Returns the style for the normal text.
-    pub fn normal_text_style(&self) -> TextStyle {
-        TextStyle {
-            color: self.text_color,
-            ..Default::default()
-        }
-    }
-}

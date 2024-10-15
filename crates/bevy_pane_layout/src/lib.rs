@@ -44,21 +44,37 @@ impl Plugin for PaneLayoutPlugin {
             .add_systems(
                 Update,
                 (
-                    (
-                        cleanup_divider_single_child,
-                        |mut query: Query<(&Size, &mut Style), Changed<Size>>| {
-                            // TODO check if ordering issue is fixed
-
-                            for (size, mut style) in &mut query {
-                                style.flex_basis = Val::Percent(size.0 * 100.);
-                            }
-                        },
-                    )
-                        .chain(),
+                    (cleanup_divider_single_child, apply_size).chain(),
                     on_pane_creation,
                 )
                     .in_set(PaneLayoutSet),
             );
+    }
+}
+
+fn apply_size(
+    mut query: Query<(Entity, &Size, &mut Style), Changed<Size>>,
+    divider_query: Query<&Divider>,
+    parent_query: Query<&Parent>,
+) {
+    for (entity, size, mut style) in &mut query {
+        let parent = parent_query.get(entity).unwrap().get();
+        let Ok(e) = divider_query.get(parent) else {
+            style.width = Val::Percent(100.);
+            style.height = Val::Percent(100.);
+            continue;
+        };
+
+        match e {
+            Divider::Horizontal => {
+                style.width = Val::Percent(size.0 * 100.);
+                style.height = Val::Percent(100.);
+            }
+            Divider::Vertical => {
+                style.width = Val::Percent(100.);
+                style.height = Val::Percent(size.0 * 100.);
+            }
+        }
     }
 }
 

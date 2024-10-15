@@ -12,14 +12,21 @@
 //! - Finally, it will be a standalone application that communicates with a running Bevy game via the Bevy Remote Protocol.
 
 use bevy::prelude::*;
+
 use bevy_editor_styles::StylesPlugin;
+
+// Panes
+use bevy_3d_viewport::Viewport3dPanePlugin;
 
 mod ui;
 
 fn main() {
     App::new()
-        .add_plugins(StylesPlugin)
-        .add_plugins(DefaultPlugins)
-        .add_plugins(ui::EditorUIPlugin)
+        .add_plugins((
+            DefaultPlugins,
+            StylesPlugin,
+            Viewport3dPanePlugin,
+            ui::EditorUIPlugin,
+        ))
         .run();
 }

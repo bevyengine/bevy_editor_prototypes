@@ -256,26 +256,24 @@ fn spawn_render_text_field(
         };
 
         let selection = commands
-            .spawn(TextBundle {
-                style: Style {
+            .spawn((
+                Style {
                     height: Val::Percent(100.0),
                     ..Default::default()
                 },
-                background_color: BackgroundColor(TEXT_SELECTION_COLOR),
-                text: Text::from_section("", text_selection_style.clone()),
-                ..Default::default()
-            })
+                BackgroundColor(TEXT_SELECTION_COLOR),
+                Text::from_section("", text_selection_style.clone()),
+            ))
             .id();
 
         let selection_shift = commands
-            .spawn(TextBundle {
-                style: Style {
+            .spawn((
+                Style {
                     height: Val::Percent(100.0),
                     ..Default::default()
                 },
-                text: Text::from_section("", text_selection_style),
-                ..Default::default()
-            })
+                Text::from_section("", text_selection_style),
+            ))
             .id();
 
         let selection_root = commands

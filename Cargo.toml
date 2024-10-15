@@ -25,7 +25,7 @@ unsafe_op_in_unsafe_fn = "warn"
 unused_qualifications = "warn"
 
 [workspace.dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "9386bd0114c44c9f00a2e9c41db1225aaa78d159" }
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "af93e78b72c1e435e73c54c9d0ac6260dc170762" }
 thiserror = "1"
 serde = { version = "1", features = ["derive"] }
 
@@ -52,6 +52,7 @@ bevy_tooltips = { path = "bevy_widgets/bevy_tooltips" }
 bevy_text_field = { path = "bevy_widgets/bevy_text_field" }
 bevy_numeric_field = { path = "bevy_widgets/bevy_numeric_field" }
 bevy_focus = { path = "bevy_widgets/bevy_focus" }
+bevy_text_editing = { path = "bevy_widgets/bevy_text_editing" }
 
 # general crates
 bevy_asset_preview = { path = "crates/bevy_asset_preview" }

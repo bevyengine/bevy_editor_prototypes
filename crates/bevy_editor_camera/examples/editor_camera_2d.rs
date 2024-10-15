@@ -35,8 +35,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..Default::default()
         });
 
-    commands.spawn(SpriteBundle {
-        texture: asset_server.load("bevy_bird.png"),
+    commands.spawn(Sprite {
+        image: asset_server.load("bevy_bird.png"),
         ..Default::default()
     });
 }

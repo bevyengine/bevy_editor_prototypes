@@ -20,10 +20,10 @@ fn main() {
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
-        .spawn(Camera2dBundle {
-            transform: Transform::from_xyz(0.0, 0.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
-            ..Default::default()
-        })
+        .spawn((
+            Camera2d,
+            Transform::from_xyz(0.0, 0.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
+        ))
         .insert(EditorCamera2d {
             pan_mouse_buttons: vec![MouseButton::Left, MouseButton::Middle, MouseButton::Right],
             bound: Rect {

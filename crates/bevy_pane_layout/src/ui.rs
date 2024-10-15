@@ -1,7 +1,4 @@
-use bevy::{
-    color::palettes::tailwind::RED_100, prelude::*, window::SystemCursorIcon,
-    winit::cursor::CursorIcon,
-};
+use bevy::{prelude::*, window::SystemCursorIcon, winit::cursor::CursorIcon};
 use bevy_editor_styles::Theme;
 
 use crate::{
@@ -168,8 +165,6 @@ pub(crate) fn spawn_resize_handle<'a>(
     // Add the Resize
     ec.with_child((
         NodeBundle {
-            // Debug color
-            background_color: RED_100.with_alpha(0.5).into(),
             style: Style {
                 width: match divider_parent {
                     Divider::Horizontal => Val::Px(SIZE),

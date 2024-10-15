@@ -23,7 +23,7 @@ pub struct UISet;
 pub struct RootUINode;
 
 fn ui_setup(mut commands: Commands, theme: Res<Theme>) {
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d);
 
     commands
         .spawn(NodeBundle {

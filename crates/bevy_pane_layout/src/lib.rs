@@ -1,4 +1,3 @@
-#![allow(missing_docs)]
 //! Resizable, divider-able panes for Bevy.
 
 mod handlers;
@@ -30,13 +29,13 @@ impl Plugin for PaneLayoutPlugin {
         let mut pane_registry = app.world_mut().get_resource_or_init::<PaneRegistry>();
 
         // TODO Move these registrations to their respective crates.
-        pane_registry.register(Pane::new("Properties", |mut _commands, _pane_root| {
+        pane_registry.register("Properties", |mut _commands, _pane_root| {
             // Todo
-        }));
+        });
 
-        pane_registry.register(Pane::new("Scene Tree", |mut _commands, _pane_root| {
+        pane_registry.register("Scene Tree", |mut _commands, _pane_root| {
             // Todo
-        }));
+        });
 
         app.init_resource::<DragState>()
             .init_resource::<PaneRegistry>()
@@ -113,32 +112,29 @@ fn on_pane_creation(
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PaneLayoutSet;
 
+/// A registry of pane types.
 #[derive(Resource, Default)]
 pub struct PaneRegistry {
     panes: Vec<Pane>,
 }
 
 impl PaneRegistry {
-    pub fn register(&mut self, pane: Pane) {
-        self.panes.push(pane);
-    }
-}
-
-pub struct Pane {
-    name: String,
-    creation_callback: Box<dyn FnMut(Commands, Entity) + Send + Sync>,
-}
-
-impl Pane {
-    pub fn new(
+    /// Register a new pane type.
+    pub fn register(
+        &mut self,
         name: impl Into<String>,
         creation_callback: impl FnMut(Commands, Entity) + Send + Sync + 'static,
-    ) -> Self {
-        Pane {
+    ) {
+        self.panes.push(Pane {
             name: name.into(),
             creation_callback: Box::new(creation_callback),
-        }
+        });
     }
+}
+
+struct Pane {
+    name: String,
+    creation_callback: Box<dyn FnMut(Commands, Entity) + Send + Sync>,
 }
 
 // TODO There is no way to save or load layouts at this moment.

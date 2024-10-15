@@ -68,6 +68,7 @@ pub(crate) fn on_pane_header_middle_click(
 
 /// Right clicking dividers the pane horizontally
 /// Holding left shift and right clicking dividers the pane vertically
+#[expect(clippy::too_many_arguments)]
 pub(crate) fn on_pane_header_right_click(
     trigger: Trigger<Pointer<Click>>,
     mut commands: Commands,

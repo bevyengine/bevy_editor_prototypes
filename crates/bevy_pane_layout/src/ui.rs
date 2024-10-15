@@ -26,7 +26,6 @@ pub(crate) fn spawn_pane<'a>(
             Size(size),
             PaneRootNode { name: name.clone() },
         ))
-        .observe(on_pane_drag_drop)
         .id();
 
     // Area

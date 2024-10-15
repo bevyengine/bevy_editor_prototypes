@@ -63,16 +63,16 @@ pub fn fetch_directory_content(
     last_modified_time: &mut ResMut<crate::DirectoryLastModifiedTime>,
 ) -> FetchDirectoryContentResult {
     let metadata = {
-        if let Ok(metadata) = std::fs::metadata(&location.0) {
+        if let Ok(metadata) = std::fs::metadata(location.get_absolute_path()) {
             metadata
         } else {
-            location.0 = PathBuf::from(crate::ASSETS_DIRECTORY_PATH);
+            **location = AssetBrowserLocation::default();
             let content_directory_exist =
-                std::fs::exists(crate::ASSETS_DIRECTORY_PATH).unwrap_or(false);
+                std::fs::exists(location.get_absolute_path()).unwrap_or(false);
             if !content_directory_exist {
-                std::fs::create_dir_all(crate::ASSETS_DIRECTORY_PATH).unwrap();
+                std::fs::create_dir_all(location.get_absolute_path()).unwrap();
             }
-            std::fs::metadata(&location.0).unwrap()
+            std::fs::metadata(location.get_absolute_path()).unwrap()
         }
     };
     let modified_time = metadata.modified().unwrap();
@@ -81,7 +81,7 @@ pub fn fetch_directory_content(
     }
     last_modified_time.0 = metadata.modified().unwrap();
 
-    let mut dir_content = std::fs::read_dir(&location.0)
+    let mut dir_content = std::fs::read_dir(location.get_absolute_path())
         .unwrap()
         .map(|entry| entry.unwrap().path())
         .collect::<Vec<_>>();

@@ -208,9 +208,10 @@ pub(crate) fn spawn_resize_handle<'a>(
             let size_a = size_query.get(siblings[index - 1]).unwrap().0;
             let size_b = size_query.get(siblings[index + 1]).unwrap().0;
 
+            let min_pane_size = 20.;
             drag_state.offset = 0.;
-            drag_state.min = -size_a * parent_node_size;
-            drag_state.max = size_b * parent_node_size;
+            drag_state.min = (-size_a * parent_node_size) + min_pane_size;
+            drag_state.max = (size_b * parent_node_size) - min_pane_size;
             drag_state.parent_node_size = parent_node_size;
         },
     )

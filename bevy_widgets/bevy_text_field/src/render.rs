@@ -52,10 +52,10 @@ pub(crate) fn render_text_field(
     q_cursors: Query<Entity, With<Cursor>>,
     theme: Option<Res<Theme>>,
 ) {
-    let text_style = if let Some(theme) = theme {
-        theme.normal_text_style()
+    let text_color = if let Some(theme) = theme {
+        theme.text_color.clone()
     } else {
-        TextStyle::default()
+        Color::WHITE
     };
     let entity = trigger.entity();
     trigger.propagate(false);
@@ -99,7 +99,11 @@ pub(crate) fn render_text_field(
 
         commands
             .entity(links.text)
-            .insert(TextBundle::from_section(left_text, text_style.clone()).with_no_wrap());
+            .insert((
+                Text::new(left_text),
+                TextColor(text_color),
+                TextLayout::new_with_no_wrap()
+            ));
 
         if !q_cursors.contains(links.cursor) {
             // If we spawn new cursor than we need to skip checks for cursor overflow for some frames needed to compute correct cursor position by bevy systems
@@ -129,7 +133,11 @@ pub(crate) fn render_text_field(
 
         commands
             .entity(links.text_right)
-            .insert(TextBundle::from_section(right_text, text_style.clone()).with_no_wrap());
+            .insert((
+                Text::new(right_text),
+                TextColor(text_color),
+                TextLayout::new_with_no_wrap(),
+            ));
 
         if let Some(selection_start) = text_field.selection_start {
             // Show text selection
@@ -146,31 +154,30 @@ pub(crate) fn render_text_field(
             };
 
             // Set fake text
-            selection_text.sections[0].value = selection_text_part.to_string();
-            pre_selection_text.sections[0].value = selection_pre.to_string();
-
-            selection_text.sections[0].style.font = text_style.font.clone();
-            selection_text.sections[0].style.font_size = text_style.font_size;
-            pre_selection_text.sections[0].style.font = text_style.font.clone();
-            pre_selection_text.sections[0].style.font_size = text_style.font_size;
+            selection_text.0 = selection_text_part.to_string();
+            pre_selection_text.0 = selection_pre.to_string();
         } else {
-            selection_text.sections[0].value = "".to_string();
-            pre_selection_text.sections[0].value = "".to_string();
+            selection_text.0 = "".to_string();
+            pre_selection_text.0 = "".to_string();
         }
     } else {
         commands.entity(links.text).insert(
-            TextBundle::from_section(text_field.text.clone(), text_style.clone()).with_no_wrap(),
+            (
+                Text::new(text_field.text.clone()),
+                TextColor(text_color),
+                TextLayout::new_with_no_wrap(),
+            ),
         );
         commands
             .entity(links.cursor)
-            .insert(NodeBundle::default())
+            .insert(Node::default())
             .remove::<Cursor>();
         commands
             .entity(links.text_right)
-            .insert(TextBundle::from_section("", text_style.clone()));
+            .insert(Text::new(""));
 
-        selection_text.sections[0].value = "".to_string();
-        pre_selection_text.sections[0].value = "".to_string();
+        selection_text.0 = "".to_string();
+        pre_selection_text.0 = "".to_string();
     }
 }
 

@@ -58,7 +58,9 @@ pub(crate) fn text_field_on_click(
     // If we got focus by mouse click, we need to calculate cursor position
     if let Some(click_data) = click_data {
         if let Ok((pos, text_left)) = q_nodes.get(links.text) {
-            let rect = text_left.logical_rect(pos);
+            let size = text_left.size();
+            let real_pos = pos.translation();
+            let rect = Rect::new(real_pos.x, real_pos.y, size.x, size.y);
             if rect.contains(click_data.pointer_location.position) {
                 let dx = click_data.pointer_location.position.x - rect.min.x;
                 let dx_relative = dx / rect.width();
@@ -74,7 +76,9 @@ pub(crate) fn text_field_on_click(
         }
 
         if let Ok((pos, text_right)) = q_nodes.get(links.text_right) {
-            let rect = text_right.logical_rect(pos);
+            let size = text_right.size();
+            let real_pos = pos.translation();
+            let rect = Rect::new(real_pos.x, real_pos.y, size.x, size.y);
             if rect.contains(click_data.pointer_location.position) {
                 let dx = click_data.pointer_location.position.x - rect.min.x;
                 let dx_relative = dx / rect.width();

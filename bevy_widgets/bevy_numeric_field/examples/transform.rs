@@ -25,8 +25,8 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    commands.spawn(Camera3dBundle {
-        camera: Camera {
+    commands.spawn((
+        Camera {
             // color from bevy website background
             clear_color: ClearColorConfig::Custom(Color::srgb(
                 34.0 / 255.0,
@@ -35,22 +35,21 @@ fn setup(
             )),
             ..Default::default()
         },
-        transform: Transform::from_translation(Vec3::splat(5.0)).looking_at(Vec3::ZERO, Vec3::Y),
-        ..Default::default()
-    });
+        Transform::from_translation(Vec3::splat(5.0)).looking_at(Vec3::ZERO, Vec3::Y),
+        
+    ));
 
-    commands.spawn(DirectionalLightBundle {
-        transform: Transform::from_translation(Vec3::new(0.0, 5.0, 1.0))
+    commands.spawn((
+        DirectionalLight::default(),
+        Transform::from_translation(Vec3::new(0.0, 5.0, 1.0))
             .looking_at(Vec3::ZERO, Vec3::X),
-        ..Default::default()
-    });
+    ));
 
     let target = commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Cuboid::from_length(1.0)),
-            material: materials.add(StandardMaterial::default()),
-            ..Default::default()
-        })
+        .spawn((
+            Mesh3d(meshes.add(Cuboid::from_length(1.0))),
+            MeshMaterial3d(materials.add(StandardMaterial::default()))
+        ))
         .id();
 
     let translate_x = spawn_field(&mut commands, |val, transform| {
@@ -173,19 +172,20 @@ fn spawn_field(
 
 fn child_text(commands: &mut Commands, root: Entity, text: &str) {
     let id = commands
-        .spawn(TextBundle::from_section(text, TextStyle::default()))
+        .spawn(Text::new(text))
         .id();
     commands.entity(root).add_child(id);
 }
 
 fn header_text(commands: &mut Commands, root: Entity, text: &str) {
     let id = commands
-        .spawn(
-            TextBundle::from_section(text, TextStyle::default()).with_style(Style {
+        .spawn((
+            Text::new(text),
+            Style {
                 grid_column: GridPlacement::span(2),
                 ..Default::default()
-            }),
-        )
+            }
+        ))
         .id();
     commands.entity(root).add_child(id);
 }

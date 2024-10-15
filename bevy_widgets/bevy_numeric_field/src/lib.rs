@@ -61,10 +61,10 @@ impl<T: NumericFieldValue> Plugin for NumericFieldPlugin<T> {
         app.add_systems(Update, render::set_borders::<T>);
         app.add_systems(Update, input::react_on_self_changes::<T>);
 
-        app.observe(input::react_to_text_changes::<T>);
-        app.observe(input::react_on_set_value::<T>);
-        app.observe(input::react_on_lost_focus::<T>);
-        app.observe(input::react_on_drag::<T>);
-        app.observe(input::react_on_drag_end::<T>);
+        app.add_observer(input::react_to_text_changes::<T>);
+        app.add_observer(input::react_on_set_value::<T>);
+        app.add_observer(input::react_on_lost_focus::<T>);
+        app.add_observer(input::react_on_drag::<T>);
+        app.add_observer(input::react_on_drag_end::<T>);
     }
 }

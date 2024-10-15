@@ -12,15 +12,12 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle {
-        camera: Camera {
-            clear_color: ClearColorConfig::Custom(Color::srgb(
-                34.0 / 255.0,
-                34.0 / 255.0,
-                34.0 / 255.0,
-            )),
-            ..Default::default()
-        },
+    commands.spawn(Camera {
+        clear_color: ClearColorConfig::Custom(Color::srgb(
+            34.0 / 255.0,
+            34.0 / 255.0,
+            34.0 / 255.0,
+        )),
         ..Default::default()
     });
 
@@ -98,14 +95,7 @@ fn setup(mut commands: Commands) {
 }
 
 fn spawn_numeric_field<T: NumericFieldValue + Default>(row: &mut ChildBuilder, label: &str) {
-    row.spawn(TextBundle::from_section(
-        label,
-        TextStyle {
-            font_size: 20.0,
-            color: Color::WHITE,
-            ..Default::default()
-        },
-    ));
+    row.spawn(Text(label.to_string()));
     row.spawn((
         NodeBundle {
             style: Style {

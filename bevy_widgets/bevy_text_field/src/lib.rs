@@ -37,11 +37,11 @@ impl Plugin for LineTextFieldPlugin {
             )
                 .chain(),
         );
-        app.observe(render::render_text_field);
-        app.observe(input::text_field_on_over);
-        app.observe(input::text_field_on_out);
-        app.observe(input::text_field_on_click);
-        app.observe(input::lost_focus);
+        app.add_observer(render::render_text_field);
+        app.add_observer(input::text_field_on_over);
+        app.add_observer(input::text_field_on_out);
+        app.add_observer(input::text_field_on_click);
+        app.add_observer(input::lost_focus);
 
         app.add_systems(PreUpdate, input::keyboard_input);
 
@@ -194,10 +194,10 @@ fn spawn_render_text_field(
     q_text_fields: Query<(Entity, &LineTextField), Added<LineTextField>>,
     theme: Option<Res<Theme>>,
 ) {
-    let (text_style, border_radius) = if let Some(theme) = theme {
-        (theme.normal_text_style(), theme.border_radius)
+    let (text_color, border_radius) = if let Some(theme) = theme {
+        (theme.text_color, theme.border_radius)
     } else {
-        (TextStyle::default(), BorderRadius::all(Val::Px(5.0)))
+        (Color::WHITE, BorderRadius::all(Val::Px(5.0)))
     };
 
     for (entity, text_field) in q_text_fields.iter() {
@@ -220,14 +220,17 @@ fn spawn_render_text_field(
             .id();
 
         let text_field = commands
-            .spawn(TextBundle::from_section(
-                text_field.text.clone(),
-                text_style.clone(),
+            .spawn((
+                Text(text_field.text.clone()),
+                TextColor(text_color),
             ))
             .id();
 
         let text_field_right = commands
-            .spawn(TextBundle::from_section("", text_style.clone()))
+            .spawn((
+                Text::new(""),
+                TextColor(text_color),
+            ))
             .id();
         let cursor = commands.spawn(NodeBundle::default()).id();
 
@@ -249,11 +252,7 @@ fn spawn_render_text_field(
             })
             .id();
 
-        let text_selection_style = TextStyle {
-            color: Color::srgba(0.0, 0.0, 0.0, 0.0), // transparent
-            font: text_style.font.clone(),
-            font_size: text_style.font_size,
-        };
+        let text_selection_color = Color::srgba(0.0, 0.0, 0.0, 0.0);
 
         let selection = commands
             .spawn((
@@ -262,7 +261,8 @@ fn spawn_render_text_field(
                     ..Default::default()
                 },
                 BackgroundColor(TEXT_SELECTION_COLOR),
-                Text::from_section("", text_selection_style.clone()),
+                Text::new(""),
+                TextColor(text_selection_color.clone()),
             ))
             .id();
 
@@ -272,7 +272,8 @@ fn spawn_render_text_field(
                     height: Val::Percent(100.0),
                     ..Default::default()
                 },
-                Text::from_section("", text_selection_style),
+                Text::new(""),
+                TextColor(text_selection_color),
             ))
             .id();
 
@@ -287,7 +288,7 @@ fn spawn_render_text_field(
                     display: Display::Flex,
                     ..Default::default()
                 },
-                z_index: ZIndex::Local(-2),
+                z_index: ZIndex(-2),
                 ..Default::default()
             })
             .id();
@@ -308,10 +309,6 @@ fn spawn_render_text_field(
 
         commands
             .entity(entity)
-            .insert(Pickable {
-                is_hoverable: true,
-                should_block_lower: true,
-            })
             .insert(InnerFieldParams::default())
             .insert(Focusable);
 

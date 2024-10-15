@@ -70,7 +70,7 @@ struct WithChildCommand<B> {
 
 impl<B: Bundle> Command for WithChildCommand<B> {
     fn apply(self, world: &mut World) {
-        let Some(mut entity_mut) = world.get_entity_mut(self.parent_entity) else {
+        let Ok(mut entity_mut) = world.get_entity_mut(self.parent_entity) else {
             #[cfg(debug_assertions)]
             panic!("Parent entity not found");
 
@@ -177,7 +177,7 @@ impl<B: Bundle, I: IntoIterator<Item = B> + Send + Sync + 'static> Command
     for WithChildrenCommand<B, I>
 {
     fn apply(self, world: &mut World) {
-        let Some(mut entity_mut) = world.get_entity_mut(self.parent_entity) else {
+        let Ok(mut entity_mut) = world.get_entity_mut(self.parent_entity) else {
             #[cfg(debug_assertions)]
             panic!("Parent entity not found");
 
@@ -362,7 +362,7 @@ mod tests {
         }
 
         let mut world = World::new();
-        let parent = world.run_system_once(spawn_with_child);
+        let parent = world.run_system_once(spawn_with_child).unwrap();
 
         assert!(!world.entity(parent).contains::<WithChild<B>>());
         assert!(world.entity(parent).contains::<A>());

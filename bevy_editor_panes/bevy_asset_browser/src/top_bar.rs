@@ -31,8 +31,7 @@ pub fn ui_setup(
             ..default()
         })
         .with_children(|parent| {
-            // Skip 1, not interested about everything that goes before "/assets"
-            location.0.iter().skip(1).for_each(|directory_name| {
+            location.get_path().iter().for_each(|directory_name| {
                 push_path_segment(
                     parent,
                     directory_name.to_str().unwrap().to_string(),

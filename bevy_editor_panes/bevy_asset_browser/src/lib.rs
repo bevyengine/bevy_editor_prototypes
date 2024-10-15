@@ -1,18 +1,21 @@
 //! A UI element for browsing assets in the Bevy Editor.
 /// The intent of this system is to provide a simple and frictionless way to browse assets in the Bevy Editor.
 /// The asset browser is a replica of the your asset directory on disk and get's automatically updated when the directory is modified.
-use std::{path::PathBuf, time::SystemTime};
+use std::{
+    path::{Path, PathBuf},
+    time::SystemTime,
+};
 
-use bevy::{asset::embedded_asset, prelude::*};
+use bevy::{
+    asset::{embedded_asset, io::file::FileAssetReader},
+    prelude::*,
+};
 use bevy_editor_styles::Theme;
 use directory_content::{DirectoryContentNode, ScrollingList};
 use top_bar::TopBarNode;
 
 mod directory_content;
 mod top_bar;
-
-/// The path to the "assets" directory on disk
-pub const ASSETS_DIRECTORY_PATH: &str = "./assets";
 
 /// The bevy asset browser plugin
 pub struct AssetBrowserPlugin;
@@ -21,7 +24,7 @@ impl Plugin for AssetBrowserPlugin {
     fn build(&self, app: &mut App) {
         embedded_asset!(app, "assets/directory_icon.png");
         embedded_asset!(app, "assets/file_icon.png");
-        app.insert_resource(AssetBrowserLocation(PathBuf::from(ASSETS_DIRECTORY_PATH)))
+        app.insert_resource(AssetBrowserLocation::default())
             .insert_resource(DirectoryLastModifiedTime(SystemTime::UNIX_EPOCH))
             .add_systems(Startup, ui_setup.in_set(AssetBrowserSet))
             .add_systems(
@@ -40,7 +43,51 @@ pub struct AssetBrowserSet;
 
 /// The current location of the asset browser
 #[derive(Resource)]
-pub struct AssetBrowserLocation(pub PathBuf);
+pub struct AssetBrowserLocation {
+    absolute_path: PathBuf,
+    start_segment_index: usize,
+}
+
+impl Default for AssetBrowserLocation {
+    fn default() -> Self {
+        let absolute_path = FileAssetReader::get_base_path().join("assets");
+        let start_segment_index = absolute_path.iter().count() - 1;
+        Self {
+            absolute_path,
+            start_segment_index,
+        }
+    }
+}
+
+impl AssetBrowserLocation {
+    /// Get the path starting from the `start_segment_index`.
+    pub fn get_path(&self) -> &Path {
+        let mut comps = self.absolute_path.as_path().components();
+        for _ in 0..self.start_segment_index {
+            comps.next();
+        }
+        comps.as_path()
+    }
+
+    /// Get the absolute path.
+    pub fn get_absolute_path(&self) -> &Path {
+        self.absolute_path.as_path()
+    }
+
+    /// Crops the path from the `start_segment_index` to the given `end_segment_index` (exclusive).
+    pub fn trim(&mut self, end_segment_index: usize) {
+        self.absolute_path = self
+            .absolute_path
+            .iter()
+            .take(self.start_segment_index + end_segment_index)
+            .collect();
+    }
+
+    /// Pushes a directory to the current location.
+    pub fn push<P: AsRef<Path>>(&mut self, directory_name: P) {
+        self.absolute_path.push(directory_name);
+    }
+}
 
 /// The last time the current directory was modified
 /// Used to check if the directory content needs to be refreshed
@@ -130,6 +177,7 @@ pub fn content_button_to_icon<A: Asset>(
 }
 
 /// Handle the asset browser button interactions
+#[allow(clippy::too_many_arguments)]
 pub fn button_interaction(
     mut commands: Commands,
     mut interaction_query: Query<
@@ -168,7 +216,7 @@ pub fn button_interaction(
                             .step_by(2) // Step by 2 to go through each segment, skipping the separators
                             .position(|child| *child == button_entity)
                             .unwrap();
-                        location.0 = location.0.iter().take(segment_position + 2).collect();
+                        location.trim(segment_position + 1);
                         let child_to_remove = &path_list_children[(segment_position + 1) * 2..];
                         for child in child_to_remove {
                             commands.entity(*child).despawn_recursive();
@@ -181,7 +229,7 @@ pub fn button_interaction(
                     ButtonType::AssetButton(AssetType::Directory) => {
                         let directory_name =
                             &text_query.get(button_children[1]).unwrap().sections[0].value;
-                        location.0.push(directory_name.clone());
+                        location.push(directory_name);
                         let (path_list_entity, _) = path_list_query.single();
                         commands.entity(path_list_entity).with_children(|parent| {
                             top_bar::push_path_segment(

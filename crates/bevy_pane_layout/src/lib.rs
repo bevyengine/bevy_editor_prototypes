@@ -177,21 +177,6 @@ fn setup(
     spawn_pane(&mut commands, &theme, 0.8, "Viewport 3D").set_parent(divider);
 }
 
-#[derive(Component)]
-struct ResizeHandle;
-
-// fn add_dividers(
-//     mut commands: Commands,
-//     mut query: Query<(Entity, &Children), (Changed<Children>, With<Divider>)>,
-//     resize_handle_query: Query<(), With<ResizeHandle>>,
-// ) {
-//     for (entity, children) in &mut query {
-//         for i in (0..children.len()).rev() {
-//             commands.entity(*child).despawn_recursive();
-//         }
-//     }
-// }
-
 /// Removes a divider from the hierarchy when it has only one child left, replacing itself with that child.
 fn cleanup_divider_single_child(
     mut commands: Commands,
@@ -229,6 +214,9 @@ enum Divider {
     Horizontal,
     Vertical,
 }
+
+#[derive(Component)]
+struct ResizeHandle;
 
 /// The fraction of space this element takes up in the [`Divider`] it's a child of.
 #[derive(Component)]

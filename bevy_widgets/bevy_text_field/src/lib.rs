@@ -60,7 +60,6 @@ impl Plugin for LineTextFieldPlugin {
         if !app.is_plugin_added::<ClipboardPlugin>() {
             app.add_plugins(ClipboardPlugin);
         }
-
     }
 }
 

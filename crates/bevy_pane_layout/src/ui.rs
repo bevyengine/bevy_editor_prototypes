@@ -186,6 +186,10 @@ pub(crate) fn spawn_resize_handle<'a>(
               children_query: Query<&Children>,
               node_query: Query<&Node>,
               size_query: Query<&Size>| {
+            if trigger.event().button != PointerButton::Primary {
+                return;
+            }
+
             drag_state.is_dragging = true;
 
             let target = trigger.entity();
@@ -220,6 +224,10 @@ pub(crate) fn spawn_resize_handle<'a>(
               parent_query: Query<&Parent>,
               children_query: Query<&Children>,
               mut size_query: Query<&mut Size>| {
+            if !drag_state.is_dragging {
+                return;
+            }
+
             let target = trigger.entity();
             let parent = parent_query.get(target).unwrap().get();
             let siblings = children_query.get(parent).unwrap();

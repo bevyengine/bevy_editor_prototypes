@@ -16,7 +16,7 @@ fn setup_system(
     mut meshes: ResMut<Assets<Mesh>>,
     mut standard_materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    commands.spawn(InfiniteGrid::default());
+    commands.spawn(InfiniteGrid);
 
     commands.spawn((
         Camera3d::default(),

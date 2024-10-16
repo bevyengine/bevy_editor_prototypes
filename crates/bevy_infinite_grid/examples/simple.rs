@@ -1,5 +1,7 @@
+//! An infinite grid with a simple scene and a camera controller.
+
 use bevy::prelude::*;
-use bevy_infinite_grid::{InfiniteGridBundle, InfiniteGridPlugin};
+use bevy_infinite_grid::{InfiniteGrid, InfiniteGridPlugin};
 use camera_controller::{CameraController, CameraControllerPlugin};
 
 fn main() {
@@ -14,42 +16,37 @@ fn setup_system(
     mut meshes: ResMut<Assets<Mesh>>,
     mut standard_materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    commands.spawn(InfiniteGridBundle::default());
+    commands.spawn(InfiniteGrid::default());
 
     commands.spawn((
-        Camera3dBundle {
-            transform: Transform::from_xyz(0.0, 4.37, 14.77),
-            ..default()
-        },
+        Camera3d::default(),
+        Transform::from_xyz(0.0, 4.37, 14.77),
         CameraController::default(),
     ));
 
-    commands.spawn(DirectionalLightBundle {
-        transform: Transform::from_translation(Vec3::X * 15. + Vec3::Y * 20.)
-            .looking_at(Vec3::ZERO, Vec3::Y),
-        ..default()
-    });
+    commands.spawn((
+        DirectionalLight::default(),
+        Transform::from_translation(Vec3::X * 15. + Vec3::Y * 20.).looking_at(Vec3::ZERO, Vec3::Y),
+    ));
 
     let mat = standard_materials.add(StandardMaterial::default());
 
     // cube
-    commands.spawn(PbrBundle {
-        material: mat.clone(),
-        mesh: meshes.add(Cuboid::from_size(Vec3::ONE).mesh()),
-        transform: Transform {
+    commands.spawn((
+        MeshMaterial3d(mat.clone()),
+        Mesh3d(meshes.add(Cuboid::from_size(Vec3::ONE).mesh())),
+        Transform {
             translation: Vec3::new(3., 4., 0.),
             rotation: Quat::from_rotation_arc(Vec3::Y, Vec3::ONE.normalize()),
             scale: Vec3::splat(1.5),
         },
-        ..default()
-    });
+    ));
 
-    commands.spawn(PbrBundle {
-        material: mat.clone(),
-        mesh: meshes.add(Cuboid::from_size(Vec3::ONE).mesh()),
-        transform: Transform::from_xyz(0.0, 2.0, 0.0),
-        ..default()
-    });
+    commands.spawn((
+        MeshMaterial3d(mat.clone()),
+        Mesh3d(meshes.add(Cuboid::from_size(Vec3::ONE))),
+        Transform::from_xyz(0.0, 2.0, 0.0),
+    ));
 }
 
 // This is a simplified version of the camera controller used in bevy examples

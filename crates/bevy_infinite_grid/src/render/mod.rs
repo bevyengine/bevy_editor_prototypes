@@ -27,8 +27,9 @@ use bevy::{
             StencilFaceState, StencilState, TextureFormat, VertexState,
         },
         renderer::{RenderDevice, RenderQueue},
+        sync_world::RenderEntity,
         texture::BevyDefault,
-        view::{ExtractedView, ViewTarget, VisibleEntities},
+        view::{ExtractedView, RenderVisibleEntities, ViewTarget, VisibleEntities},
         Extract, ExtractSchedule, Render, RenderApp, RenderSet,
     },
 };
@@ -195,8 +196,7 @@ impl<const I: usize, P: PhaseItem> RenderCommand<P> for SetInfiniteGridBindGroup
         pass: &mut bevy::render::render_phase::TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         let Some(base_offsets) = base_offsets else {
-            warn!("PerCameraSettingsUniformOffset missing");
-            return RenderCommandResult::Failure;
+            return RenderCommandResult::Failure("PerCameraSettingsUniformOffset missing");
         };
         pass.set_bind_group(
             I,
@@ -257,7 +257,7 @@ fn prepare_grid_view_uniforms(
 
     view_uniforms
         .uniforms
-        .write_buffer(&render_device, &render_queue)
+        .write_buffer(&render_device, &render_queue);
 }
 
 fn prepare_grid_view_bind_groups(
@@ -285,7 +285,7 @@ fn extract_infinite_grids(
     mut commands: Commands,
     grids: Extract<
         Query<(
-            Entity,
+            &RenderEntity,
             &InfiniteGridSettings,
             &GlobalTransform,
             &VisibleEntities,
@@ -296,7 +296,7 @@ fn extract_infinite_grids(
         .iter()
         .map(|(entity, grid, transform, visible_entities)| {
             (
-                entity,
+                **entity,
                 (
                     ExtractedInfiniteGrid {
                         transform: *transform,
@@ -312,11 +312,11 @@ fn extract_infinite_grids(
 
 fn extract_per_camera_settings(
     mut commands: Commands,
-    cameras: Extract<Query<(Entity, &InfiniteGridSettings), With<Camera>>>,
+    cameras: Extract<Query<(&RenderEntity, &InfiniteGridSettings), With<Camera>>>,
 ) {
     let extracted: Vec<_> = cameras
         .iter()
-        .map(|(entity, settings)| (entity, *settings))
+        .map(|(entity, settings)| (**entity, *settings))
         .collect();
     commands.insert_or_spawn_batch(extracted);
 }
@@ -399,15 +399,14 @@ fn queue_infinite_grids(
     mut pipelines: ResMut<SpecializedRenderPipelines<InfiniteGridPipeline>>,
     infinite_grids: Query<&ExtractedInfiniteGrid>,
     mut transparent_render_phases: ResMut<ViewSortedRenderPhases<Transparent3d>>,
-    mut views: Query<(Entity, &VisibleEntities, &ExtractedView)>,
-    msaa: Res<Msaa>,
+    mut views: Query<(Entity, &RenderVisibleEntities, &ExtractedView, &Msaa)>,
 ) {
     let draw_function_id = transparent_draw_functions
         .read()
         .get_id::<DrawInfiniteGrid>()
         .unwrap();
 
-    for (view_entity, entities, view) in views.iter_mut() {
+    for (view_entity, entities, view, msaa) in views.iter_mut() {
         let Some(phase) = transparent_render_phases.get_mut(&view_entity) else {
             continue;
         };
@@ -421,7 +420,8 @@ fn queue_infinite_grids(
                 sample_count: msaa.samples(),
             },
         );
-        for &entity in entities.iter::<With<InfiniteGridSettings>>() {
+
+        for &(entity, main_entity) in entities.iter::<With<InfiniteGridSettings>>() {
             if !infinite_grids
                 .get(entity)
                 .map(|grid| plane_check(&grid.transform, view.world_from_view.translation()))
@@ -431,7 +431,7 @@ fn queue_infinite_grids(
             }
             phase.items.push(Transparent3d {
                 pipeline: pipeline_id,
-                entity,
+                entity: (entity, main_entity),
                 draw_function: draw_function_id,
                 distance: f32::NEG_INFINITY,
                 batch_range: 0..1,

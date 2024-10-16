@@ -1,7 +1,9 @@
+#![allow(missing_docs)]
+
 mod render;
 
-use bevy::prelude::*;
 use bevy::render::view::{check_visibility, NoFrustumCulling, VisibleEntities};
+use bevy::{prelude::*, render::sync_world::SyncToRenderWorld};
 
 pub struct InfiniteGridPlugin;
 
@@ -16,6 +18,14 @@ impl Plugin for InfiniteGridPlugin {
 }
 
 #[derive(Component, Default)]
+#[require(
+    InfiniteGridSettings,
+    Transform,
+    Visibility,
+    VisibleEntities,
+    NoFrustumCulling,
+    SyncToRenderWorld
+)]
 pub struct InfiniteGrid;
 
 #[derive(Component, Copy, Clone)]
@@ -41,17 +51,4 @@ impl Default for InfiniteGridSettings {
             scale: 1.,
         }
     }
-}
-
-#[derive(Bundle, Default)]
-pub struct InfiniteGridBundle {
-    pub transform: Transform,
-    pub global_transform: GlobalTransform,
-    pub settings: InfiniteGridSettings,
-    pub grid: InfiniteGrid,
-    pub visibility: Visibility,
-    pub view_visibility: ViewVisibility,
-    pub inherited_visibility: InheritedVisibility,
-    pub shadow_casters: VisibleEntities,
-    pub no_frustum_culling: NoFrustumCulling,
 }

@@ -159,8 +159,6 @@ fn setup(
         .set_parent(*panes_root)
         .id();
 
-    // spawn_pane(&mut commands, &theme, 0.2, "Scene Tree").set_parent(divider);
-
     let sub_divider = spawn_divider(&mut commands, Divider::Vertical, 0.2)
         .set_parent(divider)
         .id();

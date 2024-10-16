@@ -8,7 +8,7 @@ use bevy::prelude::*;
 /// In theory this can be done passively in the background, and the previews will be ready when the user needs them.
 
 pub struct AssetPreviewPlugin;
-#[allow(unused_variables)]
+
 impl Plugin for AssetPreviewPlugin {
     fn build(&self, _app: &mut App) {}
 }

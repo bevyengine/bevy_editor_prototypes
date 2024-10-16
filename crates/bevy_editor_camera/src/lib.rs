@@ -5,7 +5,6 @@ pub mod editor_camera_2d;
 pub mod editor_camera_3d;
 
 // TODO: Figure out if a prelude should be used instead here.
-#[allow(unused_imports)]
 pub use editor_camera_2d::*;
-#[allow(unused_imports)]
+#[expect(unused_imports)]
 pub use editor_camera_3d::*;

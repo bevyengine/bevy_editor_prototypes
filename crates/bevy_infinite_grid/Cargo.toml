@@ -1,0 +1,32 @@
+[package]
+name = "bevy_infinite_grid"
+version = "0.13.0"
+authors = [
+    "Nile <therawmeatball@gmail.com>",
+    "Foresight Mining Software Corporation",
+]
+edition = "2021"
+description = "A 3D infinite grid for Bevy"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ForesightMiningSoftwareCorporation/bevy_infinite_grid"
+documentation = "https://docs.rs/bevy_infinite_grid"
+keywords = ["bevy"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bevy = { version = "0.14.0", default-features = false, features = [
+    "bevy_render",
+    "bevy_core_pipeline",
+    "bevy_pbr",
+    "bevy_asset",
+] }
+
+[dev-dependencies]
+bevy = { version = "0.14.0", default-features = false, features = [
+    "bevy_winit",
+    "x11",
+    "tonemapping_luts",
+    "ktx2",
+    "zstd",
+] }

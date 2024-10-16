@@ -170,7 +170,7 @@ fn setup(
     spawn_pane(&mut commands, &theme, 0.6, "Properties").set_parent(sub_divider);
 
     spawn_resize_handle(&mut commands, Divider::Horizontal).set_parent(divider);
-    spawn_pane(&mut commands, &theme, 0.8, "Viewport 3D").set_parent(divider);
+    spawn_pane(&mut commands, &theme, 0.8, "Viewport 2D").set_parent(divider);
 }
 
 /// Removes a divider from the hierarchy when it has only one child left, replacing itself with that child.

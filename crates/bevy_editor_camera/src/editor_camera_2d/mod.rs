@@ -54,6 +54,9 @@ pub struct EditorCamera2d {
     /// When false, the camera will stay in place, zooming towards the
     /// middle of the screen
     pub zoom_to_cursor: bool,
+    /// Overrides the viewport. Useful to map the controls correctly
+    /// when the camera is rendering to an image.
+    pub viewport_override: Option<Rect>,
 }
 
 impl EditorCamera2d {
@@ -78,6 +81,7 @@ impl Default for EditorCamera2d {
             zoom_range: f32::NEG_INFINITY..=f32::INFINITY,
             zoom_sensitivity: 0.1,
             zoom_to_cursor: true,
+            viewport_override: None,
         }
     }
 }
@@ -158,7 +162,7 @@ fn camera_zoom(
 
     for (mut e_camera, camera, mut projection, mut transform) in query.iter_mut() {
         if !e_camera.enabled {
-            return;
+            continue;
         }
 
         if mouse_wheel.delta.y == 0.0 {
@@ -166,6 +170,11 @@ fn camera_zoom(
         }
 
         let viewport_size = camera.logical_viewport_size().unwrap_or(window.size());
+
+        let viewport_rect = e_camera
+            .viewport_override
+            .unwrap_or(Rect::from_corners(Vec2::ZERO, viewport_size));
+
         let old_projection_scale = projection.scaling_mode;
 
         let scroll_delta = 1.0 - mouse_wheel.delta.y * e_camera.zoom_sensitivity;
@@ -191,7 +200,8 @@ fn camera_zoom(
                     .map(|v| v.min)
                     .unwrap_or(Vec2::ZERO);
 
-                ((cursor_pos - view_pos) / viewport_size) * 2. - Vec2::ONE
+                ((cursor_pos - (view_pos + viewport_rect.min)) / viewport_rect.size()) * 2.
+                    - Vec2::ONE
             })
             .map(|p| {
                 Vec2::new(p.x, -p.y)

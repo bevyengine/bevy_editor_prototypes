@@ -16,6 +16,7 @@ use bevy::prelude::*;
 use bevy_editor_styles::StylesPlugin;
 
 // Panes
+use bevy_2d_viewport::Viewport2dPanePlugin;
 use bevy_3d_viewport::Viewport3dPanePlugin;
 
 mod ui;
@@ -25,6 +26,7 @@ fn main() {
         .add_plugins((
             DefaultPlugins,
             StylesPlugin,
+            Viewport2dPanePlugin,
             Viewport3dPanePlugin,
             ui::EditorUIPlugin,
         ))

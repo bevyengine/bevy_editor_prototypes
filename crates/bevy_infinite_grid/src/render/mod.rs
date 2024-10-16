@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use bevy::{
     asset::load_internal_asset,
-    core_pipeline::core_3d::Transparent3d,
+    core_pipeline::{core_2d::Transparent2d, core_3d::Transparent3d},
     ecs::{
         query::ROQueryItem,
         system::{
@@ -10,6 +10,7 @@ use bevy::{
             SystemParamItem,
         },
     },
+    math::FloatOrd,
     pbr::MeshPipelineKey,
     prelude::*,
     render::{
@@ -51,6 +52,7 @@ pub fn render_app_builder(app: &mut App) {
         .init_resource::<InfiniteGridPipeline>()
         .init_resource::<SpecializedRenderPipelines<InfiniteGridPipeline>>()
         .add_render_command::<Transparent3d, DrawInfiniteGrid>()
+        .add_render_command::<Transparent2d, DrawInfiniteGrid>()
         .add_systems(
             ExtractSchedule,
             (extract_infinite_grids, extract_per_camera_settings),
@@ -394,22 +396,31 @@ fn prepare_bind_groups_for_infinite_grids(
 #[allow(clippy::too_many_arguments)]
 fn queue_infinite_grids(
     pipeline_cache: Res<PipelineCache>,
-    transparent_draw_functions: Res<DrawFunctions<Transparent3d>>,
+    transparent3d_draw_functions: Res<DrawFunctions<Transparent3d>>,
+    transparent2d_draw_functions: Res<DrawFunctions<Transparent2d>>,
     pipeline: Res<InfiniteGridPipeline>,
     mut pipelines: ResMut<SpecializedRenderPipelines<InfiniteGridPipeline>>,
     infinite_grids: Query<&ExtractedInfiniteGrid>,
-    mut transparent_render_phases: ResMut<ViewSortedRenderPhases<Transparent3d>>,
+    mut transparent3d_render_phases: ResMut<ViewSortedRenderPhases<Transparent3d>>,
+    mut transparent2d_render_phases: ResMut<ViewSortedRenderPhases<Transparent2d>>,
     mut views: Query<(Entity, &RenderVisibleEntities, &ExtractedView, &Msaa)>,
 ) {
-    let draw_function_id = transparent_draw_functions
+    let draw_function_id = transparent3d_draw_functions
+        .read()
+        .get_id::<DrawInfiniteGrid>()
+        .unwrap();
+    let draw_function_id_2d = transparent2d_draw_functions
         .read()
         .get_id::<DrawInfiniteGrid>()
         .unwrap();
 
     for (view_entity, entities, view, msaa) in views.iter_mut() {
-        let Some(phase) = transparent_render_phases.get_mut(&view_entity) else {
+        let mut phase3d = transparent3d_render_phases.get_mut(&view_entity);
+        let mut phase2d = transparent2d_render_phases.get_mut(&view_entity);
+
+        if phase3d.is_none() && phase2d.is_none() {
             continue;
-        };
+        }
 
         let mesh_key = MeshPipelineKey::from_hdr(view.hdr);
         let pipeline_id = pipelines.specialize(
@@ -422,6 +433,16 @@ fn queue_infinite_grids(
         );
 
         for &(entity, main_entity) in entities.iter::<With<InfiniteGridSettings>>() {
+            if let Some(phase2d) = &mut phase2d {
+                phase2d.items.push(Transparent2d {
+                    pipeline: pipeline_id,
+                    entity: (entity, main_entity),
+                    draw_function: draw_function_id_2d,
+                    batch_range: 0..1,
+                    extra_index: PhaseItemExtraIndex::NONE,
+                    sort_key: FloatOrd(f32::NEG_INFINITY),
+                });
+            }
             if !infinite_grids
                 .get(entity)
                 .map(|grid| plane_check(&grid.transform, view.world_from_view.translation()))
@@ -429,14 +450,16 @@ fn queue_infinite_grids(
             {
                 continue;
             }
-            phase.items.push(Transparent3d {
-                pipeline: pipeline_id,
-                entity: (entity, main_entity),
-                draw_function: draw_function_id,
-                distance: f32::NEG_INFINITY,
-                batch_range: 0..1,
-                extra_index: PhaseItemExtraIndex::NONE,
-            });
+            if let Some(phase) = &mut phase3d {
+                phase.items.push(Transparent3d {
+                    pipeline: pipeline_id,
+                    entity: (entity, main_entity),
+                    draw_function: draw_function_id,
+                    distance: f32::NEG_INFINITY,
+                    batch_range: 0..1,
+                    extra_index: PhaseItemExtraIndex::NONE,
+                });
+            }
         }
     }
 }

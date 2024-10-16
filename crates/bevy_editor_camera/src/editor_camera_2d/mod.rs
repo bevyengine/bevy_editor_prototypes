@@ -242,7 +242,6 @@ fn camera_zoom(
     }
 }
 
-#[allow(unused)]
 fn camera_pan(
     primary_window: Query<&Window, With<PrimaryWindow>>,
     mouse_buttons: Res<ButtonInput<MouseButton>>,

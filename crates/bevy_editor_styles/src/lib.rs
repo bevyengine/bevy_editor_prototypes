@@ -29,6 +29,13 @@ pub struct Theme {
     pub border_radius: BorderRadius,
     /// Pane header Border Radius
     pub pane_header_border_radius: BorderRadius,
+    /// The default button Border Radius.
+    pub button_border_radius: BorderRadius,
+
+    /// The background color of the context menu.
+    pub context_menu_background_color: BackgroundColor,
+    /// The background color of the context menu options when hovered.
+    pub context_menu_button_hover_background_color: BackgroundColor,
 }
 
 impl Default for Theme {
@@ -41,6 +48,10 @@ impl Default for Theme {
             menu_bar_color: BackgroundColor(Color::oklch(0.209, 0.0, 0.0)),
             border_radius: BorderRadius::all(Val::Px(6.)),
             pane_header_border_radius: BorderRadius::top(Val::Px(6.)),
+
+            context_menu_background_color: Color::oklch(0.2, 0., 0.).into(),
+            context_menu_button_hover_background_color: Color::oklch(0.27, 0., 0.).into(),
+            button_border_radius: BorderRadius::all(Val::Px(4.)),
         }
     }
 }

@@ -11,7 +11,6 @@ use bevy::{
         futures_lite::{future, StreamExt},
         IoTaskPool, Task,
     },
-    text::BreakLineOn,
 };
 use bevy_editor_styles::Theme;
 
@@ -37,7 +36,7 @@ pub(crate) fn ui_setup(
                 overflow: Overflow::clip_y(),
                 ..default()
             },
-            background_color: theme.pane_background_color,
+            background_color: theme.pane_area_background_color,
             ..default()
         })
         .with_children(|parent| {
@@ -262,20 +261,13 @@ fn spawn_asset_button(
                 },
                 ..default()
             });
-            parent.spawn(TextBundle {
-                text: Text {
-                    sections: vec![TextSection {
-                        value: name,
-                        style: TextStyle {
-                            font_size: 12.0,
-                            color: theme.text_color,
-                            ..default()
-                        },
-                    }],
-                    linebreak_behavior: BreakLineOn::WordBoundary,
-                    justify: JustifyText::Center,
+            parent.spawn((
+                Text::new(name),
+                TextFont {
+                    font_size: 12.0,
+                    ..default()
                 },
-                ..default()
-            });
+                TextColor(theme.text_color),
+            ));
         });
 }

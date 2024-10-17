@@ -252,8 +252,7 @@ pub fn button_interaction(
                         true
                     }
                     ButtonType::AssetButton(AssetType::EngineSource) => {
-                        let source_name =
-                            &text_query.get(button_children[1]).unwrap().sections[0].value;
+                        let source_name = &text_query.get(button_children[1]).unwrap().0;
                         if source_name == DEFAULT_SOURCE_ID_NAME {
                             location.source_id = Some(AssetSourceId::Default);
                         } else {
@@ -271,8 +270,7 @@ pub fn button_interaction(
                         true
                     }
                     ButtonType::AssetButton(AssetType::Directory) => {
-                        let directory_name =
-                            &text_query.get(button_children[1]).unwrap().sections[0].value;
+                        let directory_name = &text_query.get(button_children[1]).unwrap().0;
                         location.path.push(directory_name);
                         true
                     }

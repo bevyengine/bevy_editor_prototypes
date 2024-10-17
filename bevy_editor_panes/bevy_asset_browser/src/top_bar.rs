@@ -99,38 +99,24 @@ fn spawn_path_segment_ui(
             ButtonType::LocationSegment(segment_type),
         ))
         .with_children(|parent| {
-            parent.spawn(TextBundle {
-                text: Text {
-                    sections: vec![TextSection {
-                        value: directory_name,
-                        style: TextStyle {
-                            font_size: 10.0,
-                            color: theme.text_color,
-                            ..default()
-                        },
-                    }],
+            parent.spawn((
+                Text(directory_name),
+                TextFont {
+                    font_size: 10.0,
                     ..default()
                 },
-                style: Style { ..default() },
-                ..default()
-            });
+                TextColor(theme.text_color),
+            ));
         });
 }
 
 fn path_separator_ui(theme: &Theme) -> impl Bundle {
-    TextBundle {
-        text: Text {
-            sections: vec![TextSection {
-                value: "/".to_string(),
-                style: TextStyle {
-                    font_size: 10.0,
-                    color: theme.text_color,
-                    ..default()
-                },
-            }],
+    (
+        Text("/".to_string()),
+        TextFont {
+            font_size: 10.0,
             ..default()
         },
-        style: Style { ..default() },
-        ..default()
-    }
+        TextColor(theme.text_color),
+    )
 }

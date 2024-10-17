@@ -1,8 +1,4 @@
 use bevy::{
-    a11y::{
-        accesskit::{NodeBuilder, Role},
-        AccessibilityNode,
-    },
     asset::io::AssetSourceBuilders,
     input::mouse::{MouseScrollUnit, MouseWheel},
     prelude::*,

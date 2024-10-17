@@ -1,23 +1,27 @@
-use std::path::PathBuf;
-
 use bevy::{
     a11y::{
         accesskit::{NodeBuilder, Role},
         AccessibilityNode,
     },
+    asset::io::AssetSourceBuilders,
     input::mouse::{MouseScrollUnit, MouseWheel},
     prelude::*,
+    tasks::{
+        block_on,
+        futures_lite::{future, StreamExt},
+        IoTaskPool, Task,
+    },
     text::BreakLineOn,
 };
 use bevy_editor_styles::Theme;
 
-use crate::AssetBrowserLocation;
+use crate::{AssetBrowserLocation, AssetType};
 
 /// The root node for the directory content view
 #[derive(Component)]
 pub struct DirectoryContentNode;
 
-pub fn ui_setup(
+pub(crate) fn ui_setup(
     mut commands: Commands,
     root: Query<Entity, With<DirectoryContentNode>>,
     theme: Res<Theme>,
@@ -37,7 +41,7 @@ pub fn ui_setup(
             ..default()
         })
         .with_children(|parent| {
-            // Moving panel
+            // Scroll box moving panel
             parent.spawn((
                 NodeBundle {
                     style: Style {
@@ -53,57 +57,100 @@ pub fn ui_setup(
         });
 }
 
-pub enum FetchDirectoryContentResult {
-    Success(Vec<PathBuf>),
-    UpToDate,
+/// One entry of [`DirectoryContent`]
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AssetEntry {
+    pub name: String,
+    pub asset_type: AssetType,
 }
 
-pub fn fetch_directory_content(
-    location: &mut ResMut<AssetBrowserLocation>,
-    last_modified_time: &mut ResMut<crate::DirectoryLastModifiedTime>,
-) -> FetchDirectoryContentResult {
-    let metadata = {
-        if let Ok(metadata) = std::fs::metadata(location.get_absolute_path()) {
-            metadata
-        } else {
-            **location = AssetBrowserLocation::default();
-            let content_directory_exist =
-                std::fs::exists(location.get_absolute_path()).unwrap_or(false);
-            if !content_directory_exist {
-                std::fs::create_dir_all(location.get_absolute_path()).unwrap();
-            }
-            std::fs::metadata(location.get_absolute_path()).unwrap()
-        }
-    };
-    let modified_time = metadata.modified().unwrap();
-    if modified_time == last_modified_time.0 {
-        return FetchDirectoryContentResult::UpToDate;
-    }
-    last_modified_time.0 = metadata.modified().unwrap();
+#[derive(Resource, Default, Debug, Clone, PartialEq, Eq)]
+pub struct DirectoryContent(pub Vec<AssetEntry>);
 
-    let mut dir_content = std::fs::read_dir(location.get_absolute_path())
-        .unwrap()
-        .map(|entry| entry.unwrap().path())
-        .collect::<Vec<_>>();
-    // Sort, directories first in alphabetical order, then files in alphabetical order toot
-    dir_content.sort_by(|a, b| {
-        if a.is_dir() && b.is_file() {
-            std::cmp::Ordering::Less
-        } else if a.is_file() && b.is_dir() {
-            std::cmp::Ordering::Greater
-        } else {
-            a.cmp(b)
+#[derive(Component)]
+/// The task that fetches the content of current [`AssetBrowserLocation`]
+pub(crate) struct FetchDirectoryContentTask(Task<DirectoryContent>);
+
+pub(crate) fn run_if_fetch_task_is_running(
+    task_query: Query<(Entity, &FetchDirectoryContentTask)>,
+) -> bool {
+    task_query.iter().count() > 0
+}
+
+/// Poll the [`FetchDirectoryContentTask`] to check if it's done
+/// If it's done, despawn the task entity and insert the result into [`DirectoryContent`]
+pub(crate) fn poll_fetch_task(
+    mut commands: Commands,
+    mut task_query: Query<(Entity, &mut FetchDirectoryContentTask)>,
+) {
+    let (task_entity, mut task) = task_query.single_mut();
+    if let Some(content) = block_on(future::poll_once(&mut task.0)) {
+        commands.entity(task_entity).despawn();
+        commands.insert_resource(content);
+    }
+}
+
+/// Spawn a new IO [`FetchDirectoryContentTask`] to fetch the content of the current [`AssetBrowserLocation`]
+pub fn fetch_directory_content(
+    mut commands: Commands,
+    mut asset_source_builder: ResMut<AssetSourceBuilders>,
+    location: Res<AssetBrowserLocation>,
+) {
+    let sources = asset_source_builder.build_sources(false, false);
+    if location.source_id.is_none() {
+        commands.insert_resource(DirectoryContent(
+            sources
+                .iter()
+                .map(|source| AssetEntry {
+                    name: crate::asset_source_id_to_string(&source.id()),
+                    asset_type: AssetType::EngineSource,
+                })
+                .collect(),
+        ));
+        return;
+    }
+    let location = location.clone();
+    let task = IoTaskPool::get().spawn(async move {
+        let source = sources.get(location.source_id.unwrap()).unwrap();
+        let reader = source.reader();
+        let mut dir_stream = reader
+            .read_directory(location.path.as_path())
+            .await
+            .unwrap();
+        let mut content = DirectoryContent::default();
+        while let Some(entry) = dir_stream.next().await {
+            let asset_type = if reader.is_directory(&entry).await.unwrap() {
+                AssetType::Directory
+            } else {
+                AssetType::Unknown
+            };
+            content.0.push(AssetEntry {
+                name: entry
+                    .components()
+                    .last()
+                    .unwrap()
+                    .as_os_str()
+                    .to_string_lossy()
+                    .to_string(),
+                asset_type,
+            });
         }
+        content
     });
-    FetchDirectoryContentResult::Success(dir_content)
+
+    commands
+        .spawn_empty()
+        .insert(FetchDirectoryContentTask(task));
 }
 
 #[derive(Component, Default)]
-pub struct ScrollingList {
+pub(crate) struct ScrollingList {
     position: f32,
 }
 
-pub fn scrolling(
+// TODO: Replace with an editor widget
+/// Handle the scrolling of the content list
+pub(crate) fn scrolling(
     mut mouse_wheel_events: EventReader<MouseWheel>,
     mut query_list: Query<(&mut ScrollingList, &mut Style, &Parent, &Node)>,
     query_node: Query<&Node>,
@@ -115,7 +162,7 @@ pub fn scrolling(
             let max_scroll = (items_height - container_height).max(0.);
 
             let dy = match mouse_wheel_event.unit {
-                MouseScrollUnit::Line => mouse_wheel_event.y * 20.,
+                MouseScrollUnit::Line => mouse_wheel_event.y * 20.0,
                 MouseScrollUnit::Pixel => mouse_wheel_event.y,
             };
 
@@ -127,89 +174,108 @@ pub fn scrolling(
     }
 }
 
-pub fn refresh_content(
-    commands: &mut Commands,
-    content_list_query: &Query<(Entity, Option<&Children>), With<ScrollingList>>,
-    last_modified_time: &mut ResMut<crate::DirectoryLastModifiedTime>,
-    location: &mut ResMut<AssetBrowserLocation>,
+/// Check if the [`DirectoryContent`] has changed, which relate to the content of the current [`AssetBrowserLocation`]
+pub(crate) fn run_if_content_as_changed(directory_content: Res<DirectoryContent>) -> bool {
+    directory_content.is_changed()
+}
+
+/// Refresh the UI with the content of the current [`AssetBrowserLocation`]
+pub(crate) fn refresh_ui(
+    mut commands: Commands,
+    content_list_query: Query<(Entity, Option<&Children>), With<ScrollingList>>,
+    theme: Res<Theme>,
+    asset_server: Res<AssetServer>,
+    directory_content: Res<DirectoryContent>,
+    location: Res<AssetBrowserLocation>,
+    mut asset_sources_builder: ResMut<AssetSourceBuilders>,
+) {
+    let (content_list_entity, content_list_children) = content_list_query.single();
+    if let Some(content_list_children) = content_list_children {
+        for child in content_list_children {
+            commands.entity(*child).despawn_recursive();
+        }
+        commands
+            .entity(content_list_entity)
+            .remove_children(content_list_children);
+    }
+    commands
+        .entity(content_list_entity)
+        .with_children(|parent| {
+            if location.source_id.is_none() {
+                let sources = asset_sources_builder.build_sources(false, false);
+                sources.iter().for_each(|source| {
+                    spawn_asset_button(
+                        parent,
+                        AssetType::EngineSource,
+                        crate::asset_source_id_to_string(&source.id()),
+                        &theme,
+                        &asset_server,
+                    );
+                });
+            } else {
+                for entry in &directory_content.0 {
+                    spawn_asset_button(
+                        parent,
+                        entry.asset_type,
+                        entry.name.clone(),
+                        &theme,
+                        &asset_server,
+                    );
+                }
+            }
+        });
+}
+
+/// Spawn a new asset button UI element
+fn spawn_asset_button(
+    parent: &mut ChildBuilder,
+    asset_type: AssetType,
+    name: String,
     theme: &Res<Theme>,
     asset_server: &Res<AssetServer>,
 ) {
-    match fetch_directory_content(location, last_modified_time) {
-        FetchDirectoryContentResult::Success(directory_content) => {
-            let (content_list_entity, content_list_children) = content_list_query.single();
-            if let Some(content_list_children) = content_list_children {
-                for child in content_list_children {
-                    commands.entity(*child).despawn_recursive();
-                }
-                commands
-                    .entity(content_list_entity)
-                    .remove_children(content_list_children);
-            }
-            commands
-                .entity(content_list_entity)
-                .with_children(|parent| {
-                    for entry in directory_content {
-                        let asset_type = if entry.is_dir() {
-                            crate::AssetType::Directory
-                        } else {
-                            crate::AssetType::Unknown
-                        };
-                        parent
-                            .spawn((
-                                ButtonBundle {
-                                    style: Style {
-                                        margin: UiRect::all(Val::Px(5.0)),
-                                        padding: UiRect::all(Val::Px(5.0)),
-                                        height: Val::Px(100.0),
-                                        width: Val::Px(100.0),
-                                        align_items: AlignItems::Center,
-                                        flex_direction: FlexDirection::Column,
-                                        border: UiRect::all(Val::Px(3.0)),
-                                        justify_content: JustifyContent::SpaceBetween,
-                                        ..default()
-                                    },
-                                    border_radius: theme.border_radius,
-                                    ..default()
-                                },
-                                crate::ButtonType::AssetButton(asset_type),
-                            ))
-                            .with_children(|parent| {
-                                parent.spawn(ImageBundle {
-                                    image: UiImage::new(crate::content_button_to_icon(
-                                        &asset_type,
-                                        asset_server,
-                                    )),
-                                    style: Style {
-                                        height: Val::Px(50.0),
-                                        ..default()
-                                    },
-                                    ..default()
-                                });
-                                parent.spawn(TextBundle {
-                                    text: Text {
-                                        sections: vec![TextSection {
-                                            value: entry
-                                                .file_name()
-                                                .unwrap()
-                                                .to_str()
-                                                .unwrap()
-                                                .to_string(),
-                                            style: TextStyle {
-                                                font_size: 12.0,
-                                                color: theme.text_color,
-                                                ..default()
-                                            },
-                                        }],
-                                        linebreak_behavior: BreakLineOn::WordBoundary,
-                                        justify: JustifyText::Center,
-                                    },
-                                    ..default()
-                                });
-                            });
-                    }
-                });
-        }
-        FetchDirectoryContentResult::UpToDate => {}
-    }
+    parent
+        .spawn((
+            ButtonBundle {
+                style: Style {
+                    margin: UiRect::all(Val::Px(5.0)),
+                    padding: UiRect::all(Val::Px(5.0)),
+                    height: Val::Px(100.0),
+                    width: Val::Px(100.0),
+                    align_items: AlignItems::Center,
+                    flex_direction: FlexDirection::Column,
+                    border: UiRect::all(Val::Px(3.0)),
+                    justify_content: JustifyContent::SpaceBetween,
+                    ..default()
+                },
+                border_radius: theme.border_radius,
+                ..default()
+            },
+            crate::ButtonType::AssetButton(asset_type),
+        ))
+        .with_children(|parent| {
+            parent.spawn(ImageBundle {
+                image: UiImage::new(crate::content_button_to_icon(&asset_type, asset_server)),
+                style: Style {
+                    height: Val::Px(50.0),
+                    ..default()
+                },
+                ..default()
+            });
+            parent.spawn(TextBundle {
+                text: Text {
+                    sections: vec![TextSection {
+                        value: name,
+                        style: TextStyle {
+                            font_size: 12.0,
+                            color: theme.text_color,
+                            ..default()
+                        },
+                    }],
+                    linebreak_behavior: BreakLineOn::WordBoundary,
+                    justify: JustifyText::Center,
+                },
+                ..default()
+            });
+        });
 }

@@ -7,6 +7,8 @@ use bevy::{
         futures_lite::{future, StreamExt},
         IoTaskPool, Task,
     },
+    window::SystemCursorIcon,
+    winit::cursor::CursorIcon,
 };
 use bevy_editor_styles::Theme;
 
@@ -193,41 +195,67 @@ fn spawn_asset_button(
     theme: &Res<Theme>,
     asset_server: &Res<AssetServer>,
 ) {
-    parent
-        .spawn((
-            ButtonBundle {
-                style: Style {
-                    margin: UiRect::all(Val::Px(5.0)),
-                    padding: UiRect::all(Val::Px(5.0)),
-                    height: Val::Px(100.0),
-                    width: Val::Px(100.0),
-                    align_items: AlignItems::Center,
-                    flex_direction: FlexDirection::Column,
-                    border: UiRect::all(Val::Px(3.0)),
-                    justify_content: JustifyContent::SpaceBetween,
-                    ..default()
-                },
-                border_radius: theme.border_radius,
+    let mut entity_commands = parent.spawn((
+        ButtonBundle {
+            style: Style {
+                margin: UiRect::all(Val::Px(5.0)),
+                padding: UiRect::all(Val::Px(5.0)),
+                height: Val::Px(100.0),
+                width: Val::Px(100.0),
+                align_items: AlignItems::Center,
+                flex_direction: FlexDirection::Column,
+                border: UiRect::all(Val::Px(3.0)),
+                justify_content: JustifyContent::SpaceBetween,
                 ..default()
             },
-            crate::ButtonType::AssetButton(asset_type),
-        ))
-        .with_children(|parent| {
-            parent.spawn(ImageBundle {
-                image: UiImage::new(crate::content_button_to_icon(&asset_type, asset_server)),
-                style: Style {
-                    height: Val::Px(50.0),
-                    ..default()
-                },
+            border_radius: theme.border_radius,
+            ..default()
+        },
+        crate::ButtonType::AssetButton(asset_type),
+    ));
+    entity_commands.with_children(|parent| {
+        parent.spawn(ImageBundle {
+            image: UiImage::new(crate::content_button_to_icon(&asset_type, asset_server)),
+            style: Style {
+                height: Val::Px(50.0),
                 ..default()
-            });
-            parent.spawn((
-                Text::new(name),
-                TextFont {
-                    font_size: 12.0,
-                    ..default()
-                },
-                TextColor(theme.text_color),
-            ));
+            },
+            ..default()
         });
+        parent.spawn((
+            Text::new(name),
+            TextFont {
+                font_size: 12.0,
+                ..default()
+            },
+            TextColor(theme.text_color),
+        ));
+    });
+
+    match asset_type {
+        AssetType::Directory | AssetType::EngineSource => {
+            entity_commands
+                .observe(
+                    move |_trigger: Trigger<Pointer<Move>>,
+                          window_query: Query<Entity, With<Window>>,
+                          mut commands: Commands| {
+                        let window = window_query.single();
+                        commands
+                            .entity(window)
+                            .insert(CursorIcon::System(SystemCursorIcon::Pointer));
+                    },
+                )
+                .observe(
+                    move |_trigger: Trigger<Pointer<Out>>,
+                          window_query: Query<Entity, With<Window>>,
+                          mut commands: Commands| {
+                        let window = window_query.single();
+                        commands
+                            .entity(window)
+                            .insert(CursorIcon::System(SystemCursorIcon::Default));
+                    },
+                );
+        }
+        _ => {}
+    }
 }

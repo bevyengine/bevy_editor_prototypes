@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, window::SystemCursorIcon, winit::cursor::CursorIcon};
 use bevy_editor_styles::Theme;
 
 use crate::{AssetBrowserLocation, ButtonType, LocationSegmentType};
@@ -87,7 +87,27 @@ fn spawn_path_segment_ui(
                 },
                 TextColor(theme.text_color),
             ));
-        });
+        })
+        .observe(
+            move |_trigger: Trigger<Pointer<Move>>,
+                  window_query: Query<Entity, With<Window>>,
+                  mut commands: Commands| {
+                let window = window_query.single();
+                commands
+                    .entity(window)
+                    .insert(CursorIcon::System(SystemCursorIcon::Pointer));
+            },
+        )
+        .observe(
+            move |_trigger: Trigger<Pointer<Out>>,
+                  window_query: Query<Entity, With<Window>>,
+                  mut commands: Commands| {
+                let window = window_query.single();
+                commands
+                    .entity(window)
+                    .insert(CursorIcon::System(SystemCursorIcon::Default));
+            },
+        );
 }
 
 fn path_separator_ui(theme: &Theme) -> impl Bundle {

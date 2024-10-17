@@ -5,6 +5,10 @@ use std::{path::PathBuf, time::SystemTime};
 
 use atomicow::CowArc;
 use bevy::{
+    a11y::{
+        accesskit::{NodeBuilder, Role},
+        AccessibilityNode,
+    },
     asset::{
         embedded_asset,
         io::{AssetSource, AssetSourceBuilders, AssetSourceId},
@@ -13,42 +17,34 @@ use bevy::{
     prelude::*,
 };
 use bevy_editor_styles::Theme;
-use directory_content::DirectoryContentNode;
+use bevy_pane_layout::{PaneContentNode, PaneRegistry};
+use directory_content::{DirectoryContentNode, ScrollingList};
 use top_bar::TopBarNode;
 
 mod directory_content;
 mod top_bar;
 
 /// The bevy asset browser plugin
-pub struct AssetBrowserPlugin;
+pub struct AssetBrowserPanePlugin;
 
-impl Plugin for AssetBrowserPlugin {
+impl Plugin for AssetBrowserPanePlugin {
     fn build(&self, app: &mut App) {
         embedded_asset!(app, "assets/directory_icon.png");
         embedded_asset!(app, "assets/source_icon.png");
         embedded_asset!(app, "assets/file_icon.png");
+
+        app.world_mut()
+            .get_resource_or_init::<PaneRegistry>()
+            .register("Asset Browser", |mut commands, pane_root| {
+                commands.entity(pane_root).insert(AssetBrowserNode);
+            });
+
         app.insert_resource(AssetBrowserLocation::default())
             .insert_resource(directory_content::DirectoryContent::default())
             .init_resource::<AssetBrowserOneShotSystems>()
             .insert_resource(DirectoryLastModifiedTime(SystemTime::UNIX_EPOCH))
-            .add_systems(
-                Startup,
-                (
-                    ui_setup.in_set(AssetBrowserSet),
-                    directory_content::fetch_directory_content,
-                ),
-            )
-            .add_systems(
-                Startup,
-                (top_bar::ui_setup, directory_content::ui_setup).after(AssetBrowserSet),
-            )
-            .add_systems(
-                Startup,
-                (
-                    top_bar::refresh_location_ui.after(top_bar::ui_setup),
-                    // directory_content::refresh_ui.after(directory_content::ui_setup),
-                ),
-            )
+            .add_observer(on_pane_creation)
+            .add_systems(Startup, directory_content::fetch_directory_content)
             .add_systems(Update, (button_interaction, directory_content::scrolling))
             .add_systems(
                 Update,
@@ -117,29 +113,80 @@ pub struct DirectoryLastModifiedTime(pub SystemTime);
 #[derive(Component)]
 pub struct AssetBrowserNode;
 
-// TODO: use bevy_panel_layout
-fn ui_setup(
+/// Spawn [`AssetBrowserNode`] once the pane is created
+pub fn on_pane_creation(
+    trigger: Trigger<OnAdd, AssetBrowserNode>,
     mut commands: Commands,
-    root: Query<Entity, With<AssetBrowserNode>>,
     theme: Res<Theme>,
+    children_query: Query<&Children>,
+    content: Query<&PaneContentNode>,
+    one_shot_systems: Res<AssetBrowserOneShotSystems>,
 ) {
+    let pane_root = trigger.entity();
+    let content_node = children_query
+        .iter_descendants(pane_root)
+        .find(|e| content.contains(*e))
+        .unwrap();
+
     commands
-        .entity(root.single())
+        .entity(content_node)
         .insert(NodeBundle {
             style: Style {
                 width: Val::Percent(100.0),
-                height: Val::Percent(35.0),
+                height: Val::Percent(100.0),
                 display: Display::Flex,
                 flex_direction: FlexDirection::Column,
                 ..Default::default()
             },
-            background_color: theme.background_color,
             ..Default::default()
         })
         .with_children(|parent| {
-            parent.spawn(TopBarNode);
-            parent.spawn(DirectoryContentNode);
+            // Top bar
+            parent.spawn(TopBarNode).insert(NodeBundle {
+                style: Style {
+                    height: Val::Px(30.0),
+                    width: Val::Percent(100.0),
+                    flex_direction: FlexDirection::Row,
+                    align_items: AlignItems::Center,
+                    padding: UiRect::horizontal(Val::Px(10.0)),
+                    ..default()
+                },
+                background_color: theme.menu_bar_color,
+                ..default()
+            });
+
+            // Directory content
+            parent
+                .spawn(DirectoryContentNode)
+                .insert(NodeBundle {
+                    style: Style {
+                        flex_direction: FlexDirection::Column,
+                        width: Val::Percent(100.0),
+                        height: Val::Percent(100.0),
+                        align_self: AlignSelf::Stretch,
+                        overflow: Overflow::clip_y(),
+                        ..default()
+                    },
+                    ..default()
+                })
+                .with_children(|parent| {
+                    // Scroll box moving panel
+                    parent.spawn((
+                        NodeBundle {
+                            style: Style {
+                                position_type: PositionType::Absolute,
+                                flex_wrap: FlexWrap::Wrap,
+                                ..default()
+                            },
+                            ..default()
+                        },
+                        ScrollingList::default(),
+                        AccessibilityNode(NodeBuilder::new(Role::Grid)),
+                    ));
+                });
         });
+
+    commands.run_system(one_shot_systems.0[OneShotSystem::RefreshTopBarUi as usize]);
 }
 
 /// Every type of button in the asset browser

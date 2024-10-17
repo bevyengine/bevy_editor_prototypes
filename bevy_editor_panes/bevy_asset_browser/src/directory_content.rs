@@ -20,42 +20,6 @@ use crate::{AssetBrowserLocation, AssetType};
 #[derive(Component)]
 pub struct DirectoryContentNode;
 
-pub(crate) fn ui_setup(
-    mut commands: Commands,
-    root: Query<Entity, With<DirectoryContentNode>>,
-    theme: Res<Theme>,
-) {
-    commands
-        .entity(root.single())
-        .insert(NodeBundle {
-            style: Style {
-                flex_direction: FlexDirection::Column,
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                align_self: AlignSelf::Stretch,
-                overflow: Overflow::clip_y(),
-                ..default()
-            },
-            background_color: theme.pane_area_background_color,
-            ..default()
-        })
-        .with_children(|parent| {
-            // Scroll box moving panel
-            parent.spawn((
-                NodeBundle {
-                    style: Style {
-                        position_type: PositionType::Absolute,
-                        flex_wrap: FlexWrap::Wrap,
-                        ..default()
-                    },
-                    ..default()
-                },
-                ScrollingList::default(),
-                AccessibilityNode(NodeBuilder::new(Role::Grid)),
-            ));
-        });
-}
-
 /// One entry of [`DirectoryContent`]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AssetEntry {

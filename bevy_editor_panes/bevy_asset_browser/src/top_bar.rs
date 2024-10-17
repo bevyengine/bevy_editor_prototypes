@@ -10,32 +10,12 @@ pub const PATH_SEGMENT_BACKGROUND_COLOR: Color = Color::srgb(0.2, 0.2, 0.2);
 #[derive(Component)]
 pub struct TopBarNode;
 
-pub(crate) fn ui_setup(
-    mut commands: Commands,
-    root: Query<Entity, With<TopBarNode>>,
-    theme: Res<Theme>,
-) {
-    commands.entity(root.single()).insert(NodeBundle {
-        style: Style {
-            height: Val::Px(50.0),
-            width: Val::Percent(100.0),
-            flex_direction: FlexDirection::Row,
-            align_items: AlignItems::Center,
-            padding: UiRect::horizontal(Val::Px(10.0)),
-            ..default()
-        },
-        background_color: theme.menu_bar_color,
-        ..default()
-    });
-}
-
 pub fn refresh_location_ui(
     mut commands: Commands,
     root: Query<(Entity, Option<&Children>), With<TopBarNode>>,
     theme: Res<Theme>,
     location: Res<AssetBrowserLocation>,
 ) {
-    println!("Refreshing location UI");
     let (top_bar_entity, top_bar_childrens) = root.single();
 
     // Clear all children (if any)
@@ -88,7 +68,7 @@ fn spawn_path_segment_ui(
         .spawn((
             ButtonBundle {
                 style: Style {
-                    padding: UiRect::axes(Val::Px(10.0), Val::Px(2.0)),
+                    padding: UiRect::axes(Val::Px(10.0), Val::Px(1.0)),
                     margin: UiRect::horizontal(Val::Px(5.0)),
                     ..default()
                 },

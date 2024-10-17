@@ -32,8 +32,9 @@ fn ui_setup(mut commands: Commands, theme: Res<Theme>) {
     ));
 
     commands
-        .spawn(NodeBundle {
-            style: Style {
+        .spawn((
+            Node::default(),
+            Style {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
 
@@ -43,10 +44,9 @@ fn ui_setup(mut commands: Commands, theme: Res<Theme>) {
 
                 ..Default::default()
             },
-            background_color: theme.background_color,
-            ..Default::default()
-        })
-        .insert(RootUINode)
+            theme.background_color,
+            RootUINode,
+        ))
         .with_children(|parent| {
             parent.spawn(MenuBarNode);
             parent.spawn(RootPaneLayoutNode);

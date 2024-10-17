@@ -89,7 +89,7 @@ mod camera_controller {
         key_input: Res<ButtonInput<KeyCode>>,
         mut query: Query<(&mut Transform, &mut CameraController), With<Camera>>,
     ) {
-        let dt = time.delta_seconds();
+        let dt = time.delta_secs();
 
         if let Ok((mut transform, mut state)) = query.get_single_mut() {
             // Handle key input

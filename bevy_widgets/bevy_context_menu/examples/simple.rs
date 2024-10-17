@@ -9,13 +9,12 @@ fn main() {
         .add_plugins((DefaultPlugins, StylesPlugin, ContextMenuPlugin))
         .add_systems(Startup, |mut commands: Commands| {
             commands.spawn(Camera2d);
+
             commands.spawn((
-                NodeBundle {
-                    style: Style {
-                        width: Val::Percent(100.),
-                        height: Val::Percent(100.),
-                        ..default()
-                    },
+                Node::default(),
+                Style {
+                    width: Val::Percent(100.),
+                    height: Val::Percent(100.),
                     ..default()
                 },
                 ContextMenu::new(vec![

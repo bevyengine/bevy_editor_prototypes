@@ -34,14 +34,14 @@ fn on_secondary_button_down_entity_with_context_menu(
 
     // Prevent all other entities from being picked by placing a node over the entire window.
     let root = commands
-        .spawn(NodeBundle {
-            style: Style {
+        .spawn((
+            Node::default(),
+            Style {
                 width: Val::Percent(100.),
                 height: Val::Percent(100.),
                 ..default()
             },
-            ..default()
-        })
+        ))
         .observe(|trigger: Trigger<Pointer<Down>>, mut commands: Commands| {
             commands.entity(trigger.entity()).despawn_recursive();
         })

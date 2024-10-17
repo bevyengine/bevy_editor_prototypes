@@ -11,10 +11,11 @@ pub(crate) fn spawn_context_menu<'a>(
     target: Entity,
 ) -> EntityCommands<'a> {
     let root = commands
-        .spawn(NodeBundle {
-            background_color: theme.context_menu_background_color,
-            border_radius: theme.border_radius,
-            style: Style {
+        .spawn((
+            Node::default(),
+            theme.context_menu_background_color,
+            theme.border_radius,
+            Style {
                 position_type: PositionType::Absolute,
                 top: Val::Px(position.y),
                 left: Val::Px(position.x),
@@ -23,8 +24,7 @@ pub(crate) fn spawn_context_menu<'a>(
                 width: Val::Px(300.),
                 ..default()
             },
-            ..default()
-        })
+        ))
         .id();
 
     for (i, option) in menu.options.iter().enumerate() {
@@ -42,15 +42,15 @@ pub(crate) fn spawn_option<'a>(
     target: Entity,
 ) -> EntityCommands<'a> {
     let root = commands
-        .spawn(NodeBundle {
-            border_radius: theme.button_border_radius,
-            style: Style {
+        .spawn((
+            Node::default(),
+            theme.button_border_radius,
+            Style {
                 padding: UiRect::all(Val::Px(5.)),
                 flex_grow: 1.,
                 ..default()
             },
-            ..default()
-        })
+        ))
         .observe(
             |trigger: Trigger<Pointer<Over>>,
              theme: Res<Theme>,

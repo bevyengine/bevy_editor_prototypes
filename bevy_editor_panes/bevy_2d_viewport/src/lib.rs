@@ -84,20 +84,19 @@ fn on_pane_creation(
     let image_handle = images.add(image);
 
     let image_id = commands
-        .spawn(ImageBundle {
-            style: Style {
+        .spawn((
+            UiImage {
+                texture: image_handle.clone(),
+                ..Default::default()
+            },
+            Style {
                 top: Val::ZERO,
                 bottom: Val::ZERO,
                 left: Val::ZERO,
                 right: Val::ZERO,
                 ..default()
             },
-            image: UiImage {
-                texture: image_handle.clone(),
-                ..Default::default()
-            },
-            ..default()
-        })
+        ))
         .set_parent(content_node)
         .id();
 

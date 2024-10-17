@@ -86,7 +86,6 @@ impl FromWorld for AssetBrowserOneShotSystems {
 pub struct AssetBrowserSet;
 
 /// The current location of the asset browser
-// TODO: Make this an AssetPath
 #[derive(Resource, Debug, Clone, PartialEq, Eq)]
 pub struct AssetBrowserLocation {
     /// The source id of the asset source to browse

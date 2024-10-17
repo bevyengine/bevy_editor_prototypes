@@ -1,7 +1,7 @@
 use bevy::{prelude::*, window::SystemCursorIcon, winit::cursor::CursorIcon};
 use bevy_editor_styles::Theme;
 
-use crate::{ContextMenu, ContextMenuOption};
+use crate::ContextMenu;
 
 pub(crate) fn spawn_context_menu<'a>(
     commands: &'a mut Commands,
@@ -27,8 +27,8 @@ pub(crate) fn spawn_context_menu<'a>(
         })
         .id();
 
-    for option in &menu.options {
-        spawn_option(commands, theme, option, target).set_parent(root);
+    for (i, option) in menu.options.iter().enumerate() {
+        spawn_option(commands, theme, &option.label, i, target).set_parent(root);
     }
 
     commands.entity(root)
@@ -37,10 +37,10 @@ pub(crate) fn spawn_context_menu<'a>(
 pub(crate) fn spawn_option<'a>(
     commands: &'a mut Commands,
     theme: &Theme,
-    option: &ContextMenuOption,
+    label: &String,
+    index: usize,
     target: Entity,
 ) -> EntityCommands<'a> {
-    let callback = option.f.clone();
     let root = commands
         .spawn(NodeBundle {
             border_radius: theme.button_border_radius,
@@ -87,21 +87,25 @@ pub(crate) fn spawn_option<'a>(
         .observe(
             move |trigger: Trigger<Pointer<Up>>,
                   mut commands: Commands,
-                  parent_query: Query<&Parent>| {
-                // Despawn context menu
+                  parent_query: Query<&Parent>,
+                  mut query: Query<&mut ContextMenu>| {
+                // Despawn the context menu when an option is selected
                 let root = parent_query
                     .iter_ancestors(trigger.entity())
                     .last()
                     .unwrap();
                 commands.entity(root).despawn_recursive();
-                callback.lock().unwrap()(commands.reborrow(), target);
+
+                // Run the option callback
+                let callback = &mut query.get_mut(target).unwrap().options[index].f;
+                (callback)(commands.reborrow(), target);
             },
         )
         .id();
 
     commands
         .spawn((
-            Text::new(&option.label),
+            Text::new(label),
             TextFont {
                 font_size: 12.,
                 ..default()

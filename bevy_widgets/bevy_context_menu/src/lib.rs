@@ -2,8 +2,6 @@
 
 mod ui;
 
-use std::sync::{Arc, Mutex};
-
 use bevy::prelude::*;
 use bevy_editor_styles::Theme;
 
@@ -80,7 +78,7 @@ impl ContextMenu {
 /// An option inside a [`ContextMenu`].
 pub struct ContextMenuOption {
     label: String,
-    f: Arc<Mutex<dyn FnMut(Commands, Entity) + Send + Sync>>,
+    f: Box<dyn FnMut(Commands, Entity) + Send + Sync>,
 }
 
 impl ContextMenuOption {
@@ -91,7 +89,7 @@ impl ContextMenuOption {
     ) -> Self {
         ContextMenuOption {
             label: label.into(),
-            f: Arc::new(Mutex::new(f)),
+            f: Box::new(f),
         }
     }
 }

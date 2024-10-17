@@ -12,6 +12,7 @@ bevy_editor_styles.workspace = true
 # Panes
 bevy_3d_viewport.workspace = true
 bevy_2d_viewport.workspace = true
+bevy_asset_browser.workspace = true
 
 [lints]
 workspace = true

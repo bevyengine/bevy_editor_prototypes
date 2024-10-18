@@ -13,6 +13,7 @@
 
 use bevy::prelude::*;
 
+use bevy_context_menu::ContextMenuPlugin;
 use bevy_editor_styles::StylesPlugin;
 
 // Panes
@@ -25,6 +26,7 @@ fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
+            ContextMenuPlugin,
             StylesPlugin,
             Viewport2dPanePlugin,
             Viewport3dPanePlugin,

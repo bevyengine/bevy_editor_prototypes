@@ -33,8 +33,7 @@ fn ui_setup(mut commands: Commands, theme: Res<Theme>) {
 
     commands
         .spawn((
-            Node::default(),
-            Style {
+            Node {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
 

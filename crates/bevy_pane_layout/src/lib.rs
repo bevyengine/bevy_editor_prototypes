@@ -52,7 +52,7 @@ impl Plugin for PaneLayoutPlugin {
 }
 
 fn apply_size(
-    mut query: Query<(Entity, &Size, &mut Style), Changed<Size>>,
+    mut query: Query<(Entity, &Size, &mut Node), Changed<Size>>,
     divider_query: Query<&Divider>,
     parent_query: Query<&Parent>,
 ) {
@@ -145,14 +145,13 @@ fn setup(
     panes_root: Single<Entity, With<RootPaneLayoutNode>>,
 ) {
     commands.entity(*panes_root).insert((
-        Node::default(),
-        theme.background_color,
-        Style {
+        Node {
             padding: UiRect::all(Val::Px(1.)),
             height: Val::Percent(100.),
             width: Val::Percent(100.),
             ..default()
         },
+        theme.background_color,
     ));
 
     let divider = spawn_divider(&mut commands, Divider::Horizontal, 1.)

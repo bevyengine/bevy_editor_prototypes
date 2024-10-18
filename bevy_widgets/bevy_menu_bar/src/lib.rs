@@ -29,8 +29,7 @@ fn menu_setup(mut commands: Commands, root: Query<Entity, With<MenuBarNode>>, th
     commands
         .entity(root.single())
         .insert((
-            Node::default(),
-            Style {
+            Node {
                 width: Val::Percent(100.0),
                 height: Val::Px(30.0),
                 display: Display::Flex,
@@ -50,8 +49,7 @@ fn menu_setup(mut commands: Commands, root: Query<Entity, With<MenuBarNode>>, th
         ))
         .with_children(|parent| {
             parent.spawn((
-                Node::default(),
-                Style {
+                Node {
                     width: Val::Px(30.0),
                     height: Val::Px(20.0),
 

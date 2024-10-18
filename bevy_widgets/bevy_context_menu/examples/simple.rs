@@ -11,8 +11,7 @@ fn main() {
             commands.spawn(Camera2d);
 
             commands.spawn((
-                Node::default(),
-                Style {
+                Node {
                     width: Val::Percent(100.),
                     height: Val::Percent(100.),
                     ..default()

@@ -89,7 +89,7 @@ fn on_pane_creation(
                 texture: image_handle.clone(),
                 ..Default::default()
             },
-            Style {
+            Node {
                 top: Val::ZERO,
                 bottom: Val::ZERO,
                 left: Val::ZERO,
@@ -136,7 +136,7 @@ fn update_render_target_size(
     mut camera_query: Query<(&Camera, &mut EditorCamera2d)>,
     content: Query<&PaneContentNode>,
     children_query: Query<&Children>,
-    pos_query: Query<(&Node, &GlobalTransform)>,
+    pos_query: Query<(&ComputedNode, &GlobalTransform)>,
     mut images: ResMut<Assets<Image>>,
 ) {
     for (pane_root, viewport) in &query {
@@ -146,11 +146,11 @@ fn update_render_target_size(
             .unwrap();
 
         // TODO Convert to physical pixels
-        let (node, global_transform) = pos_query.get(content_node_id).unwrap();
-        let content_node_size = node.size();
+        let (computed_node, global_transform) = pos_query.get(content_node_id).unwrap();
+        let content_node_size = computed_node.size();
 
         let node_position = global_transform.translation().xy();
-        let rect = Rect::from_center_size(node_position, node.size());
+        let rect = Rect::from_center_size(node_position, computed_node.size());
 
         let (camera, mut editor_camera) = camera_query.get_mut(viewport.camera).unwrap();
 

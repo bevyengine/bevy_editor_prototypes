@@ -61,7 +61,8 @@ fn on_secondary_button_down_entity_with_context_menu(
     .set_parent(root);
 }
 
-/// Entities with this component will
+/// Entities with this component will have a context menu.
+/// The menu can be opened by pressing the secondary mouse button over the entity.
 #[derive(Component)]
 pub struct ContextMenu {
     options: Vec<ContextMenuOption>,

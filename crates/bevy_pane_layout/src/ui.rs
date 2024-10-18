@@ -1,4 +1,5 @@
 use bevy::{prelude::*, window::SystemCursorIcon, winit::cursor::CursorIcon};
+use bevy_context_menu::{ContextMenu, ContextMenuOption};
 use bevy_editor_styles::Theme;
 
 use crate::{
@@ -57,10 +58,19 @@ pub(crate) fn spawn_pane<'a>(
                 align_items: AlignItems::Center,
                 ..default()
             },
+            ContextMenu::new([
+                ContextMenuOption::new("Close", |mut commands, entity| {
+                    commands.run_system_cached_with(remove_pane, entity);
+                }),
+                ContextMenuOption::new("Split - Horizontal", |mut commands, entity| {
+                    commands.run_system_cached_with(split_pane, (entity, false));
+                }),
+                ContextMenuOption::new("Split - Vertical", |mut commands, entity| {
+                    commands.run_system_cached_with(split_pane, (entity, true));
+                }),
+            ]),
             PaneHeaderNode,
         ))
-        .observe(on_pane_header_right_click)
-        .observe(on_pane_header_middle_click)
         .observe(
             move |_trigger: Trigger<Pointer<Move>>,
                   window_query: Query<Entity, With<Window>>,

@@ -6,24 +6,16 @@ use crate::{
     Divider, PaneRootNode, RootPaneLayoutNode, Size,
 };
 
-/// Middle clicking removes the pane.
-pub(crate) fn on_pane_header_middle_click(
-    trigger: Trigger<Pointer<Click>>,
+pub(crate) fn remove_pane(
+    target: In<Entity>,
     mut commands: Commands,
     parent_query: Query<&Parent>,
     children_query: Query<&Children>,
     root_query: Query<(), With<RootPaneLayoutNode>>,
     mut size_query: Query<&mut Size>,
 ) {
-    if trigger.event().button != PointerButton::Middle {
-        return;
-    }
-
     // Grab the id of the pane root
-    let target = parent_query
-        .iter_ancestors(trigger.entity())
-        .nth(1)
-        .unwrap();
+    let target = parent_query.iter_ancestors(*target).nth(1).unwrap();
 
     let parent = parent_query.get(target).unwrap().get();
 
@@ -69,10 +61,9 @@ pub(crate) fn on_pane_header_middle_click(
 /// Right clicking dividers the pane horizontally
 /// Holding left shift and right clicking dividers the pane vertically
 #[expect(clippy::too_many_arguments)]
-pub(crate) fn on_pane_header_right_click(
-    trigger: Trigger<Pointer<Click>>,
+pub(crate) fn split_pane(
+    In((target, vertical)): In<(Entity, bool)>,
     mut commands: Commands,
-    input: Res<ButtonInput<KeyCode>>,
     theme: Res<Theme>,
     divider_query: Query<&Divider>,
     pane_root_query: Query<&PaneRootNode>,
@@ -80,21 +71,14 @@ pub(crate) fn on_pane_header_right_click(
     children_query: Query<&Children>,
     parent_query: Query<&Parent>,
 ) {
-    if trigger.event().button != PointerButton::Secondary {
-        return;
-    }
-
-    let divider = if input.pressed(KeyCode::ShiftLeft) {
+    let divider = if vertical {
         Divider::Vertical
     } else {
         Divider::Horizontal
     };
 
     // Grab the id of the pane root
-    let target = parent_query
-        .iter_ancestors(trigger.entity())
-        .nth(1)
-        .unwrap();
+    let target = parent_query.iter_ancestors(target).nth(1).unwrap();
 
     let pane = pane_root_query.get(target).unwrap();
 

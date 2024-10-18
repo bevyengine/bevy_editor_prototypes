@@ -19,6 +19,7 @@ use bevy_editor_styles::StylesPlugin;
 // Panes
 use bevy_2d_viewport::Viewport2dPanePlugin;
 use bevy_3d_viewport::Viewport3dPanePlugin;
+use bevy_asset_browser::AssetBrowserPanePlugin;
 
 mod ui;
 
@@ -30,6 +31,7 @@ fn main() {
             StylesPlugin,
             Viewport2dPanePlugin,
             Viewport3dPanePlugin,
+            AssetBrowserPanePlugin,
             ui::EditorUIPlugin,
         ))
         .run();

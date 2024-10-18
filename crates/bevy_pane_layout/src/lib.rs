@@ -168,7 +168,14 @@ fn setup(
     spawn_pane(&mut commands, &theme, 0.6, "Properties").set_parent(sub_divider);
 
     spawn_resize_handle(&mut commands, Divider::Horizontal).set_parent(divider);
-    spawn_pane(&mut commands, &theme, 0.8, "Viewport 2D").set_parent(divider);
+
+    let asset_browser_divider = spawn_divider(&mut commands, Divider::Vertical, 0.8)
+        .set_parent(divider)
+        .id();
+
+    spawn_pane(&mut commands, &theme, 0.8, "Viewport 2D").set_parent(asset_browser_divider);
+    spawn_resize_handle(&mut commands, Divider::Vertical).set_parent(asset_browser_divider);
+    spawn_pane(&mut commands, &theme, 0.35, "Asset Browser").set_parent(asset_browser_divider);
 }
 
 /// Removes a divider from the hierarchy when it has only one child left, replacing itself with that child.

@@ -196,32 +196,29 @@ fn spawn_asset_button(
     asset_server: &Res<AssetServer>,
 ) {
     let mut entity_commands = parent.spawn((
-        ButtonBundle {
-            style: Style {
-                margin: UiRect::all(Val::Px(5.0)),
-                padding: UiRect::all(Val::Px(5.0)),
-                height: Val::Px(100.0),
-                width: Val::Px(100.0),
-                align_items: AlignItems::Center,
-                flex_direction: FlexDirection::Column,
-                border: UiRect::all(Val::Px(3.0)),
-                justify_content: JustifyContent::SpaceBetween,
-                ..default()
-            },
-            border_radius: theme.border_radius,
+        Button::default(),
+        Style {
+            margin: UiRect::all(Val::Px(5.0)),
+            padding: UiRect::all(Val::Px(5.0)),
+            height: Val::Px(100.0),
+            width: Val::Px(100.0),
+            align_items: AlignItems::Center,
+            flex_direction: FlexDirection::Column,
+            border: UiRect::all(Val::Px(3.0)),
+            justify_content: JustifyContent::SpaceBetween,
             ..default()
         },
+        theme.border_radius,
         crate::ButtonType::AssetButton(asset_type),
     ));
     entity_commands.with_children(|parent| {
-        parent.spawn(ImageBundle {
-            image: UiImage::new(crate::content_button_to_icon(&asset_type, asset_server)),
-            style: Style {
+        parent.spawn((
+            UiImage::new(crate::content_button_to_icon(&asset_type, asset_server)),
+            Style {
                 height: Val::Px(50.0),
                 ..default()
             },
-            ..default()
-        });
+        ));
         parent.spawn((
             Text::new(name),
             TextFont {

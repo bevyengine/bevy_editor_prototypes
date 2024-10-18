@@ -129,20 +129,21 @@ pub fn on_pane_creation(
 
     commands
         .entity(content_node)
-        .insert(NodeBundle {
-            style: Style {
+        .insert((
+            Node::default(),
+            Style {
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
                 display: Display::Flex,
                 flex_direction: FlexDirection::Column,
-                ..Default::default()
+                ..default()
             },
-            ..Default::default()
-        })
+        ))
         .with_children(|parent| {
             // Top bar
-            parent.spawn(TopBarNode).insert(NodeBundle {
-                style: Style {
+            parent.spawn(TopBarNode).insert((
+                Node::default(),
+                Style {
                     height: Val::Px(30.0),
                     width: Val::Percent(100.0),
                     flex_direction: FlexDirection::Row,
@@ -150,15 +151,15 @@ pub fn on_pane_creation(
                     padding: UiRect::horizontal(Val::Px(10.0)),
                     ..default()
                 },
-                background_color: theme.menu_bar_color,
-                ..default()
-            });
+                theme.menu_bar_color,
+            ));
 
             // Directory content
             parent
                 .spawn(DirectoryContentNode)
-                .insert(NodeBundle {
-                    style: Style {
+                .insert((
+                    Node::default(),
+                    Style {
                         flex_direction: FlexDirection::Column,
                         width: Val::Percent(100.0),
                         height: Val::Percent(100.0),
@@ -166,17 +167,14 @@ pub fn on_pane_creation(
                         overflow: Overflow::clip_y(),
                         ..default()
                     },
-                    ..default()
-                })
+                ))
                 .with_children(|parent| {
                     // Scroll box moving panel
                     parent.spawn((
-                        NodeBundle {
-                            style: Style {
-                                position_type: PositionType::Absolute,
-                                flex_wrap: FlexWrap::Wrap,
-                                ..default()
-                            },
+                        Node::default(),
+                        Style {
+                            position_type: PositionType::Absolute,
+                            flex_wrap: FlexWrap::Wrap,
                             ..default()
                         },
                         ScrollingList::default(),

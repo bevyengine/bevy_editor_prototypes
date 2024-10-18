@@ -66,16 +66,14 @@ fn spawn_path_segment_ui(
 ) {
     parent
         .spawn((
-            ButtonBundle {
-                style: Style {
-                    padding: UiRect::axes(Val::Px(10.0), Val::Px(1.0)),
-                    margin: UiRect::horizontal(Val::Px(5.0)),
-                    ..default()
-                },
-                background_color: BackgroundColor(PATH_SEGMENT_BACKGROUND_COLOR),
-                border_radius: theme.border_radius,
+            Button,
+            Style {
+                padding: UiRect::axes(Val::Px(10.0), Val::Px(1.0)),
+                margin: UiRect::horizontal(Val::Px(5.0)),
                 ..default()
             },
+            BackgroundColor(PATH_SEGMENT_BACKGROUND_COLOR),
+            theme.border_radius,
             ButtonType::LocationSegment(segment_type),
         ))
         .with_children(|parent| {

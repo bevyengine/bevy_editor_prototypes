@@ -196,7 +196,7 @@ fn spawn_asset_button(
     asset_server: &Res<AssetServer>,
 ) {
     let mut entity_commands = parent.spawn((
-        Button::default(),
+        Button,
         Style {
             margin: UiRect::all(Val::Px(5.0)),
             padding: UiRect::all(Val::Px(5.0)),

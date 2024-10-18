@@ -26,7 +26,7 @@ unsafe_op_in_unsafe_fn = "warn"
 unused_qualifications = "warn"
 
 [workspace.dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "af93e78b72c1e435e73c54c9d0ac6260dc170762" }
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "eb19a9ea0b175cec25400860fee71c5efb9a4602" }
 thiserror = "1"
 serde = { version = "1", features = ["derive"] }
 

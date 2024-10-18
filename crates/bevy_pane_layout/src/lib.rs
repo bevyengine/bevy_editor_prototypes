@@ -144,16 +144,16 @@ fn setup(
     theme: Res<Theme>,
     panes_root: Single<Entity, With<RootPaneLayoutNode>>,
 ) {
-    commands.entity(*panes_root).insert(NodeBundle {
-        background_color: theme.background_color,
-        style: Style {
+    commands.entity(*panes_root).insert((
+        Node::default(),
+        theme.background_color,
+        Style {
             padding: UiRect::all(Val::Px(1.)),
             height: Val::Percent(100.),
             width: Val::Percent(100.),
             ..default()
         },
-        ..default()
-    });
+    ));
 
     let divider = spawn_divider(&mut commands, Divider::Horizontal, 1.)
         .set_parent(*panes_root)

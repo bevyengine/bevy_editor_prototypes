@@ -1,4 +1,5 @@
 use bevy::{prelude::*, window::SystemCursorIcon, winit::cursor::CursorIcon};
+use bevy_context_menu::{ContextMenu, ContextMenuOption};
 use bevy_editor_styles::Theme;
 
 use crate::{
@@ -16,11 +17,9 @@ pub(crate) fn spawn_pane<'a>(
     // Unstyled root node
     let root = commands
         .spawn((
-            NodeBundle {
-                style: Style {
-                    padding: UiRect::all(Val::Px(1.5)),
-                    ..default()
-                },
+            Node::default(),
+            Style {
+                padding: UiRect::all(Val::Px(1.5)),
                 ..default()
             },
             Size(size),
@@ -31,16 +30,14 @@ pub(crate) fn spawn_pane<'a>(
     // Area
     let area = commands
         .spawn((
-            NodeBundle {
-                background_color: theme.pane_area_background_color,
-                border_radius: theme.border_radius,
-                style: Style {
-                    overflow: Overflow::clip(),
-                    width: Val::Percent(100.),
-                    height: Val::Percent(100.),
-                    flex_direction: FlexDirection::Column,
-                    ..default()
-                },
+            Node::default(),
+            theme.pane_area_background_color,
+            theme.border_radius,
+            Style {
+                overflow: Overflow::clip(),
+                width: Val::Percent(100.),
+                height: Val::Percent(100.),
+                flex_direction: FlexDirection::Column,
                 ..default()
             },
             PaneAreaNode,
@@ -51,22 +48,29 @@ pub(crate) fn spawn_pane<'a>(
     // Header
     commands
         .spawn((
-            NodeBundle {
-                background_color: theme.pane_header_background_color,
-                border_radius: theme.pane_header_border_radius,
-                style: Style {
-                    padding: UiRect::axes(Val::Px(5.), Val::Px(3.)),
-                    width: Val::Percent(100.),
-                    height: Val::Px(27.),
-                    align_items: AlignItems::Center,
-                    ..default()
-                },
+            Node::default(),
+            theme.pane_header_background_color,
+            theme.pane_header_border_radius,
+            Style {
+                padding: UiRect::axes(Val::Px(5.), Val::Px(3.)),
+                width: Val::Percent(100.),
+                height: Val::Px(27.),
+                align_items: AlignItems::Center,
                 ..default()
             },
+            ContextMenu::new([
+                ContextMenuOption::new("Close", |mut commands, entity| {
+                    commands.run_system_cached_with(remove_pane, entity);
+                }),
+                ContextMenuOption::new("Split - Horizontal", |mut commands, entity| {
+                    commands.run_system_cached_with(split_pane, (entity, false));
+                }),
+                ContextMenuOption::new("Split - Vertical", |mut commands, entity| {
+                    commands.run_system_cached_with(split_pane, (entity, true));
+                }),
+            ]),
             PaneHeaderNode,
         ))
-        .observe(on_pane_header_right_click)
-        .observe(on_pane_header_middle_click)
         .observe(
             move |_trigger: Trigger<Pointer<Move>>,
                   window_query: Query<Entity, With<Window>>,
@@ -99,11 +103,9 @@ pub(crate) fn spawn_pane<'a>(
     // Content
     commands
         .spawn((
-            NodeBundle {
-                style: Style {
-                    flex_grow: 1.,
-                    ..default()
-                },
+            Node::default(),
+            Style {
+                flex_grow: 1.,
                 ..default()
             },
             PaneContentNode,
@@ -119,13 +121,11 @@ pub(crate) fn spawn_divider<'a>(
     size: f32,
 ) -> EntityCommands<'a> {
     commands.spawn((
-        NodeBundle {
-            style: Style {
-                flex_direction: match divider {
-                    Divider::Horizontal => FlexDirection::Row,
-                    Divider::Vertical => FlexDirection::Column,
-                },
-                ..default()
+        Node::default(),
+        Style {
+            flex_direction: match divider {
+                Divider::Horizontal => FlexDirection::Row,
+                Divider::Vertical => FlexDirection::Column,
             },
             ..default()
         },
@@ -140,8 +140,9 @@ pub(crate) fn spawn_resize_handle<'a>(
 ) -> EntityCommands<'a> {
     const SIZE: f32 = 7.;
     // Add a root node with zero size along the divider axis to avoid messing up the layout
-    let mut ec = commands.spawn(NodeBundle {
-        style: Style {
+    let mut ec = commands.spawn((
+        Node::default(),
+        Style {
             width: match divider_parent {
                 Divider::Horizontal => Val::Px(SIZE),
                 Divider::Vertical => Val::Percent(100.),
@@ -158,22 +159,19 @@ pub(crate) fn spawn_resize_handle<'a>(
             },
             ..default()
         },
-        z_index: ZIndex(3),
-        ..default()
-    });
+        ZIndex(3),
+    ));
     // Add the Resize
     ec.with_child((
-        NodeBundle {
-            style: Style {
-                width: match divider_parent {
-                    Divider::Horizontal => Val::Px(SIZE),
-                    Divider::Vertical => Val::Percent(100.),
-                },
-                height: match divider_parent {
-                    Divider::Horizontal => Val::Percent(100.),
-                    Divider::Vertical => Val::Px(SIZE),
-                },
-                ..default()
+        Node::default(),
+        Style {
+            width: match divider_parent {
+                Divider::Horizontal => Val::Px(SIZE),
+                Divider::Vertical => Val::Percent(100.),
+            },
+            height: match divider_parent {
+                Divider::Horizontal => Val::Percent(100.),
+                Divider::Vertical => Val::Px(SIZE),
             },
             ..default()
         },

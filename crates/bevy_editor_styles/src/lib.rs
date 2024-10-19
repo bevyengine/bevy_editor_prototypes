@@ -36,22 +36,27 @@ pub struct Theme {
     pub context_menu_background_color: BackgroundColor,
     /// The background color of the context menu options when hovered.
     pub context_menu_button_hover_background_color: BackgroundColor,
+
+    /// The background color of the viewports.
+    pub viewport_background_color: Color,
 }
 
 impl Default for Theme {
     fn default() -> Self {
         Self {
-            background_color: BackgroundColor(Color::oklch(0.27, 0.0, 0.0)),
-            pane_header_background_color: BackgroundColor(Color::oklch(0.215, 0.0, 0.0)),
-            pane_area_background_color: BackgroundColor(Color::oklch(0.23, 0.0, 0.0)),
+            background_color: BackgroundColor(Color::oklch(0.209, 0.0, 0.0)),
+            pane_header_background_color: BackgroundColor(Color::oklch(0.3407, 0.0, 0.0)),
+            pane_area_background_color: BackgroundColor(Color::oklch(0.3677, 0.0, 0.0)),
             text_color: Color::oklch(0.9219, 0.0, 0.0),
             menu_bar_color: BackgroundColor(Color::oklch(0.209, 0.0, 0.0)),
-            border_radius: BorderRadius::all(Val::Px(6.)),
-            pane_header_border_radius: BorderRadius::top(Val::Px(6.)),
+            border_radius: BorderRadius::all(Val::Px(8.)),
+            pane_header_border_radius: BorderRadius::top(Val::Px(8.)),
 
-            context_menu_background_color: Color::oklch(0.2, 0., 0.).into(),
-            context_menu_button_hover_background_color: Color::oklch(0.27, 0., 0.).into(),
-            button_border_radius: BorderRadius::all(Val::Px(4.)),
+            context_menu_background_color: Color::oklch(0.209, 0., 0.).into(),
+            context_menu_button_hover_background_color: Color::oklch(0.3677, 0., 0.).into(),
+            button_border_radius: BorderRadius::all(Val::Px(3.)),
+
+            viewport_background_color: Color::oklch(0.3677, 0.0, 0.0),
         }
     }
 }

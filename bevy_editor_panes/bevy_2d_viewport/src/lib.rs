@@ -8,6 +8,7 @@ use bevy::{
     ui::ui_layout_system,
 };
 use bevy_editor_camera::{EditorCamera2d, EditorCamera2dPlugin};
+use bevy_editor_styles::Theme;
 use bevy_pane_layout::{PaneContentNode, PaneRegistry};
 
 /// The identifier for the 2D Viewport.
@@ -69,6 +70,7 @@ fn on_pane_creation(
     mut query: Query<&mut Bevy2dViewport>,
     content: Query<&PaneContentNode>,
     mut images: ResMut<Assets<Image>>,
+    theme: Res<Theme>,
 ) {
     let pane_root = trigger.entity();
     let content_node = children_query
@@ -109,6 +111,7 @@ fn on_pane_creation(
             },
             Camera {
                 target: RenderTarget::Image(image_handle),
+                clear_color: ClearColorConfig::Custom(theme.viewport_background_color),
                 ..default()
             },
         ))

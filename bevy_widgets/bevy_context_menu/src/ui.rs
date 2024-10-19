@@ -12,10 +12,7 @@ pub(crate) fn spawn_context_menu<'a>(
 ) -> EntityCommands<'a> {
     let root = commands
         .spawn((
-            Node::default(),
-            theme.context_menu_background_color,
-            theme.border_radius,
-            Style {
+            Node {
                 position_type: PositionType::Absolute,
                 top: Val::Px(position.y),
                 left: Val::Px(position.x),
@@ -24,6 +21,8 @@ pub(crate) fn spawn_context_menu<'a>(
                 width: Val::Px(300.),
                 ..default()
             },
+            theme.context_menu_background_color,
+            theme.border_radius,
         ))
         .id();
 
@@ -43,13 +42,12 @@ pub(crate) fn spawn_option<'a>(
 ) -> EntityCommands<'a> {
     let root = commands
         .spawn((
-            Node::default(),
-            theme.button_border_radius,
-            Style {
+            Node {
                 padding: UiRect::all(Val::Px(5.)),
                 flex_grow: 1.,
                 ..default()
             },
+            theme.button_border_radius,
         ))
         .observe(
             |trigger: Trigger<Pointer<Over>>,

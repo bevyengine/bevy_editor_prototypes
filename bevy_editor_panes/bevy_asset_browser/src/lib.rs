@@ -129,21 +129,17 @@ pub fn on_pane_creation(
 
     commands
         .entity(content_node)
-        .insert((
-            Node::default(),
-            Style {
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                display: Display::Flex,
-                flex_direction: FlexDirection::Column,
-                ..default()
-            },
-        ))
+        .insert((Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            display: Display::Flex,
+            flex_direction: FlexDirection::Column,
+            ..default()
+        },))
         .with_children(|parent| {
             // Top bar
             parent.spawn(TopBarNode).insert((
-                Node::default(),
-                Style {
+                Node {
                     height: Val::Px(30.0),
                     width: Val::Percent(100.0),
                     flex_direction: FlexDirection::Row,
@@ -157,22 +153,18 @@ pub fn on_pane_creation(
             // Directory content
             parent
                 .spawn(DirectoryContentNode)
-                .insert((
-                    Node::default(),
-                    Style {
-                        flex_direction: FlexDirection::Column,
-                        width: Val::Percent(100.0),
-                        height: Val::Percent(100.0),
-                        align_self: AlignSelf::Stretch,
-                        overflow: Overflow::clip_y(),
-                        ..default()
-                    },
-                ))
+                .insert((Node {
+                    flex_direction: FlexDirection::Column,
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(100.0),
+                    align_self: AlignSelf::Stretch,
+                    overflow: Overflow::clip_y(),
+                    ..default()
+                },))
                 .with_children(|parent| {
                     // Scroll box moving panel
                     parent.spawn((
-                        Node::default(),
-                        Style {
+                        Node {
                             position_type: PositionType::Absolute,
                             flex_wrap: FlexWrap::Wrap,
                             ..default()

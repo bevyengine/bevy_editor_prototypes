@@ -67,7 +67,7 @@ fn spawn_path_segment_ui(
     parent
         .spawn((
             Button,
-            Style {
+            Node {
                 padding: UiRect::axes(Val::Px(10.0), Val::Px(1.0)),
                 margin: UiRect::horizontal(Val::Px(5.0)),
                 ..default()

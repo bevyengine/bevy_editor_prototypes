@@ -113,12 +113,12 @@ pub(crate) struct ScrollingList {
 /// Handle the scrolling of the content list
 pub(crate) fn scrolling(
     mut mouse_wheel_events: EventReader<MouseWheel>,
-    mut query_list: Query<(&mut ScrollingList, &mut Style, &Parent, &Node)>,
-    query_node: Query<&Node>,
+    mut query_list: Query<(&mut ScrollingList, &ComputedNode, &Parent, &mut Node)>,
+    query_node: Query<&ComputedNode>,
 ) {
     for mouse_wheel_event in mouse_wheel_events.read() {
-        for (mut scrolling_list, mut style, parent, list_node) in &mut query_list {
-            let items_height = list_node.size().y;
+        for (mut scrolling_list, list_computed_node, parent, mut list_node) in &mut query_list {
+            let items_height = list_computed_node.size().y;
             let container_height = query_node.get(parent.get()).unwrap().size().y;
             let max_scroll = (items_height - container_height).max(0.);
 
@@ -130,7 +130,7 @@ pub(crate) fn scrolling(
             scrolling_list.position += dy;
             scrolling_list.position = scrolling_list.position.clamp(-max_scroll, 0.);
 
-            style.top = Val::Px(scrolling_list.position);
+            list_node.top = Val::Px(scrolling_list.position);
         }
     }
 }
@@ -197,7 +197,7 @@ fn spawn_asset_button(
 ) {
     let mut entity_commands = parent.spawn((
         Button,
-        Style {
+        Node {
             margin: UiRect::all(Val::Px(5.0)),
             padding: UiRect::all(Val::Px(5.0)),
             height: Val::Px(100.0),
@@ -214,7 +214,7 @@ fn spawn_asset_button(
     entity_commands.with_children(|parent| {
         parent.spawn((
             UiImage::new(crate::content_button_to_icon(&asset_type, asset_server)),
-            Style {
+            Node {
                 height: Val::Px(50.0),
                 ..default()
             },

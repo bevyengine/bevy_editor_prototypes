@@ -9,6 +9,7 @@ use bevy::{
 };
 use bevy_editor_camera::{EditorCamera2d, EditorCamera2dPlugin};
 use bevy_editor_styles::Theme;
+use bevy_infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings};
 use bevy_pane_layout::{PaneContentNode, PaneRegistry};
 
 /// The identifier for the 2D Viewport.
@@ -31,7 +32,8 @@ pub struct Viewport2dPanePlugin;
 
 impl Plugin for Viewport2dPanePlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(EditorCamera2dPlugin)
+        app.add_plugins((EditorCamera2dPlugin, InfiniteGridPlugin))
+            .add_systems(Startup, setup)
             .add_systems(
                 PostUpdate,
                 update_render_target_size.after(ui_layout_system),
@@ -53,14 +55,22 @@ impl Plugin for Viewport2dPanePlugin {
             .register("Viewport 2D", |mut commands, pane_root| {
                 commands.entity(pane_root).insert(Bevy2dViewport::default());
             });
-
-        // TODO remove this when we can load scenes
-        // Spawn something to see in the viewport.
-        app.world_mut().spawn(Sprite {
-            custom_size: Some(Vec2::ONE * 150.),
-            ..default()
-        });
     }
+}
+
+fn setup(mut commands: Commands, theme: Res<Theme>) {
+    commands.spawn((
+        InfiniteGrid,
+        InfiniteGridSettings {
+            scale: 0.01,
+            dot_fadeout_strength: 0.,
+            z_axis_color: Color::srgb(0.2, 8., 0.3),
+            major_line_color: theme.background_color.0,
+            minor_line_color: theme.pane_header_background_color.0,
+            ..default()
+        },
+        Transform::from_rotation(Quat::from_rotation_arc(Vec3::Y, Vec3::Z)),
+    ));
 }
 
 fn on_pane_creation(
@@ -92,6 +102,7 @@ fn on_pane_creation(
                 ..Default::default()
             },
             Node {
+                position_type: PositionType::Absolute,
                 top: Val::ZERO,
                 bottom: Val::ZERO,
                 left: Val::ZERO,
@@ -135,11 +146,14 @@ fn on_pane_creation(
 }
 
 fn update_render_target_size(
-    query: Query<(Entity, &Bevy2dViewport), Changed<Node>>,
+    query: Query<(Entity, &Bevy2dViewport)>,
     mut camera_query: Query<(&Camera, &mut EditorCamera2d)>,
     content: Query<&PaneContentNode>,
     children_query: Query<&Children>,
-    pos_query: Query<(&ComputedNode, &GlobalTransform)>,
+    pos_query: Query<
+        (&ComputedNode, &GlobalTransform),
+        Or<(Changed<ComputedNode>, Changed<GlobalTransform>)>,
+    >,
     mut images: ResMut<Assets<Image>>,
 ) {
     for (pane_root, viewport) in &query {
@@ -148,8 +162,10 @@ fn update_render_target_size(
             .find(|e| content.contains(*e))
             .unwrap();
 
+        let Ok((computed_node, global_transform)) = pos_query.get(content_node_id) else {
+            continue;
+        };
         // TODO Convert to physical pixels
-        let (computed_node, global_transform) = pos_query.get(content_node_id).unwrap();
         let content_node_size = computed_node.size();
 
         let node_position = global_transform.translation().xy();
@@ -161,8 +177,8 @@ fn update_render_target_size(
 
         let image_handle = camera.target.as_image().unwrap();
         let size = Extent3d {
-            width: content_node_size.x as u32,
-            height: content_node_size.y as u32,
+            width: u32::max(1, content_node_size.x as u32),
+            height: u32::max(1, content_node_size.y as u32),
             depth_or_array_layers: 1,
         };
         images.get_mut(image_handle).unwrap().resize(size);

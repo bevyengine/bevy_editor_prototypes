@@ -13,17 +13,10 @@ fn main() {
         .run();
 }
 
-fn setup_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup_camera(mut commands: Commands) {
     commands.spawn((
         Camera3d::default(),
         EditorCam::default(), // Step 2: add camera controller component to any cameras
-        EnvironmentMapLight {
-            // Unrelated to camera controller, needed for lighting:
-            intensity: 1000.0,
-            diffuse_map: asset_server.load("environment_maps/diffuse_rgb9e5_zstd.ktx2"),
-            specular_map: asset_server.load("environment_maps/specular_rgb9e5_zstd.ktx2"),
-            ..default()
-        },
     ));
 }
 
@@ -31,10 +24,15 @@ fn setup_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
 // --- The below code is not important for the example ---
 //
 
-fn setup_scene(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup_scene(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
     commands.spawn((
-        SceneRoot(asset_server.load("models/PlaneEngine/scene.gltf#Scene0")),
-        Transform::from_xyz(0.0, -0.5, -2.0),
+        Mesh3d(meshes.add(Cone::default())),
+        MeshMaterial3d(materials.add(Color::WHITE)),
+        Transform::from_xyz(0.0, 0.0, -2.0),
     ));
 
     commands.spawn((

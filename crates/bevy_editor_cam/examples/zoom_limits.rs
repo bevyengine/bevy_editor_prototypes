@@ -13,7 +13,7 @@ fn main() {
         .run();
 }
 
-fn setup_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup_camera(mut commands: Commands) {
     commands.spawn((
         Camera3d::default(),
         EditorCam {
@@ -22,12 +22,6 @@ fn setup_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
                 max_size_per_pixel: 0.01,
                 zoom_through_objects: true,
             },
-            ..default()
-        },
-        EnvironmentMapLight {
-            intensity: 1000.0,
-            diffuse_map: asset_server.load("environment_maps/diffuse_rgb9e5_zstd.ktx2"),
-            specular_map: asset_server.load("environment_maps/specular_rgb9e5_zstd.ktx2"),
             ..default()
         },
     ));

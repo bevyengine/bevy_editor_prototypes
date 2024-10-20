@@ -1,9 +1,6 @@
 //! Renders two cameras to the same window to accomplish "split screen".
 
-use bevy::{
-    core_pipeline::tonemapping::Tonemapping, prelude::*, render::camera::Viewport,
-    window::WindowResized,
-};
+use bevy::{prelude::*, render::camera::Viewport, window::WindowResized};
 use bevy_editor_cam::prelude::*;
 
 fn main() {
@@ -15,32 +12,20 @@ fn main() {
 }
 
 /// set up a simple 3D scene
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    spawn_helmets(27, &asset_server, &mut commands);
-
-    let diffuse_map = asset_server.load("environment_maps/diffuse_rgb9e5_zstd.ktx2");
-    let specular_map = asset_server.load("environment_maps/specular_rgb9e5_zstd.ktx2");
-
+fn setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
     // Left Camera
     commands.spawn((
         Camera3d::default(),
         Transform::from_xyz(0.0, 2.0, -1.0).looking_at(Vec3::ZERO, Vec3::Y),
         Camera {
             hdr: true,
-            clear_color: ClearColorConfig::None,
-            ..default()
-        },
-        EnvironmentMapLight {
-            intensity: 1000.0,
-            diffuse_map: diffuse_map.clone(),
-            specular_map: specular_map.clone(),
             ..default()
         },
         EditorCam::default(),
-        bevy_editor_cam::extensions::independent_skybox::IndependentSkybox::new(
-            diffuse_map.clone(),
-            500.0,
-        ),
         LeftCamera,
     ));
 
@@ -60,17 +45,27 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             scale: 0.01,
             ..OrthographicProjection::default_3d()
         }),
-        Tonemapping::AcesFitted,
-        EnvironmentMapLight {
-            intensity: 1000.0,
-            diffuse_map: diffuse_map.clone(),
-            specular_map: specular_map.clone(),
-            ..default()
-        },
         EditorCam::default(),
-        bevy_editor_cam::extensions::independent_skybox::IndependentSkybox::new(diffuse_map, 500.0),
         RightCamera,
     ));
+
+    let n = 27;
+    let half_width = (((n as f32).powf(1.0 / 3.0) - 1.0) / 2.0) as i32;
+    let mesh = meshes.add(Cone::default());
+    let material = materials.add(Color::WHITE);
+    let width = -half_width..=half_width;
+    for x in width.clone() {
+        for y in width.clone() {
+            for z in width.clone() {
+                commands.spawn((
+                    Mesh3d(mesh.clone()),
+                    MeshMaterial3d(material.clone()),
+                    Transform::from_translation(IVec3::new(x, y, z).as_vec3() * 2.0)
+                        .with_scale(Vec3::splat(1.)),
+                ));
+            }
+        }
+    }
 }
 
 #[derive(Component)]
@@ -109,22 +104,5 @@ fn set_camera_viewports(
             ),
             ..default()
         });
-    }
-}
-
-fn spawn_helmets(n: usize, asset_server: &AssetServer, commands: &mut Commands) {
-    let half_width = (((n as f32).powf(1.0 / 3.0) - 1.0) / 2.0) as i32;
-    let scene = asset_server.load("models/PlaneEngine/scene.gltf#Scene0");
-    let width = -half_width..=half_width;
-    for x in width.clone() {
-        for y in width.clone() {
-            for z in width.clone() {
-                commands.spawn((
-                    SceneRoot(scene.clone()),
-                    Transform::from_translation(IVec3::new(x, y, z).as_vec3() * 2.0)
-                        .with_scale(Vec3::splat(1.)),
-                ));
-            }
-        }
     }
 }

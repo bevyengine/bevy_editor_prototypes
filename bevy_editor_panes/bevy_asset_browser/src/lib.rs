@@ -147,7 +147,7 @@ pub fn on_pane_creation(
                     padding: UiRect::horizontal(Val::Px(10.0)),
                     ..default()
                 },
-                theme.menu_bar_color,
+                theme.pane_header_background_color,
             ));
 
             // Directory content

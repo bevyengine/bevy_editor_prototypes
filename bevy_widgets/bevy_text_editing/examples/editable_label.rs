@@ -11,29 +11,28 @@ fn main() {
         .run();
 }
 
-
-fn setup(
-    mut commands : Commands
-) {
+fn setup(mut commands: Commands) {
     commands.spawn(Camera2d::default());
 
-    commands.spawn((
-        Node {
-            width: Val::Percent(100.),
-            height: Val::Percent(100.),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            ..Default::default()
-        }
-    )).with_children(|cmd| {
-        cmd.spawn((
-            EditableTextLine::new("Hello, World!"),
-            Node {
-                width: Val::Px(300.0),
-                height: Val::Px(25.0),
+    commands
+        .spawn(
+            (Node {
+                width: Val::Percent(100.),
+                height: Val::Percent(100.),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
                 ..Default::default()
-            },
-            BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.5))
-        ));
-    });
+            }),
+        )
+        .with_children(|cmd| {
+            cmd.spawn((
+                EditableTextLine::new("Hello, World!"),
+                Node {
+                    width: Val::Px(300.0),
+                    height: Val::Px(25.0),
+                    ..Default::default()
+                },
+                BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.5)),
+            ));
+        });
 }

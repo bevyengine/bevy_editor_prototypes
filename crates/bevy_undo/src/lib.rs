@@ -1275,10 +1275,10 @@ fn apply_for_every_typed_field<D: Reflect + TypePath>(
                         max_recursion - 1,
                     );
                 }
-            },
+            }
             bevy::reflect::ReflectMut::Opaque(op) => {
                 apply_for_every_typed_field(op, applyer, max_recursion - 1);
-            },
+            }
             bevy::reflect::ReflectMut::Set(set) => {
                 let mut queue_to_replace = vec![];
                 for field in set.iter() {

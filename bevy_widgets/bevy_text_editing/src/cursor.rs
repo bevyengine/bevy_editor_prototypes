@@ -26,8 +26,8 @@ impl Default for Cursor {
 }
 
 pub(crate) fn update_cursor(
-    time: Res<Time>, 
-    mut q_cursors: Query<(&mut Cursor, &mut Visibility, &mut Node)>
+    time: Res<Time>,
+    mut q_cursors: Query<(&mut Cursor, &mut Visibility, &mut Node)>,
 ) {
     for (mut cursor, mut visibility, mut node) in q_cursors.iter_mut() {
         if cursor.timer.tick(time.delta()).just_finished() {

@@ -63,17 +63,14 @@ fn setup(
         ..Default::default()
     });
 
-    cmd.spawn((
-        Mesh3d(cube_mesh),
-        MeshMaterial3d(material),
-    ))
-    .insert(Controller)
-    .insert(UndoMarker) //Only entities with this marker will be able to undo
-    .insert(OneFrameUndoIgnore::default()); // To prevent adding "Transform add" change in change chain
+    cmd.spawn((Mesh3d(cube_mesh), MeshMaterial3d(material)))
+        .insert(Controller)
+        .insert(UndoMarker) //Only entities with this marker will be able to undo
+        .insert(OneFrameUndoIgnore::default()); // To prevent adding "Transform add" change in change chain
 
     cmd.spawn((
         Transform::from_xyz(0.0, 5.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
-        Camera3d::default()
+        Camera3d::default(),
     ));
 
     cmd.spawn((
@@ -87,10 +84,7 @@ fn setup(
         },
     ))
     .with_children(|parent| {
-        parent.spawn((
-            Text::new(""),
-            TextFont::default(),
-        ));
+        parent.spawn((Text::new(""), TextFont::default()));
     });
 }
 
@@ -135,7 +129,7 @@ fn write_undo_text(
 ) {
     for mut text in &mut query {
         let mut t = "Registered changes\n".to_string();
-       
+
         for change in change_chain.changes.iter() {
             t = format!("{}{}\n", t, change.debug_text())
         }

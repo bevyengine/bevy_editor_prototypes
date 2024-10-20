@@ -36,19 +36,17 @@ fn setup(
             ..Default::default()
         },
         Transform::from_translation(Vec3::splat(5.0)).looking_at(Vec3::ZERO, Vec3::Y),
-        
     ));
 
     commands.spawn((
         DirectionalLight::default(),
-        Transform::from_translation(Vec3::new(0.0, 5.0, 1.0))
-            .looking_at(Vec3::ZERO, Vec3::X),
+        Transform::from_translation(Vec3::new(0.0, 5.0, 1.0)).looking_at(Vec3::ZERO, Vec3::X),
     ));
 
     let target = commands
         .spawn((
             Mesh3d(meshes.add(Cuboid::from_length(1.0))),
-            MeshMaterial3d(materials.add(StandardMaterial::default()))
+            MeshMaterial3d(materials.add(StandardMaterial::default())),
         ))
         .id();
 
@@ -171,9 +169,7 @@ fn spawn_field(
 }
 
 fn child_text(commands: &mut Commands, root: Entity, text: &str) {
-    let id = commands
-        .spawn(Text::new(text))
-        .id();
+    let id = commands.spawn(Text::new(text)).id();
     commands.entity(root).add_child(id);
 }
 
@@ -184,7 +180,7 @@ fn header_text(commands: &mut Commands, root: Entity, text: &str) {
             Style {
                 grid_column: GridPlacement::span(2),
                 ..Default::default()
-            }
+            },
         ))
         .id();
     commands.entity(root).add_child(id);

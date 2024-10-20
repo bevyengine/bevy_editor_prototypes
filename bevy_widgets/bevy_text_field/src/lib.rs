@@ -220,18 +220,10 @@ fn spawn_render_text_field(
             .id();
 
         let text_field = commands
-            .spawn((
-                Text(text_field.text.clone()),
-                TextColor(text_color),
-            ))
+            .spawn((Text(text_field.text.clone()), TextColor(text_color)))
             .id();
 
-        let text_field_right = commands
-            .spawn((
-                Text::new(""),
-                TextColor(text_color),
-            ))
-            .id();
+        let text_field_right = commands.spawn((Text::new(""), TextColor(text_color))).id();
         let cursor = commands.spawn(NodeBundle::default()).id();
 
         // Move text field left/right in the canvas for text longer than the text field

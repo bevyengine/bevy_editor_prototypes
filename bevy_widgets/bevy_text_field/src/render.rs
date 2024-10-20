@@ -97,13 +97,11 @@ pub(crate) fn render_text_field(
         info!("Shift {:?}", inner.text_shift);
         sub_canvas_style.left = Val::Px(-inner.text_shift);
 
-        commands
-            .entity(links.text)
-            .insert((
-                Text::new(left_text),
-                TextColor(text_color),
-                TextLayout::new_with_no_wrap()
-            ));
+        commands.entity(links.text).insert((
+            Text::new(left_text),
+            TextColor(text_color),
+            TextLayout::new_with_no_wrap(),
+        ));
 
         if !q_cursors.contains(links.cursor) {
             // If we spawn new cursor than we need to skip checks for cursor overflow for some frames needed to compute correct cursor position by bevy systems
@@ -131,13 +129,11 @@ pub(crate) fn render_text_field(
                 .insert_if_new(Cursor::default());
         }
 
-        commands
-            .entity(links.text_right)
-            .insert((
-                Text::new(right_text),
-                TextColor(text_color),
-                TextLayout::new_with_no_wrap(),
-            ));
+        commands.entity(links.text_right).insert((
+            Text::new(right_text),
+            TextColor(text_color),
+            TextLayout::new_with_no_wrap(),
+        ));
 
         if let Some(selection_start) = text_field.selection_start {
             // Show text selection
@@ -161,20 +157,16 @@ pub(crate) fn render_text_field(
             pre_selection_text.0 = "".to_string();
         }
     } else {
-        commands.entity(links.text).insert(
-            (
-                Text::new(text_field.text.clone()),
-                TextColor(text_color),
-                TextLayout::new_with_no_wrap(),
-            ),
-        );
+        commands.entity(links.text).insert((
+            Text::new(text_field.text.clone()),
+            TextColor(text_color),
+            TextLayout::new_with_no_wrap(),
+        ));
         commands
             .entity(links.cursor)
             .insert(Node::default())
             .remove::<Cursor>();
-        commands
-            .entity(links.text_right)
-            .insert(Text::new(""));
+        commands.entity(links.text_right).insert(Text::new(""));
 
         selection_text.0 = "".to_string();
         pre_selection_text.0 = "".to_string();

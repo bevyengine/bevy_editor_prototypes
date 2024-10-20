@@ -356,7 +356,7 @@ fn undo_redo_logic(world: &mut World) {
     world.resource_scope::<Events<UndoRedo>, _>(|world, mut events| {
         world.resource_scope::<ChangeChain, _>(|world, mut change_chain| {
             {
-                let mut reader = events.get_reader();
+                let mut reader = events.get_cursor();
                 for event in reader.read(&events) {
                     match event {
                         UndoRedo::Undo => {

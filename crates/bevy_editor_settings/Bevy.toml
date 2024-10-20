@@ -19,9 +19,6 @@ variant = "Two"
 # enum in a struct
 [enum_settings]
 setting = "Three"
-# can also be written as
-# [enum_settings.setting]
-# variant = "Three"
 
 [enum_settings_list]
 settings = ["Three"]

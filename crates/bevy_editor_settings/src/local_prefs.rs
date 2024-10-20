@@ -1,18 +1,11 @@
-//! Workspace settings
+use bevy::{prelude::Resource, reflect::Reflect};
 
-use bevy::reflect::Reflect;
+use crate::{SettingsTags, SettingsType};
 
-#[derive(Debug, Clone, PartialEq, Eq, Reflect)]
-/// Settings for the entire workspace
-/// This should be in the root of your project
-pub struct WorkspaceSettings {
-    /// Settings for the editor per workspace
-    pub editor: String,
-    /// Settings for building the project
-    pub build: Build,
-}
 
-#[derive(Debug, Clone, PartialEq, Eq, Reflect)]
+
+#[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
+#[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
 /// Settings for building the project
 pub struct Build {
     /// The Command for building the project in debug mode

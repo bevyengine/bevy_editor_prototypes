@@ -8,6 +8,7 @@ use bevy::{
     ui::ui_layout_system,
 };
 use bevy_editor_camera::{EditorCamera2d, EditorCamera2dPlugin};
+use bevy_editor_styles::Theme;
 use bevy_pane_layout::{PaneContentNode, PaneRegistry};
 
 /// The identifier for the 2D Viewport.
@@ -69,6 +70,7 @@ fn on_pane_creation(
     mut query: Query<&mut Bevy2dViewport>,
     content: Query<&PaneContentNode>,
     mut images: ResMut<Assets<Image>>,
+    theme: Res<Theme>,
 ) {
     let pane_root = trigger.entity();
     let content_node = children_query
@@ -89,7 +91,7 @@ fn on_pane_creation(
                 texture: image_handle.clone(),
                 ..Default::default()
             },
-            Style {
+            Node {
                 position_type: PositionType::Absolute,
                 top: Val::ZERO,
                 bottom: Val::ZERO,
@@ -110,6 +112,7 @@ fn on_pane_creation(
             },
             Camera {
                 target: RenderTarget::Image(image_handle),
+                clear_color: ClearColorConfig::Custom(theme.viewport_background_color),
                 ..default()
             },
         ))
@@ -133,11 +136,14 @@ fn on_pane_creation(
 }
 
 fn update_render_target_size(
-    query: Query<(Entity, &Bevy2dViewport), Changed<Node>>,
+    query: Query<(Entity, &Bevy2dViewport)>,
     mut camera_query: Query<(&Camera, &mut EditorCamera2d)>,
     content: Query<&PaneContentNode>,
     children_query: Query<&Children>,
-    pos_query: Query<(&Node, &GlobalTransform)>,
+    pos_query: Query<
+        (&ComputedNode, &GlobalTransform),
+        Or<(Changed<ComputedNode>, Changed<GlobalTransform>)>,
+    >,
     mut images: ResMut<Assets<Image>>,
 ) {
     for (pane_root, viewport) in &query {
@@ -146,12 +152,14 @@ fn update_render_target_size(
             .find(|e| content.contains(*e))
             .unwrap();
 
+        let Ok((computed_node, global_transform)) = pos_query.get(content_node_id) else {
+            continue;
+        };
         // TODO Convert to physical pixels
-        let (node, global_transform) = pos_query.get(content_node_id).unwrap();
-        let content_node_size = node.size();
+        let content_node_size = computed_node.size();
 
         let node_position = global_transform.translation().xy();
-        let rect = Rect::from_center_size(node_position, node.size());
+        let rect = Rect::from_center_size(node_position, computed_node.size());
 
         let (camera, mut editor_camera) = camera_query.get_mut(viewport.camera).unwrap();
 

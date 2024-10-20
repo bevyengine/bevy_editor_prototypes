@@ -17,8 +17,7 @@ pub(crate) fn spawn_pane<'a>(
     // Unstyled root node
     let root = commands
         .spawn((
-            Node::default(),
-            Style {
+            Node {
                 padding: UiRect::all(Val::Px(1.5)),
                 ..default()
             },
@@ -30,10 +29,7 @@ pub(crate) fn spawn_pane<'a>(
     // Area
     let area = commands
         .spawn((
-            Node::default(),
-            theme.pane_area_background_color,
-            theme.border_radius,
-            Style {
+            Node {
                 overflow: Overflow::clip(),
                 width: Val::Percent(100.),
                 height: Val::Percent(100.),
@@ -41,6 +37,8 @@ pub(crate) fn spawn_pane<'a>(
                 ..default()
             },
             PaneAreaNode,
+            theme.pane_area_background_color,
+            theme.border_radius,
         ))
         .set_parent(root)
         .id();
@@ -48,16 +46,16 @@ pub(crate) fn spawn_pane<'a>(
     // Header
     commands
         .spawn((
-            Node::default(),
-            theme.pane_header_background_color,
-            theme.pane_header_border_radius,
-            Style {
+            Node {
                 padding: UiRect::axes(Val::Px(5.), Val::Px(3.)),
                 width: Val::Percent(100.),
                 height: Val::Px(27.),
                 align_items: AlignItems::Center,
+                flex_shrink: 0.,
                 ..default()
             },
+            theme.pane_header_background_color,
+            theme.pane_header_border_radius,
             ContextMenu::new([
                 ContextMenuOption::new("Close", |mut commands, entity| {
                     commands.run_system_cached_with(remove_pane, entity);
@@ -98,13 +96,16 @@ pub(crate) fn spawn_pane<'a>(
                 font_size: 14.,
                 ..default()
             },
+            Node {
+                flex_shrink: 0.,
+                ..default()
+            },
         ));
 
     // Content
     commands
         .spawn((
-            Node::default(),
-            Style {
+            Node {
                 flex_grow: 1.,
                 ..default()
             },
@@ -121,8 +122,7 @@ pub(crate) fn spawn_divider<'a>(
     size: f32,
 ) -> EntityCommands<'a> {
     commands.spawn((
-        Node::default(),
-        Style {
+        Node {
             flex_direction: match divider {
                 Divider::Horizontal => FlexDirection::Row,
                 Divider::Vertical => FlexDirection::Column,
@@ -141,8 +141,7 @@ pub(crate) fn spawn_resize_handle<'a>(
     const SIZE: f32 = 7.;
     // Add a root node with zero size along the divider axis to avoid messing up the layout
     let mut ec = commands.spawn((
-        Node::default(),
-        Style {
+        Node {
             width: match divider_parent {
                 Divider::Horizontal => Val::Px(SIZE),
                 Divider::Vertical => Val::Percent(100.),
@@ -163,8 +162,7 @@ pub(crate) fn spawn_resize_handle<'a>(
     ));
     // Add the Resize
     ec.with_child((
-        Node::default(),
-        Style {
+        Node {
             width: match divider_parent {
                 Divider::Horizontal => Val::Px(SIZE),
                 Divider::Vertical => Val::Percent(100.),
@@ -182,7 +180,7 @@ pub(crate) fn spawn_resize_handle<'a>(
               mut drag_state: ResMut<DragState>,
               parent_query: Query<&Parent>,
               children_query: Query<&Children>,
-              node_query: Query<&Node>,
+              computed_node_query: Query<&ComputedNode>,
               size_query: Query<&Size>| {
             if trigger.event().button != PointerButton::Primary {
                 return;
@@ -193,7 +191,7 @@ pub(crate) fn spawn_resize_handle<'a>(
             let target = trigger.entity();
             let parent = parent_query.get(target).unwrap().get();
 
-            let parent_node_size = node_query.get(parent).unwrap().size();
+            let parent_node_size = computed_node_query.get(parent).unwrap().size();
             let parent_node_size = match divider_parent {
                 Divider::Horizontal => parent_node_size.x,
                 Divider::Vertical => parent_node_size.y,

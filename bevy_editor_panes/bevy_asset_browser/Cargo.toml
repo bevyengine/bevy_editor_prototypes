@@ -3,11 +3,14 @@ name = "bevy_asset_browser"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+
 [dependencies]
 bevy.workspace = true
+bevy_asset = "0.14.2"
 bevy_editor_styles.workspace = true
 bevy_pane_layout.workspace = true
-atomicow = "1.0.0"
+atomicow.workspace = true
 
 [lints]
 workspace = true

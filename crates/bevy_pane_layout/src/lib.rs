@@ -147,8 +147,9 @@ fn setup(
     commands.entity(*panes_root).insert((
         Node {
             padding: UiRect::all(Val::Px(1.)),
-            height: Val::Percent(100.),
+            flex_grow: 1.,
             width: Val::Percent(100.),
+
             ..default()
         },
         theme.background_color,

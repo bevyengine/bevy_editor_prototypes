@@ -26,7 +26,7 @@ unsafe_op_in_unsafe_fn = "warn"
 unused_qualifications = "warn"
 
 [workspace.dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "015f2c69ca2a2c009fd04eadada282482deaf469" }
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "015f2c69ca2a2c009fd04eadada282482deaf469", features = ["wayland"] }
 thiserror = "1"
 serde = { version = "1", features = ["derive"] }
 
@@ -48,6 +48,7 @@ bevy_command_palette = { path = "bevy_widgets/bevy_command_palette" }
 bevy_context_menu = { path = "bevy_widgets/bevy_context_menu" }
 bevy_i-cant-believe-its-not-bsn = { path = "bevy_widgets/bevy_i-cant-believe-its-not-bsn" }
 bevy_menu_bar = { path = "bevy_widgets/bevy_menu_bar" }
+bevy_footer_bar = { path = "bevy_widgets/bevy_footer_bar" }
 bevy_toolbar = { path = "bevy_widgets/bevy_toolbar" }
 bevy_tooltips = { path = "bevy_widgets/bevy_tooltips" }
 

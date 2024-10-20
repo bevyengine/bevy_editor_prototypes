@@ -21,18 +21,51 @@ use bevy_2d_viewport::Viewport2dPanePlugin;
 use bevy_3d_viewport::Viewport3dPanePlugin;
 use bevy_asset_browser::AssetBrowserPanePlugin;
 
+use bevy_infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings};
+
 mod ui;
 
 fn main() {
     App::new()
         .add_plugins((
-            DefaultPlugins,
             ContextMenuPlugin,
             StylesPlugin,
             Viewport2dPanePlugin,
             Viewport3dPanePlugin,
             AssetBrowserPanePlugin,
             ui::EditorUIPlugin,
+            DefaultPlugins.set(WindowPlugin {
+                primary_window: Some(Window {
+                    title: "Bevy Editor".to_string(),
+
+                    ..Default::default()
+                }),
+                ..Default::default()
+            }),
+            InfiniteGridPlugin,
         ))
+        .add_systems(Startup, setup)
         .run();
+}
+
+fn setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+    commands.spawn((
+        Mesh2d(meshes.add(Circle::new(50.0))),
+        MeshMaterial2d(materials.add(ColorMaterial::from_color(Color::WHITE))),
+    ));
+
+    commands.spawn((
+        InfiniteGrid,
+        InfiniteGridSettings {
+            scale: 0.01,
+            dot_fadeout_strength: 0.,
+            z_axis_color: Color::srgb(0.2, 8., 0.3),
+            ..default()
+        },
+        Transform::from_rotation(Quat::from_rotation_arc(Vec3::Y, Vec3::Z)),
+    ));
 }

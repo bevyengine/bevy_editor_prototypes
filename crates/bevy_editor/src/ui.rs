@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use bevy_editor_styles::Theme;
+use bevy_footer_bar::{FooterBarNode, FooterBarPlugin, FooterBarSet};
 use bevy_menu_bar::{MenuBarNode, MenuBarPlugin, MenuBarSet};
 use bevy_pane_layout::{PaneLayoutPlugin, PaneLayoutSet, RootPaneLayoutNode};
 
@@ -10,8 +11,11 @@ pub struct EditorUIPlugin;
 impl Plugin for EditorUIPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, ui_setup.in_set(UISet))
-            .configure_sets(Startup, (PaneLayoutSet, MenuBarSet).after(UISet))
-            .add_plugins((PaneLayoutPlugin, MenuBarPlugin));
+            .configure_sets(
+                Startup,
+                (PaneLayoutSet, MenuBarSet, FooterBarSet).after(UISet),
+            )
+            .add_plugins((PaneLayoutPlugin, MenuBarPlugin, FooterBarPlugin));
     }
 }
 
@@ -39,7 +43,6 @@ fn ui_setup(mut commands: Commands, theme: Res<Theme>) {
 
                 display: Display::Flex,
                 flex_direction: FlexDirection::Column,
-                flex_basis: Val::Percent(100.0),
 
                 ..Default::default()
             },
@@ -49,5 +52,6 @@ fn ui_setup(mut commands: Commands, theme: Res<Theme>) {
         .with_children(|parent| {
             parent.spawn(MenuBarNode);
             parent.spawn(RootPaneLayoutNode);
+            parent.spawn(FooterBarNode);
         });
 }

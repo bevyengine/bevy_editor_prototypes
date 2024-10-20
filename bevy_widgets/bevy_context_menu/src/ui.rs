@@ -21,6 +21,13 @@ pub(crate) fn spawn_context_menu<'a>(
                 width: Val::Px(300.),
                 ..default()
             },
+            BoxShadow {
+                blur_radius: Val::Px(3.),
+                x_offset: Val::ZERO,
+                y_offset: Val::ZERO,
+                color: Color::BLACK.with_alpha(0.8),
+                ..Default::default()
+            },
             theme.context_menu_background_color,
             theme.border_radius,
         ))

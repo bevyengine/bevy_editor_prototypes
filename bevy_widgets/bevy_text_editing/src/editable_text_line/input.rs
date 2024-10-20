@@ -11,6 +11,7 @@ pub fn on_click(
     mut commands: Commands,
     mut q_editable_texts: Query<(&mut EditableTextLine, &mut EditableTextInner)>,
     q_texts: Query<(&ComputedNode, &GlobalTransform)>,
+    key_states: Res<ButtonInput<KeyCode>>,
 ) {
     let entity = click.entity();
     let Ok((mut text_line, mut inner)) = q_editable_texts.get_mut(entity) else {
@@ -20,6 +21,8 @@ pub fn on_click(
     let Ok((node, global_transform)) = q_texts.get(inner.text) else {
         return;
     };
+
+    let shift_pressed = key_states.pressed(KeyCode::ShiftLeft);
 
     info!("Clicked on editable text line {}", entity);
 
@@ -37,6 +40,12 @@ pub fn on_click(
         cursor_pos = text_line.text.chars().count();
     }
 
+    if shift_pressed && text_line.selection_start.is_none() {
+        // Set selection start on previous cursor position
+        text_line.selection_start = text_line.cursor_position;
+    } else if !shift_pressed {
+        text_line.selection_start = None;
+    }
     text_line.cursor_position = Some(CharPosition(cursor_pos));
 
     commands.trigger_targets(SetFocus, entity);

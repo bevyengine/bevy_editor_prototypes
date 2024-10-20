@@ -62,7 +62,7 @@ pub struct EditableTextLine {
 }
 
 impl EditableTextLine {
-    /// Create new editable text line
+    /// Create uncontrolled editable text line
     pub fn new(text: impl Into<String>) -> Self {
         Self {
             text: text.into(),
@@ -77,6 +77,20 @@ impl EditableTextLine {
             controlled_widget: true,
             ..default()
         }
+    }
+
+    /// Create uncontrolled editable text line
+    pub fn uncontrolled(text: impl Into<String>) -> Self {
+        Self {
+            text: text.into(),
+            ..default()
+        }
+    }
+
+    /// Change mode to controlled
+    pub fn with_controlled(mut self) -> Self {
+        self.controlled_widget = true;
+        self
     }
 
     /// Get selection char range

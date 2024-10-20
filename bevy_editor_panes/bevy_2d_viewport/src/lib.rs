@@ -135,11 +135,14 @@ fn on_pane_creation(
 }
 
 fn update_render_target_size(
-    query: Query<(Entity, &Bevy2dViewport), Changed<Node>>,
+    query: Query<(Entity, &Bevy2dViewport)>,
     mut camera_query: Query<(&Camera, &mut EditorCamera2d)>,
     content: Query<&PaneContentNode>,
     children_query: Query<&Children>,
-    pos_query: Query<(&ComputedNode, &GlobalTransform)>,
+    pos_query: Query<
+        (&ComputedNode, &GlobalTransform),
+        Or<(Changed<ComputedNode>, Changed<GlobalTransform>)>,
+    >,
     mut images: ResMut<Assets<Image>>,
 ) {
     for (pane_root, viewport) in &query {
@@ -148,8 +151,10 @@ fn update_render_target_size(
             .find(|e| content.contains(*e))
             .unwrap();
 
+        let Ok((computed_node, global_transform)) = pos_query.get(content_node_id) else {
+            continue;
+        };
         // TODO Convert to physical pixels
-        let (computed_node, global_transform) = pos_query.get(content_node_id).unwrap();
         let content_node_size = computed_node.size();
 
         let node_position = global_transform.translation().xy();

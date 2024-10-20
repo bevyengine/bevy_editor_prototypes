@@ -14,7 +14,7 @@ pub fn on_click(
     key_states: Res<ButtonInput<KeyCode>>,
 ) {
     let entity = click.entity();
-    let Ok((mut text_line, mut inner)) = q_editable_texts.get_mut(entity) else {
+    let Ok((mut text_line, inner)) = q_editable_texts.get_mut(entity) else {
         return;
     };
 
@@ -206,7 +206,7 @@ pub fn keyboard_input(
                     if key_states.pressed(KeyCode::ControlLeft) {
                         continue; // ignore control characters
                     }
-                    let mut chars = c.chars().collect::<Vec<_>>();
+                    let chars = c.chars().collect::<Vec<_>>();
                     need_render = true;
 
                     if let Some((start, end)) = text_field.selection_range() {

@@ -5,7 +5,6 @@ pub fn render_system(
     trigger: Trigger<RenderWidget>,
     mut commands: Commands,
     q_editable_texts: Query<(Entity, &EditableTextLine, &EditableTextInner)>,
-    mut q_nodes: Query<&mut Node>,
     mut q_texts: Query<&mut Text>,
     q_cursors: Query<Entity, With<Cursor>>,
 ) {
@@ -81,13 +80,11 @@ pub fn render_system(
 }
 
 pub(crate) fn set_cursor_pos(
-    mut commands: Commands,
-    mut q_text_fields: Query<(Entity, &EditableTextLine, &mut EditableTextInner)>,
-    q_transforms: Query<&GlobalTransform>,
+    q_text_fields: Query<(&EditableTextLine, &EditableTextInner)>,
     mut q_nodes: Query<&mut Node>,
     q_computed_nodes: Query<&ComputedNode>,
 ) {
-    for (entity, text_field, mut inner) in q_text_fields.iter_mut() {
+    for (text_field, inner) in q_text_fields.iter() {
         if text_field.cursor_position.is_some() {
             let Ok(mut cursor_node) = q_nodes.get_mut(inner.cursor) else {
                 continue;

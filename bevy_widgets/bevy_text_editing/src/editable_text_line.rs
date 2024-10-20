@@ -39,7 +39,10 @@ impl Plugin for EditableTextLinePlugin {
         app.add_event::<TextChanged>();
         app.add_event::<RenderWidget>();
 
-        app.add_systems(PreUpdate, (spawn_system, keyboard_input));
+        app.add_systems(
+            PreUpdate,
+            (spawn_system, keyboard_input, check_cursor_overflow),
+        );
         app.add_observer(set_text_trigger);
         app.add_observer(on_click);
         app.add_observer(render_system);
@@ -151,6 +154,9 @@ pub struct EditableTextInner {
 
     fake_text_before_selection: Entity,
     fake_selection_text: Entity,
+
+    /// Canvas shift to the left to keep cursor visible in the text field
+    text_shift: f32,
 }
 
 #[derive(Event)]
@@ -174,9 +180,12 @@ impl RenderWidget {
 
 fn spawn_system(
     mut commands: Commands,
-    q_texts: Query<(Entity, &EditableTextLine), Without<EditableTextInner>>,
+    mut q_texts: Query<(Entity, &EditableTextLine, &mut Node), Without<EditableTextInner>>,
 ) {
-    for (e, text) in q_texts.iter() {
+    for (e, text, mut node) in q_texts.iter_mut() {
+        // Set important properties of the node
+        node.overflow = Overflow::clip();
+
         let cursor = commands
             .spawn((
                 Node {
@@ -193,6 +202,7 @@ fn spawn_system(
                 Text::new("".to_string()),
                 TextColor(Color::srgba(0.0, 0.0, 0.0, 0.0)),
                 Node { ..default() },
+                TextLayout::new_with_no_wrap(),
             ))
             .id();
 
@@ -217,6 +227,7 @@ fn spawn_system(
                 Text::new("".to_string()),
                 TextColor(Color::srgba(0.0, 0.0, 0.0, 0.0)),
                 Node { ..default() },
+                TextLayout::new_with_no_wrap(),
             ))
             .id();
 
@@ -226,6 +237,7 @@ fn spawn_system(
                 BackgroundColor(TEXT_SELECTION_COLOR),
                 Visibility::Hidden,
                 Node { ..default() },
+                TextLayout::new_with_no_wrap(),
             ))
             .id();
 
@@ -258,6 +270,7 @@ fn spawn_system(
                     top: Val::Px(0.0),
                     ..default()
                 },
+                TextLayout::new_with_no_wrap(),
             ))
             .id();
 
@@ -285,6 +298,7 @@ fn spawn_system(
                 canvas,
                 fake_text_before_selection,
                 fake_selection_text,
+                text_shift: 0.0,
             })
             .add_child(canvas);
     }

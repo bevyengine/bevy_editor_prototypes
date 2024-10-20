@@ -32,7 +32,7 @@ fn setup(mut commands: Commands) {
                     height: Val::Px(25.0),
                     ..Default::default()
                 },
-                BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.5)),
+                BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.5)), // We can use any background color (or any borders/border color)
             ));
         });
 }

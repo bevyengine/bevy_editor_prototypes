@@ -69,6 +69,7 @@ pub fn keyboard_input(
     current_cursor.0 = current_cursor.0.clamp(0, text_field.text.chars().count());
 
     let mut need_render = false;
+    let mut next_text = text_field.text.clone();
 
     // check for Ctrl-C, Ctrl-V, Ctrl-A etc
     if key_states.pressed(KeyCode::ControlLeft) {
@@ -91,17 +92,16 @@ pub fn keyboard_input(
                 Ok(text) => {
                     if text_field.selection_start.is_none() {
                         let currsor_byte_pos = text_field.get_byte_position(current_cursor);
-                        text_field.text.insert_str(currsor_byte_pos, &text);
+                        next_text = text_field.text.clone();
+                        next_text.insert_str(currsor_byte_pos, &text);
                         current_cursor = CharPosition(currsor_byte_pos + text.chars().count());
                     } else {
                         let selected_range = text_field.selection_range().unwrap();
                         let start_byte_pos = text_field.get_byte_position(selected_range.0);
                         let end_byte_pos = text_field.get_byte_position(selected_range.1);
-                        text_field
-                            .text
-                            .replace_range(start_byte_pos..end_byte_pos, &text);
+                        next_text = text_field.text.clone();
+                        next_text.replace_range(start_byte_pos..end_byte_pos, &text);
                         current_cursor = selected_range.0 + CharPosition(text.chars().count());
-
                         text_field.selection_start = None;
                     }
                 }
@@ -122,9 +122,8 @@ pub fn keyboard_input(
             if let Some(selected_range) = text_field.selection_range() {
                 let start_byte_pos = text_field.get_byte_position(selected_range.0);
                 let end_byte_pos = text_field.get_byte_position(selected_range.1);
-                text_field
-                    .text
-                    .replace_range(start_byte_pos..end_byte_pos, "");
+                next_text = text_field.text.clone();
+                next_text.replace_range(start_byte_pos..end_byte_pos, "");
                 current_cursor = selected_range.0;
                 text_field.selection_start = None;
             }
@@ -153,13 +152,13 @@ pub fn keyboard_input(
                     if let Some((start, end)) = text_field.selection_range() {
                         let start_byte_pos = text_field.get_byte_position(start);
                         let end_byte_pos = text_field.get_byte_position(end);
-                        text_field
-                            .text
-                            .replace_range(start_byte_pos..end_byte_pos, " ");
+                        next_text = text_field.text.clone();
+                        next_text.replace_range(start_byte_pos..end_byte_pos, " ");
                         current_cursor = start + CharPosition(1);
                     } else {
                         let currsor_byte_pos = text_field.get_byte_position(current_cursor);
-                        text_field.text.insert(currsor_byte_pos, ' ');
+                        next_text = text_field.text.clone();
+                        next_text.insert(currsor_byte_pos, ' ');
                         current_cursor = CharPosition(currsor_byte_pos + 1);
                     }
 
@@ -171,9 +170,8 @@ pub fn keyboard_input(
                     if let Some((start, end)) = text_field.selection_range() {
                         let start_byte_pos = text_field.get_byte_position(start);
                         let end_byte_pos = text_field.get_byte_position(end);
-                        text_field
-                            .text
-                            .replace_range(start_byte_pos..end_byte_pos, "");
+                        next_text = text_field.text.clone();
+                        next_text.replace_range(start_byte_pos..end_byte_pos, "");
                         current_cursor = start;
                     } else if current_cursor > CharPosition(0) {
                         let currsor_byte_pos = text_field.get_byte_position(current_cursor);
@@ -182,7 +180,8 @@ pub fn keyboard_input(
                             .next_back()
                             .map(char::len_utf8)
                             .unwrap_or(0);
-                        text_field.text.remove(currsor_byte_pos - prev_char_index);
+                        next_text = text_field.text.clone();
+                        next_text.remove(currsor_byte_pos - prev_char_index);
                         current_cursor = CharPosition(currsor_byte_pos - 1);
                     }
                     text_field.selection_start = None; // clear selection if we write any text
@@ -192,13 +191,13 @@ pub fn keyboard_input(
                     if let Some((start, end)) = text_field.selection_range() {
                         let start_byte_pos = text_field.get_byte_position(start);
                         let end_byte_pos = text_field.get_byte_position(end);
-                        text_field
-                            .text
-                            .replace_range(start_byte_pos..end_byte_pos, "");
+                        next_text = text_field.text.clone();
+                        next_text.replace_range(start_byte_pos..end_byte_pos, "");
                         current_cursor = start;
                     } else if current_cursor < CharPosition(text_field.text.chars().count()) {
                         let currsor_byte_pos = text_field.get_byte_position(current_cursor);
-                        text_field.text.remove(currsor_byte_pos);
+                        next_text = text_field.text.clone();
+                        next_text.remove(currsor_byte_pos);
                         current_cursor = CharPosition(currsor_byte_pos);
                     }
                     text_field.selection_start = None; // clear selection if we write any text
@@ -213,7 +212,8 @@ pub fn keyboard_input(
                     if let Some((start, end)) = text_field.selection_range() {
                         let start_byte_pos = text_field.get_byte_position(start);
                         let end_byte_pos = text_field.get_byte_position(end);
-                        text_field.text.replace_range(
+                        next_text = text_field.text.clone();
+                        next_text.replace_range(
                             start_byte_pos..end_byte_pos,
                             chars.iter().collect::<String>().as_str(),
                         );
@@ -221,7 +221,8 @@ pub fn keyboard_input(
                     } else {
                         for c in chars {
                             let currsor_byte_pos = text_field.get_byte_position(current_cursor);
-                            text_field.text.insert(currsor_byte_pos, c);
+                            next_text = text_field.text.clone();
+                            next_text.insert(currsor_byte_pos, c);
                             current_cursor = CharPosition(currsor_byte_pos + c.len_utf8());
                         }
                     }
@@ -263,5 +264,12 @@ pub fn keyboard_input(
         // cursor position changed hided in if to pervert infinite change triggering
         text_field.cursor_position = Some(current_cursor);
         commands.trigger_targets(RenderWidget::show_cursor(), entity);
+
+        if text_field.text != next_text {
+            commands.trigger_targets(TextChanged(next_text.clone()), entity);
+            if !text_field.controlled_widget {
+                text_field.text = next_text;
+            }
+        }
     }
 }

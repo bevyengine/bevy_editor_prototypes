@@ -28,7 +28,7 @@ pub fn render_system(
             };
             cursor_fake_text.0 = text_line
                 .get_text_range((CharPosition(0), cursor_pos))
-                .unwrap();
+                .unwrap_or_default();
 
             if !q_cursors.contains(inner.cursor) {
                 commands.entity(inner.cursor).insert((
@@ -36,6 +36,13 @@ pub fn render_system(
                     Visibility::Visible,
                     BackgroundColor(Color::srgb(1.0, 1.0, 1.0)),
                 ));
+            }
+
+            if trigger.show_cursor {
+                commands
+                    .entity(inner.cursor)
+                    .insert(Cursor::default())
+                    .insert(Visibility::Visible);
             }
         } else {
             commands
@@ -69,6 +76,83 @@ pub fn render_system(
             commands
                 .entity(inner.fake_selection_text)
                 .insert(Visibility::Hidden);
+        }
+    }
+}
+
+pub(crate) fn check_cursor_overflow(
+    mut commands: Commands,
+    mut q_text_fields: Query<(Entity, &EditableTextLine, &mut EditableTextInner)>,
+    q_transforms: Query<&GlobalTransform>,
+    mut q_nodes: Query<&mut Node>,
+    q_computed_nodes: Query<&ComputedNode>,
+) {
+    for (entity, text_field, mut inner) in q_text_fields.iter_mut() {
+        let Ok(text_field_node) = q_computed_nodes.get(entity) else {
+            return;
+        };
+        let Ok(text_field_transform) = q_transforms.get(entity) else {
+            return;
+        };
+
+        let Ok(mut canvas_node) = q_nodes.get_mut(inner.canvas) else {
+            return;
+        };
+
+        let Ok(cursor_node) = q_computed_nodes.get(inner.cursor) else {
+            return;
+        };
+
+        if text_field.cursor_position.is_some() {
+            let Ok(cursor_transform) = q_transforms.get(inner.cursor) else {
+                return;
+            };
+
+            // Check that we have computed size of nodes
+            // Check that we can see the cursor
+            let padding = 10.0;
+
+            info!(
+                "Cursor dpos: {:?}",
+                cursor_transform.translation().x - text_field_transform.translation().x
+            );
+
+            if (cursor_transform.translation().x - text_field_transform.translation().x)
+                > text_field_node.size().x / 2.0 - padding
+            {
+                //Debug info ith all values
+                info!(
+                    "{} {}",
+                    cursor_transform.translation().x,
+                    text_field_transform.translation().x
+                );
+                info!(
+                    "{} {}",
+                    text_field_node.size().x,
+                    text_field_node.size().x / 2.0
+                );
+
+                inner.text_shift += cursor_transform.translation().x
+                    - text_field_transform.translation().x
+                    - text_field_node.size().x / 2.0
+                    + padding;
+                canvas_node.left = Val::Px(-inner.text_shift);
+                commands.trigger_targets(RenderWidget::default(), entity);
+            } else if (cursor_transform.translation().x - text_field_transform.translation().x)
+                < -text_field_node.size().x / 2.0 + padding
+            {
+                inner.text_shift += cursor_transform.translation().x
+                    - text_field_transform.translation().x
+                    + text_field_node.size().x / 2.0
+                    - padding;
+                canvas_node.left = Val::Px(-inner.text_shift);
+                commands.trigger_targets(RenderWidget::default(), entity);
+            }
+        } else if inner.text_shift != 0.0 {
+            info!("Reset shift {:?}", entity);
+            inner.text_shift = 0.0;
+            canvas_node.left = Val::Px(0.0);
+            commands.trigger_targets(RenderWidget::default(), entity);
         }
     }
 }

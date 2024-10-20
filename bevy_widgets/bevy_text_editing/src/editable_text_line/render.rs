@@ -95,11 +95,9 @@ pub(crate) fn check_cursor_overflow(
             return;
         };
 
-        let Ok(mut canvas_node) = q_nodes.get_mut(inner.canvas) else {
-            return;
-        };
-
-        let Ok(cursor_node) = q_computed_nodes.get(inner.cursor) else {
+        let Ok([mut canvas_node, mut cursor_node]) =
+            q_nodes.get_many_mut([inner.canvas, inner.cursor])
+        else {
             return;
         };
 
@@ -107,6 +105,20 @@ pub(crate) fn check_cursor_overflow(
             let Ok(cursor_transform) = q_transforms.get(inner.cursor) else {
                 return;
             };
+
+            let Ok(fake_cursor_text_transform) = q_transforms.get(inner.fake_cursor_text) else {
+                return;
+            };
+
+            let Ok(fake_cursor_text_node) = q_computed_nodes.get(inner.fake_cursor_text) else {
+                return;
+            };
+
+            let Ok(canvas_computed_transform) = q_transforms.get(inner.canvas) else {
+                return;
+            };
+
+            cursor_node.left = Val::Px(fake_cursor_text_node.size().x);
 
             // Check that we have computed size of nodes
             // Check that we can see the cursor

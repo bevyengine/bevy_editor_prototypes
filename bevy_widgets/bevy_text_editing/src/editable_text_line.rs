@@ -191,6 +191,7 @@ fn spawn_system(
                 Node {
                     width: Val::Px(2.0),
                     height: Val::Percent(100.0),
+                    position_type: PositionType::Absolute,
                     ..default()
                 },
                 Visibility::Hidden,
@@ -200,7 +201,7 @@ fn spawn_system(
         let fake_cursor_text = commands
             .spawn((
                 Text::new("".to_string()),
-                TextColor(Color::srgba(0.0, 0.0, 0.0, 0.0)),
+                TextColor(Color::srgba(0.0, 1.0, 0.0, 1.0)),
                 Node { ..default() },
                 TextLayout::new_with_no_wrap(),
             ))
@@ -215,6 +216,7 @@ fn spawn_system(
                 flex_direction: FlexDirection::Row,
                 width: Val::Percent(100.0),
                 height: Val::Percent(100.0),
+                flex_wrap: FlexWrap::NoWrap,
                 ..default()
             })
             .id();

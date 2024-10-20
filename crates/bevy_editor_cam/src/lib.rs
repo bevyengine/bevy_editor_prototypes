@@ -104,21 +104,20 @@
 //!
 //! ## Getting Started
 //!
-//! #### 1. Add `bevy_mod_picking`
+//! #### 1. Make sure [`bevy::picking`] is enabled
 //!
 //! The camera controller uses [`bevy::picking`] for pointer interactions. If you already use
-//! the picking plugin, then using this camera controller is essentially free because it can reuse
-//! those same hit tests you are already running.
+//! the [`DefaultPlugins`](bevy::DefaultPlugins) then the picking plugins are included too.
 //!
-//! If you are not using the picking plugin yet, all you need to get started are the default
-//! plugins:
+//! If you are not already using the [`DefaultPlugins`](bevy::DefaultPlugins), all you need to get started are the default
+//! picking plugins:
 //!
 //! ```
 //! # let mut app = bevy::app::App::new();
-//! app.add_plugins(bevy_mod_picking::DefaultPickingPlugins);
+//! app.add_plugins(bevy::picking::DefaultPickingPlugins);
 //! ```
 //!
-//! #### 2. Add `DefaultEditorCamPlugins`
+//! #### 2. Add [`DefaultEditorCamPlugins`]
 //!
 //! This is a plugin group that adds the camera controller, as well as all the [extensions]. You can
 //! instead add [`controller::MinimalEditorCamPlugin`], though you will need to add your own input
@@ -129,7 +128,7 @@
 //! app.add_plugins(bevy_editor_cam::DefaultEditorCamPlugins);
 //! ```
 //!
-//! #### 3. Insert the `EditorCam` component
+//! #### 3. Insert the [`EditorCam`](controller::component::EditorCam) component
 //!
 //! Finally, insert [`controller::component::EditorCam`] onto any cameras that you want to control.
 //! This marks the cameras as controllable and holds all camera controller settings.

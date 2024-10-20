@@ -11,7 +11,7 @@ use bevy::{
 };
 use heck::ToSnakeCase;
 
-use crate::{ListLoad, SettingsTags, SettingsType};
+use crate::{MergeStrategy, SettingsTags, SettingsType};
 
 /// Load a toml file from the given path
 pub fn load_toml_file(path: impl AsRef<std::path::Path>) -> Result<toml::Table, LoadError> {
@@ -134,17 +134,17 @@ fn load_list(
     array: &toml::value::Array,
     attrs: &CustomAttributes,
 ) {
-    let default = ListLoad::default();
-    let merge_strategy = attrs.get::<ListLoad>().unwrap_or(&default);
+    let default = MergeStrategy::default();
+    let merge_strategy = attrs.get::<MergeStrategy>().unwrap_or(&default);
 
     if let Some(item_info) = list_info.item_info() {
         match merge_strategy {
-            ListLoad::Replace => {
+            MergeStrategy::Replace => {
                 while list.len() > 0 {
                     list.remove(list.len() - 1);
                 }
             }
-            ListLoad::Append => {
+            MergeStrategy::Append => {
                 // do nothing
             }
         }

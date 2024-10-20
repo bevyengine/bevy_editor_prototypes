@@ -29,7 +29,7 @@ pub enum SettingsType {
 #[derive(Debug, Clone, Reflect, Default)]
 /// Annotation for a type to show how to merge lists when loading settings.
 /// if not set, the default is to replace the existing list.
-pub enum ListLoad {
+pub enum MergeStrategy {
     #[default]
     /// When Mergeing the list, the new list will replace the existing list.
     Replace,
@@ -118,7 +118,7 @@ mod tests {
     #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
     #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
     struct ListTestingAppend {
-        #[reflect(@ListLoad::Append)]
+        #[reflect(@MergeStrategy::Append)]
         pub list: Vec<i32>,
     }
 

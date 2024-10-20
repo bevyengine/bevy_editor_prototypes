@@ -8,3 +8,6 @@ list = ["three", "four"]
 
 [list_testing_append]
 list = [3,4]
+
+[enum_testing]
+variant = "Two"

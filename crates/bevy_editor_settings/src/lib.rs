@@ -148,4 +148,28 @@ mod tests {
         assert_eq!(settings.list, vec![1, 2, 3, 4]);
     }
 
+
+    #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
+    #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
+    enum EnumTesting {
+        One,
+        Two,
+        Three,
+    }
+
+    #[test]
+    fn test_enum() {
+        let mut app = App::new();
+
+        app.register_type::<EnumTesting>();
+
+        app.insert_resource(EnumTesting::One);
+
+        file_system::load_project_settings(app.world_mut());
+
+        let settings = app.world().get_resource::<EnumTesting>().unwrap();
+
+        assert_eq!(*settings, EnumTesting::Two);
+    }
+
 }

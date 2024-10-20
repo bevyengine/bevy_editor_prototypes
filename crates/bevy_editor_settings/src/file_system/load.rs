@@ -71,9 +71,31 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                         }
                     }
                 }
+                TypeInfo::Enum(enum_info) => {
+                    let s_type = enum_info.custom_attributes().get::<SettingsType>();
+                    if let Some(s_type) = s_type {
+                        check_settings_type!(settings_type, *s_type);
+                        let mut ptr = world.get_resource_mut_by_id(res_id).unwrap();
+                        let reflect_from_ptr = type_reg.data::<ReflectFromPtr>().unwrap();
+                        // SAFE: `value` is of type `Reflected`, which the `ReflectFromPtr` was created for
+                        #[allow(unsafe_code)]
+                        let ReflectMut::Enum(enm) =
+                            unsafe { reflect_from_ptr.as_reflect_mut(ptr.as_mut()) }.reflect_mut()
+                        else {
+                            panic!("Expected Struct");
+                        };
 
-                // Other types cannot be preferences since they don't have attributes.
-                _ => {}
+                        let name = enm.reflect_type_ident().unwrap().to_snake_case();
+
+                        if let Some(table) = table.get(&name).and_then(|v| v.as_table()) {
+                            load_enum(enm, enum_info, table);
+                        }
+                    }
+                }
+
+                _ => {
+                    warn!("Preferences: Unsupported type: {:?}", type_reg.type_info());
+                }
             }
         }
         // println!("Saving preferences for {:?}", res.name());
@@ -118,11 +140,39 @@ fn load_struct(strct: &mut dyn Struct, struct_info: &StructInfo, table: &toml::T
                     load_array(array, array_info, table);
                 }
             }
+            TypeInfo::Enum(enum_info) => {
+                let ReflectMut::Enum(enm) = field_mut.reflect_mut() else {
+                    warn!("Preferences: Expected Enum");
+                    continue;
+                };
+                if let Some(table) = table.get(&key).and_then(|v| v.as_table()) {
+                    load_enum(enm, enum_info, table);
+                }
+            }
             _ => {
                 warn!(
                     "Preferences: Unsupported type: {:?}",
                     field_mut.get_represented_type_info()
                 );
+            }
+        }
+    }
+}
+
+fn load_enum(enm: &mut dyn Enum, enum_info: &EnumInfo, table: &toml::Table) {
+    if let Some(toml_value) = table.get("variant") {
+        match toml_value {
+            toml::Value::String(str_val) => {
+                if let Some(VariantInfo::Unit(variant)) = enum_info.variant(str_val) {
+                    let dyn_enum = DynamicEnum::new(variant.name(), DynamicVariant::Unit);
+                    enm.apply(&dyn_enum);
+                } else {
+                    warn!("Preferences: Unknown variant: {}", str_val);
+                }
+            }
+            toml::Value::Table(table) => {}
+            _ => {
+                warn!("Preferences: Unsupported type: {:?}", toml_value);
             }
         }
     }
@@ -174,8 +224,6 @@ fn load_list_value(
     }
 }
 
-
-
 fn load_array(array: &mut dyn Array, array_info: &ArrayInfo, table: &toml::value::Array) {
     warn!("Preferences: Arrays are not supported yet");
 }
@@ -184,7 +232,6 @@ fn load_value_boxed(
     value_info: &ValueInfo,
     value: &toml::Value,
 ) -> Option<Box<dyn PartialReflect>> {
-   
     match value {
         toml::Value::String(str_val) => {
             if value_info.is::<String>() {
@@ -198,15 +245,23 @@ fn load_value_boxed(
             if value_info.is::<f64>() {
                 Some(Box::new(*int_val as f64))
             } else if value_info.is::<f32>() {
-                Some(Box::new((*int_val).clamp(f32::MIN as i64, f32::MAX as i64) as f32))
+                Some(Box::new(
+                    (*int_val).clamp(f32::MIN as i64, f32::MAX as i64) as f32
+                ))
             } else if value_info.is::<i64>() {
                 Some(Box::new(*int_val))
             } else if value_info.is::<i32>() {
-                Some(Box::new((*int_val).clamp(i32::MIN as i64, i32::MAX as i64) as i32))
+                Some(Box::new(
+                    (*int_val).clamp(i32::MIN as i64, i32::MAX as i64) as i32
+                ))
             } else if value_info.is::<i16>() {
-                Some(Box::new((*int_val).clamp(i16::MIN as i64, i16::MAX as i64) as i16))
+                Some(Box::new(
+                    (*int_val).clamp(i16::MIN as i64, i16::MAX as i64) as i16
+                ))
             } else if value_info.is::<i8>() {
-                Some(Box::new((*int_val).clamp(i8::MIN as i64, i8::MAX as i64) as i8))
+                Some(Box::new(
+                    (*int_val).clamp(i8::MIN as i64, i8::MAX as i64) as i8
+                ))
             } else if value_info.is::<u64>() {
                 Some(Box::new((*int_val).max(0) as u64))
             } else if value_info.is::<u32>() {
@@ -224,7 +279,9 @@ fn load_value_boxed(
             if value_info.is::<f64>() {
                 Some(Box::new(*float_val))
             } else if value_info.is::<f32>() {
-                Some(Box::new(float_val.clamp(f32::MIN as f64, f32::MAX as f64) as f32))
+                Some(Box::new(
+                    float_val.clamp(f32::MIN as f64, f32::MAX as f64) as f32
+                ))
             } else {
                 warn!("Preferences: Expected {:?}, got Float", value_info);
                 None

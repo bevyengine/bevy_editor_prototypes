@@ -201,7 +201,7 @@ fn spawn_system(
         let fake_cursor_text = commands
             .spawn((
                 Text::new("".to_string()),
-                TextColor(Color::srgba(0.0, 1.0, 0.0, 1.0)),
+                TextColor(Color::srgba(0.0, 0.0, 0.0, 0.0)),
                 Node { ..default() },
                 TextLayout::new_with_no_wrap(),
             ))

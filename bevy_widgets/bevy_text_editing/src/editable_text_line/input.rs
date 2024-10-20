@@ -1,10 +1,12 @@
+use crate::text_change::TextChange;
+
 use super::*;
 use bevy::{
     input::keyboard::{Key, KeyboardInput},
     prelude::*,
 };
 use bevy_clipboard::BevyClipboard;
-use bevy_focus::Focus;
+use bevy_focus::{Focus, LostFocus};
 
 pub fn on_click(
     click: Trigger<Pointer<Click>>,
@@ -69,7 +71,7 @@ pub fn keyboard_input(
     current_cursor.0 = current_cursor.0.clamp(0, text_field.text.chars().count());
 
     let mut need_render = false;
-    let mut next_text = text_field.text.clone();
+    let mut text_change = TextChange::nop_change();
 
     // check for Ctrl-C, Ctrl-V, Ctrl-A etc
     if key_states.pressed(KeyCode::ControlLeft) {
@@ -91,16 +93,11 @@ pub fn keyboard_input(
             match clipboard.get_text() {
                 Ok(text) => {
                     if text_field.selection_start.is_none() {
-                        let currsor_byte_pos = text_field.get_byte_position(current_cursor);
-                        next_text = text_field.text.clone();
-                        next_text.insert_str(currsor_byte_pos, &text);
-                        current_cursor = CharPosition(currsor_byte_pos + text.chars().count());
+                        text_change = TextChange::insert_change(current_cursor, text.clone());
+                        current_cursor = CharPosition(current_cursor.0 + text.chars().count());
                     } else {
                         let selected_range = text_field.selection_range().unwrap();
-                        let start_byte_pos = text_field.get_byte_position(selected_range.0);
-                        let end_byte_pos = text_field.get_byte_position(selected_range.1);
-                        next_text = text_field.text.clone();
-                        next_text.replace_range(start_byte_pos..end_byte_pos, &text);
+                        text_change = TextChange::new(selected_range, text.clone());
                         current_cursor = selected_range.0 + CharPosition(text.chars().count());
                         text_field.selection_start = None;
                     }
@@ -120,10 +117,7 @@ pub fn keyboard_input(
                 }
             }
             if let Some(selected_range) = text_field.selection_range() {
-                let start_byte_pos = text_field.get_byte_position(selected_range.0);
-                let end_byte_pos = text_field.get_byte_position(selected_range.1);
-                next_text = text_field.text.clone();
-                next_text.replace_range(start_byte_pos..end_byte_pos, "");
+                text_change = TextChange::remove_change(selected_range);
                 current_cursor = selected_range.0;
                 text_field.selection_start = None;
             }
@@ -150,16 +144,11 @@ pub fn keyboard_input(
                     need_render = true;
 
                     if let Some((start, end)) = text_field.selection_range() {
-                        let start_byte_pos = text_field.get_byte_position(start);
-                        let end_byte_pos = text_field.get_byte_position(end);
-                        next_text = text_field.text.clone();
-                        next_text.replace_range(start_byte_pos..end_byte_pos, " ");
+                        text_change = TextChange::new((start, end), " ");
                         current_cursor = start + CharPosition(1);
                     } else {
-                        let currsor_byte_pos = text_field.get_byte_position(current_cursor);
-                        next_text = text_field.text.clone();
-                        next_text.insert(currsor_byte_pos, ' ');
-                        current_cursor = CharPosition(currsor_byte_pos + 1);
+                        text_change = TextChange::insert_change(current_cursor, " ");
+                        current_cursor = CharPosition(current_cursor.0 + 1);
                     }
 
                     text_field.selection_start = None; // clear selection if we write any text
@@ -168,37 +157,27 @@ pub fn keyboard_input(
                     need_render = true;
 
                     if let Some((start, end)) = text_field.selection_range() {
-                        let start_byte_pos = text_field.get_byte_position(start);
-                        let end_byte_pos = text_field.get_byte_position(end);
-                        next_text = text_field.text.clone();
-                        next_text.replace_range(start_byte_pos..end_byte_pos, "");
+                        text_change = TextChange::remove_change((start, end));
                         current_cursor = start;
                     } else if current_cursor > CharPosition(0) {
-                        let currsor_byte_pos = text_field.get_byte_position(current_cursor);
-                        let prev_char_index = text_field.text[..currsor_byte_pos]
-                            .chars()
-                            .next_back()
-                            .map(char::len_utf8)
-                            .unwrap_or(0);
-                        next_text = text_field.text.clone();
-                        next_text.remove(currsor_byte_pos - prev_char_index);
-                        current_cursor = CharPosition(currsor_byte_pos - 1);
+                        text_change = TextChange::remove_change((
+                            current_cursor - CharPosition(1),
+                            current_cursor,
+                        ));
+                        current_cursor = current_cursor - 1;
                     }
                     text_field.selection_start = None; // clear selection if we write any text
                 }
                 Key::Delete => {
                     need_render = true;
                     if let Some((start, end)) = text_field.selection_range() {
-                        let start_byte_pos = text_field.get_byte_position(start);
-                        let end_byte_pos = text_field.get_byte_position(end);
-                        next_text = text_field.text.clone();
-                        next_text.replace_range(start_byte_pos..end_byte_pos, "");
+                        text_change = TextChange::remove_change((start, end));
                         current_cursor = start;
                     } else if current_cursor < CharPosition(text_field.text.chars().count()) {
-                        let currsor_byte_pos = text_field.get_byte_position(current_cursor);
-                        next_text = text_field.text.clone();
-                        next_text.remove(currsor_byte_pos);
-                        current_cursor = CharPosition(currsor_byte_pos);
+                        text_change = TextChange::remove_change((
+                            current_cursor,
+                            current_cursor + CharPosition(1),
+                        ));
                     }
                     text_field.selection_start = None; // clear selection if we write any text
                 }
@@ -210,21 +189,15 @@ pub fn keyboard_input(
                     need_render = true;
 
                     if let Some((start, end)) = text_field.selection_range() {
-                        let start_byte_pos = text_field.get_byte_position(start);
-                        let end_byte_pos = text_field.get_byte_position(end);
-                        next_text = text_field.text.clone();
-                        next_text.replace_range(
-                            start_byte_pos..end_byte_pos,
-                            chars.iter().collect::<String>().as_str(),
-                        );
+                        text_change =
+                            TextChange::new((start, end), chars.iter().collect::<String>());
                         current_cursor = start + CharPosition(chars.len());
                     } else {
-                        for c in chars {
-                            let currsor_byte_pos = text_field.get_byte_position(current_cursor);
-                            next_text = text_field.text.clone();
-                            next_text.insert(currsor_byte_pos, c);
-                            current_cursor = CharPosition(currsor_byte_pos + c.len_utf8());
-                        }
+                        text_change = TextChange::insert_change(
+                            current_cursor,
+                            chars.iter().collect::<String>(),
+                        );
+                        current_cursor = current_cursor + CharPosition(chars.len());
                     }
                     text_field.selection_start = None; // clear selection if we write any text
                 }
@@ -265,11 +238,27 @@ pub fn keyboard_input(
         text_field.cursor_position = Some(current_cursor);
         commands.trigger_targets(RenderWidget::show_cursor(), entity);
 
-        if text_field.text != next_text {
-            commands.trigger_targets(TextChanged(next_text.clone()), entity);
+        if text_field.text != text_change.new_text {
+            commands.trigger_targets(TextChanged(text_change.clone()), entity);
             if !text_field.controlled_widget {
-                text_field.text = next_text;
+                text_change.apply(&mut text_field.text);
             }
         }
     }
+}
+
+pub fn on_focus_lost(
+    trigger: Trigger<LostFocus>,
+    mut commands: Commands,
+    mut q_editable_texts: Query<&mut EditableTextLine>,
+) {
+    let entity = trigger.entity();
+    let Ok(mut text_field) = q_editable_texts.get_mut(entity) else {
+        return;
+    };
+
+    text_field.cursor_position = None;
+    text_field.selection_start = None;
+
+    commands.trigger_targets(RenderWidget::default(), entity);
 }

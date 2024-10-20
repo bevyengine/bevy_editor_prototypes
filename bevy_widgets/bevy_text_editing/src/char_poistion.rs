@@ -85,3 +85,11 @@ impl From<usize> for CharPosition {
         Self(value)
     }
 }
+
+pub fn get_byte_position(text: &str, char_position: CharPosition) -> usize {
+    if char_position.0 < text.chars().count() {
+        text.char_indices().nth(char_position.0).unwrap().0
+    } else {
+        text.len()
+    }
+}

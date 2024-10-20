@@ -127,10 +127,10 @@ pub(crate) fn check_cursor_overflow(
             // Check that we can see the cursor
             let padding = 10.0;
 
-            info!(
-                "Cursor dpos: {:?}",
-                cursor_transform.translation().x - text_field_transform.translation().x
-            );
+            // info!(
+            //     "Cursor dpos: {:?}",
+            //     cursor_transform.translation().x - text_field_transform.translation().x
+            // );
 
             if (cursor_transform.translation().x - text_field_transform.translation().x)
                 > text_field_node.size().x / 2.0 - padding

@@ -10,10 +10,11 @@ use bevy::{
     utils::HashSet,
 };
 use bevy_clipboard::ClipboardPlugin;
-use bevy_focus::{FocusPlugin, SetFocus};
+use bevy_focus::{FocusPlugin, Focusable, SetFocus};
 
 use crate::{
     cursor::{Cursor, CursorPlugin},
+    text_change::TextChange,
     CharPosition, TEXT_SELECTION_COLOR,
 };
 
@@ -41,17 +42,24 @@ impl Plugin for EditableTextLinePlugin {
 
         app.add_systems(
             PreUpdate,
-            (spawn_system, keyboard_input, check_cursor_overflow, set_cursor_pos),
+            (
+                spawn_system,
+                keyboard_input,
+                check_cursor_overflow,
+                set_cursor_pos,
+            ),
         );
+
         app.add_observer(set_text_trigger);
         app.add_observer(on_click);
         app.add_observer(render_system);
+        app.add_observer(on_focus_lost);
     }
 }
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component, Default)]
-#[require(Node)]
+#[require(Node, Focusable)]
 pub struct EditableTextLine {
     /// Text content
     pub text: String,
@@ -163,7 +171,7 @@ pub struct EditableTextInner {
 pub struct SetText(pub String);
 
 #[derive(Event)]
-pub struct TextChanged(pub String);
+pub struct TextChanged(pub TextChange);
 
 #[derive(Event, Default, Clone)]
 pub struct RenderWidget {
@@ -308,13 +316,17 @@ fn spawn_system(
 
 fn set_text_trigger(
     trigger: Trigger<SetText>,
-    mut q_texts: Query<&mut Text, With<EditableTextLine>>,
+    mut commands: Commands,
+    mut q_texts: Query<&mut EditableTextLine>,
 ) {
     let entity = trigger.entity();
-    let Ok(mut text) = q_texts.get_mut(entity) else {
+    let Ok(mut line) = q_texts.get_mut(entity) else {
         return;
     };
 
-    text.0 = trigger.0.clone();
+    line.text = trigger.0.clone();
     info!("Set text for {} to {}", entity, trigger.0);
+
+    // Trigger rerender
+    commands.trigger_targets(RenderWidget::default(), entity);
 }

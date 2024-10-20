@@ -91,7 +91,7 @@ fn load_struct(strct: &mut dyn Struct, struct_info: &StructInfo, table: &toml::T
                     load_value(field_mut, value_info, value)
                 }
             }
-            TypeInfo::Struct(_) => {
+            TypeInfo::Struct(struct_info) => {
                 if let Some(table) = table.get(&key).and_then(|v| v.as_table()) {
                     let ReflectMut::Struct(strct) = field_mut.reflect_mut() else {
                         warn!("Preferences: Expected Struct");
@@ -158,75 +158,90 @@ fn load_list_value(
     list: &mut dyn List,
     list_info: &ListInfo,
     value: &toml::Value,
-    value_info: &TypeInfo,
+    item_info: &TypeInfo,
 ) {
-    match value {
-        toml::Value::String(str_val) => {
-            if value_info.is::<String>() {
-                list.push(Box::new(str_val.clone()));
-            } else {
-                warn!("Preferences: Expected {:?}, got String", list_info);
-            }
-        }
-        toml::Value::Integer(int_val) => {
-            if value_info.is::<f64>() {
-                list.push(Box::new(*int_val as f64));
-            } else if value_info.is::<f32>() {
-                list.push(Box::new(
-                    (*int_val).clamp(f32::MIN as i64, f32::MAX as i64) as f32
-                ));
-            } else if value_info.is::<i64>() {
-                list.push(Box::new(*int_val));
-            } else if value_info.is::<i32>() {
-                list.push(Box::new(
-                    (*int_val).clamp(i32::MIN as i64, i32::MAX as i64) as i32
-                ));
-            } else if value_info.is::<i16>() {
-                list.push(Box::new(
-                    (*int_val).clamp(i16::MIN as i64, i16::MAX as i64) as i16
-                ));
-            } else if value_info.is::<i8>() {
-                list.push(Box::new(
-                    (*int_val).clamp(i8::MIN as i64, i8::MAX as i64) as i8
-                ));
-            } else if value_info.is::<u64>() {
-                list.push(Box::new((*int_val).max(0) as u64));
-            } else if value_info.is::<u32>() {
-                list.push(Box::new((*int_val).max(0) as u32));
-            } else if value_info.is::<u16>() {
-                list.push(Box::new((*int_val).max(0) as u16));
-            } else if value_info.is::<u8>() {
-                list.push(Box::new((*int_val).max(0) as u8));
-            } else {
-                warn!("Preferences: Expected {:?}, got Integer", list_info);
-            }
-        }
-        toml::Value::Float(float_val) => {
-            if value_info.is::<f64>() {
-                list.push(Box::new(*float_val));
-            } else if value_info.is::<f32>() {
-                list.push(Box::new(
-                    float_val.clamp(f32::MIN as f64, f32::MAX as f64) as f32
-                ));
-            } else {
-                warn!("Preferences: Expected {:?}, got Float", list_info);
-            }
-        }
-        toml::Value::Boolean(bool_val) => {
-            if value_info.is::<bool>() {
-                list.push(Box::new(*bool_val));
-            } else {
-                warn!("Preferences: Expected {:?}, got Bool", list_info);
+    match item_info {
+        TypeInfo::Value(value_info) => {
+            let value = load_value_boxed(value_info, value);
+            if let Some(value) = value {
+                list.push(value);
             }
         }
         _ => {
-            warn!("Preferences: Unsupported type: {:?}", value);
+            warn!("Preferences: Unsupported type: {:?}", item_info);
         }
     }
 }
 
+
+
 fn load_array(array: &mut dyn Array, array_info: &ArrayInfo, table: &toml::value::Array) {
     warn!("Preferences: Arrays are not supported yet");
+}
+
+fn load_value_boxed(
+    value_info: &ValueInfo,
+    value: &toml::Value,
+) -> Option<Box<dyn PartialReflect>> {
+   
+    match value {
+        toml::Value::String(str_val) => {
+            if value_info.is::<String>() {
+                Some(Box::new(str_val.clone()))
+            } else {
+                warn!("Preferences: Expected {:?}, got String", value_info);
+                None
+            }
+        }
+        toml::Value::Integer(int_val) => {
+            if value_info.is::<f64>() {
+                Some(Box::new(*int_val as f64))
+            } else if value_info.is::<f32>() {
+                Some(Box::new((*int_val).clamp(f32::MIN as i64, f32::MAX as i64) as f32))
+            } else if value_info.is::<i64>() {
+                Some(Box::new(*int_val))
+            } else if value_info.is::<i32>() {
+                Some(Box::new((*int_val).clamp(i32::MIN as i64, i32::MAX as i64) as i32))
+            } else if value_info.is::<i16>() {
+                Some(Box::new((*int_val).clamp(i16::MIN as i64, i16::MAX as i64) as i16))
+            } else if value_info.is::<i8>() {
+                Some(Box::new((*int_val).clamp(i8::MIN as i64, i8::MAX as i64) as i8))
+            } else if value_info.is::<u64>() {
+                Some(Box::new((*int_val).max(0) as u64))
+            } else if value_info.is::<u32>() {
+                Some(Box::new((*int_val).max(0) as u32))
+            } else if value_info.is::<u16>() {
+                Some(Box::new((*int_val).max(0) as u16))
+            } else if value_info.is::<u8>() {
+                Some(Box::new((*int_val).max(0) as u8))
+            } else {
+                warn!("Preferences: Expected {:?}, got Integer", value_info);
+                None
+            }
+        }
+        toml::Value::Float(float_val) => {
+            if value_info.is::<f64>() {
+                Some(Box::new(*float_val))
+            } else if value_info.is::<f32>() {
+                Some(Box::new(float_val.clamp(f32::MIN as f64, f32::MAX as f64) as f32))
+            } else {
+                warn!("Preferences: Expected {:?}, got Float", value_info);
+                None
+            }
+        }
+        toml::Value::Boolean(bool_val) => {
+            if value_info.is::<bool>() {
+                Some(Box::new(*bool_val))
+            } else {
+                warn!("Preferences: Expected {:?}, got Bool", value_info);
+                None
+            }
+        }
+        _ => {
+            warn!("Preferences: Unsupported type: {:?}", value);
+            None
+        }
+    }
 }
 
 fn load_value(field: &mut dyn PartialReflect, value_info: &ValueInfo, value: &toml::Value) {

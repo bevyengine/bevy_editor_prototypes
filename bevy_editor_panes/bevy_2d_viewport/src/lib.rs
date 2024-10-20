@@ -92,6 +92,7 @@ fn on_pane_creation(
                 ..Default::default()
             },
             Node {
+                position_type: PositionType::Absolute,
                 top: Val::ZERO,
                 bottom: Val::ZERO,
                 left: Val::ZERO,
@@ -166,8 +167,8 @@ fn update_render_target_size(
 
         let image_handle = camera.target.as_image().unwrap();
         let size = Extent3d {
-            width: content_node_size.x as u32,
-            height: content_node_size.y as u32,
+            width: u32::max(1, content_node_size.x as u32),
+            height: u32::max(1, content_node_size.y as u32),
             depth_or_array_layers: 1,
         };
         images.get_mut(image_handle).unwrap().resize(size);

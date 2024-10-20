@@ -51,6 +51,7 @@ pub(crate) fn spawn_pane<'a>(
                 width: Val::Percent(100.),
                 height: Val::Px(27.),
                 align_items: AlignItems::Center,
+                flex_shrink: 0.,
                 ..default()
             },
             theme.pane_header_background_color,
@@ -93,6 +94,10 @@ pub(crate) fn spawn_pane<'a>(
             Text::new(name),
             TextFont {
                 font_size: 14.,
+                ..default()
+            },
+            Node {
+                flex_shrink: 0.,
                 ..default()
             },
         ));

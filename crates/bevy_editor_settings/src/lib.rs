@@ -157,19 +157,35 @@ mod tests {
         Three,
     }
 
+    #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
+    #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
+    struct EnumSettings {
+        pub setting: EnumTesting,
+    }
+
     #[test]
     fn test_enum() {
         let mut app = App::new();
 
         app.register_type::<EnumTesting>();
+        app.register_type::<EnumSettings>();
 
         app.insert_resource(EnumTesting::One);
+        app.insert_resource(EnumSettings {
+            setting: EnumTesting::Two,
+        });
 
         file_system::load_project_settings(app.world_mut());
 
         let settings = app.world().get_resource::<EnumTesting>().unwrap();
 
         assert_eq!(*settings, EnumTesting::Two);
+
+        let settings = app.world().get_resource::<EnumSettings>().unwrap();
+
+        assert_eq!(*settings, EnumSettings {
+            setting: EnumTesting::Three,
+        });
     }
 
 }

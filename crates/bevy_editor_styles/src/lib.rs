@@ -39,24 +39,40 @@ pub struct Theme {
 
     /// The background color of the viewports.
     pub viewport_background_color: Color,
+
+    /// The text color for low priority text. Text that the user doesn't need to see but is convenient to have visible.
+    pub low_priority_text_color: Color,
+    /// The text color for high priority text. Text that the user needs to see asap.
+    pub high_priority_text_color: Color,
 }
 
 impl Default for Theme {
     fn default() -> Self {
         Self {
-            background_color: BackgroundColor(Color::oklch(0.209, 0.0, 0.0)),
-            pane_header_background_color: BackgroundColor(Color::oklch(0.3407, 0.0, 0.0)),
-            pane_area_background_color: BackgroundColor(Color::oklch(0.3677, 0.0, 0.0)),
-            text_color: Color::oklch(0.9219, 0.0, 0.0),
-            menu_bar_color: BackgroundColor(Color::oklch(0.209, 0.0, 0.0)),
+            // General styles
             border_radius: BorderRadius::all(Val::Px(8.)),
-            pane_header_border_radius: BorderRadius::top(Val::Px(8.)),
-
-            context_menu_background_color: Color::oklch(0.209, 0., 0.).into(),
-            context_menu_button_hover_background_color: Color::oklch(0.3677, 0., 0.).into(),
+            background_color: BackgroundColor(Color::oklch(0.209, 0.0, 0.0)),
             button_border_radius: BorderRadius::all(Val::Px(3.)),
 
+            // Pane layout styles
+            pane_header_background_color: BackgroundColor(Color::oklch(0.3407, 0.0, 0.0)),
+            pane_area_background_color: BackgroundColor(Color::oklch(0.3677, 0.0, 0.0)),
+            pane_header_border_radius: BorderRadius::top(Val::Px(8.)),
+
+            // Menu bar styles
+            menu_bar_color: BackgroundColor(Color::oklch(0.209, 0.0, 0.0)),
+
+            // Context menu styles
+            context_menu_background_color: Color::oklch(0.209, 0., 0.).into(),
+            context_menu_button_hover_background_color: Color::oklch(0.3677, 0., 0.).into(),
+
+            // Viewport styles
             viewport_background_color: Color::oklch(0.3677, 0.0, 0.0),
+
+            // Text styles
+            low_priority_text_color: Color::oklch(0.50, 0.0, 0.0),
+            text_color: Color::oklch(0.9219, 0.0, 0.0),
+            high_priority_text_color: Color::oklch(0.209, 0.0, 0.0),
         }
     }
 }

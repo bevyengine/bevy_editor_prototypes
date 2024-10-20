@@ -88,7 +88,9 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                         let name = enm.reflect_type_ident().unwrap().to_snake_case();
 
                         if let Some(table) = table.get(&name).and_then(|v| v.as_table()) {
-                            load_enum(enm, enum_info, table);
+                            if let Some(value) = table.get("variant") {
+                                load_enum(enm, enum_info, value);
+                            }
                         }
                     }
                 }
@@ -145,8 +147,8 @@ fn load_struct(strct: &mut dyn Struct, struct_info: &StructInfo, table: &toml::T
                     warn!("Preferences: Expected Enum");
                     continue;
                 };
-                if let Some(table) = table.get(&key).and_then(|v| v.as_table()) {
-                    load_enum(enm, enum_info, table);
+                if let Some(value) = table.get(&key) {
+                    load_enum(enm, enum_info, value);
                 }
             }
             _ => {
@@ -159,21 +161,19 @@ fn load_struct(strct: &mut dyn Struct, struct_info: &StructInfo, table: &toml::T
     }
 }
 
-fn load_enum(enm: &mut dyn Enum, enum_info: &EnumInfo, table: &toml::Table) {
-    if let Some(toml_value) = table.get("variant") {
-        match toml_value {
-            toml::Value::String(str_val) => {
-                if let Some(VariantInfo::Unit(variant)) = enum_info.variant(str_val) {
-                    let dyn_enum = DynamicEnum::new(variant.name(), DynamicVariant::Unit);
-                    enm.apply(&dyn_enum);
-                } else {
-                    warn!("Preferences: Unknown variant: {}", str_val);
-                }
+fn load_enum(enm: &mut dyn Enum, enum_info: &EnumInfo, toml_value: &toml::Value) {
+    match toml_value {
+        toml::Value::String(str_val) => {
+            if let Some(VariantInfo::Unit(variant)) = enum_info.variant(str_val) {
+                let dyn_enum = DynamicEnum::new(variant.name(), DynamicVariant::Unit);
+                enm.apply(&dyn_enum);
+            } else {
+                warn!("Preferences: Unknown variant: {}", str_val);
             }
-            toml::Value::Table(table) => {}
-            _ => {
-                warn!("Preferences: Unsupported type: {:?}", toml_value);
-            }
+        }
+        toml::Value::Table(table) => {}
+        _ => {
+            warn!("Preferences: Unsupported type: {:?}", toml_value);
         }
     }
 }
@@ -199,27 +199,23 @@ fn load_list(
             }
         }
         for value in array.iter() {
-            load_list_value(list, list_info, value, item_info);
-        }
-    }
-}
-
-fn load_list_value(
-    list: &mut dyn List,
-    list_info: &ListInfo,
-    value: &toml::Value,
-    item_info: &TypeInfo,
-) {
-    match item_info {
-        TypeInfo::Value(value_info) => {
-            let value = load_value_boxed(value_info, value);
-            if let Some(value) = value {
-                list.push(value);
+            match item_info {
+                TypeInfo::Value(value_info) => {
+                    let value = load_value_boxed(value_info, value);
+                    if let Some(value) = value {
+                        list.push(value);
+                    }
+                }
+                TypeInfo::Enum(enum_info) => {
+                    let mut enum_value = DynamicEnum::default();
+                    load_enum(&mut enum_value, enum_info, value);
+                    list.push(Box::new(enum_value));
+                }
+                // TODO support more then values in lists
+                _ => {
+                    warn!("Preferences: Unsupported type: {:?}", item_info);
+                }
             }
-        }
-        // TODO support more then values in lists
-        _ => {
-            warn!("Preferences: Unsupported type: {:?}", item_info);
         }
     }
 }

@@ -28,3 +28,5 @@ unused_qualifications = "warn"
 bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "9386bd0114c44c9f00a2e9c41db1225aaa78d159" }
 thiserror = "1"
 serde = { version = "1", features = ["derive"] }
+tracing-test = "0.2.5"
+tracing = "0.1.40"

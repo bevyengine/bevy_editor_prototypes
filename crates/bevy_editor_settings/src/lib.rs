@@ -81,6 +81,7 @@ impl Plugin for EditorSettingsPlugin {
 mod tests {
 
     use super::*;
+    use tracing_test::traced_test;
 
     #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
     #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
@@ -89,6 +90,7 @@ mod tests {
         pub age: u32,
     }
 
+    #[traced_test]
     #[test]
     fn basic_test() {
         let mut app = App::new();
@@ -122,6 +124,7 @@ mod tests {
         pub list: Vec<i32>,
     }
 
+    #[traced_test]
     #[test]
     fn test_lists() {
         let mut app = App::new();
@@ -163,17 +166,30 @@ mod tests {
         pub setting: EnumTesting,
     }
 
+    #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
+    #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
+    struct EnumSettingsList {
+        #[reflect(@MergeStrategy::Append)]
+        pub settings: Vec<EnumTesting>,
+    }
+
+    #[traced_test]
     #[test]
     fn test_enum() {
         let mut app = App::new();
 
         app.register_type::<EnumTesting>();
         app.register_type::<EnumSettings>();
+        app.register_type::<EnumSettingsList>();
 
         app.insert_resource(EnumTesting::One);
         app.insert_resource(EnumSettings {
             setting: EnumTesting::Two,
         });
+        app.insert_resource(EnumSettingsList {
+            settings: vec![EnumTesting::One, EnumTesting::Two],
+        });
+
 
         file_system::load_project_settings(app.world_mut());
 
@@ -186,6 +202,10 @@ mod tests {
         assert_eq!(*settings, EnumSettings {
             setting: EnumTesting::Three,
         });
+
+        let settings = app.world().get_resource::<EnumSettingsList>().unwrap();
+
+        assert_eq!(settings.settings, vec![EnumTesting::One, EnumTesting::Two, EnumTesting::Three]);
     }
 
 }

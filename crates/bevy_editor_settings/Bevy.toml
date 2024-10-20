@@ -10,7 +10,7 @@ list = ["three", "four"]
 
 # list with append
 [list_testing_append]
-list = [3,4]
+list = [3, 4]
 
 # top level enum
 [enum_testing]
@@ -18,7 +18,10 @@ variant = "Two"
 
 # enum in a struct
 [enum_settings]
-setting = { variant = "Three" }
+setting = "Three"
 # can also be written as
 # [enum_settings.setting]
 # variant = "Three"
+
+[enum_settings_list]
+settings = ["Three"]

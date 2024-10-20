@@ -41,7 +41,7 @@ impl Plugin for EditableTextLinePlugin {
 
         app.add_systems(
             PreUpdate,
-            (spawn_system, keyboard_input, check_cursor_overflow),
+            (spawn_system, keyboard_input, check_cursor_overflow, set_cursor_pos),
         );
         app.add_observer(set_text_trigger);
         app.add_observer(on_click);

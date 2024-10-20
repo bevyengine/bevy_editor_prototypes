@@ -5,3 +5,11 @@
 
 pub mod editable_text_line;
 pub(crate) mod cursor;
+mod char_poistion;
+
+use bevy::prelude::*;
+pub use char_poistion::*;
+
+/// Color of text selection
+pub const TEXT_SELECTION_COLOR: Color = Color::srgb(0.0 / 255.0, 122.0 / 255.0, 1.0);
+

@@ -1,10 +1,16 @@
 //! This file contains the [`EditableTextLine`] component which allow create editable text by keyboard and mouse
 
+mod input;
+mod render;
+
 use bevy::{prelude::*, text::{cosmic_text::Buffer, TextLayoutInfo}, ui::experimental::GhostNode, utils::HashSet};
 use bevy_focus::{FocusPlugin, SetFocus};
+use bevy_clipboard::ClipboardPlugin;
 
-use crate::cursor::{Cursor, CursorPlugin};
+use crate::{cursor::{Cursor, CursorPlugin}, CharPosition, TEXT_SELECTION_COLOR};
 
+use input::*;
+use render::*;
 
 pub struct EditableTextLinePlugin;
 
@@ -17,13 +23,21 @@ impl Plugin for EditableTextLinePlugin {
          if !app.is_plugin_added::<FocusPlugin>() {
              app.add_plugins(FocusPlugin);
          }
+         if !app.is_plugin_added::<ClipboardPlugin>() {
+             app.add_plugins(ClipboardPlugin);
+         }
 
          app.add_event::<SetText>();
          app.add_event::<TextChanged>();
+         app.add_event::<RenderWidget>();
 
-         app.add_systems(PreUpdate, spawn_system);
+         app.add_systems(PreUpdate, (
+          spawn_system,
+          keyboard_input
+         ));
          app.add_observer(set_text_trigger);
          app.add_observer(on_click);
+         app.add_observer(render_system);
      }
     
 }
@@ -34,10 +48,10 @@ impl Plugin for EditableTextLinePlugin {
 pub struct EditableTextLine {
      /// Text content
      pub text: String,
-     /// Cursor position
-     pub cursor_position: Option<usize>,
-     /// Selection start
-     pub selection_start: Option<usize>,
+     /// Cursor position. Measured in characters
+     pub cursor_position: Option<CharPosition>,
+     /// Selection start. Measured in characters
+     pub selection_start: Option<CharPosition>,
      /// Controlled widgets do not update their state by themselves,
      /// while uncontrolled widgets can edit their own state.
      pub controlled_widget: bool
@@ -60,6 +74,55 @@ impl EditableTextLine {
                ..default()
           }
      }
+
+     /// Get selection char range
+     pub fn selection_range(&self) -> Option<(CharPosition, CharPosition)> {
+          if let Some(selection_start) = self.selection_start {
+               if let Some(cursor_position) = self.cursor_position {
+                    if selection_start < cursor_position {
+                         Some((selection_start, cursor_position))
+                    } else {
+                         Some((cursor_position, selection_start))
+                    }
+               } else {
+                    None
+               }
+          } else {
+               None
+          }
+     }
+
+     pub fn get_text_range(&self, range: (CharPosition, CharPosition)) -> Option<String> {
+          if range.0 > range.1 {
+               return None;
+          }
+
+          if range.0.0 > self.text.chars().count() || range.1.0 > self.text.chars().count() {
+               return None;
+          }
+
+          let start_byte_pos = self.get_byte_position(range.0);
+          let end_byte_pos = self.get_byte_position(range.1);
+          Some(self.text[start_byte_pos..end_byte_pos].to_string())
+     }
+
+     pub fn get_selected_text(&self) -> Option<String> {
+          if let Some(range) = self.selection_range() {
+               self.get_text_range(range)
+          } else {
+               None
+          }
+     }
+
+     pub fn get_byte_position(&self, char_position: CharPosition) -> usize {
+          if char_position.0 < self.text.chars().count() {
+               self.text.char_indices().nth(char_position.0).unwrap().0
+          } else {
+               self.text.len()
+          }
+     }
+
+
 }
 
 #[derive(Component, Reflect)]
@@ -69,6 +132,9 @@ pub struct EditableTextInner {
      cursor : Entity,
      text: Entity,
      canvas: Entity,
+
+     fake_text_before_selection: Entity,
+     fake_selection_text: Entity,
 }
 
 #[derive(Event)]
@@ -76,6 +142,21 @@ pub struct SetText(pub String);
 
 #[derive(Event)]
 pub struct TextChanged(pub String);
+
+#[derive(Event, Default, Clone)]
+pub struct RenderWidget {
+     /// Make cursor immediately visible and reset cursor blinking timer
+     pub show_cursor: bool,
+}
+
+impl RenderWidget {
+     /// Make cursor immediately visible and reset cursor blinking timer
+     pub fn show_cursor() -> Self {
+          Self {
+               show_cursor: true
+          }
+     }
+}
 
 fn spawn_system(
     mut commands: Commands,
@@ -114,7 +195,39 @@ fn spawn_system(
 
           commands.entity(cursor_canvas).add_child(fake_cursor_text);
           commands.entity(cursor_canvas).add_child(cursor);
+          
+          let fake_text_before_selection = commands.spawn((
+               Text::new("".to_string()),
+               TextColor(Color::srgba(0.0, 0.0, 0.0, 0.0)),
+               Node {
+                    ..default()
+               }
+          )).id();
 
+          let fake_selection_text = commands.spawn((
+               Text::new("".to_string()),
+               BackgroundColor(TEXT_SELECTION_COLOR),
+               Visibility::Hidden,
+               Node {
+                    ..default()
+               }
+          )).id();
+
+          let selection_canvas = commands.spawn(
+               Node {
+                    position_type: PositionType::Absolute,
+                    left: Val::Px(0.0),
+                    top: Val::Px(0.0),
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(100.0),
+                    display: Display::Flex,
+                    flex_direction: FlexDirection::Row,
+                    ..default()
+               }
+          ).id();
+
+          commands.entity(selection_canvas).add_child(fake_text_before_selection);
+          commands.entity(selection_canvas).add_child(fake_selection_text);
 
           let text = commands.spawn((
                Text::new(text.text.clone()),
@@ -137,6 +250,7 @@ fn spawn_system(
                }
           ).id();
 
+          commands.entity(canvas).add_child(selection_canvas);
           commands.entity(canvas).add_child(text);
           commands.entity(canvas).add_child(cursor_canvas);
 
@@ -145,6 +259,8 @@ fn spawn_system(
                cursor,
                text,
                canvas,
+               fake_text_before_selection,
+               fake_selection_text,
           }).add_child(canvas);
      }
 }
@@ -162,48 +278,3 @@ fn set_text_trigger(
      info!("Set text for {} to {}", entity, trigger.0);
 }
 
-
-fn on_click(
-    click: Trigger<Pointer<Click>>,
-    mut commands: Commands,
-    mut q_editable_texts: Query<(&mut EditableTextLine, &mut EditableTextInner)>,
-    q_texts: Query<(&ComputedNode, &GlobalTransform)>
-) {
-     let entity = click.entity();
-     let Ok((mut text_line, mut inner)) = q_editable_texts.get_mut(entity) else {
-         return;
-     };
-
-     let Ok((node, global_transform)) = q_texts.get(inner.text) else {
-         return;
-     };
-
-     let click_pos = click.pointer_location.position;
- 
-     let self_pos = global_transform.translation();
-
-     let self_size = node.size();
-
-     let dx_relative = (click_pos.x - self_pos.x) / self_size.x + 0.5;
-
-     let mut cursor_pos = (text_line.text.chars().count() as f32 * dx_relative).round() as usize;
-     let cursor_byte_pos;
-     if cursor_pos < text_line.text.chars().count() {
-          cursor_byte_pos = text_line.text.char_indices().nth(cursor_pos).unwrap().0;
-     } else {
-          cursor_pos = text_line.text.chars().count();
-          cursor_byte_pos = text_line.text.len();
-     }
-
-     text_line.cursor_position = Some(cursor_pos);
-
-     commands.entity(inner.cursor).insert((
-          Cursor::default(), 
-          Visibility::Visible, 
-          BackgroundColor(Color::srgb(1.0, 1.0, 1.0))
-     ));
-
-     commands.entity(inner.fake_cursor_text).insert(Text::new(text_line.text[0..cursor_byte_pos].to_string()));
-
-     commands.trigger_targets(SetFocus, entity);
-}

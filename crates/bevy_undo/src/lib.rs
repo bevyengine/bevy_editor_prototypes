@@ -1211,8 +1211,8 @@ fn apply_for_every_typed_field<D: Reflect + TypePath>(
     if max_recursion < 0 {
         return;
     }
-    #[allow(clippy::option_if_let_else)]
-    if let Some(Some(v)) = value.try_as_reflect_mut().map(|r| r.downcast_mut::<D>()) {
+
+    if let Some(v) = value.as_any_mut().downcast_mut::<D>() {
         applyer(v);
     } else {
         match value.reflect_mut() {

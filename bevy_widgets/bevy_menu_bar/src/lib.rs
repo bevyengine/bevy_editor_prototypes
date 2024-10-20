@@ -28,8 +28,8 @@ pub struct MenuBarSet;
 fn menu_setup(mut commands: Commands, root: Query<Entity, With<MenuBarNode>>, theme: Res<Theme>) {
     commands
         .entity(root.single())
-        .insert(NodeBundle {
-            style: Style {
+        .insert((
+            Node {
                 width: Val::Percent(100.0),
                 height: Val::Px(30.0),
                 display: Display::Flex,
@@ -45,24 +45,22 @@ fn menu_setup(mut commands: Commands, root: Query<Entity, With<MenuBarNode>>, th
                 },
                 ..Default::default()
             },
-            background_color: theme.background_color,
-            ..Default::default()
-        })
+            theme.background_color,
+        ))
         .with_children(|parent| {
-            parent.spawn(NodeBundle {
-                style: Style {
+            parent.spawn((
+                Node {
                     width: Val::Px(30.0),
                     height: Val::Px(20.0),
 
                     ..Default::default()
                 },
-                background_color: BackgroundColor(Color::Oklaba(Oklaba {
+                BackgroundColor(Color::Oklaba(Oklaba {
                     lightness: 0.090,
                     a: 0.0,
                     b: 0.0,
                     alpha: 1.0,
                 })),
-                ..Default::default()
-            });
+            ));
         });
 }

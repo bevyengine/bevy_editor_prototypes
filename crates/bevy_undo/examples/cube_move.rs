@@ -76,16 +76,16 @@ fn setup(
         Camera3d::default()
     ));
 
-    cmd.spawn(NodeBundle {
-        style: Style {
+    cmd.spawn((
+        Node::default(),
+        Style {
             width: Val::Percent(100.0),
             height: Val::Percent(100.0),
             justify_content: JustifyContent::Start,
             align_items: AlignItems::Start,
             ..Default::default()
         },
-        ..Default::default()
-    })
+    ))
     .with_children(|parent| {
         parent.spawn((
             Text::new(""),

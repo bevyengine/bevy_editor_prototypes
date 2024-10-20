@@ -1,13 +1,11 @@
 [package]
-name = "bevy_pane_layout"
+name = "bevy_infinite_grid"
 version = "0.1.0"
 edition = "2021"
-
+authors = ["Nile <therawmeatball@gmail.com>"]
 
 [dependencies]
 bevy.workspace = true
-bevy_editor_styles.workspace = true
-bevy_context_menu.workspace = true
 
 [lints]
 workspace = true

@@ -52,7 +52,7 @@ impl Plugin for PaneLayoutPlugin {
 }
 
 fn apply_size(
-    mut query: Query<(Entity, &Size, &mut Style), Changed<Size>>,
+    mut query: Query<(Entity, &Size, &mut Node), Changed<Size>>,
     divider_query: Query<&Divider>,
     parent_query: Query<&Parent>,
 ) {
@@ -144,22 +144,20 @@ fn setup(
     theme: Res<Theme>,
     panes_root: Single<Entity, With<RootPaneLayoutNode>>,
 ) {
-    commands.entity(*panes_root).insert(NodeBundle {
-        background_color: theme.background_color,
-        style: Style {
+    commands.entity(*panes_root).insert((
+        Node {
             padding: UiRect::all(Val::Px(1.)),
-            height: Val::Percent(100.),
+            flex_grow: 1.,
             width: Val::Percent(100.),
+
             ..default()
         },
-        ..default()
-    });
+        theme.background_color,
+    ));
 
     let divider = spawn_divider(&mut commands, Divider::Horizontal, 1.)
         .set_parent(*panes_root)
         .id();
-
-    // spawn_pane(&mut commands, &theme, 0.2, "Scene Tree").set_parent(divider);
 
     let sub_divider = spawn_divider(&mut commands, Divider::Vertical, 0.2)
         .set_parent(divider)
@@ -170,7 +168,7 @@ fn setup(
     spawn_pane(&mut commands, &theme, 0.6, "Properties").set_parent(sub_divider);
 
     spawn_resize_handle(&mut commands, Divider::Horizontal).set_parent(divider);
-    spawn_pane(&mut commands, &theme, 0.8, "Viewport 3D").set_parent(divider);
+    spawn_pane(&mut commands, &theme, 0.8, "Viewport 2D").set_parent(divider);
 }
 
 /// Removes a divider from the hierarchy when it has only one child left, replacing itself with that child.

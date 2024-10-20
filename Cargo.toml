@@ -26,7 +26,7 @@ unsafe_op_in_unsafe_fn = "warn"
 unused_qualifications = "warn"
 
 [workspace.dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "af93e78b72c1e435e73c54c9d0ac6260dc170762" }
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "015f2c69ca2a2c009fd04eadada282482deaf469", features = ["wayland"] }
 thiserror = "1"
 serde = { version = "1", features = ["derive"] }
 
@@ -48,6 +48,7 @@ bevy_command_palette = { path = "bevy_widgets/bevy_command_palette" }
 bevy_context_menu = { path = "bevy_widgets/bevy_context_menu" }
 bevy_i-cant-believe-its-not-bsn = { path = "bevy_widgets/bevy_i-cant-believe-its-not-bsn" }
 bevy_menu_bar = { path = "bevy_widgets/bevy_menu_bar" }
+bevy_footer_bar = { path = "bevy_widgets/bevy_footer_bar" }
 bevy_toolbar = { path = "bevy_widgets/bevy_toolbar" }
 bevy_tooltips = { path = "bevy_widgets/bevy_tooltips" }
 bevy_text_field = { path = "bevy_widgets/bevy_text_field" }
@@ -65,4 +66,6 @@ bevy_localization = { path = "crates/bevy_localization" }
 bevy_pane_layout = { path = "crates/bevy_pane_layout" }
 bevy_transform_gizmos = { path = "crates/bevy_transform_gizmos" }
 bevy_undo = { path = "crates/bevy_undo" }
+bevy_infinite_grid = { path = "crates/bevy_infinite_grid" }
+
 bevy_clipboard = { path = "crates/bevy_clipboard" }

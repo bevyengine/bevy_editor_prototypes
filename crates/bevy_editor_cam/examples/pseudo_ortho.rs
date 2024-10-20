@@ -6,11 +6,7 @@ use bevy_editor_cam::prelude::*;
 
 fn main() {
     App::new()
-        .add_plugins((
-            DefaultPlugins,
-            bevy_mod_picking::DefaultPickingPlugins,
-            DefaultEditorCamPlugins,
-        ))
+        .add_plugins((DefaultPlugins, DefaultEditorCamPlugins))
         .add_systems(Startup, (setup, setup_ui))
         .run();
 }
@@ -20,22 +16,21 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let specular_map = asset_server.load("environment_maps/specular_rgb9e5_zstd.ktx2");
 
     commands.spawn((
-        Camera3dBundle {
-            transform: Transform::from_xyz(1000.0, 1000.0, 1000.0).looking_at(Vec3::ZERO, Vec3::Y),
-            projection: Projection::Perspective(PerspectiveProjection {
-                fov: 0.001,
-                ..default()
-            }),
-            camera: Camera {
-                hdr: true,
-                ..Default::default()
-            },
+        Camera3d::default(),
+        Transform::from_xyz(1000.0, 1000.0, 1000.0).looking_at(Vec3::ZERO, Vec3::Y),
+        Projection::Perspective(PerspectiveProjection {
+            fov: 0.001,
             ..default()
+        }),
+        Camera {
+            hdr: true,
+            ..Default::default()
         },
         EnvironmentMapLight {
             intensity: 1000.0,
             diffuse_map: diffuse_map.clone(),
             specular_map: specular_map.clone(),
+            ..default()
         },
         // This component makes the camera controllable with this plugin:
         EditorCam::default(),
@@ -58,33 +53,28 @@ fn spawn_gltf(n: usize, asset_server: &AssetServer, commands: &mut Commands) {
     for x in width.clone() {
         for y in width.clone() {
             for z in width.clone() {
-                commands.spawn((SceneBundle {
-                    scene: scene.clone(),
-                    transform: Transform::from_translation(IVec3::new(x, y, z).as_vec3() * 2.0)
+                commands.spawn((
+                    SceneRoot(scene.clone()),
+                    Transform::from_translation(IVec3::new(x, y, z).as_vec3() * 2.0)
                         .with_scale(Vec3::splat(1.)),
-                    ..default()
-                },));
+                ));
             }
         }
     }
 }
 
 fn setup_ui(mut commands: Commands) {
-    let style = TextStyle {
-        font_size: 20.0,
-        ..default()
-    };
-    commands.spawn(
-        TextBundle::from_sections(vec![
-            TextSection::new("Left Mouse - Pan\n", style.clone()),
-            TextSection::new("Right Mouse - Orbit\n", style.clone()),
-            TextSection::new("Scroll - Zoom\n", style.clone()),
-        ])
-        .with_style(Style {
+    commands.spawn((
+        Text::new(
+            "Left Mouse - Pan\n\
+            Right Mouse - Orbit\n\
+            Scroll - Zoom\n",
+        ),
+        Node {
             position_type: PositionType::Absolute,
             top: Val::Px(12.0),
             left: Val::Px(12.0),
             ..default()
-        }),
-    );
+        },
+    ));
 }

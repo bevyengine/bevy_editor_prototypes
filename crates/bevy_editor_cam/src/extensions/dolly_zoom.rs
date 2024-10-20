@@ -5,14 +5,14 @@
 
 use std::time::Duration;
 
-use bevy_app::prelude::*;
-use bevy_ecs::prelude::*;
-use bevy_math::prelude::*;
-use bevy_reflect::prelude::*;
-use bevy_render::{camera::ScalingMode, prelude::*};
-use bevy_transform::prelude::*;
-use bevy_utils::{HashMap, Instant};
-use bevy_window::RequestRedraw;
+use bevy::app::prelude::*;
+use bevy::ecs::prelude::*;
+use bevy::math::prelude::*;
+use bevy::reflect::prelude::*;
+use bevy::render::{camera::ScalingMode, prelude::*};
+use bevy::transform::prelude::*;
+use bevy::utils::{HashMap, Instant};
+use bevy::window::RequestRedraw;
 
 use crate::prelude::{motion::CurrentMotion, EditorCam, EnabledMotion};
 
@@ -238,7 +238,7 @@ fn ortho_tri_base_to_scale_factor(camera: &Camera, ortho: &OrthographicProjectio
     if let Some(size) = camera.logical_viewport_size() {
         let (width, height) = (size.x as f64, size.y as f64);
         2.0 / match ortho.scaling_mode {
-            ScalingMode::WindowSize(pixel_scale) => height / pixel_scale as f64,
+            ScalingMode::WindowSize => height,
             ScalingMode::AutoMin {
                 min_width,
                 min_height,
@@ -259,8 +259,10 @@ fn ortho_tri_base_to_scale_factor(camera: &Camera, ortho: &OrthographicProjectio
                     height * max_width as f64 / width
                 }
             }
-            ScalingMode::FixedVertical(viewport_height) => viewport_height as f64,
-            ScalingMode::FixedHorizontal(viewport_width) => height * viewport_width as f64 / width,
+            ScalingMode::FixedVertical { viewport_height } => viewport_height as f64,
+            ScalingMode::FixedHorizontal { viewport_width } => {
+                height * viewport_width as f64 / width
+            }
             ScalingMode::Fixed { height, .. } => height as f64,
         }
     } else {

@@ -2,11 +2,11 @@ use std::time::Duration;
 
 use bevy::{
     core_pipeline::{
-        bloom::BloomSettings,
-        experimental::taa::{TemporalAntiAliasBundle, TemporalAntiAliasPlugin},
+        bloom::Bloom,
+        experimental::taa::{TemporalAntiAliasPlugin, TemporalAntiAliasing},
         tonemapping::Tonemapping,
     },
-    pbr::ScreenSpaceAmbientOcclusionBundle,
+    pbr::ScreenSpaceAmbientOcclusion,
     prelude::*,
     render::{camera::TemporalJitter, primitives::Aabb},
     utils::Instant,
@@ -21,13 +21,11 @@ fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
-            bevy_mod_picking::DefaultPickingPlugins,
             DefaultEditorCamPlugins,
             TemporalAntiAliasPlugin,
         ))
         // The camera controller works with reactive rendering:
         // .insert_resource(bevy::winit::WinitSettings::desktop_app())
-        .insert_resource(Msaa::Off)
         .insert_resource(ClearColor(Color::srgb(0.15, 0.15, 0.15)))
         .insert_resource(AmbientLight {
             brightness: 0.0,
@@ -52,58 +50,53 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     let diffuse_map = asset_server.load("environment_maps/diffuse_rgb9e5_zstd.ktx2");
     let specular_map = asset_server.load("environment_maps/specular_rgb9e5_zstd.ktx2");
 
-    commands.spawn(SceneBundle {
-        scene: asset_server.load("models/PlaneEngine/scene.gltf#Scene0"),
-        transform: Transform::from_scale(Vec3::splat(2.0)),
-        ..Default::default()
-    });
+    commands.spawn((
+        SceneRoot(asset_server.load("models/PlaneEngine/scene.gltf#Scene0")),
+        Transform::from_scale(Vec3::splat(2.0)),
+    ));
 
     let cam_trans = Transform::from_xyz(2.0, 2.0, 2.0).looking_at(Vec3::ZERO, Vec3::Y);
 
-    let camera = commands
-        .spawn((
-            Camera3dBundle {
-                transform: cam_trans,
-                tonemapping: Tonemapping::AcesFitted,
-                ..default()
-            },
-            BloomSettings::default(),
-            EnvironmentMapLight {
-                intensity: 1000.0,
-                diffuse_map: diffuse_map.clone(),
-                specular_map: specular_map.clone(),
-            },
-            EditorCam {
-                orbit_constraint: OrbitConstraint::Free,
-                last_anchor_depth: cam_trans.translation.length() as f64,
-                ..Default::default()
-            },
-        ))
-        .id();
+    commands.spawn((
+        Camera3d::default(),
+        cam_trans,
+        Tonemapping::AcesFitted,
+        Bloom::default(),
+        EnvironmentMapLight {
+            intensity: 1000.0,
+            diffuse_map: diffuse_map.clone(),
+            specular_map: specular_map.clone(),
+            ..default()
+        },
+        EditorCam {
+            orbit_constraint: OrbitConstraint::Free,
+            last_anchor_depth: cam_trans.translation.length() as f64,
+            ..default()
+        },
+    ));
 
-    setup_ui(commands, camera);
+    setup_ui(commands);
 }
 
 fn projection_specific_render_config(
     mut commands: Commands,
-    cam: Query<(Entity, &Projection), With<EditorCam>>,
-    mut msaa: ResMut<Msaa>,
+    mut cam: Query<(Entity, &Projection, &mut Msaa), With<EditorCam>>,
 ) {
-    let (entity, proj) = cam.single();
+    let (entity, proj, mut msaa) = cam.single_mut();
     match proj {
         Projection::Perspective(_) => {
             *msaa = Msaa::Off;
             commands
                 .entity(entity)
-                .insert(TemporalAntiAliasBundle::default())
-                .insert(ScreenSpaceAmbientOcclusionBundle::default());
+                .insert(TemporalAntiAliasing::default())
+                .insert(ScreenSpaceAmbientOcclusion::default());
         }
         Projection::Orthographic(_) => {
             *msaa = Msaa::Sample4;
             commands
                 .entity(entity)
                 .remove::<TemporalJitter>()
-                .remove::<ScreenSpaceAmbientOcclusionBundle>();
+                .remove::<ScreenSpaceAmbientOcclusion>();
         }
     }
 }
@@ -117,7 +110,7 @@ fn toggle_projection(
     if keys.just_pressed(KeyCode::KeyP) {
         *toggled = !*toggled;
         let target_projection = if *toggled {
-            Projection::Orthographic(OrthographicProjection::default())
+            Projection::Orthographic(OrthographicProjection::default_3d())
         } else {
             Projection::Perspective(PerspectiveProjection::default())
         };
@@ -210,38 +203,24 @@ fn switch_direction(
     }
 }
 
-fn setup_ui(mut commands: Commands, camera: Entity) {
-    let style = TextStyle {
-        font_size: 20.0,
-        ..default()
-    };
-    commands
-        .spawn((
-            TargetCamera(camera),
-            NodeBundle {
-                style: Style {
-                    width: Val::Percent(100.),
-                    height: Val::Percent(100.),
-                    padding: UiRect::all(Val::Px(20.)),
-                    ..default()
-                },
-                ..default()
-            },
-        ))
-        .with_children(|parent| {
-            parent.spawn(
-                TextBundle::from_sections(vec![
-                    TextSection::new("Left Mouse - Pan\n", style.clone()),
-                    TextSection::new("Right Mouse - Orbit\n", style.clone()),
-                    TextSection::new("Scroll - Zoom\n", style.clone()),
-                    TextSection::new("P - Toggle projection\n", style.clone()),
-                    TextSection::new("C - Toggle orbit constraint\n", style.clone()),
-                    TextSection::new("E - Toggle explode\n", style.clone()),
-                    TextSection::new("1-6 - Switch direction\n", style.clone()),
-                ])
-                .with_style(Style { ..default() }),
-            );
-        });
+fn setup_ui(mut commands: Commands) {
+    commands.spawn((
+        Text::new(
+            "Left Mouse - Pan\n\
+            Right Mouse - Orbit\n\
+            Scroll - Zoom\n\
+            P - Toggle projection\n\
+            C - Toggle orbit constraint\n\
+            E - Toggle explode\n\
+            1-6 - Switch direction",
+        ),
+        Node {
+            position_type: PositionType::Absolute,
+            top: Val::Px(12.0),
+            left: Val::Px(12.0),
+            ..default()
+        },
+    ));
 }
 
 #[derive(Component)]
@@ -254,7 +233,7 @@ fn explode(
     mut toggle: Local<Option<(bool, Instant, f32)>>,
     mut explode_amount: Local<f32>,
     mut redraw: EventWriter<RequestRedraw>,
-    mut parts: Query<(Entity, &mut Transform, &Aabb, Option<&StartPos>), With<Handle<Mesh>>>,
+    mut parts: Query<(Entity, &mut Transform, &Aabb, Option<&StartPos>), With<Mesh3d>>,
     mut matls: ResMut<Assets<StandardMaterial>>,
 ) {
     let animation = Duration::from_millis(2000);

@@ -5,15 +5,15 @@ use std::{
     time::Duration,
 };
 
-use bevy_ecs::prelude::*;
-use bevy_log::prelude::*;
-use bevy_math::{prelude::*, DMat4, DQuat, DVec2, DVec3};
-use bevy_reflect::prelude::*;
-use bevy_render::prelude::*;
-use bevy_time::prelude::*;
-use bevy_transform::prelude::*;
-use bevy_utils::Instant;
-use bevy_window::RequestRedraw;
+use bevy::ecs::prelude::*;
+use bevy::log::prelude::*;
+use bevy::math::{prelude::*, DMat4, DQuat, DVec2, DVec3};
+use bevy::reflect::prelude::*;
+use bevy::render::prelude::*;
+use bevy::time::prelude::*;
+use bevy::transform::prelude::*;
+use bevy::utils::Instant;
+use bevy::window::RequestRedraw;
 
 use super::{
     inputs::MotionInputs,
@@ -31,7 +31,7 @@ use super::{
 /// # Moving the Camera
 ///
 /// The [`EditorCamPlugin`](crate::DefaultEditorCamPlugins) will automatically handle sending inputs
-/// to the camera controller using [`bevy_picking_core`] to compute pointer hit locations for mouse,
+/// to the camera controller using [`bevy::picking`] to compute pointer hit locations for mouse,
 /// touch, and pen inputs. The picking plugin allows you to specify your own picking backend, or
 /// choose from a variety of provided backends. This is important because this camera controller
 /// relies on depth information for each pointer, and using the picking plugin means it can do this

@@ -2,8 +2,8 @@
 
 use std::time::Duration;
 
-use bevy_math::{DVec2, DVec3};
-use bevy_reflect::prelude::*;
+use bevy::math::{DVec2, DVec3};
+use bevy::reflect::prelude::*;
 
 /// Defines momentum behavior of this [`super::component::EditorCam`].
 #[derive(Debug, Clone, Copy, Reflect)]

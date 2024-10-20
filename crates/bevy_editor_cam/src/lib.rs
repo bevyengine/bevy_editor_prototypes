@@ -106,7 +106,7 @@
 //!
 //! #### 1. Add `bevy_mod_picking`
 //!
-//! The camera controller uses [`bevy_picking_core`] for pointer interactions. If you already use
+//! The camera controller uses [`bevy::picking`] for pointer interactions. If you already use
 //! the picking plugin, then using this camera controller is essentially free because it can reuse
 //! those same hit tests you are already running.
 //!
@@ -167,10 +167,10 @@
 //! ### Pointer and Hit Test Agnostic
 //!
 //! Users of this library shouldn't be forced into using any particular hit testing method, like CPU
-//! raycasting. The controller uses [`bevy_picking_core`] to work with:
+//! raycasting. The controller uses [`bevy::picking`] to work with:
 //!
 //! - Arbitrary hit testing backends, including those written by users. See
-//!   [`bevy_picking_core::backend`] for more information.
+//!   [`bevy::picking::backend`] for more information.
 //! - Any number of pointing inputs, including touch.
 //! - Viewports and multi-pass rendering.
 
@@ -188,7 +188,7 @@ pub mod prelude {
     };
 }
 
-use bevy_app::{prelude::*, PluginGroupBuilder};
+use bevy::app::{prelude::*, PluginGroupBuilder};
 
 /// Adds [`bevy_editor_cam`](crate) functionality with all extensions and the default input plugin.
 pub struct DefaultEditorCamPlugins;

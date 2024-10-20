@@ -1,4 +1,9 @@
 use bevy::{
+    color::palettes,
+    core_pipeline::{bloom::Bloom, experimental::taa::TemporalAntiAliasing},
+    pbr::ScreenSpaceAmbientOcclusion,
+};
+use bevy::{
     core_pipeline::{
         bloom::BloomSettings, experimental::taa::TemporalAntiAliasBundle, tonemapping::Tonemapping,
     },
@@ -6,18 +11,12 @@ use bevy::{
     prelude::*,
     render::camera::TemporalJitter,
 };
-use bevy_color::palettes;
 use bevy_editor_cam::{extensions::dolly_zoom::DollyZoomTrigger, prelude::*};
 use rand::Rng;
 
 fn main() {
     App::new()
-        .add_plugins((
-            DefaultPlugins,
-            bevy_mod_picking::DefaultPickingPlugins,
-            DefaultEditorCamPlugins,
-        ))
-        .insert_resource(Msaa::Off)
+        .add_plugins((DefaultPlugins, DefaultEditorCamPlugins))
         .add_systems(Startup, (setup, setup_ui))
         .add_systems(
             Update,
@@ -39,17 +38,17 @@ fn setup(
 
     commands
         .spawn((
-            Camera3dBundle {
-                transform: Transform::from_xyz(2.0, 2.0, 2.0).looking_at(Vec3::ZERO, Vec3::Y),
-                tonemapping: Tonemapping::AcesFitted,
-                ..default()
-            },
-            BloomSettings::default(),
+            Camera3d::default(),
+            Transform::from_xyz(2.0, 2.0, 2.0).looking_at(Vec3::ZERO, Vec3::Y),
+            Tonemapping::AcesFitted,
+            Bloom::default(),
             EnvironmentMapLight {
                 intensity: 1000.0,
                 diffuse_map: diffuse_map.clone(),
                 specular_map: specular_map.clone(),
+                ..default()
             },
+            Msaa::Off,
             EditorCam {
                 orbit_constraint: OrbitConstraint::Fixed {
                     up: Vec3::Y,
@@ -63,8 +62,8 @@ fn setup(
                 1000.0,
             ),
         ))
-        .insert(ScreenSpaceAmbientOcclusionBundle::default())
-        .insert(TemporalAntiAliasBundle::default());
+        .insert(ScreenSpaceAmbientOcclusion::default())
+        .insert(TemporalAntiAliasing::default());
 }
 
 fn spawn_buildings(
@@ -73,15 +72,14 @@ fn spawn_buildings(
     matls: &mut Assets<StandardMaterial>,
     half_width: f32,
 ) {
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(half_width * 20.0))),
-        material: matls.add(StandardMaterial {
+    commands.spawn((
+        Mesh3d(meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(half_width * 20.0)))),
+        MeshMaterial3d(matls.add(StandardMaterial {
             base_color: Color::Srgba(palettes::css::DARK_GRAY),
             ..Default::default()
-        }),
-        transform: Transform::from_xyz(0.0, -5.0, 0.0),
-        ..Default::default()
-    });
+        })),
+        Transform::from_xyz(0.0, -5.0, 0.0),
+    ));
 
     let mut rng = rand::thread_rng();
     let mesh = meshes.add(Cuboid::default());
@@ -100,16 +98,15 @@ fn spawn_buildings(
             let y = rng.gen::<f32>() * rng.gen::<f32>() * rng.gen::<f32>() * rng.gen::<f32>();
             let y_scale = 1.02f32.powf(100.0 * y);
 
-            commands.spawn(PbrBundle {
-                mesh: mesh.clone(),
-                material: material[rng.gen_range(0..material.len())].clone(),
-                transform: Transform::from_xyz(x, y_scale / 2.0 - 5.0, z).with_scale(Vec3::new(
+            commands.spawn((
+                Mesh3d(mesh.clone()),
+                MeshMaterial3d(material[rng.gen_range(0..material.len())].clone()),
+                Transform::from_xyz(x, y_scale / 2.0 - 5.0, z).with_scale(Vec3::new(
                     (rng.gen::<f32>() + 0.5) * 0.3,
                     y_scale,
                     (rng.gen::<f32>() + 0.5) * 0.3,
                 )),
-                ..Default::default()
-            });
+            ));
         }
     }
 }
@@ -123,7 +120,7 @@ fn toggle_projection(
     if keys.just_pressed(KeyCode::KeyP) {
         *toggled = !*toggled;
         let target_projection = if *toggled {
-            Projection::Orthographic(OrthographicProjection::default())
+            Projection::Orthographic(OrthographicProjection::default_3d())
         } else {
             Projection::Perspective(PerspectiveProjection::default())
         };
@@ -136,45 +133,40 @@ fn toggle_projection(
 
 fn projection_specific_render_config(
     mut commands: Commands,
-    cam: Query<(Entity, &Projection), With<EditorCam>>,
-    mut msaa: ResMut<Msaa>,
+    mut cam: Query<(Entity, &Projection, &mut Msaa), With<EditorCam>>,
 ) {
-    let (entity, proj) = cam.single();
+    let (entity, proj, mut msaa) = cam.single_mut();
     match proj {
         Projection::Perspective(_) => {
             *msaa = Msaa::Off;
             commands
                 .entity(entity)
-                .insert(TemporalAntiAliasBundle::default())
-                .insert(ScreenSpaceAmbientOcclusionBundle::default());
+                .insert(TemporalAntiAliasing::default())
+                .insert(ScreenSpaceAmbientOcclusion::default());
         }
         Projection::Orthographic(_) => {
             *msaa = Msaa::Sample4;
             commands
                 .entity(entity)
                 .remove::<TemporalJitter>()
-                .remove::<ScreenSpaceAmbientOcclusionBundle>();
+                .remove::<ScreenSpaceAmbientOcclusion>();
         }
     }
 }
 
 fn setup_ui(mut commands: Commands) {
-    let style = TextStyle {
-        font_size: 20.0,
-        ..default()
-    };
-    commands.spawn(
-        TextBundle::from_sections(vec![
-            TextSection::new("Left Mouse - Pan\n", style.clone()),
-            TextSection::new("Right Mouse - Orbit\n", style.clone()),
-            TextSection::new("Scroll - Zoom\n", style.clone()),
-            TextSection::new("P - Toggle projection\n", style.clone()),
-        ])
-        .with_style(Style {
+    commands.spawn((
+        Text::new(
+            "Left Mouse - Pan\n\
+            Right Mouse - Orbit\n\
+            Scroll - Zoom\n\
+            P - Toggle projection\n",
+        ),
+        Node {
             position_type: PositionType::Absolute,
             top: Val::Px(12.0),
             left: Val::Px(12.0),
             ..default()
-        }),
-    );
+        },
+    ));
 }

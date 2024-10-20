@@ -3,13 +3,13 @@
 
 use std::{f32::consts::PI, time::Duration};
 
-use bevy_app::prelude::*;
-use bevy_ecs::prelude::*;
-use bevy_math::{prelude::*, DQuat, DVec3};
-use bevy_reflect::prelude::*;
-use bevy_transform::prelude::*;
-use bevy_utils::{HashMap, Instant};
-use bevy_window::RequestRedraw;
+use bevy::app::prelude::*;
+use bevy::ecs::prelude::*;
+use bevy::math::{prelude::*, DQuat, DVec3};
+use bevy::reflect::prelude::*;
+use bevy::transform::prelude::*;
+use bevy::utils::{HashMap, Instant};
+use bevy::window::RequestRedraw;
 
 use crate::prelude::*;
 

@@ -4,14 +4,14 @@
 
 use crate::prelude::*;
 
-use bevy_app::prelude::*;
-use bevy_color::Color;
-use bevy_ecs::prelude::*;
-use bevy_gizmos::prelude::*;
-use bevy_math::prelude::*;
-use bevy_reflect::prelude::*;
-use bevy_render::prelude::*;
-use bevy_transform::prelude::*;
+use bevy::app::prelude::*;
+use bevy::color::Color;
+use bevy::ecs::prelude::*;
+use bevy::gizmos::prelude::*;
+use bevy::math::prelude::*;
+use bevy::reflect::prelude::*;
+use bevy::render::prelude::*;
+use bevy::transform::prelude::*;
 
 /// See the [module](self) docs.
 pub struct AnchorIndicatorPlugin;
@@ -21,8 +21,8 @@ impl Plugin for AnchorIndicatorPlugin {
         app.add_systems(
             PostUpdate,
             draw_anchor
-                .after(bevy_transform::TransformSystem::TransformPropagate)
-                .after(bevy_render::camera::CameraUpdateSystem),
+                .after(bevy::transform::TransformSystem::TransformPropagate)
+                .after(bevy::render::camera::CameraUpdateSystem),
         )
         .register_type::<AnchorIndicator>();
     }
@@ -79,12 +79,12 @@ pub fn draw_anchor(
             let gizmo_color = || Color::WHITE;
             let arm_length = 0.4;
 
-            gizmos.circle(
+            let isometry = Isometry3d::new(
                 anchor_world,
-                Dir3::new_unchecked(cam_transform.forward().normalize()),
-                scale,
-                gizmo_color(),
+                Quat::from_rotation_arc(Vec3::Z, *cam_transform.forward()),
             );
+
+            gizmos.circle(isometry, scale, gizmo_color());
             let offset = 1.5 * scale;
             gizmos.ray(
                 anchor_world + offset * cam_transform.left(),

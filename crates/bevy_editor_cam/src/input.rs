@@ -1,22 +1,20 @@
 //! Provides a default input plugin for the camera. See [`DefaultInputPlugin`].
 
-use bevy_app::prelude::*;
-use bevy_derive::{Deref, DerefMut};
-use bevy_ecs::prelude::*;
-use bevy_input::{
+use bevy::input::{
     mouse::{MouseScrollUnit, MouseWheel},
     prelude::*,
 };
-use bevy_math::{prelude::*, DVec2, DVec3};
-use bevy_reflect::prelude::*;
-use bevy_render::{camera::CameraProjection, prelude::*};
-use bevy_transform::prelude::*;
-use bevy_utils::hashbrown::HashMap;
-use bevy_window::PrimaryWindow;
+use bevy::math::{prelude::*, DVec2, DVec3};
+use bevy::reflect::prelude::*;
+use bevy::render::{camera::CameraProjection, prelude::*};
+use bevy::transform::prelude::*;
+use bevy::utils::hashbrown::HashMap;
+use bevy::window::PrimaryWindow;
+use bevy::{app::prelude::*, picking::pointer::PointerInput};
+use bevy::{ecs::prelude::*, picking::pointer::PointerAction};
+use bevy_derive::{Deref, DerefMut};
 
-use bevy_picking_core::pointer::{
-    InputMove, PointerId, PointerInteraction, PointerLocation, PointerMap,
-};
+use bevy::picking::pointer::{PointerId, PointerInteraction, PointerLocation, PointerMap};
 
 use crate::prelude::{component::EditorCam, inputs::MotionInputs};
 
@@ -59,7 +57,7 @@ impl Plugin for DefaultInputPlugin {
                     EditorCamInputEvent::send_pointer_inputs,
                 )
                     .chain()
-                    .after(bevy_picking_core::PickSet::Last)
+                    .after(bevy::picking::PickSet::Last)
                     .before(crate::controller::component::EditorCam::update_camera_positions),
             )
             .register_type::<CameraPointerMap>()
@@ -273,7 +271,7 @@ impl EditorCamInputEvent {
         camera_map: Res<CameraPointerMap>,
         mut camera_controllers: Query<&mut EditorCam>,
         mut mouse_wheel: EventReader<MouseWheel>,
-        mut moves: EventReader<InputMove>,
+        mut moves: EventReader<PointerInput>,
     ) {
         let moves_list: Vec<_> = moves.read().collect();
         for (pointer, camera) in camera_map.iter() {
@@ -284,7 +282,10 @@ impl EditorCamInputEvent {
             let screenspace_input = moves_list
                 .iter()
                 .filter(|m| m.pointer_id.eq(pointer))
-                .map(|m| m.delta)
+                .filter_map(|m| match m.action {
+                    PointerAction::Moved { delta } => Some(delta),
+                    PointerAction::Pressed { .. } | PointerAction::Canceled => None,
+                })
                 .sum();
 
             let zoom_amount = match pointer {

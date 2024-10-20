@@ -1,7 +1,7 @@
 //! Camera controller implementation.
 
-use bevy_app::prelude::*;
-use bevy_ecs::prelude::*;
+use bevy::app::prelude::*;
+use bevy::ecs::prelude::*;
 
 pub mod component;
 pub mod inputs;
@@ -26,7 +26,7 @@ impl Plugin for MinimalEditorCamPlugin {
                 crate::controller::projections::update_perspective,
             )
                 .chain()
-                .after(bevy_picking_core::PickSet::Last),
+                .after(bevy::picking::PickSet::Last),
         )
         .register_type::<component::EditorCam>();
     }

@@ -5,13 +5,13 @@
 //!
 //! To use it, add a [`IndependentSkybox`] component to a camera.
 
-use bevy_app::prelude::*;
-use bevy_asset::Handle;
-use bevy_core_pipeline::{prelude::*, Skybox};
-use bevy_ecs::prelude::*;
-use bevy_reflect::prelude::*;
-use bevy_render::{prelude::*, view::RenderLayers};
-use bevy_transform::prelude::*;
+use bevy::app::prelude::*;
+use bevy::asset::Handle;
+use bevy::core_pipeline::{prelude::*, Skybox};
+use bevy::ecs::prelude::*;
+use bevy::reflect::prelude::*;
+use bevy::render::{prelude::*, view::RenderLayers};
+use bevy::transform::prelude::*;
 
 /// See the [module](self) docs.
 pub struct IndependentSkyboxPlugin;
@@ -118,26 +118,25 @@ impl IndependentSkyboxCamera {
 
             let entity = commands
                 .spawn((
-                    Camera3dBundle {
-                        camera: Camera {
-                            order: camera.order + editor_without_skybox.skybox_cam_order_offset,
-                            hdr: true,
-                            clear_color: ClearColorConfig::None,
-                            ..Default::default()
-                        },
-                        projection: Projection::Perspective(PerspectiveProjection {
-                            fov: match editor_without_skybox.fov {
-                                SkyboxFov::Auto => PerspectiveProjection::default().fov,
-                                SkyboxFov::Fixed(fov) => fov,
-                            },
-                            ..Default::default()
-                        }),
+                    Camera3d::default(),
+                    Camera {
+                        order: camera.order + editor_without_skybox.skybox_cam_order_offset,
+                        hdr: true,
+                        clear_color: ClearColorConfig::None,
                         ..Default::default()
                     },
+                    Projection::Perspective(PerspectiveProjection {
+                        fov: match editor_without_skybox.fov {
+                            SkyboxFov::Auto => PerspectiveProjection::default().fov,
+                            SkyboxFov::Fixed(fov) => fov,
+                        },
+                        ..Default::default()
+                    }),
                     RenderLayers::none(),
                     Skybox {
                         image: editor_without_skybox.skybox.clone(),
                         brightness: editor_without_skybox.brightness,
+                        ..Default::default()
                     },
                     IndependentSkyboxCamera {
                         driven_by: editor_cam_entity,

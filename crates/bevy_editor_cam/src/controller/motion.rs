@@ -3,9 +3,9 @@
 use std::time::Duration;
 
 use super::{inputs::MotionInputs, momentum::Velocity};
-use bevy_math::DVec3;
-use bevy_reflect::prelude::*;
-use bevy_utils::Instant;
+use bevy::math::DVec3;
+use bevy::reflect::prelude::*;
+use bevy::utils::Instant;
 
 /// The current motion state of the camera.
 #[derive(Debug, Clone, Reflect, Default)]

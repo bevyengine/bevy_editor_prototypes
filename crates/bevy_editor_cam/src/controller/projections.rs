@@ -1,9 +1,9 @@
 //! Configurable options for the challenge of working with orthographic cameras.
 
-use bevy_ecs::prelude::*;
-use bevy_reflect::prelude::*;
-use bevy_render::prelude::*;
-use bevy_transform::prelude::*;
+use bevy::ecs::prelude::*;
+use bevy::reflect::prelude::*;
+use bevy::render::prelude::*;
+use bevy::transform::prelude::*;
 
 use crate::prelude::*;
 

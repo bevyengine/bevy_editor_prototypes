@@ -167,6 +167,7 @@ fn load_list_value(
                 list.push(value);
             }
         }
+        // TODO support more then values in lists
         _ => {
             warn!("Preferences: Unsupported type: {:?}", item_info);
         }

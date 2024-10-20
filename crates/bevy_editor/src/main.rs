@@ -32,7 +32,6 @@ fn main() {
             StylesPlugin,
             Viewport2dPanePlugin,
             Viewport3dPanePlugin,
-            AssetBrowserPanePlugin,
             ui::EditorUIPlugin,
             DefaultPlugins.set(WindowPlugin {
                 primary_window: Some(Window {
@@ -43,6 +42,7 @@ fn main() {
                 ..Default::default()
             }),
             InfiniteGridPlugin,
+            AssetBrowserPanePlugin,
         ))
         .add_systems(Startup, setup)
         .run();

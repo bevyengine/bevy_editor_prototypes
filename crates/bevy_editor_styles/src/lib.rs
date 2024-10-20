@@ -18,7 +18,7 @@ pub struct Theme {
     /// The background color of the editor.
     pub background_color: BackgroundColor,
     /// The background color of the panes in the editor.
-    pub pane_background_color: BackgroundColor,
+    pub pane_header_background_color: BackgroundColor,
     /// The background color of the content area of panes.
     pub pane_area_background_color: BackgroundColor,
     /// The text color of the editor.
@@ -34,23 +34,13 @@ pub struct Theme {
 impl Default for Theme {
     fn default() -> Self {
         Self {
-            background_color: BackgroundColor(Color::oklch(0.209, 0.0, 0.0)),
-            pane_background_color: BackgroundColor(Color::oklch(0.3407, 0.0, 0.0)),
-            pane_area_background_color: BackgroundColor(Color::oklch(0.3677, 0.0, 0.0)),
+            background_color: BackgroundColor(Color::oklch(0.27, 0.0, 0.0)),
+            pane_header_background_color: BackgroundColor(Color::oklch(0.215, 0.0, 0.0)),
+            pane_area_background_color: BackgroundColor(Color::oklch(0.23, 0.0, 0.0)),
             text_color: Color::oklch(0.9219, 0.0, 0.0),
             menu_bar_color: BackgroundColor(Color::oklch(0.209, 0.0, 0.0)),
-            border_radius: BorderRadius {
-                top_left: Val::Px(8.0),
-                top_right: Val::Px(8.0),
-                bottom_left: Val::Px(8.0),
-                bottom_right: Val::Px(8.0),
-            },
-            pane_header_border_radius: BorderRadius {
-                top_left: Val::Px(8.0),
-                top_right: Val::Px(8.0),
-                bottom_left: Val::Px(0.0),
-                bottom_right: Val::Px(0.0),
-            },
+            border_radius: BorderRadius::all(Val::Px(6.)),
+            pane_header_border_radius: BorderRadius::top(Val::Px(6.)),
         }
     }
 }

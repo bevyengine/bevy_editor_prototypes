@@ -30,6 +30,7 @@ bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "015f2c69ca2a2c00
 bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "015f2c69ca2a2c009fd04eadada282482deaf469" }
 thiserror = "1"
 serde = { version = "1", features = ["derive"] }
+atomicow = "1.0.0"
 
 
 # local crates

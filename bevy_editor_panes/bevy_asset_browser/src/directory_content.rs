@@ -74,11 +74,14 @@ pub fn fetch_directory_content(
     let task = IoTaskPool::get().spawn(async move {
         let source = sources.get(location.source_id.unwrap()).unwrap();
         let reader = source.reader();
-        let mut dir_stream = reader
-            .read_directory(location.path.as_path())
-            .await
-            .unwrap();
+
         let mut content = DirectoryContent::default();
+        let dir_stream = reader.read_directory(location.path.as_path()).await;
+        if dir_stream.is_err() {
+            return content;
+        }
+        let mut dir_stream = dir_stream.unwrap();
+
         while let Some(entry) = dir_stream.next().await {
             let asset_type = if reader.is_directory(&entry).await.unwrap() {
                 AssetType::Directory

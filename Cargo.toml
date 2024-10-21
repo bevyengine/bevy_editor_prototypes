@@ -50,6 +50,7 @@ bevy_command_palette = { path = "bevy_widgets/bevy_command_palette" }
 bevy_context_menu = { path = "bevy_widgets/bevy_context_menu" }
 bevy_i-cant-believe-its-not-bsn = { path = "bevy_widgets/bevy_i-cant-believe-its-not-bsn" }
 bevy_menu_bar = { path = "bevy_widgets/bevy_menu_bar" }
+bevy_scroll_box = { path = "bevy_widgets/bevy_scroll_box" }
 bevy_footer_bar = { path = "bevy_widgets/bevy_footer_bar" }
 bevy_toolbar = { path = "bevy_widgets/bevy_toolbar" }
 bevy_tooltips = { path = "bevy_widgets/bevy_tooltips" }

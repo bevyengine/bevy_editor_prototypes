@@ -10,24 +10,33 @@ pub const PATH_SEGMENT_BACKGROUND_COLOR: Color = Color::srgb(0.2, 0.2, 0.2);
 #[derive(Component)]
 pub struct TopBarNode;
 
-pub fn refresh_location_ui(
+pub fn refresh_location_path_ui(
     mut commands: Commands,
     root: Query<(Entity, Option<&Children>), With<TopBarNode>>,
     theme: Res<Theme>,
     location: Res<AssetBrowserLocation>,
 ) {
-    let (top_bar_entity, top_bar_childrens) = root.single();
-
-    // Clear all children (if any)
-    if let Some(childrens) = top_bar_childrens {
-        for child in childrens.iter() {
-            commands.entity(*child).despawn_recursive();
+    for (top_bar_entity, top_bar_childrens) in root.iter() {
+        // Clear location path UI
+        if let Some(childrens) = top_bar_childrens {
+            for child in childrens.iter() {
+                commands.entity(*child).despawn_recursive();
+            }
+            commands.entity(top_bar_entity).clear_children();
         }
-        commands.entity(top_bar_entity).clear_children();
+        // Regenerate location path UI
+        let mut top_bar_ec = commands.entity(top_bar_entity);
+        spawn_location_path_ui(&theme, &location, &mut top_bar_ec);
     }
+}
 
+pub fn spawn_location_path_ui(
+    theme: &Res<Theme>,
+    location: &Res<AssetBrowserLocation>,
+    parent: &mut EntityCommands,
+) {
     // Spawn new children
-    commands.entity(top_bar_entity).with_children(|parent| {
+    parent.with_children(|parent| {
         spawn_path_segment_ui(
             parent,
             "Sources".to_string(),

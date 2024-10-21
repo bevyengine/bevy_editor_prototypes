@@ -153,41 +153,61 @@ pub(crate) fn refresh_ui(
     location: Res<AssetBrowserLocation>,
     mut asset_sources_builder: ResMut<AssetSourceBuilders>,
 ) {
-    let (content_list_entity, content_list_children) = content_list_query.single();
-    if let Some(content_list_children) = content_list_children {
-        for child in content_list_children {
-            commands.entity(*child).despawn_recursive();
-        }
-        commands
-            .entity(content_list_entity)
-            .remove_children(content_list_children);
-    }
-    commands
-        .entity(content_list_entity)
-        .with_children(|parent| {
-            if location.source_id.is_none() {
-                let sources = asset_sources_builder.build_sources(false, false);
-                sources.iter().for_each(|source| {
-                    spawn_asset_button(
-                        parent,
-                        AssetType::EngineSource,
-                        crate::asset_source_id_to_string(&source.id()),
-                        &theme,
-                        &asset_server,
-                    );
-                });
-            } else {
-                for entry in &directory_content.0 {
-                    spawn_asset_button(
-                        parent,
-                        entry.asset_type,
-                        entry.name.clone(),
-                        &theme,
-                        &asset_server,
-                    );
-                }
+    for (content_list_entity, content_list_children) in content_list_query.iter() {
+        // Clear content list
+        if let Some(content_list_children) = content_list_children {
+            for child in content_list_children {
+                commands.entity(*child).despawn_recursive();
             }
-        });
+            commands
+                .entity(content_list_entity)
+                .remove_children(content_list_children);
+        }
+        // Regenerate content list
+        let mut content_list_ec = commands.entity(content_list_entity);
+        spawn_content_list_ui(
+            &mut content_list_ec,
+            &theme,
+            &asset_server,
+            &directory_content,
+            &location,
+            &mut asset_sources_builder,
+        );
+    }
+}
+
+pub fn spawn_content_list_ui(
+    parent: &mut EntityCommands,
+    theme: &Res<Theme>,
+    asset_server: &Res<AssetServer>,
+    directory_content: &Res<DirectoryContent>,
+    location: &Res<AssetBrowserLocation>,
+    asset_sources_builder: &mut AssetSourceBuilders,
+) {
+    parent.with_children(|parent| {
+        if location.source_id.is_none() {
+            let sources = asset_sources_builder.build_sources(false, false);
+            sources.iter().for_each(|source| {
+                spawn_asset_button(
+                    parent,
+                    AssetType::EngineSource,
+                    crate::asset_source_id_to_string(&source.id()),
+                    &theme,
+                    &asset_server,
+                );
+            });
+        } else {
+            for entry in &directory_content.0 {
+                spawn_asset_button(
+                    parent,
+                    entry.asset_type,
+                    entry.name.clone(),
+                    &theme,
+                    &asset_server,
+                );
+            }
+        }
+    });
 }
 
 /// Spawn a new asset button UI element

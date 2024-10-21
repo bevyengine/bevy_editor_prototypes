@@ -76,7 +76,7 @@ impl FromWorld for AssetBrowserOneShotSystems {
         // Order is important here! Should match the order of OneShotSystem enum
         Self([
             world.register_system(directory_content::fetch_directory_content),
-            world.register_system(top_bar::refresh_location_ui),
+            world.register_system(top_bar::refresh_location_path_ui),
         ])
     }
 }
@@ -119,7 +119,10 @@ pub fn on_pane_creation(
     theme: Res<Theme>,
     children_query: Query<&Children>,
     content: Query<&PaneContentNode>,
-    one_shot_systems: Res<AssetBrowserOneShotSystems>,
+    location: Res<AssetBrowserLocation>,
+    asset_server: Res<AssetServer>,
+    directory_content: Res<directory_content::DirectoryContent>,
+    mut asset_sources_builder: ResMut<AssetSourceBuilders>,
 ) {
     let pane_root = trigger.entity();
     let content_node = children_query
@@ -138,7 +141,8 @@ pub fn on_pane_creation(
         },))
         .with_children(|parent| {
             // Top bar
-            parent.spawn(TopBarNode).insert((
+            let mut top_bar_ec = parent.spawn((
+                TopBarNode,
                 Node {
                     height: Val::Px(30.0),
                     width: Val::Percent(100.0),
@@ -149,21 +153,24 @@ pub fn on_pane_creation(
                 },
                 theme.pane_header_background_color,
             ));
+            top_bar::spawn_location_path_ui(&theme, &location, &mut top_bar_ec);
 
             // Directory content
             parent
-                .spawn(DirectoryContentNode)
-                .insert((Node {
-                    flex_direction: FlexDirection::Column,
-                    width: Val::Percent(100.0),
-                    height: Val::Percent(100.0),
-                    align_self: AlignSelf::Stretch,
-                    overflow: Overflow::clip_y(),
-                    ..default()
-                },))
+                .spawn((
+                    DirectoryContentNode,
+                    Node {
+                        flex_direction: FlexDirection::Column,
+                        width: Val::Percent(100.0),
+                        height: Val::Percent(100.0),
+                        align_self: AlignSelf::Stretch,
+                        overflow: Overflow::clip_y(),
+                        ..default()
+                    },
+                ))
                 .with_children(|parent| {
                     // Scroll box moving panel
-                    parent.spawn((
+                    let mut content_list_ec = parent.spawn((
                         Node {
                             position_type: PositionType::Absolute,
                             flex_wrap: FlexWrap::Wrap,
@@ -172,10 +179,16 @@ pub fn on_pane_creation(
                         ScrollingList::default(),
                         AccessibilityNode(NodeBuilder::new(Role::Grid)),
                     ));
+                    directory_content::spawn_content_list_ui(
+                        &mut content_list_ec,
+                        &theme,
+                        &asset_server,
+                        &directory_content,
+                        &location,
+                        &mut asset_sources_builder,
+                    );
                 });
         });
-
-    commands.run_system(one_shot_systems.0[OneShotSystem::RefreshTopBarUi as usize]);
 }
 
 /// Every type of button in the asset browser

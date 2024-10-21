@@ -47,10 +47,21 @@ fn main() {
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut materials_2d: ResMut<Assets<ColorMaterial>>,
+    mut materials_3d: ResMut<Assets<StandardMaterial>>,
 ) {
     commands.spawn((
         Mesh2d(meshes.add(Circle::new(50.0))),
-        MeshMaterial2d(materials.add(ColorMaterial::from_color(Color::WHITE))),
+        MeshMaterial2d(materials_2d.add(Color::WHITE)),
+    ));
+
+    commands.spawn((
+        Mesh3d(meshes.add(Cuboid::from_length(1.0))),
+        MeshMaterial3d(materials_3d.add(Color::WHITE)),
+    ));
+
+    commands.spawn((
+        DirectionalLight::default(),
+        Transform::default().looking_to(Vec3::NEG_ONE, Vec3::Y),
     ));
 }

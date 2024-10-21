@@ -1,0 +1,13 @@
+[package]
+name = "bevy_text_editing"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy.workspace = true
+bevy_focus.workspace = true
+bevy_clipboard.workspace = true
+bevy_i-cant-believe-its-not-bsn.workspace = true
+
+[lints]
+workspace = true

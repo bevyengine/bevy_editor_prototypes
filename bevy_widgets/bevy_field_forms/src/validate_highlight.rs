@@ -26,7 +26,6 @@ pub struct SimpleBorderHighlight {
     pub last_validation_state: ValidationState,
 }
 
-
 fn on_validation_changed(
     trigger: Trigger<ValidationChanged>,
     mut commands: Commands,
@@ -40,17 +39,23 @@ fn on_validation_changed(
     match &trigger.0 {
         ValidationState::Valid => {
             if focus.is_some() {
-                commands.entity(entity).insert(BorderColor(highlight.focused_color));
+                commands
+                    .entity(entity)
+                    .insert(BorderColor(highlight.focused_color));
             } else {
-                commands.entity(entity).insert(BorderColor(highlight.normal_color));
+                commands
+                    .entity(entity)
+                    .insert(BorderColor(highlight.normal_color));
             }
         }
         ValidationState::Invalid(_) => {
-            commands.entity(entity).insert(BorderColor(highlight.invalid_color));
+            commands
+                .entity(entity)
+                .insert(BorderColor(highlight.invalid_color));
         }
         ValidationState::Unchecked => {
             // Do nothing
-        },
+        }
     }
 
     highlight.last_validation_state = trigger.0.clone();
@@ -66,7 +71,10 @@ fn on_focus_added(
         return;
     };
 
-    commands.trigger_targets(ValidationChanged(highlight.last_validation_state.clone()), entity);
+    commands.trigger_targets(
+        ValidationChanged(highlight.last_validation_state.clone()),
+        entity,
+    );
 }
 
 fn on_focus_lost(
@@ -79,5 +87,8 @@ fn on_focus_lost(
         return;
     };
 
-    commands.trigger_targets(ValidationChanged(highlight.last_validation_state.clone()), entity);
+    commands.trigger_targets(
+        ValidationChanged(highlight.last_validation_state.clone()),
+        entity,
+    );
 }

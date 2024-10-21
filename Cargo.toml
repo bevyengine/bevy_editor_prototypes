@@ -55,6 +55,7 @@ bevy_text_field = { path = "bevy_widgets/bevy_text_field" }
 bevy_numeric_field = { path = "bevy_widgets/bevy_numeric_field" }
 bevy_focus = { path = "bevy_widgets/bevy_focus" }
 bevy_text_editing = { path = "bevy_widgets/bevy_text_editing" }
+bevy_field_forms = { path = "bevy_widgets/bevy_field_forms" }
 
 # general crates
 bevy_asset_preview = { path = "crates/bevy_asset_preview" }

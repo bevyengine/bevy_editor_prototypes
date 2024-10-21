@@ -171,7 +171,10 @@ pub struct EditableTextInner {
 pub struct SetText(pub String);
 
 #[derive(Event)]
-pub struct TextChanged(pub TextChange);
+pub struct TextChanged {
+    pub change: TextChange,
+    pub new_text: String,
+}
 
 #[derive(Event, Default, Clone)]
 pub struct RenderWidget {

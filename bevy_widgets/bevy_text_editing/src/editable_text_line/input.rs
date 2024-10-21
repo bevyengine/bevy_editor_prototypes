@@ -239,7 +239,18 @@ pub fn keyboard_input(
         commands.trigger_targets(RenderWidget::show_cursor(), entity);
 
         if text_field.text != text_change.new_text {
-            commands.trigger_targets(TextChanged(text_change.clone()), entity);
+            // Send the text change event with the new text
+            let mut new_text = text_field.text.clone();
+            text_change.apply(&mut new_text);
+            commands.trigger_targets(
+                TextChanged {
+                    change: text_change.clone(),
+                    new_text,
+                },
+                entity,
+            );
+
+            // If the text field is not controlled, apply the text change to the text field
             if !text_field.controlled_widget {
                 text_change.apply(&mut text_field.text);
             }

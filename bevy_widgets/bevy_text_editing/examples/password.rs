@@ -75,9 +75,9 @@ fn update_password(
         return;
     };
 
-    info!("Text changed: {:?}", trigger.0);
+    info!("Text changed: {:?}", trigger.change);
 
-    trigger.0.apply(&mut password.val);
+    trigger.change.apply(&mut password.val);
 
     info!("Password: {:?}", password.val);
 

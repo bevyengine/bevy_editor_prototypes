@@ -258,6 +258,7 @@ pub fn button_interaction(
     mut interaction_query: Query<
         (
             Entity,
+            &Parent,
             &Interaction,
             &ButtonType,
             &mut BackgroundColor,
@@ -271,8 +272,14 @@ pub fn button_interaction(
     mut asset_sources_builder: ResMut<AssetSourceBuilders>,
     one_shot_systems: Res<AssetBrowserOneShotSystems>,
 ) {
-    for (button_entity, interaction, button_type, mut background_color, button_children) in
-        &mut interaction_query
+    for (
+        button_entity,
+        button_parent,
+        interaction,
+        button_type,
+        mut background_color,
+        button_children,
+    ) in &mut interaction_query
     {
         match *interaction {
             Interaction::Pressed => {
@@ -287,7 +294,10 @@ pub fn button_interaction(
                         true
                     }
                     ButtonType::LocationSegment(LocationSegmentType::Directory) => {
-                        let path_list_children = path_list_query.single();
+                        let path_list_children = path_list_query.get(button_parent.get()).expect(
+                            "LocationSegment button should always have a TopBarNode parent",
+                        );
+
                         // Last segment is the current directory, no need to reload
                         if button_entity == *path_list_children.last().unwrap() {
                             return;

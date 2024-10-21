@@ -173,7 +173,7 @@ fn setup(
         .set_parent(divider)
         .id();
 
-    spawn_pane(&mut commands, &theme, 0.70, "Viewport 2D").set_parent(asset_browser_divider);
+    spawn_pane(&mut commands, &theme, 0.70, "Viewport 3D").set_parent(asset_browser_divider);
     spawn_resize_handle(&mut commands, Divider::Vertical).set_parent(asset_browser_divider);
     spawn_pane(&mut commands, &theme, 0.30, "Asset Browser").set_parent(asset_browser_divider);
 }

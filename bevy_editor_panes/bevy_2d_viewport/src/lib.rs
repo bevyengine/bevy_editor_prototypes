@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
     render::{
         camera::RenderTarget,
-        render_resource::{Extent3d, TextureFormat, TextureUsages},
+        render_resource::{Extent3d, TextureFormat, TextureUsages}, view::RenderLayers,
     },
     ui::ui_layout_system,
 };
@@ -32,7 +32,10 @@ pub struct Viewport2dPanePlugin;
 
 impl Plugin for Viewport2dPanePlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((EditorCamera2dPlugin, InfiniteGridPlugin))
+        if !app.is_plugin_added::<InfiniteGridPlugin>() {
+            app.add_plugins(InfiniteGridPlugin);
+        }
+        app.add_plugins(EditorCamera2dPlugin)
             .add_systems(Startup, setup)
             .add_systems(
                 PostUpdate,
@@ -70,6 +73,7 @@ fn setup(mut commands: Commands, theme: Res<Theme>) {
             ..default()
         },
         Transform::from_rotation(Quat::from_rotation_arc(Vec3::Y, Vec3::Z)),
+        RenderLayers::layer(2),
     ));
 }
 
@@ -125,6 +129,7 @@ fn on_pane_creation(
                 clear_color: ClearColorConfig::Custom(theme.viewport_background_color),
                 ..default()
             },
+            RenderLayers::from_layers(&[0, 2]),
         ))
         .id();
 

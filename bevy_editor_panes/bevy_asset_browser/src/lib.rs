@@ -113,6 +113,7 @@ pub struct DirectoryLastModifiedTime(pub SystemTime);
 pub struct AssetBrowserNode;
 
 /// Spawn [`AssetBrowserNode`] once the pane is created
+#[allow(clippy::too_many_arguments)]
 pub fn on_pane_creation(
     trigger: Trigger<OnAdd, AssetBrowserNode>,
     mut commands: Commands,

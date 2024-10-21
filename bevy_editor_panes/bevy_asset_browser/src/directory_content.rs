@@ -192,8 +192,8 @@ pub fn spawn_content_list_ui(
                     parent,
                     AssetType::EngineSource,
                     crate::asset_source_id_to_string(&source.id()),
-                    &theme,
-                    &asset_server,
+                    theme,
+                    asset_server,
                 );
             });
         } else {
@@ -202,8 +202,8 @@ pub fn spawn_content_list_ui(
                     parent,
                     entry.asset_type,
                     entry.name.clone(),
-                    &theme,
-                    &asset_server,
+                    theme,
+                    asset_server,
                 );
             }
         }

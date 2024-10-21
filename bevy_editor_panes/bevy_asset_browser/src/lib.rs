@@ -74,7 +74,7 @@ impl FromWorld for AssetBrowserOneShotSystems {
         // Order is important here! Should match the order of OneShotSystem enum
         Self([
             world.register_system(directory_content::fetch_directory_content),
-            world.register_system(top_bar::refresh_location_ui),
+            world.register_system(top_bar::refresh_location_path_ui),
         ])
     }
 }
@@ -111,13 +111,17 @@ pub struct DirectoryLastModifiedTime(pub SystemTime);
 pub struct AssetBrowserNode;
 
 /// Spawn [`AssetBrowserNode`] once the pane is created
+#[allow(clippy::too_many_arguments)]
 pub fn on_pane_creation(
     trigger: Trigger<OnAdd, AssetBrowserNode>,
     mut commands: Commands,
     theme: Res<Theme>,
     children_query: Query<&Children>,
     content: Query<&PaneContentNode>,
-    one_shot_systems: Res<AssetBrowserOneShotSystems>,
+    location: Res<AssetBrowserLocation>,
+    asset_server: Res<AssetServer>,
+    directory_content: Res<directory_content::DirectoryContent>,
+    mut asset_sources_builder: ResMut<AssetSourceBuilders>,
 ) {
     let pane_root = trigger.entity();
     let content_node = children_query
@@ -136,7 +140,8 @@ pub fn on_pane_creation(
         },))
         .with_children(|parent| {
             // Top bar
-            parent.spawn(TopBarNode).insert((
+            let mut top_bar_ec = parent.spawn((
+                TopBarNode,
                 Node {
                     height: Val::Px(30.0),
                     width: Val::Percent(100.0),
@@ -147,6 +152,7 @@ pub fn on_pane_creation(
                 },
                 theme.pane_header_background_color,
             ));
+            top_bar::spawn_location_path_ui(&theme, &location, &mut top_bar_ec);
 
             // Directory content
             parent
@@ -162,8 +168,6 @@ pub fn on_pane_creation(
                     spawn_scroll_box(parent, &theme);
                 });
         });
-
-    commands.run_system(one_shot_systems.0[OneShotSystem::RefreshTopBarUi as usize]);
 }
 
 /// Every type of button in the asset browser
@@ -232,6 +236,7 @@ pub fn button_interaction(
     mut interaction_query: Query<
         (
             Entity,
+            &Parent,
             &Interaction,
             &ButtonType,
             &mut BackgroundColor,
@@ -245,8 +250,14 @@ pub fn button_interaction(
     mut asset_sources_builder: ResMut<AssetSourceBuilders>,
     one_shot_systems: Res<AssetBrowserOneShotSystems>,
 ) {
-    for (button_entity, interaction, button_type, mut background_color, button_children) in
-        &mut interaction_query
+    for (
+        button_entity,
+        button_parent,
+        interaction,
+        button_type,
+        mut background_color,
+        button_children,
+    ) in &mut interaction_query
     {
         match *interaction {
             Interaction::Pressed => {
@@ -261,7 +272,10 @@ pub fn button_interaction(
                         true
                     }
                     ButtonType::LocationSegment(LocationSegmentType::Directory) => {
-                        let path_list_children = path_list_query.single();
+                        let path_list_children = path_list_query.get(button_parent.get()).expect(
+                            "LocationSegment button should always have a TopBarNode parent",
+                        );
+
                         // Last segment is the current directory, no need to reload
                         if button_entity == *path_list_children.last().unwrap() {
                             return;

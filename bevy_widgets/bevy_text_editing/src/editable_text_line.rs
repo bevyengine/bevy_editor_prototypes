@@ -15,7 +15,7 @@ use bevy_focus::{FocusPlugin, Focusable, SetFocus};
 use crate::{
     cursor::{Cursor, CursorPlugin},
     text_change::TextChange,
-    CharPosition, TEXT_SELECTION_COLOR,
+    CharPosition, SetCursorPosition, SetText, TextChanged, TEXT_SELECTION_COLOR,
 };
 
 use input::*;
@@ -39,6 +39,7 @@ impl Plugin for EditableTextLinePlugin {
         app.add_event::<SetText>();
         app.add_event::<TextChanged>();
         app.add_event::<RenderWidget>();
+        app.add_event::<SetCursorPosition>();
 
         app.add_systems(
             PreUpdate,
@@ -54,6 +55,7 @@ impl Plugin for EditableTextLinePlugin {
         app.add_observer(on_click);
         app.add_observer(render_system);
         app.add_observer(on_focus_lost);
+        app.add_observer(on_set_cursor_position);
     }
 }
 
@@ -165,15 +167,6 @@ pub struct EditableTextInner {
 
     /// Canvas shift to the left to keep cursor visible in the text field
     text_shift: f32,
-}
-
-#[derive(Event)]
-pub struct SetText(pub String);
-
-#[derive(Event)]
-pub struct TextChanged {
-    pub change: TextChange,
-    pub new_text: String,
 }
 
 #[derive(Event, Default, Clone)]

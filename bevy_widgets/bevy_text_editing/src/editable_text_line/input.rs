@@ -234,6 +234,7 @@ pub fn keyboard_input(
     }
 
     if need_render {
+        let old_cursor_position = text_field.cursor_position;
         // cursor position changed hided in if to pervert infinite change triggering
         text_field.cursor_position = Some(current_cursor);
         commands.trigger_targets(RenderWidget::show_cursor(), entity);
@@ -246,6 +247,8 @@ pub fn keyboard_input(
                 TextChanged {
                     change: text_change.clone(),
                     new_text,
+                    old_cursor_position,
+                    new_cursor_position: Some(current_cursor),
                 },
                 entity,
             );
@@ -272,4 +275,18 @@ pub fn on_focus_lost(
     text_field.selection_start = None;
 
     commands.trigger_targets(RenderWidget::default(), entity);
+}
+
+pub fn on_set_cursor_position(
+    trigger: Trigger<SetCursorPosition>,
+    mut commands: Commands,
+    mut q_editable_texts: Query<&mut EditableTextLine>,
+) {
+    let entity = trigger.entity();
+    let Ok(mut text_field) = q_editable_texts.get_mut(entity) else {
+        return;
+    };
+
+    text_field.cursor_position = Some(trigger.0);
+    commands.trigger_targets(RenderWidget::show_cursor(), entity);
 }

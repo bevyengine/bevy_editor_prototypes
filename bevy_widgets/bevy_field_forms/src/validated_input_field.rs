@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use bevy::{prelude::*, utils::HashSet};
 use bevy_text_editing::*;
+use child_traversal::FirstChildTraversal;
 
 /// Plugin for validated input fields with a generic value type
 pub struct ValidatedInputFieldPlugin<T: Validable> {
@@ -36,6 +37,7 @@ impl<T: Validable> Plugin for ValidatedInputFieldPlugin<T> {
 /// It will not contain special style updates for validation state, because it's expected that it will be
 /// combined with other widgets to form a custom UI.
 #[derive(Component)]
+#[require(FirstChildTraversal)]
 pub struct ValidatedInputField<T: Validable> {
     /// The last valid value
     pub value: T,
@@ -44,8 +46,6 @@ pub struct ValidatedInputField<T: Validable> {
     /// If true, this text field will not update its value automatically
     /// and will require an external update call to update the value.
     pub controlled: bool,
-    /// The allowed characters for the input field
-    pub allowed_characters: Option<HashSet<char>>,
 }
 
 impl<T: Validable> ValidatedInputField<T> {
@@ -55,14 +55,7 @@ impl<T: Validable> ValidatedInputField<T> {
             value,
             validation_state: ValidationState::Unchecked,
             controlled: false,
-            allowed_characters: None,
         }
-    }
-
-    /// Set the allowed characters for the input field
-    pub fn with_allowed_characters(mut self, allowed_characters: HashSet<char>) -> Self {
-        self.allowed_characters = Some(allowed_characters);
-        self
     }
 }
 
@@ -84,7 +77,7 @@ pub trait Validable: Send + Sync + Default + PartialEq + Clone + ToString + 'sta
 }
 
 /// The current state of the text field validation
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub enum ValidationState {
     /// No validation has been performed yet
     #[default]
@@ -111,15 +104,10 @@ fn spawn_system<T: Validable>(
     mut commands: Commands,
     query: Query<(Entity, &ValidatedInputField<T>), Without<EditableTextLine>>,
 ) {
-    for (entity, field) in query.iter() {
-        commands
-            .entity(entity)
-            .insert(EditableTextLine::controlled(field.value.to_string()));
-    }
 }
 
 fn on_text_changed<T: Validable>(
-    trigger: Trigger<TextChanged>,
+    mut trigger: Trigger<TextChanged>,
     mut commands: Commands,
     mut q_validated_input_fields: Query<&mut ValidatedInputField<T>>,
 ) {
@@ -128,10 +116,8 @@ fn on_text_changed<T: Validable>(
         return;
     };
 
-    let mut new_text = trigger.new_text.clone();
-    if let Some(allowed_characters) = &field.allowed_characters {
-        new_text.retain(|c| allowed_characters.contains(&c));
-    }
+    let new_text = trigger.new_text.clone();
+    trigger.propagate(false);
 
     match T::validate(&new_text) {
         Ok(value) => {

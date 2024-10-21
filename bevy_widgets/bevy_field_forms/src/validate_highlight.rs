@@ -14,7 +14,7 @@ impl Plugin for SimpleBorderHighlightPlugin {
 }
 
 /// A component that defines colors for highlighting the border of a text field based on its validation state.
-#[derive(Component, Default)]
+#[derive(Component)]
 pub struct SimpleBorderHighlight {
     /// The color of the border when the text field's content is valid.
     pub normal_color: Color,
@@ -26,6 +26,17 @@ pub struct SimpleBorderHighlight {
     pub last_validation_state: ValidationState,
 }
 
+impl Default for SimpleBorderHighlight {
+    fn default() -> Self {
+        Self {
+            normal_color: Color::srgb(0.5, 0.5, 0.5),
+            focused_color: Color::srgb(0.5, 0.5, 0.5),
+            invalid_color: Color::srgb(1.0, 0.0, 0.0),
+            last_validation_state: ValidationState::Unchecked,
+        }
+    }
+}
+
 fn on_validation_changed(
     trigger: Trigger<ValidationChanged>,
     mut commands: Commands,
@@ -35,6 +46,8 @@ fn on_validation_changed(
     let Ok((mut highlight, focus)) = q_highlights.get_mut(entity) else {
         return;
     };
+
+    info!("Validation changed to {:?}", trigger.0);
 
     match &trigger.0 {
         ValidationState::Valid => {

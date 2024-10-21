@@ -1,4 +1,13 @@
 use crate::validated_input_field::*;
+use bevy::prelude::*;
+
+#[derive(Component)]
+pub struct NumericField<T: Numeric> {
+    pub value: T,
+    pub controlled: bool,
+}
+
+pub trait Numeric: Validable {}
 
 macro_rules! impl_validable_for_numeric {
     ($($t:ty),*) => {

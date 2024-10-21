@@ -1,6 +1,9 @@
 //! 3D Viewport for Bevy
 use bevy::{
-    picking::pointer::{Location, PointerInput},
+    picking::{
+        pointer::{Location, PointerId, PointerInput, PointerLocation},
+        PickSet,
+    },
     prelude::*,
     render::{
         camera::{NormalizedRenderTarget, RenderTarget},
@@ -39,7 +42,10 @@ impl Plugin for Viewport3dPanePlugin {
         }
         app.add_plugins(DefaultEditorCamPlugins)
             .add_systems(Startup, setup)
-            .add_systems(Update, render_target_picking_passthrough)
+            .add_systems(
+                PreUpdate,
+                render_target_picking_passthrough.in_set(PickSet::Last),
+            )
             .add_systems(
                 PostUpdate,
                 update_render_target_size.after(ui_layout_system),
@@ -68,16 +74,18 @@ impl Plugin for Viewport3dPanePlugin {
 struct Active;
 
 // TODO This does not properly handle multiple windows.
+/// Copies picking events and moves pointers through render-targets.
 fn render_target_picking_passthrough(
     mut commands: Commands,
     viewports: Query<(Entity, &Bevy3dViewport)>,
     content: Query<&PaneContentNode>,
     children_query: Query<&Children>,
     node_query: Query<(&ComputedNode, &GlobalTransform, &UiImage), With<Active>>,
+    mut pointers: Query<(&PointerId, &mut PointerLocation)>,
     mut pointer_input_reader: EventReader<PointerInput>,
 ) {
     for event in pointer_input_reader.read() {
-        // Ignore the events we send to the rendertargets
+        // Ignore the events we send to the render-targets
         if !matches!(event.location.target, NormalizedRenderTarget::Window(..)) {
             continue;
         }
@@ -96,19 +104,25 @@ fn render_target_picking_passthrough(
             let node_rect =
                 Rect::from_center_size(global_transform.translation().xy(), computed_node.size());
 
-            if !node_rect.contains(event.location.position) {
-                continue;
-            }
-
-            // Duplicate the event
-            let mut new_event = event.clone();
-            // Relocate the event to the render target
-            new_event.location = Location {
+            let new_location = Location {
                 position: event.location.position - node_rect.min,
                 target: NormalizedRenderTarget::Image(ui_image.texture.clone()),
             };
+
+            // Duplicate the event
+            let mut new_event = event.clone();
+            // Relocate the event to the render-target
+            new_event.location = new_location.clone();
             // Resend the event
             commands.send_event(new_event);
+
+            if let Some((_id, mut pointer_location)) = pointers
+                .iter_mut()
+                .find(|(pointer_id, _)| **pointer_id == event.pointer_id)
+            {
+                // Relocate the pointer to the render-target
+                pointer_location.location = Some(new_location);
+            }
         }
     }
 }

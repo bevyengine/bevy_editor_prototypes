@@ -16,7 +16,7 @@ fn setup(mut commands: Commands) {
 
     commands
         .spawn(
-            (Node {
+            ( Node {
                 width: Val::Percent(100.),
                 height: Val::Percent(100.),
                 justify_content: JustifyContent::Center,
@@ -27,7 +27,7 @@ fn setup(mut commands: Commands) {
         .with_children(|cmd| {
             cmd.spawn((
                 EditableTextLine::new("Hello, World!"),
-                Node {
+                Node { 
                     width: Val::Px(300.0),
                     height: Val::Px(25.0),
                     ..Default::default()

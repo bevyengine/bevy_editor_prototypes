@@ -44,7 +44,6 @@ pub trait Draggable:
     fn default_drag_ratio() -> f32;
 }
 
-
 /// A component that allows dragging a value stored in an input field
 #[derive(Component)]
 #[require(Node, InputField::<T>, Interaction)]

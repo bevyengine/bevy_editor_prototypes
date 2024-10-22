@@ -213,20 +213,36 @@ mod tests {
     #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
     struct TupleStruct(i32, String);
 
+    #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
+    #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
+    struct StructWithTuple {
+        pub tuple: TupleStruct,
+    }
+
     #[traced_test]
     #[test]
     fn test_tuple_struct() {
         let mut app = App::new();
 
         app.register_type::<TupleStruct>();
+        app.register_type::<StructWithTuple>();
 
         app.insert_resource(TupleStruct(1, "one".to_string()));
+        app.insert_resource(StructWithTuple {
+            tuple: TupleStruct(2, "two".to_string()),
+        });
 
         file_system::load_project_settings(app.world_mut());
 
         let settings = app.world().get_resource::<TupleStruct>().unwrap();
 
         assert_eq!(*settings, TupleStruct(2, "two".to_string()));
+
+        let settings = app.world().get_resource::<StructWithTuple>().unwrap();
+
+        assert_eq!(*settings, StructWithTuple {
+            tuple: TupleStruct(3, "three".to_string()),
+        });
     }
 
 }

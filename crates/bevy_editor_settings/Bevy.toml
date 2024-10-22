@@ -26,3 +26,6 @@ settings = ["Three"]
 
 [tuple_struct]
 fields = [2, "two"]
+
+[struct_with_tuple]
+tuple = [3, "three"]

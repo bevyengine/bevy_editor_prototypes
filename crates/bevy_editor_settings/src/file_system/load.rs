@@ -204,6 +204,15 @@ fn load_struct(strct: &mut dyn Struct, struct_info: &StructInfo, table: &toml::T
                     load_enum(enm, enum_info, value);
                 }
             }
+            TypeInfo::TupleStruct(tuple_struct_info) => {
+                let ReflectMut::TupleStruct(tuple_struct) = field_mut.reflect_mut() else {
+                    warn!("Preferences: Expected TupleStruct");
+                    continue;
+                };
+                if let Some(array_value) = table.get(&key).and_then(|v| v.as_array()) {
+                    load_tuple_struct(tuple_struct, tuple_struct_info, array_value);
+                }
+            }
             _ => {
                 warn!(
                     "Preferences: Unsupported type: {:?}",

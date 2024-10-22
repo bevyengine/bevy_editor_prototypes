@@ -25,7 +25,7 @@ impl Plugin for FocusPlugin {
 }
 
 /// Component which indicates that a widget is focused and can receive input events.
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Focus;
 
 /// Mark that a widget can receive input events and can be focused

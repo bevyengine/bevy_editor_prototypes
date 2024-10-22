@@ -48,6 +48,7 @@ fn on_validation_changed(
     };
 
     info!("Validation changed to {:?}", trigger.0);
+    info!("Focus: {:?}", focus);
 
     match &trigger.0 {
         ValidationState::Valid => {

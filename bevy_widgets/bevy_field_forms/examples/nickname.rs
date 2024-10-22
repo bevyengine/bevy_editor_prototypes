@@ -8,7 +8,7 @@ use bevy_field_forms::{
         ValidationState,
     },
 };
-use bevy_focus::Focusable;
+use bevy_focus::{FocusPlugin, Focusable};
 use bevy_i_cant_believe_its_not_bsn::WithChild;
 use bevy_text_editing::{
     child_traversal::FirstChildTraversalPlugin, EditableTextLine, EditableTextLinePlugin,

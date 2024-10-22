@@ -61,7 +61,7 @@ impl Plugin for EditableTextLinePlugin {
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component, Default)]
-#[require(Node, Focusable)]
+#[require(Node)]
 pub struct EditableTextLine {
     /// Text content
     pub text: String,

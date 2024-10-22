@@ -2,7 +2,11 @@ use std::sync::Arc;
 
 use bevy::prelude::*;
 
-use bevy_field_forms::{drag_input::DragInput, input_field::{InputField, ValueChanged}, validate_highlight::SimpleBorderHighlight};
+use bevy_field_forms::{
+    drag_input::DragInput,
+    input_field::{InputField, ValueChanged},
+    validate_highlight::SimpleBorderHighlight,
+};
 use bevy_incomplete_bsn::entity_diff_tree::EntityDiffTree;
 
 use crate::render::{ChangeComponentField, RenderContext};
@@ -38,23 +42,28 @@ pub fn float_render_impl(float: &f32, path: String, context: &RenderContext) -> 
 
     tree.add_patch_fn(|highlight: &mut SimpleBorderHighlight| {});
 
-    tree.add_observer_patch(move |
-        trigger: Trigger<ValueChanged<f32>>,
-        mut commands: Commands,
-    | {
-        info!("Trigger reflect change with path: {} and value: {}", path, trigger.0);
-        let entity = trigger.entity();
+    tree.add_observer_patch(
+        move |trigger: Trigger<ValueChanged<f32>>, mut commands: Commands| {
+            info!(
+                "Trigger reflect change with path: {} and value: {}",
+                path, trigger.0
+            );
+            let entity = trigger.entity();
 
-        commands.trigger_targets(ChangeComponentField {
-            value: Arc::new(trigger.0),
-            path: path.clone(),
-            direct_cange: Some(Arc::new(|dst, src| {
-                let dst_f32 = dst.try_downcast_mut::<f32>().unwrap();
-                let src_f32 = src.try_downcast_ref::<f32>().unwrap();
-                *dst_f32 = *src_f32;
-            })),
-        }, entity);
-    });
+            commands.trigger_targets(
+                ChangeComponentField {
+                    value: Arc::new(trigger.0),
+                    path: path.clone(),
+                    direct_cange: Some(Arc::new(|dst, src| {
+                        let dst_f32 = dst.try_downcast_mut::<f32>().unwrap();
+                        let src_f32 = src.try_downcast_ref::<f32>().unwrap();
+                        *dst_f32 = *src_f32;
+                    })),
+                },
+                entity,
+            );
+        },
+    );
 
     tree
 }

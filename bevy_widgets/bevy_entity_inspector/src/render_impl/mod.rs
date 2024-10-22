@@ -21,7 +21,12 @@ impl Plugin for RenderImplPlugin {
 pub struct RenderStorage {
     pub renders: HashMap<
         TypeId,
-        Box<dyn Fn(&dyn PartialReflect, String, &RenderContext) -> EntityDiffTree + Send + Sync + 'static>,
+        Box<
+            dyn Fn(&dyn PartialReflect, String, &RenderContext) -> EntityDiffTree
+                + Send
+                + Sync
+                + 'static,
+        >,
     >,
 }
 

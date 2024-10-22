@@ -34,7 +34,8 @@ pub struct ComponentInspector {
 pub struct ChangeComponentField {
     pub path: String,
     pub value: Arc<dyn PartialReflect + Send + Sync + 'static>,
-    pub direct_cange: Option<Arc<dyn Fn(&mut dyn PartialReflect, &dyn PartialReflect) + Send + Sync + 'static>>,
+    pub direct_cange:
+        Option<Arc<dyn Fn(&mut dyn PartialReflect, &dyn PartialReflect) + Send + Sync + 'static>>,
 }
 
 impl Event for ChangeComponentField {
@@ -115,14 +116,18 @@ pub fn render_component_inspector(
             .split("::")
             .last()
             .unwrap_or_default();
-        tree.add_child(EntityDiffTree::new().with_patch_fn(move |text: &mut Text| {
-            text.0 = format!("{}", name);
-        }).with_patch_fn(|text_layout: &mut TextLayout| {
-            text_layout.linebreak = LineBreak::AnyCharacter;
-        })
-        .with_patch_fn(|node: &mut Node| {
-            node.max_width = Val::Px(300.0);
-        }));
+        tree.add_child(
+            EntityDiffTree::new()
+                .with_patch_fn(move |text: &mut Text| {
+                    text.0 = format!("{}", name);
+                })
+                .with_patch_fn(|text_layout: &mut TextLayout| {
+                    text_layout.linebreak = LineBreak::AnyCharacter;
+                })
+                .with_patch_fn(|node: &mut Node| {
+                    node.max_width = Val::Px(300.0);
+                }),
+        );
 
         let render_context = RenderContext {
             render_storage: &render_storage,
@@ -316,7 +321,11 @@ fn recursive_reflect_render(
                                     node.padding = UiRect::all(Val::Px(5.0));
                                 }),
                         );
-                        row.add_child(recursive_reflect_render(field, format!("{}.{}", path, name), render_context));
+                        row.add_child(recursive_reflect_render(
+                            field,
+                            format!("{}.{}", path, name),
+                            render_context,
+                        ));
                         tree.add_child(row);
                     } else {
                         // Other fields are rendered as a column with a shift
@@ -340,7 +349,11 @@ fn recursive_reflect_render(
                             node.width = Val::Px(20.0);
                         }));
 
-                        row.add_child(recursive_reflect_render(field, format!("{}.{}", path, name), render_context));
+                        row.add_child(recursive_reflect_render(
+                            field,
+                            format!("{}.{}", path, name),
+                            render_context,
+                        ));
 
                         tree.add_child(row);
                     }
@@ -348,37 +361,65 @@ fn recursive_reflect_render(
             }
             bevy::reflect::ReflectRef::TupleStruct(v) => {
                 for (idx, field) in v.iter_fields().enumerate() {
-                    tree.add_child(recursive_reflect_render(field, format!("{}[{}]", path, idx), render_context));
+                    tree.add_child(recursive_reflect_render(
+                        field,
+                        format!("{}[{}]", path, idx),
+                        render_context,
+                    ));
                 }
             }
             bevy::reflect::ReflectRef::Tuple(v) => {
                 for (idx, field) in v.iter_fields().enumerate() {
-                    tree.add_child(recursive_reflect_render(field, format!("{}[{}]", path, idx), render_context));
+                    tree.add_child(recursive_reflect_render(
+                        field,
+                        format!("{}[{}]", path, idx),
+                        render_context,
+                    ));
                 }
             }
             bevy::reflect::ReflectRef::List(v) => {
                 for (idx, field) in v.iter().enumerate() {
-                    tree.add_child(recursive_reflect_render(field, format!("{}[{}]", path, idx), render_context));
+                    tree.add_child(recursive_reflect_render(
+                        field,
+                        format!("{}[{}]", path, idx),
+                        render_context,
+                    ));
                 }
             }
             bevy::reflect::ReflectRef::Array(v) => {
                 for (idx, field) in v.iter().enumerate() {
-                    tree.add_child(recursive_reflect_render(field, format!("{}[{}]", path, idx), render_context));
+                    tree.add_child(recursive_reflect_render(
+                        field,
+                        format!("{}[{}]", path, idx),
+                        render_context,
+                    ));
                 }
             }
             bevy::reflect::ReflectRef::Map(v) => {
                 for (key, field) in v.iter() {
-                    tree.add_child(recursive_reflect_render(field, format!("{}", path), render_context));
+                    tree.add_child(recursive_reflect_render(
+                        field,
+                        format!("{}", path),
+                        render_context,
+                    ));
                 }
             }
             bevy::reflect::ReflectRef::Set(v) => {
                 for field in v.iter() {
-                    tree.add_child(recursive_reflect_render(field, format!("{}", path), render_context));
+                    tree.add_child(recursive_reflect_render(
+                        field,
+                        format!("{}", path),
+                        render_context,
+                    ));
                 }
             }
             bevy::reflect::ReflectRef::Enum(v) => {
                 for field in v.iter_fields() {
-                    tree.add_child(recursive_reflect_render(field.value(), format!("{}", path), render_context));
+                    tree.add_child(recursive_reflect_render(
+                        field.value(),
+                        format!("{}", path),
+                        render_context,
+                    ));
                 }
             }
             bevy::reflect::ReflectRef::Opaque(v) => {

@@ -2,7 +2,12 @@
 
 use std::any::TypeId;
 
-use bevy::{ecs::{component::ComponentId, system::IntoObserverSystem}, prelude::*, reflect::Type, utils::HashSet};
+use bevy::{
+    ecs::{component::ComponentId, system::IntoObserverSystem},
+    prelude::*,
+    reflect::Type,
+    utils::HashSet,
+};
 
 use crate::{construct::Construct, patch::Patch};
 
@@ -91,8 +96,6 @@ impl EntityDiffTree {
                     info!("Removed component {:?}", c_id);
                 }
             }
-
-        
         }
 
         // Clear all observers that was used in previous tree state
@@ -103,7 +106,10 @@ impl EntityDiffTree {
         }
 
         // Take vector of observers patches and clear it
-        let mut new_observers = self.observer_patch.drain(..).into_iter()
+        let mut new_observers = self
+            .observer_patch
+            .drain(..)
+            .into_iter()
             .map(|mut patch| patch.as_mut().observer_patch(entity, world))
             .collect::<Vec<_>>();
 

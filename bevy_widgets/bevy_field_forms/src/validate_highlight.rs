@@ -1,6 +1,6 @@
 use crate::validated_input_field::*;
 use bevy::prelude::*;
-use bevy_focus::Focus;
+use bevy_focus::{Focus, LostFocus};
 
 /// A plugin that adds an observer to highlight the border of a text field based on its validation state based on the `SimpleBorderHighlight` component.
 pub struct SimpleBorderHighlightPlugin;
@@ -10,14 +10,19 @@ impl Plugin for SimpleBorderHighlightPlugin {
         app.add_observer(on_validation_changed);
         app.add_observer(on_focus_added);
         app.add_observer(on_focus_lost);
+
+        app.add_systems(PreUpdate, on_interaction_changed);
     }
 }
 
 /// A component that defines colors for highlighting the border of a text field based on its validation state.
 #[derive(Component)]
+#[require(Node, Interaction)]
 pub struct SimpleBorderHighlight {
     /// The color of the border when the text field's content is valid.
     pub normal_color: Color,
+    /// The color of the border when the text field is hovered.
+    pub hovered_color: Color,
     /// The color of the border when the text field is in focus.
     pub focused_color: Color,
     /// The color of the border when the text field's content is invalid.
@@ -30,7 +35,8 @@ impl Default for SimpleBorderHighlight {
     fn default() -> Self {
         Self {
             normal_color: Color::srgb(0.5, 0.5, 0.5),
-            focused_color: Color::srgb(0.5, 0.5, 0.5),
+            hovered_color: Color::srgb(0.7, 0.7, 0.7),
+            focused_color: Color::srgb(1.0, 1.0, 1.0),
             invalid_color: Color::srgb(1.0, 0.0, 0.0),
             last_validation_state: ValidationState::Unchecked,
         }
@@ -40,10 +46,10 @@ impl Default for SimpleBorderHighlight {
 fn on_validation_changed(
     trigger: Trigger<ValidationChanged>,
     mut commands: Commands,
-    mut q_highlights: Query<(&mut SimpleBorderHighlight, Option<&Focus>)>,
+    mut q_highlights: Query<(&mut SimpleBorderHighlight, &Interaction, Option<&Focus>)>,
 ) {
     let entity = trigger.entity();
-    let Ok((mut highlight, focus)) = q_highlights.get_mut(entity) else {
+    let Ok((mut highlight, interaction, focus)) = q_highlights.get_mut(entity) else {
         return;
     };
 
@@ -56,6 +62,10 @@ fn on_validation_changed(
                 commands
                     .entity(entity)
                     .insert(BorderColor(highlight.focused_color));
+            } else if *interaction == Interaction::Hovered {
+                commands
+                    .entity(entity)
+                    .insert(BorderColor(highlight.hovered_color));
             } else {
                 commands
                     .entity(entity)
@@ -68,7 +78,19 @@ fn on_validation_changed(
                 .insert(BorderColor(highlight.invalid_color));
         }
         ValidationState::Unchecked => {
-            // Do nothing
+            if focus.is_some() {
+                commands
+                    .entity(entity)
+                    .insert(BorderColor(highlight.focused_color));
+            } else if *interaction == Interaction::Hovered {
+                commands
+                    .entity(entity)
+                    .insert(BorderColor(highlight.hovered_color));
+            } else {
+                commands
+                    .entity(entity)
+                    .insert(BorderColor(highlight.normal_color));
+            }
         }
     }
 
@@ -85,6 +107,8 @@ fn on_focus_added(
         return;
     };
 
+    info!("Focus added to {:?}", entity);
+
     commands.trigger_targets(
         ValidationChanged(highlight.last_validation_state.clone()),
         entity,
@@ -92,7 +116,7 @@ fn on_focus_added(
 }
 
 fn on_focus_lost(
-    trigger: Trigger<OnRemove, Focus>,
+    trigger: Trigger<LostFocus>,
     mut commands: Commands,
     q_highlights: Query<&SimpleBorderHighlight>,
 ) {
@@ -101,8 +125,19 @@ fn on_focus_lost(
         return;
     };
 
+    info!("Focus lost from {:?}", entity);
+
     commands.trigger_targets(
         ValidationChanged(highlight.last_validation_state.clone()),
         entity,
     );
+}
+
+fn on_interaction_changed(
+    mut commands: Commands,
+    q_changed_interaction: Query<(Entity, &SimpleBorderHighlight), Changed<Interaction>>,
+) {
+    for (entity, highlight) in q_changed_interaction.iter() {
+        commands.trigger_targets(ValidationChanged(highlight.last_validation_state.clone()), entity);
+    }
 }

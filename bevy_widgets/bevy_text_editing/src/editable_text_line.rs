@@ -59,9 +59,12 @@ impl Plugin for EditableTextLinePlugin {
     }
 }
 
+
+
+
 #[derive(Component, Reflect, Default)]
 #[reflect(Component, Default)]
-#[require(Node)]
+#[require(Node, Focusable)]
 pub struct EditableTextLine {
     /// Text content
     pub text: String,
@@ -69,6 +72,8 @@ pub struct EditableTextLine {
     pub cursor_position: Option<CharPosition>,
     /// Selection start. Measured in characters
     pub selection_start: Option<CharPosition>,
+    /// Allowed chars
+    pub allowed_chars: Option<HashSet<char>>,
     /// Controlled widgets do not update their state by themselves,
     /// while uncontrolled widgets can edit their own state.
     pub controlled_widget: bool,

@@ -1,6 +1,5 @@
 //! This crate provides a set of widgets, which are used text input
 
-pub mod allowed_chars_filter;
 pub mod numeric;
 pub mod text_event_mirror;
 pub mod validate_highlight;

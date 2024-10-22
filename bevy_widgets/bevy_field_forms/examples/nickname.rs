@@ -4,7 +4,7 @@ use bevy::{prelude::*, utils::HashSet};
 use bevy_field_forms::{
     validate_highlight::{SimpleBorderHighlight, SimpleBorderHighlightPlugin},
     validated_input_field::{
-        Validable, ValidatedInputField, ValidatedInputFieldPlugin, ValidationChanged,
+        Validable, InputField, InputFieldPlugin, ValidationChanged,
         ValidationState,
     },
 };
@@ -18,7 +18,7 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(EditableTextLinePlugin)
-        .add_plugins(ValidatedInputFieldPlugin::<CharacterName>::default())
+        .add_plugins(InputFieldPlugin::<CharacterName>::default())
         .add_plugins(FirstChildTraversalPlugin)
         .add_plugins(SimpleBorderHighlightPlugin)
         .add_observer(on_validation_changed)
@@ -57,25 +57,17 @@ fn setup(mut commands: Commands) {
             cmd.spawn((
                 Node {
                     border: UiRect::all(Val::Px(1.0)),
+                    width: Val::Px(300.0),
+                    height: Val::Px(25.0),
                     ..default()
                 },
                 BorderRadius::all(Val::Px(5.0)),
                 BorderColor(Color::WHITE),
-                ValidatedInputField::new(CharacterName(String::new())),
+                InputField::new(CharacterName(String::new())),
                 SimpleBorderHighlight::default(),
-                Focusable,
                 CharacterValidator {
                     msg_text: text_msg_entity,
                 },
-                WithChild((
-                    EditableTextLine::new(""),
-                    Node {
-                        // We need to set the width and height of the editable area because limitations
-                        width: Val::Px(300.0),
-                        height: Val::Px(25.0),
-                        ..default()
-                    },
-                )),
             ));
         })
         .add_child(text_msg_entity);

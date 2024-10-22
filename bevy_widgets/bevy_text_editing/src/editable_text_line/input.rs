@@ -91,7 +91,10 @@ pub fn keyboard_input(
             events.clear(); // clear events that were triggered by pasting
 
             match clipboard.get_text() {
-                Ok(text) => {
+                Ok(mut text) => {
+                    if let Some(allowed_chars) = &text_field.allowed_chars {
+                        text.retain(|c| allowed_chars.contains(&c));
+                    }
                     if text_field.selection_start.is_none() {
                         text_change = TextChange::insert_change(current_cursor, text.clone());
                         current_cursor = CharPosition(current_cursor.0 + text.chars().count());
@@ -143,6 +146,12 @@ pub fn keyboard_input(
                 Key::Space => {
                     need_render = true;
 
+                    if let Some(allowed_chars) = &text_field.allowed_chars {
+                        if !allowed_chars.contains(&' ') {
+                            continue;
+                        }
+                    }
+
                     if let Some((start, end)) = text_field.selection_range() {
                         text_change = TextChange::new((start, end), " ");
                         current_cursor = start + CharPosition(1);
@@ -185,7 +194,10 @@ pub fn keyboard_input(
                     if key_states.pressed(KeyCode::ControlLeft) {
                         continue; // ignore control characters
                     }
-                    let chars = c.chars().collect::<Vec<_>>();
+                    let mut chars = c.chars().collect::<Vec<_>>();
+                    if let Some(allowed_chars) = &text_field.allowed_chars {
+                        chars.retain(|c| allowed_chars.contains(c));
+                    }
                     need_render = true;
 
                     if let Some((start, end)) = text_field.selection_range() {
@@ -273,6 +285,8 @@ pub fn on_focus_lost(
 
     text_field.cursor_position = None;
     text_field.selection_start = None;
+
+    info!("Focus lost from {:?}", entity);
 
     commands.trigger_targets(RenderWidget::default(), entity);
 }

@@ -93,7 +93,7 @@ fn clear_focus(
     q_focused: Query<Entity, With<Focus>>,
 ) {
     for entity in q_focused.iter() {
-        commands.entity(entity).insert(Focus);
+        commands.entity(entity).remove::<Focus>();
         commands.trigger_targets(LostFocus, entity);
     }
 }

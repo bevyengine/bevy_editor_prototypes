@@ -5,11 +5,11 @@ use bevy_text_editing::*;
 use child_traversal::FirstChildTraversal;
 
 /// Plugin for validated input fields with a generic value type
-pub struct ValidatedInputFieldPlugin<T: Validable> {
+pub struct InputFieldPlugin<T: Validable> {
     _marker: std::marker::PhantomData<T>,
 }
 
-impl<T: Validable> Default for ValidatedInputFieldPlugin<T> {
+impl<T: Validable> Default for InputFieldPlugin<T> {
     fn default() -> Self {
         Self {
             _marker: std::marker::PhantomData,
@@ -17,15 +17,15 @@ impl<T: Validable> Default for ValidatedInputFieldPlugin<T> {
     }
 }
 
-impl<T: Validable> Plugin for ValidatedInputFieldPlugin<T> {
+impl<T: Validable> Plugin for InputFieldPlugin<T> {
     fn build(&self, app: &mut App) {
         if !app.is_plugin_added::<EditableTextLinePlugin>() {
             app.add_plugins(EditableTextLinePlugin);
         }
 
         app.add_event::<ValidationChanged>();
-        app.add_event::<ValidatedValueChanged<T>>();
-        app.add_event::<SetValidatedValue<T>>();
+        app.add_event::<ValueChanged<T>>();
+        app.add_event::<SetValue<T>>();
 
         app.add_systems(PreUpdate, spawn_system::<T>);
 
@@ -37,8 +37,8 @@ impl<T: Validable> Plugin for ValidatedInputFieldPlugin<T> {
 /// It will not contain special style updates for validation state, because it's expected that it will be
 /// combined with other widgets to form a custom UI.
 #[derive(Component)]
-#[require(FirstChildTraversal)]
-pub struct ValidatedInputField<T: Validable> {
+#[require(EditableTextLine(construct_editable_label))]
+pub struct InputField<T: Validable> {
     /// The last valid value
     pub value: T,
     /// The current validation state
@@ -48,7 +48,11 @@ pub struct ValidatedInputField<T: Validable> {
     pub controlled: bool,
 }
 
-impl<T: Validable> ValidatedInputField<T> {
+fn construct_editable_label() -> EditableTextLine {
+    EditableTextLine::controlled("")
+}
+
+impl<T: Validable> InputField<T> {
     /// Create a new validated input field with the given value
     pub fn new(value: T) -> Self {
         Self {
@@ -76,6 +80,12 @@ pub trait Validable: Send + Sync + Default + PartialEq + Clone + ToString + 'sta
     fn validate(text: &str) -> Result<Self, String>;
 }
 
+impl Validable for String {
+    fn validate(text: &str) -> Result<Self, String> {
+        Ok(text.to_string())
+    }
+}
+
 /// The current state of the text field validation
 #[derive(Default, Clone, Debug)]
 pub enum ValidationState {
@@ -94,22 +104,22 @@ pub struct ValidationChanged(pub ValidationState);
 
 /// Event that is emitted when the value changes
 #[derive(Event)]
-pub struct ValidatedValueChanged<T: Validable>(pub T);
+pub struct ValueChanged<T: Validable>(pub T);
 
 /// This event is used to set the value of the validated input field.
 #[derive(Event)]
-pub struct SetValidatedValue<T: Validable>(pub T);
+pub struct SetValue<T: Validable>(pub T);
 
 fn spawn_system<T: Validable>(
     mut commands: Commands,
-    query: Query<(Entity, &ValidatedInputField<T>), Without<EditableTextLine>>,
+    query: Query<(Entity, &InputField<T>), Without<EditableTextLine>>,
 ) {
 }
 
 fn on_text_changed<T: Validable>(
     mut trigger: Trigger<TextChanged>,
     mut commands: Commands,
-    mut q_validated_input_fields: Query<&mut ValidatedInputField<T>>,
+    mut q_validated_input_fields: Query<&mut InputField<T>>,
 ) {
     let entity = trigger.entity();
     let Ok(mut field) = q_validated_input_fields.get_mut(entity) else {
@@ -121,16 +131,19 @@ fn on_text_changed<T: Validable>(
 
     match T::validate(&new_text) {
         Ok(value) => {
-            commands.trigger_targets(ValidatedValueChanged(value.clone()), entity);
+            commands.trigger_targets(ValueChanged(value.clone()), entity);
             commands.trigger_targets(ValidationChanged(ValidationState::Valid), entity);
+            // As editable label is controlled, we need to set the text manually
+            commands.trigger_targets(SetText(new_text), entity);
             // Update the value only if the field is not controlled
             if !field.controlled {
                 // Update the text in the EditableTextLine
-                commands.trigger_targets(SetText(value.to_string()), entity);
                 field.value = value;
             }
         }
         Err(error) => {
+            // As editable label is controlled, we need to set the text manually
+            commands.trigger_targets(SetText(new_text), entity);
             commands.trigger_targets(ValidationChanged(ValidationState::Invalid(error)), entity);
         }
     }

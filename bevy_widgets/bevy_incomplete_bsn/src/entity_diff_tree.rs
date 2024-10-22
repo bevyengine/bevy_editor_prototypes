@@ -1,6 +1,8 @@
 //! Allow to automatically manage created components and children in tree by storing last minimal tree state
 
-use bevy::{ecs::component::ComponentId, prelude::*, utils::HashSet};
+use std::any::TypeId;
+
+use bevy::{ecs::component::ComponentId, prelude::*, reflect::Type, utils::HashSet};
 
 use crate::{construct::Construct, patch::Patch};
 
@@ -24,6 +26,18 @@ impl EntityDiffTree {
             patch: Vec::new(),
             children: Vec::new(),
         }
+    }
+
+    pub fn add_patch(&mut self, patch: impl EntityComponentDiffPatch) {
+        self.patch.push(Box::new(patch));
+    }
+
+    pub fn add_patch_fn<C: Component + Default + Clone>(&mut self, func: impl FnMut(&mut C) + Send + Sync + 'static) {
+        self.add_patch(<C as Construct>::patch(func));
+    }
+
+    pub fn add_child(&mut self, child: EntityDiffTree) {
+        self.children.push(child);
     }
 
     /// Adds a patch to the entity.
@@ -68,14 +82,17 @@ impl EntityDiffTree {
                     .filter(|c_id| !new_component_set.contains(*c_id))
                 {
                     entity_mut.remove_by_id(*c_id);
+                    info!("Removed component {:?}", c_id);
                 }
             }
         }
 
-        let mut children_entities = Vec::new();
-        if let Some(children) = world.entity(entity).get::<Children>() {
-            children_entities = children.iter().map(|e| *e).collect();
-        }
+        // We will use separate "children" vector to avoid conflicts with inner logic of widgets which also can use children (For example InputField spawn children for self)
+        let mut children_entities = if let Some(last_state) = world.entity(entity).get::<LastTreeState>().cloned() {
+            last_state.children
+        } else {
+            Vec::new()
+        };
 
         while children_entities.len() < self.children.len() {
             let child_entity = world.spawn_empty().id();
@@ -90,13 +107,28 @@ impl EntityDiffTree {
         // Clear unused children
         for i in self.children.len()..children_entities.len() {
             world.entity_mut(children_entities[i]).despawn_recursive();
+            info!("Despawned child {:?}", children_entities[i]);
         }
 
         // Store current state
         world.entity_mut(entity).insert(LastTreeState {
             component_ids: new_component_set,
-            child_count: self.children.len(),
+            children: children_entities,
         });
+    }
+
+    fn contains_component<C: Component>(&self) -> bool {
+        self.patch.iter().any(|patch| patch.get_type_id() == TypeId::of::<C>())
+    }
+
+    pub fn add_cascade_patch_fn<C: Component + Default + Clone, T: Component>(&mut self, func: impl Fn(&mut C) + Send + Sync + 'static + Clone) {
+        if self.contains_component::<T>() {
+            self.add_patch_fn(func.clone());
+        } else {
+            for child in self.children.iter_mut() {
+                child.add_cascade_patch_fn::<C, T>(func.clone());
+            }
+        }
     }
 }
 
@@ -108,6 +140,9 @@ pub trait EntityComponentDiffPatch: Send + Sync + 'static {
     /// Returns the ComponentId of the component that this patch is associated with.
     /// This is used to keep track of the components that were present in an entity during the last update.
     fn component_id(&self, world: &mut World) -> ComponentId;
+
+    /// Returns the TypeId of the component that this patch is associated with.
+    fn get_type_id(&self) -> TypeId;
 }
 
 impl<C: Component + Default + Clone, T: Patch<Construct = C>> EntityComponentDiffPatch for T {
@@ -121,7 +156,15 @@ impl<C: Component + Default + Clone, T: Patch<Construct = C>> EntityComponentDif
     }
 
     fn component_id(&self, world: &mut World) -> ComponentId {
-        world.register_component::<C>()
+        if let Some(c_id) = world.components().component_id::<C>() {
+            c_id
+        } else {
+            world.register_component::<C>()
+        }
+    }
+
+    fn get_type_id(&self) -> TypeId {
+        TypeId::of::<C>()
     }
 }
 
@@ -136,8 +179,8 @@ pub struct LastTreeState {
     /// in the entity during the last update.
     pub component_ids: HashSet<ComponentId>,
 
-    /// The number of child entities that the entity had during the last update.
-    pub child_count: usize,
+    /// The used child entities that the entity had during the last update.
+    pub children: Vec<Entity>,
 }
 
 /// A trait for applying an `EntityDiffTree` to an entity using `EntityCommands`.

@@ -12,6 +12,11 @@ pub struct FieldFormsPlugin;
 
 impl Plugin for FieldFormsPlugin {
     fn build(&self, app: &mut App) {
+
+        if !app.is_plugin_added::<EditableTextLinePlugin>() {
+            app.add_plugins(EditableTextLinePlugin);
+        }
+
         app.add_plugins(input_field::InputFieldPlugin::<i8>::default());
         app.add_plugins(drag_input::DragInputPlugin::<i8>::default());
 

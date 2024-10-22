@@ -16,7 +16,7 @@ impl Plugin for SimpleBorderHighlightPlugin {
 }
 
 /// A component that defines colors for highlighting the border of a text field based on its validation state.
-#[derive(Component)]
+#[derive(Component, Clone)]
 #[require(Node, Interaction)]
 pub struct SimpleBorderHighlight {
     /// The color of the border when the text field's content is valid.

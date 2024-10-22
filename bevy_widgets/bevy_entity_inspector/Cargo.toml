@@ -1,0 +1,12 @@
+[package]
+name = "bevy_entity_inspector"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy.workspace = true
+bevy_field_forms.workspace = true
+bevy_incomplete_bsn.workspace = true
+
+[lints]
+workspace = true

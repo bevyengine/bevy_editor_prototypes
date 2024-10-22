@@ -19,28 +19,26 @@ use bevy_editor_styles::StylesPlugin;
 // Panes
 use bevy_2d_viewport::Viewport2dPanePlugin;
 use bevy_3d_viewport::Viewport3dPanePlugin;
-
-use bevy_infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings};
+use bevy_asset_browser::AssetBrowserPanePlugin;
 
 mod ui;
 
 fn main() {
     App::new()
         .add_plugins((
+            DefaultPlugins.set(WindowPlugin {
+                primary_window: Some(Window {
+                    title: "Bevy Editor".to_string(),
+                    ..default()
+                }),
+                ..default()
+            }),
             ContextMenuPlugin,
             StylesPlugin,
             Viewport2dPanePlugin,
             Viewport3dPanePlugin,
             ui::EditorUIPlugin,
-            DefaultPlugins.set(WindowPlugin {
-                primary_window: Some(Window {
-                    title: "Bevy Editor".to_string(),
-
-                    ..Default::default()
-                }),
-                ..Default::default()
-            }),
-            InfiniteGridPlugin,
+            AssetBrowserPanePlugin,
         ))
         .add_systems(Startup, setup)
         .run();
@@ -49,21 +47,21 @@ fn main() {
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut materials_2d: ResMut<Assets<ColorMaterial>>,
+    mut materials_3d: ResMut<Assets<StandardMaterial>>,
 ) {
     commands.spawn((
         Mesh2d(meshes.add(Circle::new(50.0))),
-        MeshMaterial2d(materials.add(ColorMaterial::from_color(Color::WHITE))),
+        MeshMaterial2d(materials_2d.add(Color::WHITE)),
     ));
 
     commands.spawn((
-        InfiniteGrid,
-        InfiniteGridSettings {
-            scale: 0.01,
-            dot_fadeout_strength: 0.,
-            z_axis_color: Color::srgb(0.2, 8., 0.3),
-            ..default()
-        },
-        Transform::from_rotation(Quat::from_rotation_arc(Vec3::Y, Vec3::Z)),
+        Mesh3d(meshes.add(Cuboid::from_length(1.0))),
+        MeshMaterial3d(materials_3d.add(Color::WHITE)),
+    ));
+
+    commands.spawn((
+        DirectionalLight::default(),
+        Transform::default().looking_to(Vec3::NEG_ONE, Vec3::Y),
     ));
 }

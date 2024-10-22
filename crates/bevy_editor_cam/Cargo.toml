@@ -1,0 +1,21 @@
+[package]
+name = "bevy_editor_cam"
+version = "0.1.0"
+edition = "2021"
+description = "A camera controller for editors and CAD."
+license = "MIT OR Apache-2.0"
+keywords = ["controller", "camera", "bevy", "CAD"]
+exclude = ["assets/"]
+
+[features]
+default = ["extension_anchor_indicator", "extension_independent_skybox"]
+extension_anchor_indicator = []
+extension_independent_skybox = []
+
+[dependencies]
+bevy.workspace = true
+bevy_derive.workspace = true
+
+[dev-dependencies]
+bevy = { workspace = true, features = ["jpeg", "ktx2", "zstd"] }
+rand = "0.8"

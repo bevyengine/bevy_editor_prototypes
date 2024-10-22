@@ -26,10 +26,12 @@ unsafe_op_in_unsafe_fn = "warn"
 unused_qualifications = "warn"
 
 [workspace.dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "015f2c69ca2a2c009fd04eadada282482deaf469", features = ["wayland", "ghost_nodes"] }
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "015f2c69ca2a2c009fd04eadada282482deaf469", features = ["wayland"] }
+bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "015f2c69ca2a2c009fd04eadada282482deaf469" }
 thiserror = "1"
 serde = { version = "1", features = ["derive"] }
-
+atomicow = "1.0.0"
+rfd = "0.15"
 
 # local crates
 
@@ -51,11 +53,6 @@ bevy_menu_bar = { path = "bevy_widgets/bevy_menu_bar" }
 bevy_footer_bar = { path = "bevy_widgets/bevy_footer_bar" }
 bevy_toolbar = { path = "bevy_widgets/bevy_toolbar" }
 bevy_tooltips = { path = "bevy_widgets/bevy_tooltips" }
-bevy_text_field = { path = "bevy_widgets/bevy_text_field" }
-bevy_numeric_field = { path = "bevy_widgets/bevy_numeric_field" }
-bevy_focus = { path = "bevy_widgets/bevy_focus" }
-bevy_text_editing = { path = "bevy_widgets/bevy_text_editing" }
-bevy_field_forms = { path = "bevy_widgets/bevy_field_forms" }
 
 # general crates
 bevy_asset_preview = { path = "crates/bevy_asset_preview" }
@@ -68,5 +65,4 @@ bevy_pane_layout = { path = "crates/bevy_pane_layout" }
 bevy_transform_gizmos = { path = "crates/bevy_transform_gizmos" }
 bevy_undo = { path = "crates/bevy_undo" }
 bevy_infinite_grid = { path = "crates/bevy_infinite_grid" }
-
-bevy_clipboard = { path = "crates/bevy_clipboard" }
+bevy_editor_cam = { path = "crates/bevy_editor_cam" }

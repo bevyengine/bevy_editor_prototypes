@@ -8,6 +8,7 @@ bevy.workspace = true
 bevy_pane_layout.workspace = true
 bevy_editor_camera.workspace = true
 bevy_editor_styles.workspace = true
+bevy_infinite_grid.workspace = true
 
 [lints]
 workspace = true

@@ -3,7 +3,8 @@
 use bevy::{prelude::*, utils::HashSet};
 use bevy_field_forms::{
     input_field::{InputField, InputFieldPlugin, Validable, ValidationChanged, ValidationState},
-    validate_highlight::{SimpleBorderHighlight, SimpleBorderHighlightPlugin}, FieldFormsPlugin,
+    validate_highlight::{SimpleBorderHighlight, SimpleBorderHighlightPlugin},
+    FieldFormsPlugin,
 };
 use bevy_focus::{FocusPlugin, Focusable};
 use bevy_i_cant_believe_its_not_bsn::WithChild;

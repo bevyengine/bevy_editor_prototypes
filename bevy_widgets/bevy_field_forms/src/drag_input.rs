@@ -51,7 +51,6 @@ impl<T: Draggable> Default for DragInput<T> {
     }
 }
 
-
 fn on_drag<T: Draggable>(
     trigger: Trigger<Pointer<Drag>>,
     mut commands: Commands,
@@ -66,8 +65,8 @@ fn on_drag<T: Draggable>(
     let delta = trigger.delta.x;
     drag_input.drag_accumulate += delta * drag_input.drag_ratio;
 
-    let from_accumulated : T = T::from_f32(drag_input.drag_accumulate);
-    let accumulted_decrese : f32 = from_accumulated.into_f32();
+    let from_accumulated: T = T::from_f32(drag_input.drag_accumulate);
+    let accumulted_decrese: f32 = from_accumulated.into_f32();
     if accumulted_decrese != 0.0 {
         let new_val = input_field.value + from_accumulated;
         commands.trigger_targets(ValueChanged(new_val), entity);
@@ -76,7 +75,6 @@ fn on_drag<T: Draggable>(
         }
     }
 }
-
 
 macro_rules! impl_draggable_for_numeric {
     ($($t:ty),*) => {

@@ -8,7 +8,6 @@ pub mod validate_highlight;
 use bevy::prelude::*;
 use bevy_text_editing::*;
 
-
 pub struct FieldFormsPlugin;
 
 impl Plugin for FieldFormsPlugin {

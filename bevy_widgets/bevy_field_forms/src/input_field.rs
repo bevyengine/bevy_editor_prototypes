@@ -28,6 +28,8 @@ impl<T: Validable> Plugin for InputFieldPlugin<T> {
         app.add_event::<SetValue<T>>();
 
         app.add_systems(PreUpdate, spawn_system::<T>);
+        app.add_systems(PreUpdate, on_value_changed::<T>);
+        app.add_systems(PreUpdate, on_created::<T>);
 
         app.add_observer(on_text_changed::<T>);
     }
@@ -46,6 +48,8 @@ pub struct InputField<T: Validable> {
     /// If true, this text field will not update its value automatically
     /// and will require an external update call to update the value.
     pub controlled: bool,
+    /// Old value
+    pub old_value: T,
 }
 
 fn construct_editable_label() -> EditableTextLine {
@@ -62,9 +66,10 @@ impl<T: Validable> InputField<T> {
     /// Create a new validated input field with the given value
     pub fn new(value: T) -> Self {
         Self {
-            value,
+            value: value.clone(),
             validation_state: ValidationState::Unchecked,
             controlled: false,
+            old_value: value,
         }
     }
 }
@@ -144,6 +149,7 @@ fn on_text_changed<T: Validable>(
             // Update the value only if the field is not controlled
             if !field.controlled {
                 // Update the text in the EditableTextLine
+                field.old_value = value.clone(); // We need to save the old value too for field change detection
                 field.value = value;
             }
         }
@@ -152,6 +158,34 @@ fn on_text_changed<T: Validable>(
             commands.trigger_targets(SetText(new_text), entity);
             commands.trigger_targets(ValidationChanged(ValidationState::Invalid(error)), entity);
         }
+    }
+}
+
+fn on_value_changed<T: Validable>(
+    mut commands: Commands,
+    mut q_changed_inputs: Query<(Entity, &mut InputField<T>), Changed<InputField<T>>>,
+) {
+    for (entity, mut field) in q_changed_inputs.iter_mut() {
+        if field.value != field.old_value {
+            info!("Trigger value rerender by field change for {:?}", entity);
+            field.old_value = field.value.clone();
+
+            // We will not trigger ValueChanged because it must be triggered only by input change
+            // If value field was changed by external code, we will not trigger it again
+            commands.trigger_targets(SetText(field.value.to_string()), entity);
+            commands.trigger_targets(ValidationChanged(ValidationState::Valid), entity);
+        }
+    }
+}
+
+fn on_created<T: Validable>(
+    mut commands: Commands,
+    q_created_inputs: Query<(Entity, &InputField<T>), Added<InputField<T>>>,
+) {
+    for (entity, field) in q_created_inputs.iter() {
+        // Set start state
+        commands.trigger_targets(SetText(field.value.to_string()), entity);
+        commands.trigger_targets(ValidationChanged(ValidationState::Valid), entity);
     }
 }
 

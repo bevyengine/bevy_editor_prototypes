@@ -19,6 +19,8 @@ impl<T: Draggable> Default for DragInputPlugin<T> {
 impl<T: Draggable> Plugin for DragInputPlugin<T> {
     fn build(&self, app: &mut App) {
         app.add_observer(on_drag::<T>);
+
+        app.add_systems(PreUpdate, on_interaction_changed::<T>);
     }
 }
 
@@ -26,18 +28,33 @@ impl<T: Draggable> Plugin for DragInputPlugin<T> {
 pub trait Draggable:
     Send + Sync + 'static + Default + PartialEq + Validable + std::ops::Add<Output = Self> + Copy
 {
+    /// Converts a f32 value to Self
     fn from_f32(value: f32) -> Self;
+
+    /// Converts Self to a f32 value
     fn into_f32(self) -> f32;
 
-    /// The default ratio of the value change per logical pixel drag
+    /// Safely adds another value of the same type, handling potential overflows
+    fn safe_add(&self, other: Self) -> Self;
+
+    /// Safely subtracts another value of the same type, handling potential underflows
+    fn safe_sub(&self, other: Self) -> Self;
+
+    /// Returns the default ratio of the value change per logical pixel drag
     fn default_drag_ratio() -> f32;
 }
 
+
+/// A component that allows dragging a value stored in an input field
 #[derive(Component)]
-#[require(Node, InputField::<T>)]
+#[require(Node, InputField::<T>, Interaction)]
 pub struct DragInput<T: Draggable> {
-    drag_accumulate: f32,
-    drag_ratio: f32,
+    /// The accumulated drag value
+    pub drag_accumulate: f32,
+
+    /// The ratio of the value change per logical pixel drag
+    pub drag_ratio: f32,
+
     _marker: std::marker::PhantomData<T>,
 }
 
@@ -65,13 +82,31 @@ fn on_drag<T: Draggable>(
     let delta = trigger.delta.x;
     drag_input.drag_accumulate += delta * drag_input.drag_ratio;
 
-    let from_accumulated: T = T::from_f32(drag_input.drag_accumulate);
+    let from_accumulated: T = T::from_f32(drag_input.drag_accumulate.abs());
     let accumulted_decrese: f32 = from_accumulated.into_f32();
     if accumulted_decrese != 0.0 {
-        let new_val = input_field.value + from_accumulated;
+        let new_val: T;
+        if drag_input.drag_accumulate > 0.0 {
+            new_val = input_field.value.safe_add(from_accumulated);
+            drag_input.drag_accumulate -= accumulted_decrese;
+        } else {
+            new_val = input_field.value.safe_sub(from_accumulated);
+            drag_input.drag_accumulate += accumulted_decrese;
+        }
+
         commands.trigger_targets(ValueChanged(new_val), entity);
         if !input_field.controlled {
-            commands.trigger_targets(SetValue(new_val), entity);
+            input_field.value = new_val;
+        }
+    }
+}
+
+fn on_interaction_changed<T: Draggable>(
+    mut q_changed_interactions: Query<(&mut DragInput<T>, &Interaction), Changed<Interaction>>,
+) {
+    for (mut drag_input, interaction) in q_changed_interactions.iter_mut() {
+        if *interaction != Interaction::Pressed {
+            drag_input.drag_accumulate = 0.0;
         }
     }
 }
@@ -81,7 +116,46 @@ macro_rules! impl_draggable_for_numeric {
         $(
             impl Draggable for $t {
                 fn default_drag_ratio() -> f32 {
-                    1.0
+                    0.1
+                }
+
+                fn safe_add(&self, other: Self) -> Self {
+                    self.checked_add(other).unwrap_or(Self::MAX)
+                }
+
+                fn safe_sub(&self, other: Self) -> Self {
+                    self.checked_sub(other).unwrap_or(Self::MIN)
+                }
+
+                fn from_f32(value: f32) -> Self {
+                    let clamped = value.clamp(Self::MIN as f32, Self::MAX as f32);
+                    clamped as Self
+                }
+
+                fn into_f32(self) -> f32 {
+                    self as f32
+                }
+            }
+        )*
+    };
+}
+
+impl_draggable_for_numeric!(i8, i16, i32, i64, i128, u8, u16, u32, u64, u128);
+
+macro_rules! impl_draggable_for_float {
+    ($($t:ty),*) => {
+        $(
+            impl Draggable for $t {
+                fn default_drag_ratio() -> f32 {
+                    0.01
+                }
+
+                fn safe_add(&self, other: Self) -> Self {
+                    *self + other
+                }
+
+                fn safe_sub(&self, other: Self) -> Self {
+                    *self - other
                 }
 
                 fn from_f32(value: f32) -> Self {
@@ -96,4 +170,4 @@ macro_rules! impl_draggable_for_numeric {
     };
 }
 
-impl_draggable_for_numeric!(i8, i16, i32, i64, i128, u8, u16, u32, u64, u128, f32, f64);
+impl_draggable_for_float!(f32, f64);

@@ -138,6 +138,9 @@ fn on_interaction_changed(
     q_changed_interaction: Query<(Entity, &SimpleBorderHighlight), Changed<Interaction>>,
 ) {
     for (entity, highlight) in q_changed_interaction.iter() {
-        commands.trigger_targets(ValidationChanged(highlight.last_validation_state.clone()), entity);
+        commands.trigger_targets(
+            ValidationChanged(highlight.last_validation_state.clone()),
+            entity,
+        );
     }
 }

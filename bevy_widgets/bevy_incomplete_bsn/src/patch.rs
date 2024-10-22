@@ -1,14 +1,13 @@
 //! This module provides the patch trait, which is used to update widget tree
 
-use bevy::prelude::*;
 use crate::construct::Construct;
+use bevy::prelude::*;
 
 pub trait Patch: Send + Sync + 'static {
     type Construct: Construct + Bundle + Default + Clone;
 
     fn patch(&mut self, props: &mut <<Self as Patch>::Construct as Construct>::Props);
 }
-
 
 #[cfg(test)]
 mod tests {

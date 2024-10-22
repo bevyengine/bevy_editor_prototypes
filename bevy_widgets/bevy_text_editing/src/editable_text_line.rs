@@ -59,9 +59,6 @@ impl Plugin for EditableTextLinePlugin {
     }
 }
 
-
-
-
 #[derive(Component, Reflect, Default)]
 #[reflect(Component, Default)]
 #[require(Node, Focusable)]

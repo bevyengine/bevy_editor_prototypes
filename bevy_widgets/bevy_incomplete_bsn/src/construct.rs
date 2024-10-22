@@ -6,9 +6,14 @@ use crate::{construct_context::ConstructContext, construct_patch::ConstructPatch
 
 pub trait Construct: Sized {
     type Props: Default + Clone;
-    fn construct(context: &mut ConstructContext, props: Self::Props) -> Result<Self, ConstructError>;
+    fn construct(
+        context: &mut ConstructContext,
+        props: Self::Props,
+    ) -> Result<Self, ConstructError>;
 
-    fn patch(func: impl FnMut(&mut Self::Props)) -> ConstructPatch<Self, impl FnMut(&mut Self::Props)> {
+    fn patch(
+        func: impl FnMut(&mut Self::Props),
+    ) -> ConstructPatch<Self, impl FnMut(&mut Self::Props)> {
         ConstructPatch::new(func)
     }
 }
@@ -20,12 +25,13 @@ impl<T: Default + Clone> Construct for T {
     type Props = T;
 
     #[inline]
-    fn construct(_context: &mut ConstructContext, props: Self::Props) -> Result<Self, ConstructError> {
+    fn construct(
+        _context: &mut ConstructContext,
+        props: Self::Props,
+    ) -> Result<Self, ConstructError> {
         Ok(props)
     }
 }
-
-
 
 #[cfg(test)]
 mod tests {
@@ -43,7 +49,10 @@ mod tests {
     impl Construct for TestConstruct {
         type Props = TestProps;
 
-        fn construct(context: &mut ConstructContext, props: Self::Props) -> Result<Self, ConstructError> {
+        fn construct(
+            context: &mut ConstructContext,
+            props: Self::Props,
+        ) -> Result<Self, ConstructError> {
             context.world.entity_mut(context.id).insert(props.clone());
             Ok(TestConstruct)
         }
@@ -62,7 +71,10 @@ mod tests {
         let result = TestConstruct::construct(&mut context, props);
 
         assert!(result.is_ok());
-        assert_eq!(world.entity(entity).get::<TestProps>().map(|p| p.value), Some(42));
+        assert_eq!(
+            world.entity(entity).get::<TestProps>().map(|p| p.value),
+            Some(42)
+        );
     }
 
     #[test]
@@ -80,7 +92,7 @@ mod tests {
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), 123);
     }
-    
+
     #[test]
     fn test_construct_transform() {
         let mut world = World::default();
@@ -93,4 +105,3 @@ mod tests {
         assert_eq!(transform.translation.x, 1.0);
     }
 }
-

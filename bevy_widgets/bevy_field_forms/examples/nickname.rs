@@ -4,8 +4,7 @@ use bevy::{prelude::*, utils::HashSet};
 use bevy_field_forms::{
     validate_highlight::{SimpleBorderHighlight, SimpleBorderHighlightPlugin},
     validated_input_field::{
-        Validable, InputField, InputFieldPlugin, ValidationChanged,
-        ValidationState,
+        InputField, InputFieldPlugin, Validable, ValidationChanged, ValidationState,
     },
 };
 use bevy_focus::{FocusPlugin, Focusable};

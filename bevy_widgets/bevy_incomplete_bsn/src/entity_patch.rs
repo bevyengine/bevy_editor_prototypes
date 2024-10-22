@@ -6,7 +6,6 @@ use bevy::prelude::*;
 
 use crate::{construct::Construct, patch::Patch};
 
-
 #[derive(Default)]
 pub struct EntityPatch {
     pub patch: Vec<Box<dyn EntityComponentPatch>>,
@@ -53,10 +52,10 @@ impl EntityPatch {
         for (i, child) in self.children.iter_mut().enumerate() {
             child.apply(children_entities[i], world);
         }
-    }    
+    }
 }
 
-pub trait EntityComponentPatch : Send + Sync + 'static {
+pub trait EntityComponentPatch: Send + Sync + 'static {
     fn entity_patch(&mut self, entity_mut: &mut EntityWorldMut);
 }
 

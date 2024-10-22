@@ -14,7 +14,10 @@ where
     T: Construct,
 {
     pub fn new(func: F) -> Self {
-        Self { func, _marker: std::marker::PhantomData }
+        Self {
+            func,
+            _marker: std::marker::PhantomData,
+        }
     }
 }
 

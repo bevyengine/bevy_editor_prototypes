@@ -15,7 +15,7 @@ pub struct EntityDiffTree {
     /// Each patch is a boxed trait object that implements `EntityComponentDiffPatch`.
     pub patch: Vec<Box<dyn EntityComponentDiffPatch>>,
     /// A vector of child trees, each representing a child entity in the scene hierarchy.
-    pub children: Vec<EntityDiffTree>,
+    pub children: Vec<EntityDiffTree>
 }
 
 
@@ -32,6 +32,11 @@ impl EntityDiffTree {
     pub fn with_patch(mut self, patch: impl EntityComponentDiffPatch) -> Self {
         self.patch.push(Box::new(patch));
         self
+    }
+
+    /// Adds a patch to the entity that is a function that mutate a component.
+    pub fn with_patch_fn<C: Component + Default + Clone>(mut self, func: impl FnMut(&mut C) + Send + Sync + 'static) -> Self {
+        self.with_patch(<C as Construct>::patch(func))
     }
 
     /// Adds a child to the entity.
@@ -132,6 +137,32 @@ pub struct LastTreeState {
     pub child_count: usize,
 }
 
+/// A trait for applying an `EntityDiffTree` to an entity using `EntityCommands`.
+///
+/// This trait extends the functionality of `EntityCommands` to allow for
+/// the application of an `EntityDiffTree`, which represents a set of changes
+/// to be applied to an entity's components and children.
+pub trait DiffTreeCommands {
+    /// Applies the given `EntityDiffTree` to the entity.
+    ///
+    /// This method queues a command that will apply all the changes
+    /// specified in the `EntityDiffTree` to the entity when the command
+    /// is executed.
+    ///
+    /// # Arguments
+    ///
+    /// * `tree` - The `EntityDiffTree` containing the changes to apply to the entity.
+    fn diff_tree(&mut self, tree: EntityDiffTree);
+}
+
+impl DiffTreeCommands for EntityCommands<'_> {
+    fn diff_tree(&mut self, mut tree: EntityDiffTree) {
+        self.queue(move |entity: Entity, world: &mut World| {
+            tree.apply(entity, world);
+        });
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::construct::Construct;
@@ -208,6 +239,21 @@ mod tests {
 
         assert!(world.get_entity(child_entity).is_err());
         assert_eq!(world.entity(entity).get::<Children>().unwrap().len(), 0);
+    }
+
+    #[test]
+    fn test_fn_patches() {
+        let mut world = World::default();
+        let entity = world.spawn_empty().id();
+        let mut tree = EntityDiffTree::new()
+            .with_patch_fn(|t: &mut Transform| {
+                t.translation = Vec3::new(1.0, 2.0, 3.0);
+            });
+        
+        tree.apply(entity, &mut world);
+
+        let transform = world.entity(entity).get::<Transform>().unwrap();
+        assert_eq!(transform.translation, Vec3::new(1.0, 2.0, 3.0));
     }
 }
 

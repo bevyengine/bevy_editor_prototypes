@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use bevy::prelude::*;
 
-use crate::patch::Patch;
+use crate::{construct::Construct, patch::Patch};
 
 
 #[derive(Default)]

@@ -165,7 +165,20 @@ pub fn on_pane_creation(
                     },
                 ))
                 .with_children(|parent| {
-                    spawn_scroll_box(parent, &theme);
+                    spawn_scroll_box(
+                        parent,
+                        &theme,
+                        Some(|content_list_ec: &mut EntityCommands| {
+                            directory_content::spawn_content_list_ui(
+                                content_list_ec,
+                                &theme,
+                                &asset_server,
+                                &directory_content,
+                                &location,
+                                &mut asset_sources_builder,
+                            );
+                        }),
+                    );
                 });
         });
 }

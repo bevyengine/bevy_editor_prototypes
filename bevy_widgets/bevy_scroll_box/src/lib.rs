@@ -44,6 +44,7 @@ pub struct ScrollBarHandle;
 pub fn spawn_scroll_box<'a>(
     parent: &'a mut ChildBuilder,
     theme: &Res<Theme>,
+    generate_content: Option<impl FnOnce(&mut EntityCommands)>,
 ) -> EntityCommands<'a> {
     let mut commands = parent.spawn(Node {
         flex_direction: FlexDirection::RowReverse,
@@ -53,7 +54,7 @@ pub fn spawn_scroll_box<'a>(
         ..default()
     });
     commands.with_children(|parent| {
-        parent.spawn((
+        let mut content_list_ec = parent.spawn((
             ScrollBox::default(),
             AccessibilityNode(NodeBuilder::new(Role::List)),
             Node {
@@ -62,6 +63,9 @@ pub fn spawn_scroll_box<'a>(
                 ..default()
             },
         ));
+        if let Some(generate_content) = generate_content {
+            generate_content(&mut content_list_ec);
+        }
         parent
             .spawn((
                 ScrollBar,

@@ -22,3 +22,7 @@ setting = "Three"
 
 [enum_settings_list]
 settings = ["Three"]
+
+
+[tuple_struct]
+fields = [2, "two"]

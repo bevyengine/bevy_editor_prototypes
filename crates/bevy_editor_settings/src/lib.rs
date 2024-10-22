@@ -208,4 +208,25 @@ mod tests {
         assert_eq!(settings.settings, vec![EnumTesting::One, EnumTesting::Two, EnumTesting::Three]);
     }
 
+
+    #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
+    #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
+    struct TupleStruct(i32, String);
+
+    #[traced_test]
+    #[test]
+    fn test_tuple_struct() {
+        let mut app = App::new();
+
+        app.register_type::<TupleStruct>();
+
+        app.insert_resource(TupleStruct(1, "one".to_string()));
+
+        file_system::load_project_settings(app.world_mut());
+
+        let settings = app.world().get_resource::<TupleStruct>().unwrap();
+
+        assert_eq!(*settings, TupleStruct(2, "two".to_string()));
+    }
+
 }

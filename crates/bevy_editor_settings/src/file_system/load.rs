@@ -4,8 +4,8 @@ use bevy::{
     prelude::*,
     reflect::{
         attributes::CustomAttributes, Array, ArrayInfo, DynamicEnum, DynamicTuple, DynamicVariant,
-        Enum, EnumInfo, List, ListInfo, ReflectFromPtr, ReflectMut, StructInfo, TypeInfo,
-        ValueInfo, VariantInfo,
+        Enum, EnumInfo, List, ListInfo, ReflectFromPtr, ReflectMut, StructInfo, TupleStructInfo,
+        TypeInfo, ValueInfo, VariantInfo,
     },
     scene::ron::{de, value},
 };
@@ -94,6 +94,29 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                         }
                     }
                 }
+                TypeInfo::TupleStruct(tuple_struct_info) => {
+                    let s_type = tuple_struct_info.custom_attributes().get::<SettingsType>();
+                    if let Some(s_type) = s_type {
+                        check_settings_type!(settings_type, *s_type);
+                        let mut ptr = world.get_resource_mut_by_id(res_id).unwrap();
+                        let reflect_from_ptr = type_reg.data::<ReflectFromPtr>().unwrap();
+                        // SAFE: `value` is of type `Reflected`, which the `ReflectFromPtr` was created for
+                        #[allow(unsafe_code)]
+                        let ReflectMut::TupleStruct(tuple_struct) =
+                            unsafe { reflect_from_ptr.as_reflect_mut(ptr.as_mut()) }.reflect_mut()
+                        else {
+                            panic!("Expected TupleStruct");
+                        };
+
+                        let name = tuple_struct.reflect_type_ident().unwrap().to_snake_case();
+
+                        if let Some(table) = table.get(&name).and_then(|v| v.as_table()) {
+                            if let Some(array_value) = table.get("fields").and_then(|v| v.as_array()) {
+                                load_tuple_struct(tuple_struct, tuple_struct_info, array_value);
+                            }
+                        }
+                    }
+                }
 
                 _ => {
                     warn!("Preferences: Unsupported type: {:?}", type_reg.type_info());
@@ -101,6 +124,36 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
             }
         }
         // println!("Saving preferences for {:?}", res.name());
+    }
+}
+
+fn load_tuple_struct(
+    tuple_struct: &mut dyn TupleStruct,
+    tuple_struct_info: &TupleStructInfo,
+    table: &toml::value::Array,
+) {
+    for i in 0..tuple_struct.field_len() {
+        let field_mut = tuple_struct.field_mut(i).unwrap();
+        let field_attrs = tuple_struct_info.field_at(i).unwrap().custom_attributes();
+        match field_mut.get_represented_type_info().unwrap() {
+            TypeInfo::Value(value_info) => {
+                if let Some(value) = table.get(i) {
+                    load_value(field_mut, value_info, value)
+                }
+            }
+            // TypeInfo::Enum(enum_info) => {
+            //     let mut enum_value = DynamicEnum::default();
+            //     load_enum(&mut enum_value, enum_info, &table[i]);
+            //     field_mut.apply(Box::new(enum_value));
+            // }
+            _ => {
+                warn!(
+                    "Preferences: Unsupported type: {:?}",
+                    field_mut.get_represented_type_info()
+                );
+            }
+        }
+       
     }
 }
 

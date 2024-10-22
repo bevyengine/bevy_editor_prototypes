@@ -111,7 +111,9 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                         let name = tuple_struct.reflect_type_ident().unwrap().to_snake_case();
 
                         if let Some(table) = table.get(&name).and_then(|v| v.as_table()) {
-                            if let Some(array_value) = table.get("fields").and_then(|v| v.as_array()) {
+                            if let Some(array_value) =
+                                table.get("fields").and_then(|v| v.as_array())
+                            {
                                 load_tuple_struct(tuple_struct, tuple_struct_info, array_value);
                             }
                         }
@@ -153,7 +155,6 @@ fn load_tuple_struct(
                 );
             }
         }
-       
     }
 }
 
@@ -233,7 +234,49 @@ fn load_enum(enm: &mut dyn Enum, enum_info: &EnumInfo, toml_value: &toml::Value)
                 warn!("Preferences: Unknown variant: {}", str_val);
             }
         }
-        toml::Value::Table(table) => {}
+        toml::Value::Table(table) => {
+            if let Some(value) = enum_info
+                .variant_names()
+                .iter()
+                .find(|name| table.contains_key(**name))
+            {
+                let maybe_variant = enum_info.variant(value);
+                let maybe_value = table.get(*value).and_then(|v| v.as_array());
+
+                match (maybe_variant, maybe_value) {
+                    (Some(VariantInfo::Tuple(variant)), Some(array)) => {
+                        let mut dyn_tuple = DynamicTuple::default();
+
+                        for i in 0..variant.field_len() {
+                            let Some(value) = array.get(i) else {
+                                warn!("Preferences: Missing field in tuple variant");
+                                continue;
+                            };
+
+                            let field_at = variant.field_at(i).unwrap();
+                            match field_at.type_info().unwrap() {
+                                TypeInfo::Value(value_info) => {
+                                    if let Some(value) = load_value_boxed(value_info, value) {
+                                        dyn_tuple.insert_boxed(value);
+                                    }
+                                }
+                                _ => {
+                                    warn!("Preferences: Unsupported type: {:?}", value,);
+                                }
+                            }
+                        }
+
+                        let dyn_enum = DynamicEnum::new(variant.name(), DynamicVariant::Tuple(dyn_tuple));
+                        enm.apply(&dyn_enum);
+                    }
+                    _ => {
+                        warn!("Preferences: Unknown variant: {:?}", table);
+                    }
+                }
+            } else {
+                warn!("Preferences: Unknown variant: {:?}", table);
+            }
+        }
         _ => {
             warn!("Preferences: Unsupported type: {:?}", toml_value);
         }

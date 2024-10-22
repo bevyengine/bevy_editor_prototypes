@@ -17,8 +17,10 @@ list = [3, 4]
 variant = "Two"
 
 # enum in a struct
+# and enum tuple
 [enum_settings]
-setting = "Three"
+setting = {Some = ["hello", 42]}
+
 
 [enum_settings_list]
 settings = ["Three"]

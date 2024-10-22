@@ -160,10 +160,17 @@ mod tests {
         Three,
     }
 
+    #[derive(Debug, Clone, PartialEq, Eq, Reflect)]
+    #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
+    enum EnumTestingField {
+        None,
+        Some(String, i32),
+    }
+
     #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
     #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
     struct EnumSettings {
-        pub setting: EnumTesting,
+        pub setting: EnumTestingField,
     }
 
     #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
@@ -184,7 +191,7 @@ mod tests {
 
         app.insert_resource(EnumTesting::One);
         app.insert_resource(EnumSettings {
-            setting: EnumTesting::Two,
+            setting: EnumTestingField::None,
         });
         app.insert_resource(EnumSettingsList {
             settings: vec![EnumTesting::One, EnumTesting::Two],
@@ -200,7 +207,7 @@ mod tests {
         let settings = app.world().get_resource::<EnumSettings>().unwrap();
 
         assert_eq!(*settings, EnumSettings {
-            setting: EnumTesting::Three,
+            setting: EnumTestingField::Some("hello".to_string(), 42),
         });
 
         let settings = app.world().get_resource::<EnumSettingsList>().unwrap();

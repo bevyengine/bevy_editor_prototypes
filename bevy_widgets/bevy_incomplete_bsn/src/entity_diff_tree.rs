@@ -32,7 +32,10 @@ impl EntityDiffTree {
         self.patch.push(Box::new(patch));
     }
 
-    pub fn add_patch_fn<C: Component + Default + Clone>(&mut self, func: impl FnMut(&mut C) + Send + Sync + 'static) {
+    pub fn add_patch_fn<C: Component + Default + Clone>(
+        &mut self,
+        func: impl FnMut(&mut C) + Send + Sync + 'static,
+    ) {
         self.add_patch(<C as Construct>::patch(func));
     }
 
@@ -88,11 +91,12 @@ impl EntityDiffTree {
         }
 
         // We will use separate "children" vector to avoid conflicts with inner logic of widgets which also can use children (For example InputField spawn children for self)
-        let mut children_entities = if let Some(last_state) = world.entity(entity).get::<LastTreeState>().cloned() {
-            last_state.children
-        } else {
-            Vec::new()
-        };
+        let mut children_entities =
+            if let Some(last_state) = world.entity(entity).get::<LastTreeState>().cloned() {
+                last_state.children
+            } else {
+                Vec::new()
+            };
 
         while children_entities.len() < self.children.len() {
             let child_entity = world.spawn_empty().id();
@@ -118,10 +122,15 @@ impl EntityDiffTree {
     }
 
     fn contains_component<C: Component>(&self) -> bool {
-        self.patch.iter().any(|patch| patch.get_type_id() == TypeId::of::<C>())
+        self.patch
+            .iter()
+            .any(|patch| patch.get_type_id() == TypeId::of::<C>())
     }
 
-    pub fn add_cascade_patch_fn<C: Component + Default + Clone, T: Component>(&mut self, func: impl Fn(&mut C) + Send + Sync + 'static + Clone) {
+    pub fn add_cascade_patch_fn<C: Component + Default + Clone, T: Component>(
+        &mut self,
+        func: impl Fn(&mut C) + Send + Sync + 'static + Clone,
+    ) {
         if self.contains_component::<T>() {
             self.add_patch_fn(func.clone());
         } else {

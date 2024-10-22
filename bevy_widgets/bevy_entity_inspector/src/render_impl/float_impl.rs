@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
-use bevy_incomplete_bsn::entity_diff_tree::EntityDiffTree;
 use bevy_field_forms::{input_field::InputField, validate_highlight::SimpleBorderHighlight};
+use bevy_incomplete_bsn::entity_diff_tree::EntityDiffTree;
 
 use crate::render::RenderContext;
 
@@ -10,7 +10,7 @@ pub fn float_render_impl(float: &f32, context: &RenderContext) -> EntityDiffTree
 
     let val = *float; //Clone the value to avoid borrowing issues
 
-    tree.add_patch_fn(move |input : &mut InputField<f32>| {
+    tree.add_patch_fn(move |input: &mut InputField<f32>| {
         input.value = val;
     });
 
@@ -32,10 +32,7 @@ pub fn float_render_impl(float: &f32, context: &RenderContext) -> EntityDiffTree
         *border_radius = BorderRadius::all(Val::Px(5.0));
     });
 
-    tree.add_patch_fn(|highlight: &mut SimpleBorderHighlight| {
-
-    });
-
+    tree.add_patch_fn(|highlight: &mut SimpleBorderHighlight| {});
 
     tree
 }

@@ -4,7 +4,15 @@
 
 use std::any::TypeId;
 
-use bevy::{ecs::{component::{ComponentId, Components, Tick}, system::SystemChangeTick}, prelude::*, reflect::{ReflectFromPtr, TypeData}, utils::HashMap};
+use bevy::{
+    ecs::{
+        component::{ComponentId, Components, Tick},
+        system::SystemChangeTick,
+    },
+    prelude::*,
+    reflect::{ReflectFromPtr, TypeData},
+    utils::HashMap,
+};
 use bevy_incomplete_bsn::entity_diff_tree::{DiffTreeCommands, EntityDiffTree};
 
 use crate::{render_impl::RenderStorage, EntityInspector, InspectedEntity};
@@ -13,14 +21,12 @@ pub struct RenderContext<'w> {
     render_storage: &'w RenderStorage,
 }
 
-
 #[derive(Component)]
 pub struct ComponentInspector {
     pub component_id: ComponentId,
     pub type_id: TypeId,
     pub rendered: bool,
 }
-
 
 /// Renders the inspector for a specific component of an entity.
 ///
@@ -53,17 +59,21 @@ pub fn render_component_inspector(
     };
 
     for (inspector_entity, mut inspector) in q_inspector.iter_mut() {
-        let Some(change_ticks) = inspected_entity.get_change_ticks_by_id(inspector.component_id) else {
+        let Some(change_ticks) = inspected_entity.get_change_ticks_by_id(inspector.component_id)
+        else {
             continue;
         };
 
-        if !change_ticks.is_changed(system_change_ticks.last_run(), system_change_ticks.this_run()) && inspector.rendered {
+        if !change_ticks.is_changed(
+            system_change_ticks.last_run(),
+            system_change_ticks.this_run(),
+        ) && inspector.rendered
+        {
             continue;
         }
 
         // Component was changed, render it
 
-        
         let type_registry = app_registry.read();
 
         let Some(reg) = type_registry.get(inspector.type_id) else {
@@ -78,23 +88,28 @@ pub fn render_component_inspector(
             continue;
         };
 
-        let reflected_data = unsafe { 
-            reflect_from_ptr.from_ptr()(component_data)
-        };
+        let reflected_data = unsafe { reflect_from_ptr.from_ptr()(component_data) };
 
-        let mut tree = EntityDiffTree::new()
-            .with_patch_fn(|node: &mut Node| {
-                node.flex_direction = FlexDirection::Column;
-            });
+        let mut tree = EntityDiffTree::new().with_patch_fn(|node: &mut Node| {
+            node.flex_direction = FlexDirection::Column;
+        });
 
-        let name = reg.type_info().type_path().split("::").last().unwrap_or_default();
+        let name = reg
+            .type_info()
+            .type_path()
+            .split("::")
+            .last()
+            .unwrap_or_default();
         tree.add_child(EntityDiffTree::new().with_patch_fn(move |text: &mut Text| {
             text.0 = format!("{}", name);
         }));
 
-        tree.add_child(recursive_reflect_render(reflected_data.as_partial_reflect(), &RenderContext {
-            render_storage: &render_storage,
-        }));
+        tree.add_child(recursive_reflect_render(
+            reflected_data.as_partial_reflect(),
+            &RenderContext {
+                render_storage: &render_storage,
+            },
+        ));
 
         commands.entity(inspector_entity).diff_tree(tree);
 
@@ -102,7 +117,7 @@ pub fn render_component_inspector(
     }
 }
 
-/// Render the entity inspector 
+/// Render the entity inspector
 pub fn render_entity_inspector(
     mut commands: Commands,
     q_inspected: Query<EntityRef, With<InspectedEntity>>,
@@ -115,7 +130,6 @@ pub fn render_entity_inspector(
     };
 
     for (inspector, children) in q_inspector.iter() {
-
         let entity = inspected_entity.id();
 
         let mut tree = EntityDiffTree::new();
@@ -130,7 +144,10 @@ pub fn render_entity_inspector(
             text.0 = format!("Entity: {}", entity);
         }));
 
-        let mut compenent_id_set = inspected_entity.archetype().components().collect::<Vec<_>>();
+        let mut compenent_id_set = inspected_entity
+            .archetype()
+            .components()
+            .collect::<Vec<_>>();
 
         let mut found_component_ids = Vec::new();
 
@@ -144,7 +161,10 @@ pub fn render_entity_inspector(
                     found_component_ids.push(component_inspector.component_id);
                 } else {
                     // Component is not attached to the entity anymore, remove it
-                    info!("Component is not attached to the entity anymore, removing it: {:?}", component_inspector.component_id);
+                    info!(
+                        "Component is not attached to the entity anymore, removing it: {:?}",
+                        component_inspector.component_id
+                    );
                     commands.entity(*child).despawn_recursive();
                 }
             }
@@ -161,26 +181,32 @@ pub fn render_entity_inspector(
                 continue;
             };
 
-            let component_inspector_entity = commands.spawn(ComponentInspector {
-                component_id: *component_id,
-                type_id,
-                rendered: false,
-            }).id();
+            let component_inspector_entity = commands
+                .spawn(ComponentInspector {
+                    component_id: *component_id,
+                    type_id,
+                    rendered: false,
+                })
+                .id();
 
-            commands.entity(inspector).add_child(component_inspector_entity);
+            commands
+                .entity(inspector)
+                .add_child(component_inspector_entity);
         }
 
         commands.entity(inspector).diff_tree(tree);
     }
 }
 
-
 fn recursive_reflect_render(
     data: &dyn PartialReflect,
     render_context: &RenderContext,
 ) -> EntityDiffTree {
-
-    if let Some(render_fn) = render_context.render_storage.renders.get(&data.get_represented_type_info().unwrap().type_id()) {
+    if let Some(render_fn) = render_context
+        .render_storage
+        .renders
+        .get(&data.get_represented_type_info().unwrap().type_id())
+    {
         return render_fn(data, render_context);
     } else {
         let mut tree = EntityDiffTree::new();
@@ -198,20 +224,28 @@ fn recursive_reflect_render(
                         let mut row = EntityDiffTree::new().with_patch_fn(|node: &mut Node| {
                             node.flex_direction = FlexDirection::Row;
                         });
-                        row.add_child(EntityDiffTree::new().with_patch_fn(move |text: &mut Text| {
-                            text.0 = format!("{}", name);
-                        }).with_patch_fn(|node: &mut Node| {
-                            node.padding = UiRect::all(Val::Px(5.0));
-                        }));
+                        row.add_child(
+                            EntityDiffTree::new()
+                                .with_patch_fn(move |text: &mut Text| {
+                                    text.0 = format!("{}", name);
+                                })
+                                .with_patch_fn(|node: &mut Node| {
+                                    node.padding = UiRect::all(Val::Px(5.0));
+                                }),
+                        );
                         row.add_child(recursive_reflect_render(field, render_context));
                         tree.add_child(row);
                     } else {
                         // Other fields are rendered as a column with a shift
-                        tree.add_child(EntityDiffTree::new().with_patch_fn(move |text: &mut Text| {
-                            text.0 = format!("{}", name);
-                        }).with_patch_fn(|node: &mut Node| {
-                            node.margin = UiRect::all(Val::Px(5.0));
-                        }));
+                        tree.add_child(
+                            EntityDiffTree::new()
+                                .with_patch_fn(move |text: &mut Text| {
+                                    text.0 = format!("{}", name);
+                                })
+                                .with_patch_fn(|node: &mut Node| {
+                                    node.margin = UiRect::all(Val::Px(5.0));
+                                }),
+                        );
 
                         let mut row = EntityDiffTree::new().with_patch_fn(|node: &mut Node| {
                             node.flex_direction = FlexDirection::Row;
@@ -227,54 +261,54 @@ fn recursive_reflect_render(
                         tree.add_child(row);
                     }
                 }
-            },
+            }
             bevy::reflect::ReflectRef::TupleStruct(v) => {
                 for field in v.iter_fields() {
                     tree.add_child(recursive_reflect_render(field, render_context));
                 }
-            },
+            }
             bevy::reflect::ReflectRef::Tuple(v) => {
                 for field in v.iter_fields() {
                     tree.add_child(recursive_reflect_render(field, render_context));
                 }
-            },
+            }
             bevy::reflect::ReflectRef::List(v) => {
                 for field in v.iter() {
                     tree.add_child(recursive_reflect_render(field, render_context));
                 }
-            },
+            }
             bevy::reflect::ReflectRef::Array(v) => {
                 for field in v.iter() {
                     tree.add_child(recursive_reflect_render(field, render_context));
                 }
-            },
+            }
             bevy::reflect::ReflectRef::Map(v) => {
                 for field in v.iter() {
                     tree.add_child(recursive_reflect_render(field.1, render_context));
                 }
-            },
+            }
             bevy::reflect::ReflectRef::Set(v) => {
                 for field in v.iter() {
                     tree.add_child(recursive_reflect_render(field, render_context));
                 }
-            },
+            }
             bevy::reflect::ReflectRef::Enum(v) => {
                 for field in v.iter_fields() {
                     tree.add_child(recursive_reflect_render(field.value(), render_context));
                 }
-            },
+            }
             bevy::reflect::ReflectRef::Opaque(v) => {
                 let v = v.clone_value();
                 tree.add_child(
                     EntityDiffTree::new()
                         .with_patch_fn(move |text: &mut Text| {
                             text.0 = format!("{:?}", v);
-                        }).with_patch_fn(|node: &mut Node| {
-                            node.padding = UiRect::all(Val::Px(5.0));
                         })
+                        .with_patch_fn(|node: &mut Node| {
+                            node.padding = UiRect::all(Val::Px(5.0));
+                        }),
                 );
-            },
-            
+            }
         }
         tree
     }

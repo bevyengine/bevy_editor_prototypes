@@ -11,23 +11,26 @@ fn main() {
         .run();
 }
 
-
-fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<StandardMaterial>>) {
+fn setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
     commands.spawn((
         Camera3d::default(),
-        Transform::from_translation(Vec3::splat(5.0)).looking_at(Vec3::ZERO, Vec3::Y)
+        Transform::from_translation(Vec3::splat(5.0)).looking_at(Vec3::ZERO, Vec3::Y),
     ));
 
     commands.spawn((
         Transform::from_translation(Vec3::new(1.0, 2.0, 3.0)).looking_at(Vec3::ZERO, Vec3::Y),
         DirectionalLight::default(),
-        InspectedEntity
+        InspectedEntity,
     ));
 
     commands.spawn((
         Transform::default(),
         Mesh3d(meshes.add(Cuboid::from_length(1.0))),
-        MeshMaterial3d(materials.add(StandardMaterial::default()))
+        MeshMaterial3d(materials.add(StandardMaterial::default())),
     ));
 
     commands.spawn((
@@ -40,6 +43,6 @@ fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials
         },
         BorderRadius::all(Val::Px(5.0)),
         BorderColor(Color::srgb(0.5, 0.5, 0.5)),
-        BackgroundColor(Color::srgb(0.1, 0.1, 0.1))
+        BackgroundColor(Color::srgb(0.1, 0.1, 0.1)),
     ));
 }

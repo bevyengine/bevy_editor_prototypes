@@ -12,7 +12,6 @@ pub struct FieldFormsPlugin;
 
 impl Plugin for FieldFormsPlugin {
     fn build(&self, app: &mut App) {
-
         if !app.is_plugin_added::<EditableTextLinePlugin>() {
             app.add_plugins(EditableTextLinePlugin);
         }

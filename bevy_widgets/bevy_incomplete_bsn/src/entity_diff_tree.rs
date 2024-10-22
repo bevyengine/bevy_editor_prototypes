@@ -90,16 +90,6 @@ impl EntityDiffTree {
     }
 }
 
-impl<C, F> Patch for F
-where
-    F: FnMut(&mut C) + Send + Sync + 'static,
-{
-    type Construct = C;
-
-    fn patch(&mut self, props: &mut <Self::Construct as Construct>::Props) {
-        (self)(props);
-    }
-}
 
 /// This trait is used to modify an entity's components and store the component's ID for tracking purposes.
 pub trait EntityComponentDiffPatch : Send + Sync + 'static {

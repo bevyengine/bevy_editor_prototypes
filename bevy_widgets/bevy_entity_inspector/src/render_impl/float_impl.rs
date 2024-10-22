@@ -24,7 +24,7 @@ pub fn float_render_impl(float: &f32, path: String, context: &RenderContext) -> 
 
     tree.add_patch_fn(|node: &mut Node| {
         node.min_width = Val::Px(100.0);
-        node.min_height = Val::Px(20.0);
+        node.height = Val::Px(25.0);
         node.border = UiRect::all(Val::Px(1.0));
     });
 

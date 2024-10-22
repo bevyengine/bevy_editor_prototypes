@@ -221,9 +221,11 @@ pub fn render_entity_inspector(
         tree.add_patch_fn(|node: &mut Node| {
             node.display = Display::Flex;
             node.flex_direction = FlexDirection::Column;
-            node.overflow = Overflow::scroll_y();
+            node.overflow = Overflow::scroll();
             node.height = Val::Percent(100.0);
         });
+
+        tree.add_patch_fn(|_: &mut Interaction| {});
 
         tree.add_child(EntityDiffTree::new().with_patch_fn(move |text: &mut Text| {
             text.0 = format!("Entity: {}", entity);
@@ -318,7 +320,7 @@ fn recursive_reflect_render(
                                     text.0 = format!("{}", moving_name);
                                 })
                                 .with_patch_fn(|node: &mut Node| {
-                                    node.padding = UiRect::all(Val::Px(5.0));
+                                    node.padding = UiRect::all(Val::Px(2.0));
                                 }),
                         );
                         row.add_child(recursive_reflect_render(
@@ -430,7 +432,7 @@ fn recursive_reflect_render(
                             text.0 = format!("{:?}", v);
                         })
                         .with_patch_fn(|node: &mut Node| {
-                            node.padding = UiRect::all(Val::Px(5.0));
+                            node.padding = UiRect::all(Val::Px(2.0));
                         }),
                 );
             }

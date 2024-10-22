@@ -1,4 +1,4 @@
-use crate::validated_input_field::*;
+use crate::input_field::*;
 use bevy::prelude::*;
 use bevy_focus::{Focus, LostFocus};
 

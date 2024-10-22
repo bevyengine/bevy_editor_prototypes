@@ -2,10 +2,8 @@
 
 use bevy::{prelude::*, utils::HashSet};
 use bevy_field_forms::{
-    validate_highlight::{SimpleBorderHighlight, SimpleBorderHighlightPlugin},
-    validated_input_field::{
-        InputField, InputFieldPlugin, Validable, ValidationChanged, ValidationState,
-    },
+    input_field::{InputField, InputFieldPlugin, Validable, ValidationChanged, ValidationState},
+    validate_highlight::{SimpleBorderHighlight, SimpleBorderHighlightPlugin}, FieldFormsPlugin,
 };
 use bevy_focus::{FocusPlugin, Focusable};
 use bevy_i_cant_believe_its_not_bsn::WithChild;
@@ -16,10 +14,8 @@ use bevy_text_editing::{
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(EditableTextLinePlugin)
+        .add_plugins(FieldFormsPlugin)
         .add_plugins(InputFieldPlugin::<CharacterName>::default())
-        .add_plugins(FirstChildTraversalPlugin)
-        .add_plugins(SimpleBorderHighlightPlugin)
         .add_observer(on_validation_changed)
         .add_systems(Startup, setup)
         .run();

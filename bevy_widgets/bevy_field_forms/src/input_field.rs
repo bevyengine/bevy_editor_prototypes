@@ -52,6 +52,12 @@ fn construct_editable_label() -> EditableTextLine {
     EditableTextLine::controlled("")
 }
 
+impl<T: Validable> Default for InputField<T> {
+    fn default() -> Self {
+        Self::new(T::default())
+    }
+}
+
 impl<T: Validable> InputField<T> {
     /// Create a new validated input field with the given value
     pub fn new(value: T) -> Self {
@@ -148,3 +154,17 @@ fn on_text_changed<T: Validable>(
         }
     }
 }
+
+macro_rules! impl_validable_for_numeric {
+    ($($t:ty),*) => {
+        $(
+            impl Validable for $t {
+                fn validate(text: &str) -> Result<Self, String> {
+                    text.parse().map_err(|_| format!("Invalid {} number", stringify!($t)))
+                }
+            }
+        )*
+    };
+}
+
+impl_validable_for_numeric!(i8, i16, i32, i64, i128, u8, u16, u32, u64, u128, f32, f64);

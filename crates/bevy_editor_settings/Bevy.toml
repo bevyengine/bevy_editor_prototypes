@@ -19,7 +19,11 @@ variant = "Two"
 # enum in a struct
 # and enum tuple
 [enum_settings]
-setting = {Some = ["hello", 42]}
+test1 = {Tuple = ["hello", 42]}
+
+[enum_settings.test2.Struct]
+name = "four"
+age = 4
 
 
 [enum_settings_list]

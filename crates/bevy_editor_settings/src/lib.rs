@@ -163,14 +163,16 @@ mod tests {
     #[derive(Debug, Clone, PartialEq, Eq, Reflect)]
     #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
     enum EnumTestingField {
-        None,
-        Some(String, i32),
+        Unit,
+        Tuple(String, i32),
+        Struct { name: String, age: i32 },
     }
 
     #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
     #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
     struct EnumSettings {
-        pub setting: EnumTestingField,
+        pub test1: EnumTestingField,
+        pub test2: EnumTestingField,
     }
 
     #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
@@ -191,7 +193,8 @@ mod tests {
 
         app.insert_resource(EnumTesting::One);
         app.insert_resource(EnumSettings {
-            setting: EnumTestingField::None,
+            test1: EnumTestingField::Unit,
+            test2: EnumTestingField::Unit,
         });
         app.insert_resource(EnumSettingsList {
             settings: vec![EnumTesting::One, EnumTesting::Two],
@@ -207,7 +210,11 @@ mod tests {
         let settings = app.world().get_resource::<EnumSettings>().unwrap();
 
         assert_eq!(*settings, EnumSettings {
-            setting: EnumTestingField::Some("hello".to_string(), 42),
+            test1: EnumTestingField::Tuple("hello".to_string(), 42),
+            test2: EnumTestingField::Struct {
+                name: "four".to_string(),
+                age: 4,
+            },
         });
 
         let settings = app.world().get_resource::<EnumSettingsList>().unwrap();

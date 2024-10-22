@@ -3,9 +3,7 @@ use std::any::TypeId;
 use bevy::{
     prelude::*,
     reflect::{
-        attributes::CustomAttributes, Array, ArrayInfo, DynamicEnum, DynamicTuple, DynamicVariant,
-        Enum, EnumInfo, List, ListInfo, ReflectFromPtr, ReflectMut, StructInfo, TupleStructInfo,
-        TypeInfo, ValueInfo, VariantInfo,
+        attributes::CustomAttributes, Array, ArrayInfo, DynamicEnum, DynamicStruct, DynamicTuple, DynamicVariant, Enum, EnumInfo, List, ListInfo, ReflectFromPtr, ReflectMut, StructInfo, TupleStructInfo, TypeInfo, ValueInfo, VariantInfo
     },
     scene::ron::{de, value},
 };
@@ -241,16 +239,16 @@ fn load_enum(enm: &mut dyn Enum, enum_info: &EnumInfo, toml_value: &toml::Value)
                 .find(|name| table.contains_key(**name))
             {
                 let maybe_variant = enum_info.variant(value);
-                let maybe_value = table.get(*value).and_then(|v| v.as_array());
+                let maybe_value = table.get(*value);
 
                 match (maybe_variant, maybe_value) {
-                    (Some(VariantInfo::Tuple(variant)), Some(array)) => {
+                    (Some(VariantInfo::Tuple(variant)), Some(toml::Value::Array(array))) => {
                         let mut dyn_tuple = DynamicTuple::default();
 
                         for i in 0..variant.field_len() {
                             let Some(value) = array.get(i) else {
                                 warn!("Preferences: Missing field in tuple variant");
-                                continue;
+                                return;
                             };
 
                             let field_at = variant.field_at(i).unwrap();
@@ -267,6 +265,31 @@ fn load_enum(enm: &mut dyn Enum, enum_info: &EnumInfo, toml_value: &toml::Value)
                         }
 
                         let dyn_enum = DynamicEnum::new(variant.name(), DynamicVariant::Tuple(dyn_tuple));
+                        enm.apply(&dyn_enum);
+                    }
+                    (Some(VariantInfo::Struct(variant)), Some(toml::Value::Table(map))) => {
+                        let mut dyn_struct = DynamicStruct::default();
+
+                        for i in 0..variant.field_len() {
+                            let field_at = variant.field_at(i).unwrap();
+                            let Some(value) = map.get(field_at.name()) else {
+                                warn!("Preferences: Missing field in struct variant");
+                                return;
+                            };
+
+                            match field_at.type_info().unwrap() {
+                                TypeInfo::Value(value_info) => {
+                                    if let Some(value) = load_value_boxed(value_info, value) {
+                                        dyn_struct.insert_boxed(field_at.name(), value);
+                                    }
+                                }
+                                _ => {
+                                    warn!("Preferences: Unsupported type: {:?}", value,);
+                                }
+                            }
+                        }
+
+                        let dyn_enum = DynamicEnum::new(variant.name(), DynamicVariant::Struct(dyn_struct));
                         enm.apply(&dyn_enum);
                     }
                     _ => {

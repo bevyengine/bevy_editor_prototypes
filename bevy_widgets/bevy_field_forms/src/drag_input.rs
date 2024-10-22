@@ -45,7 +45,7 @@ pub trait Draggable:
 }
 
 /// A component that allows dragging a value stored in an input field
-#[derive(Component)]
+#[derive(Component, Clone)]
 #[require(Node, InputField::<T>, Interaction)]
 pub struct DragInput<T: Draggable> {
     /// The accumulated drag value

@@ -2,6 +2,7 @@
 
 use bevy::prelude::*;
 use bevy_field_forms::FieldFormsPlugin;
+use render::ChangeComponentField;
 use render_impl::RenderStorage;
 
 pub mod render;
@@ -15,11 +16,15 @@ impl Plugin for EntityInspectorPlugin {
             app.add_plugins(FieldFormsPlugin);
         }
 
+        app.add_event::<ChangeComponentField>();
+
         app.init_resource::<RenderStorage>();
         app.add_plugins(render_impl::RenderImplPlugin);
 
         app.add_systems(PreUpdate, render::render_entity_inspector);
         app.add_systems(PreUpdate, render::render_component_inspector);
+
+        app.add_observer(render::on_change_component_field);
     }
 }
 

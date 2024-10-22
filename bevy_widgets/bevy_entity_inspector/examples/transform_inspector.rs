@@ -24,13 +24,13 @@ fn setup(
     commands.spawn((
         Transform::from_translation(Vec3::new(1.0, 2.0, 3.0)).looking_at(Vec3::ZERO, Vec3::Y),
         DirectionalLight::default(),
-        InspectedEntity,
     ));
 
     commands.spawn((
         Transform::default(),
         Mesh3d(meshes.add(Cuboid::from_length(1.0))),
         MeshMaterial3d(materials.add(StandardMaterial::default())),
+        InspectedEntity,
     ));
 
     commands.spawn((

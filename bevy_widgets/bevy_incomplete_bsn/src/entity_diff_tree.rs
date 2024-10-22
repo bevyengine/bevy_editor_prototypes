@@ -2,7 +2,7 @@
 
 use std::any::TypeId;
 
-use bevy::{ecs::component::ComponentId, prelude::*, reflect::Type, utils::HashSet};
+use bevy::{ecs::{component::ComponentId, system::IntoObserverSystem}, prelude::*, reflect::Type, utils::HashSet};
 
 use crate::{construct::Construct, patch::Patch};
 
@@ -15,6 +15,8 @@ pub struct EntityDiffTree {
     /// A vector of patches that can be applied to the entity to modify its components.
     /// Each patch is a boxed trait object that implements `EntityComponentDiffPatch`.
     pub patch: Vec<Box<dyn EntityComponentDiffPatch>>,
+    /// A vector of patches that are creating observers
+    pub observer_patch: Vec<Box<dyn ObserverPatch>>,
     /// A vector of child trees, each representing a child entity in the scene hierarchy.
     pub children: Vec<EntityDiffTree>,
 }
@@ -24,6 +26,7 @@ impl EntityDiffTree {
     pub fn new() -> Self {
         Self {
             patch: Vec::new(),
+            observer_patch: Vec::new(),
             children: Vec::new(),
         }
     }
@@ -88,7 +91,21 @@ impl EntityDiffTree {
                     info!("Removed component {:?}", c_id);
                 }
             }
+
+        
         }
+
+        // Clear all observers that was used in previous tree state
+        if let Some(last_state) = world.entity(entity).get::<LastTreeState>().cloned() {
+            for observer in last_state.observers.iter() {
+                world.entity_mut(*observer).despawn_recursive();
+            }
+        }
+
+        // Take vector of observers patches and clear it
+        let mut new_observers = self.observer_patch.drain(..).into_iter()
+            .map(|mut patch| patch.as_mut().observer_patch(entity, world))
+            .collect::<Vec<_>>();
 
         // We will use separate "children" vector to avoid conflicts with inner logic of widgets which also can use children (For example InputField spawn children for self)
         let mut children_entities =
@@ -118,6 +135,7 @@ impl EntityDiffTree {
         world.entity_mut(entity).insert(LastTreeState {
             component_ids: new_component_set,
             children: children_entities,
+            observers: new_observers,
         });
     }
 
@@ -138,6 +156,33 @@ impl EntityDiffTree {
                 child.add_cascade_patch_fn::<C, T>(func.clone());
             }
         }
+    }
+
+    pub fn add_observer_patch<E: Event, B: Bundle, M>(
+        &mut self,
+        func: impl IntoObserverSystem<E, B, M> + Send + Sync + 'static,
+    ) {
+        self.observer_patch.push(Box::new(FnObserverPatch {
+            func: Some(Box::new(move |entity, world| {
+                let mut observer = Observer::new(func);
+                observer.watch_entity(entity);
+                world.spawn(observer).id()
+            })),
+        }));
+    }
+}
+
+pub trait ObserverPatch: Send + Sync + 'static {
+    fn observer_patch(&mut self, entity: Entity, world: &mut World) -> Entity;
+}
+
+struct FnObserverPatch {
+    func: Option<Box<dyn FnOnce(Entity, &mut World) -> Entity + Send + Sync + 'static>>,
+}
+
+impl ObserverPatch for FnObserverPatch {
+    fn observer_patch(&mut self, entity: Entity, world: &mut World) -> Entity {
+        self.func.take().unwrap()(entity, world)
     }
 }
 
@@ -190,6 +235,9 @@ pub struct LastTreeState {
 
     /// The used child entities that the entity had during the last update.
     pub children: Vec<Entity>,
+
+    /// A vector of observers that were created during the last update.
+    pub observers: Vec<Entity>,
 }
 
 /// A trait for applying an `EntityDiffTree` to an entity using `EntityCommands`.

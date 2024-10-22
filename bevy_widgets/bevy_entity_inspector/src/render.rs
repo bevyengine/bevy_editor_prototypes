@@ -2,7 +2,7 @@
 
 #![allow(unsafe_code)]
 
-use std::any::TypeId;
+use std::{any::TypeId, sync::Arc};
 
 use bevy::{
     ecs::{
@@ -19,6 +19,8 @@ use crate::{render_impl::RenderStorage, EntityInspector, InspectedEntity};
 
 pub struct RenderContext<'w> {
     render_storage: &'w RenderStorage,
+    entity: Entity,
+    component_id: ComponentId,
 }
 
 #[derive(Component)]
@@ -26,6 +28,18 @@ pub struct ComponentInspector {
     pub component_id: ComponentId,
     pub type_id: TypeId,
     pub rendered: bool,
+}
+
+#[derive(Component, Clone)]
+pub struct ChangeComponentField {
+    pub path: String,
+    pub value: Arc<dyn PartialReflect + Send + Sync + 'static>,
+    pub direct_cange: Option<Arc<dyn Fn(&mut dyn PartialReflect, &dyn PartialReflect) + Send + Sync + 'static>>,
+}
+
+impl Event for ChangeComponentField {
+    type Traversal = &'static Parent;
+    const AUTO_PROPAGATE: bool = true;
 }
 
 /// Renders the inspector for a specific component of an entity.
@@ -92,6 +106,7 @@ pub fn render_component_inspector(
 
         let mut tree = EntityDiffTree::new().with_patch_fn(|node: &mut Node| {
             node.flex_direction = FlexDirection::Column;
+            node.max_width = Val::Px(300.0);
         });
 
         let name = reg
@@ -102,19 +117,83 @@ pub fn render_component_inspector(
             .unwrap_or_default();
         tree.add_child(EntityDiffTree::new().with_patch_fn(move |text: &mut Text| {
             text.0 = format!("{}", name);
+        }).with_patch_fn(|text_layout: &mut TextLayout| {
+            text_layout.linebreak = LineBreak::AnyCharacter;
+        })
+        .with_patch_fn(|node: &mut Node| {
+            node.max_width = Val::Px(300.0);
         }));
+
+        let render_context = RenderContext {
+            render_storage: &render_storage,
+            entity: inspected_entity.id(),
+            component_id: inspector.component_id,
+        };
 
         tree.add_child(recursive_reflect_render(
             reflected_data.as_partial_reflect(),
-            &RenderContext {
-                render_storage: &render_storage,
-            },
+            format!(""), // The string reflect path starts with a dot
+            &render_context,
         ));
 
         commands.entity(inspector_entity).diff_tree(tree);
 
         inspector.rendered = true;
     }
+}
+
+/// Observer for change component field event
+pub fn on_change_component_field(
+    trigger: Trigger<ChangeComponentField>,
+    q_component_inspectors: Query<&ComponentInspector, Without<InspectedEntity>>,
+    mut q_inspected: Query<EntityMut, With<InspectedEntity>>,
+    app_registry: Res<AppTypeRegistry>,
+) {
+    let entity = trigger.entity();
+    let Ok(inspector) = q_component_inspectors.get(entity) else {
+        return;
+    };
+
+    let Ok(mut inspected_entity) = q_inspected.get_single_mut() else {
+        error!("No inspected entity found");
+        return;
+    };
+
+    let type_registry = app_registry.read();
+
+    let Some(reg) = type_registry.get(inspector.type_id) else {
+        error!("No type registry found for type: {:?}", inspector.type_id);
+        return;
+    };
+
+    let Some(reflect_from_ptr) = reg.data::<ReflectFromPtr>() else {
+        error!("No ReflectFromPtr found for type: {:?}", inspector.type_id);
+        return;
+    };
+
+    let Ok(mut component_data) = inspected_entity.get_mut_by_id(inspector.component_id) else {
+        error!("Failed to get component data");
+        return;
+    };
+
+    {
+        let reflected_data = unsafe { reflect_from_ptr.from_ptr_mut()(component_data.as_mut()) };
+
+        let Ok(field) = reflected_data.reflect_path_mut(trigger.path.as_str()) else {
+            error!("Failed to reflect path: {:?}", trigger.path);
+            return;
+        };
+
+        if let Some(direct_change) = trigger.direct_cange.as_ref() {
+            info!("Apply direct change to field: {:?}", trigger.path);
+            direct_change(field, trigger.value.as_ref());
+        } else {
+            info!("Apply value to field: {:?}", trigger.path);
+            field.apply(trigger.value.as_ref());
+        }
+    }
+
+    component_data.set_changed();
 }
 
 /// Render the entity inspector
@@ -138,6 +217,7 @@ pub fn render_entity_inspector(
             node.display = Display::Flex;
             node.flex_direction = FlexDirection::Column;
             node.overflow = Overflow::scroll_y();
+            node.height = Val::Percent(100.0);
         });
 
         tree.add_child(EntityDiffTree::new().with_patch_fn(move |text: &mut Text| {
@@ -170,6 +250,7 @@ pub fn render_entity_inspector(
             }
         }
 
+        // Find the components that are not represented in the inspector
         compenent_id_set.retain(|id| !found_component_ids.contains(id));
         // Add new inspectors for the remaining components
         for component_id in compenent_id_set.iter() {
@@ -200,6 +281,7 @@ pub fn render_entity_inspector(
 
 fn recursive_reflect_render(
     data: &dyn PartialReflect,
+    path: String,
     render_context: &RenderContext,
 ) -> EntityDiffTree {
     if let Some(render_fn) = render_context
@@ -207,7 +289,7 @@ fn recursive_reflect_render(
         .renders
         .get(&data.get_represented_type_info().unwrap().type_id())
     {
-        return render_fn(data, render_context);
+        return render_fn(data, path, render_context);
     } else {
         let mut tree = EntityDiffTree::new();
         tree.add_patch_fn(|node: &mut Node| {
@@ -224,23 +306,25 @@ fn recursive_reflect_render(
                         let mut row = EntityDiffTree::new().with_patch_fn(|node: &mut Node| {
                             node.flex_direction = FlexDirection::Row;
                         });
+                        let moving_name = name.clone();
                         row.add_child(
                             EntityDiffTree::new()
                                 .with_patch_fn(move |text: &mut Text| {
-                                    text.0 = format!("{}", name);
+                                    text.0 = format!("{}", moving_name);
                                 })
                                 .with_patch_fn(|node: &mut Node| {
                                     node.padding = UiRect::all(Val::Px(5.0));
                                 }),
                         );
-                        row.add_child(recursive_reflect_render(field, render_context));
+                        row.add_child(recursive_reflect_render(field, format!("{}.{}", path, name), render_context));
                         tree.add_child(row);
                     } else {
                         // Other fields are rendered as a column with a shift
+                        let moving_name = name.clone();
                         tree.add_child(
                             EntityDiffTree::new()
                                 .with_patch_fn(move |text: &mut Text| {
-                                    text.0 = format!("{}", name);
+                                    text.0 = format!("{}", moving_name);
                                 })
                                 .with_patch_fn(|node: &mut Node| {
                                     node.margin = UiRect::all(Val::Px(5.0));
@@ -256,45 +340,45 @@ fn recursive_reflect_render(
                             node.width = Val::Px(20.0);
                         }));
 
-                        row.add_child(recursive_reflect_render(field, render_context));
+                        row.add_child(recursive_reflect_render(field, format!("{}.{}", path, name), render_context));
 
                         tree.add_child(row);
                     }
                 }
             }
             bevy::reflect::ReflectRef::TupleStruct(v) => {
-                for field in v.iter_fields() {
-                    tree.add_child(recursive_reflect_render(field, render_context));
+                for (idx, field) in v.iter_fields().enumerate() {
+                    tree.add_child(recursive_reflect_render(field, format!("{}[{}]", path, idx), render_context));
                 }
             }
             bevy::reflect::ReflectRef::Tuple(v) => {
-                for field in v.iter_fields() {
-                    tree.add_child(recursive_reflect_render(field, render_context));
+                for (idx, field) in v.iter_fields().enumerate() {
+                    tree.add_child(recursive_reflect_render(field, format!("{}[{}]", path, idx), render_context));
                 }
             }
             bevy::reflect::ReflectRef::List(v) => {
-                for field in v.iter() {
-                    tree.add_child(recursive_reflect_render(field, render_context));
+                for (idx, field) in v.iter().enumerate() {
+                    tree.add_child(recursive_reflect_render(field, format!("{}[{}]", path, idx), render_context));
                 }
             }
             bevy::reflect::ReflectRef::Array(v) => {
-                for field in v.iter() {
-                    tree.add_child(recursive_reflect_render(field, render_context));
+                for (idx, field) in v.iter().enumerate() {
+                    tree.add_child(recursive_reflect_render(field, format!("{}[{}]", path, idx), render_context));
                 }
             }
             bevy::reflect::ReflectRef::Map(v) => {
-                for field in v.iter() {
-                    tree.add_child(recursive_reflect_render(field.1, render_context));
+                for (key, field) in v.iter() {
+                    tree.add_child(recursive_reflect_render(field, format!("{}", path), render_context));
                 }
             }
             bevy::reflect::ReflectRef::Set(v) => {
                 for field in v.iter() {
-                    tree.add_child(recursive_reflect_render(field, render_context));
+                    tree.add_child(recursive_reflect_render(field, format!("{}", path), render_context));
                 }
             }
             bevy::reflect::ReflectRef::Enum(v) => {
                 for field in v.iter_fields() {
-                    tree.add_child(recursive_reflect_render(field.value(), render_context));
+                    tree.add_child(recursive_reflect_render(field.value(), format!("{}", path), render_context));
                 }
             }
             bevy::reflect::ReflectRef::Opaque(v) => {

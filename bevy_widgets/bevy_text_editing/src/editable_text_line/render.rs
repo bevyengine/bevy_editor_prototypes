@@ -13,9 +13,9 @@ pub fn render_system(
             continue;
         };
 
-        info!("Render {} with text \"{}\"", entity, text_line.text);
-        info!("Cursor position: {:?}", text_line.cursor_position);
-        info!("Selection range: {:?}", text_line.selection_range());
+        // info!("Render {} with text \"{}\"", entity, text_line.text);
+        // info!("Cursor position: {:?}", text_line.cursor_position);
+        // info!("Selection range: {:?}", text_line.selection_range());
 
         // Change text to stored in text line state
         text.0 = text_line.text.clone();

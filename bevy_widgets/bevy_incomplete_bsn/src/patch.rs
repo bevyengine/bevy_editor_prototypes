@@ -3,9 +3,8 @@
 use bevy::prelude::*;
 use crate::construct::Construct;
 
-pub trait Patch: Send + Sync + 'static {
-    type Construct: Construct + Bundle + Default + Clone;
-    fn patch(&mut self, props: &mut <Self::Construct as Construct>::Props);
+pub trait Patch<C: Construct + Bundle + Default + Clone>: Send + Sync + 'static {
+    fn patch(&mut self, props: &mut <C as Construct>::Props);
 }
 
 
@@ -20,8 +19,7 @@ mod tests {
 
     struct TestPatch;
 
-    impl Patch for TestPatch {
-        type Construct = TestProps;
+    impl Patch<TestProps> for TestPatch {
         fn patch(&mut self, props: &mut TestProps) {
             props.value += 1;
         }

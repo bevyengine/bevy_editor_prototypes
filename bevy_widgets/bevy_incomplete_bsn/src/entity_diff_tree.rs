@@ -3,7 +3,7 @@
 
 use bevy::{ecs::component::ComponentId, prelude::*, utils::HashSet};
 
-use crate::patch::Patch;
+use crate::{construct::Construct, patch::Patch};
 
 /// Represents a tree structure for managing entity differences and patches.
 /// 
@@ -90,6 +90,17 @@ impl EntityDiffTree {
     }
 }
 
+impl<C, F> Patch for F
+where
+    F: FnMut(&mut C) + Send + Sync + 'static,
+{
+    type Construct = C;
+
+    fn patch(&mut self, props: &mut <Self::Construct as Construct>::Props) {
+        (self)(props);
+    }
+}
+
 /// This trait is used to modify an entity's components and store the component's ID for tracking purposes.
 pub trait EntityComponentDiffPatch : Send + Sync + 'static {
     /// Applies the patch to the given entity.
@@ -114,6 +125,7 @@ impl<C: Component + Default + Clone, T: Patch<Construct = C>> EntityComponentDif
         world.register_component::<C>()
     }
 }
+
 
 /// Represents the state of an entity's component tree from the last update.
 ///
@@ -208,5 +220,6 @@ mod tests {
         assert_eq!(world.entity(entity).get::<Children>().unwrap().len(), 0);
     }
 }
+
 
 

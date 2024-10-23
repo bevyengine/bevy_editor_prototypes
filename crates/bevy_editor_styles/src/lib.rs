@@ -74,7 +74,7 @@ impl Default for Theme {
             low_priority_text_color: Color::oklch(0.50, 0.0, 0.0),
             text_color: Color::oklch(0.9219, 0.0, 0.0),
             high_priority_text_color: Color::oklch(0.209, 0.0, 0.0),
-            hover_color: Color::oklch(0.7693, 0.11687714331662057, 268.01929959201783),
+            hover_color: Color::oklch(0.7693, 0.116_877_146, 268.019_3),
         }
     }
 }

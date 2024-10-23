@@ -15,7 +15,9 @@ impl Plugin for AnchorIndicatorPlugin {
 
         app.add_systems(
             PostUpdate,
-            draw_anchor.after(bevy::render::camera::CameraUpdateSystem),
+            draw_anchor
+                .after(bevy::transform::TransformSystem::TransformPropagate)
+                .after(bevy::render::camera::CameraUpdateSystem),
         )
         .add_observer(
             |trigger: Trigger<OnAdd, EditorCam>,

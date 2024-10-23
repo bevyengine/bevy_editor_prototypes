@@ -1,3 +1,5 @@
+//! Editor camera example with an expanded control scheme fit for CAD software.
+
 use bevy::{
     core_pipeline::{
         bloom::Bloom,

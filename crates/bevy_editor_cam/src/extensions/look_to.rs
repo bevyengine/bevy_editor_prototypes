@@ -22,8 +22,7 @@ impl Plugin for LookToPlugin {
             .add_event::<LookToTrigger>()
             .add_systems(
                 PreUpdate,
-                LookTo::update
-                    .before(crate::controller::component::EditorCam::update_camera_positions),
+                LookTo::update.before(EditorCam::update_camera_positions),
             )
             .add_systems(PostUpdate, LookToTrigger::receive) // In PostUpdate so we don't miss users sending this in Update. LookTo::update will catch the changes next frame.
             .register_type::<LookTo>();

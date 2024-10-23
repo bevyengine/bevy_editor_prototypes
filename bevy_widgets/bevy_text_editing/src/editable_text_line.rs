@@ -169,6 +169,10 @@ pub struct EditableTextInner {
 
     /// Canvas shift to the left to keep cursor visible in the text field
     text_shift: f32,
+
+    /// One frame cursor overflow check skip
+    /// We need this, because we need to wait ComputedNode to be computed after cursor was spawned
+    skip_cursor_overflow_check: bool,
 }
 
 #[derive(Event, Default, Clone)]
@@ -307,6 +311,7 @@ fn spawn_system(
                 fake_text_before_selection,
                 fake_selection_text,
                 text_shift: 0.0,
+                skip_cursor_overflow_check: false,
             })
             .add_child(canvas);
     }

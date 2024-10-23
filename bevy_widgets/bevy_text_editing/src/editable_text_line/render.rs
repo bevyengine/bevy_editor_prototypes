@@ -118,6 +118,11 @@ pub(crate) fn check_cursor_overflow(
             return;
         };
 
+        if inner.skip_cursor_overflow_check {
+            inner.skip_cursor_overflow_check = false;
+            continue;
+        }
+
         if text_field.cursor_position.is_some() {
             let Ok(cursor_transform) = q_transforms.get(inner.cursor) else {
                 return;

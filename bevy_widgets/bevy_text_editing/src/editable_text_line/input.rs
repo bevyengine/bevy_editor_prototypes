@@ -16,7 +16,7 @@ pub fn on_click(
     key_states: Res<ButtonInput<KeyCode>>,
 ) {
     let entity = click.entity();
-    let Ok((mut text_line, inner)) = q_editable_texts.get_mut(entity) else {
+    let Ok((mut text_line, mut inner)) = q_editable_texts.get_mut(entity) else {
         return;
     };
 
@@ -49,6 +49,7 @@ pub fn on_click(
         text_line.selection_start = None;
     }
     text_line.cursor_position = Some(CharPosition(cursor_pos));
+    inner.skip_cursor_overflow_check = true;
 
     commands.trigger_targets(SetFocus, entity);
     commands.trigger_targets(RenderWidget::show_cursor(), entity);

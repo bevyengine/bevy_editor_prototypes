@@ -125,6 +125,7 @@
 //!
 //! ```
 //! # let mut app = bevy::app::App::new();
+//! # app.add_plugins(bevy::asset::AssetPlugin::default());
 //! app.add_plugins(bevy_editor_cam::DefaultEditorCamPlugins);
 //! ```
 //!

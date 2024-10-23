@@ -77,6 +77,7 @@ impl Default for AnchorIndicator {
 }
 
 /// Use gizmos to draw the camera anchor in world space.
+#[expect(clippy::type_complexity)]
 pub fn draw_anchor(
     cameras: Query<(
         Ref<EditorCam>,

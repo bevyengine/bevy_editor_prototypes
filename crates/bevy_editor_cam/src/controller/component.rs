@@ -128,8 +128,7 @@ impl EditorCam {
     /// Gets the [`MotionInputs`], if the camera is being actively moved..
     pub fn motion_inputs(&self) -> Option<&MotionInputs> {
         match &self.current_motion {
-            CurrentMotion::Stationary |
-            CurrentMotion::Momentum { .. } => None,
+            CurrentMotion::Stationary | CurrentMotion::Momentum { .. } => None,
             CurrentMotion::UserControlled { motion_inputs, .. } => Some(motion_inputs),
         }
     }

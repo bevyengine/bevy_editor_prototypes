@@ -128,7 +128,7 @@ impl EditorCam {
     /// Gets the [`MotionInputs`], if the camera is being actively moved..
     pub fn motion_inputs(&self) -> Option<&MotionInputs> {
         match &self.current_motion {
-            CurrentMotion::Stationary => None,
+            CurrentMotion::Stationary |
             CurrentMotion::Momentum { .. } => None,
             CurrentMotion::UserControlled { motion_inputs, .. } => Some(motion_inputs),
         }
@@ -266,7 +266,7 @@ impl EditorCam {
         if let CurrentMotion::UserControlled { motion_inputs, .. } = &mut self.current_motion {
             motion_inputs
                 .zoom_inputs_mut()
-                .process_input(zoom_amount, self.smoothing.zoom)
+                .process_input(zoom_amount, self.smoothing.zoom);
         }
     }
 
@@ -274,8 +274,7 @@ impl EditorCam {
     /// [`EditorCam`] for usage.
     pub fn end_move(&mut self) {
         let velocity = match self.current_motion {
-            CurrentMotion::Stationary => return,
-            CurrentMotion::Momentum { .. } => return,
+            CurrentMotion::Stationary | CurrentMotion::Momentum { .. } => return,
             CurrentMotion::UserControlled {
                 anchor,
                 ref motion_inputs,

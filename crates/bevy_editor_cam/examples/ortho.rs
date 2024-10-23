@@ -1,3 +1,5 @@
+//! Orthographic editor camera example.
+
 use bevy::prelude::*;
 use bevy_editor_cam::prelude::*;
 

@@ -2,7 +2,6 @@
 
 pub use bevy::prelude::*;
 
-
 #[derive(Component)]
 pub struct CollapsingHeader {
     pub is_collapsed: bool,

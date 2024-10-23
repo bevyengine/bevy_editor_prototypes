@@ -48,7 +48,7 @@ impl Plugin for EditableTextLinePlugin {
                 keyboard_input,
                 check_cursor_overflow,
                 set_cursor_pos,
-                propagate_text_font
+                propagate_text_font,
             ),
         );
 
@@ -191,7 +191,10 @@ impl RenderWidget {
 
 fn spawn_system(
     mut commands: Commands,
-    mut q_texts: Query<(Entity, &EditableTextLine, &mut Node, Option<&TextFont>), Without<EditableTextInner>>,
+    mut q_texts: Query<
+        (Entity, &EditableTextLine, &mut Node, Option<&TextFont>),
+        Without<EditableTextInner>,
+    >,
 ) {
     for (e, text, mut node, font) in q_texts.iter_mut() {
         // Set important properties of the node
@@ -347,8 +350,12 @@ fn propagate_text_font(
 ) {
     for (font, inner) in q_texts.iter() {
         commands.entity(inner.fake_cursor_text).insert(font.clone());
-        commands.entity(inner.fake_text_before_selection).insert(font.clone());
-        commands.entity(inner.fake_selection_text).insert(font.clone());
+        commands
+            .entity(inner.fake_text_before_selection)
+            .insert(font.clone());
+        commands
+            .entity(inner.fake_selection_text)
+            .insert(font.clone());
         commands.entity(inner.text).insert(font.clone());
     }
 }

@@ -1,15 +1,15 @@
 //! Allow to automatically manage created components and children in tree by storing last minimal tree state
 
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 
 use bevy::{
     ecs::{component::ComponentId, system::IntoObserverSystem},
     prelude::*,
-    reflect::Type,
+    reflect::{FromType, ReflectFromPtr, Type},
     utils::HashSet,
 };
 
-use crate::{construct::Construct, patch::Patch};
+use crate::{children_patcher::ReflectChildrenPatcher, construct::Construct, patch::Patch};
 
 /// Represents a tree structure for managing entity differences and patches.
 ///
@@ -98,6 +98,44 @@ impl EntityDiffTree {
             }
         }
 
+        // Apply children patches
+        {
+            world.resource_scope(|world, app_registry: Mut<AppTypeRegistry>| {
+                let type_registry = app_registry.read();
+                let mut entity_mut = world.entity_mut(entity);
+                let Self {
+                    patch,
+                    observer_patch,
+                    children,
+                } = self;
+                for patch in patch.iter() {
+                    #[allow(unsafe_code)]
+                    let c_id = unsafe { patch.component_id(entity_mut.world_mut()) };
+
+                    let Some(data) =
+                        type_registry.get_type_data::<ReflectChildrenPatcher>(patch.get_type_id())
+                    else {
+                        continue;
+                    };
+
+                    let Some(reflect_from_ptr) =
+                        type_registry.get_type_data::<ReflectFromPtr>(patch.get_type_id())
+                    else {
+                        continue;
+                    };
+
+                    let Ok(mut ptr) = entity_mut.get_mut_by_id(c_id) else {
+                        continue;
+                    };
+
+                    #[allow(unsafe_code)]
+                    let reflect = unsafe { reflect_from_ptr.as_reflect_mut(ptr.as_mut()) };
+
+                    (data.func)(reflect, children);
+                }
+            });
+        }
+
         // Clear all observers that was used in previous tree state
         if let Some(last_state) = world.entity(entity).get::<LastTreeState>().cloned() {
             for observer in last_state.observers.iter() {
@@ -151,15 +189,15 @@ impl EntityDiffTree {
             .any(|patch| patch.get_type_id() == TypeId::of::<C>())
     }
 
-    pub fn add_cascade_patch_fn<C: Component + Default + Clone, T: Component>(
+    pub fn add_cascade_patch_fn<C: Component + Default + Clone, Filter: Component>(
         &mut self,
         func: impl Fn(&mut C) + Send + Sync + 'static + Clone,
     ) {
-        if self.contains_component::<T>() {
+        if self.contains_component::<Filter>() {
             self.add_patch_fn(func.clone());
         } else {
             for child in self.children.iter_mut() {
-                child.add_cascade_patch_fn::<C, T>(func.clone());
+                child.add_cascade_patch_fn::<C, Filter>(func.clone());
             }
         }
     }

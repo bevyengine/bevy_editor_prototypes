@@ -7,6 +7,7 @@ edition = "2021"
 bevy.workspace = true
 bevy_field_forms.workspace = true
 bevy_incomplete_bsn.workspace = true
+bevy_collapsing_header.workspace = true
 
 [lints]
 workspace = true

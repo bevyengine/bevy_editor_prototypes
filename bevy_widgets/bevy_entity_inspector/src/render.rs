@@ -13,6 +13,7 @@ use bevy::{
     reflect::{ReflectFromPtr, TypeData},
     utils::HashMap,
 };
+use bevy_collapsing_header::CollapsingHeader;
 use bevy_incomplete_bsn::entity_diff_tree::{DiffTreeCommands, EntityDiffTree};
 
 use crate::{render_impl::RenderStorage, EntityInspector, InspectedEntity};
@@ -116,18 +117,6 @@ pub fn render_component_inspector(
             .split("::")
             .last()
             .unwrap_or_default();
-        tree.add_child(
-            EntityDiffTree::new()
-                .with_patch_fn(move |text: &mut Text| {
-                    text.0 = format!("{}", name);
-                })
-                .with_patch_fn(|text_layout: &mut TextLayout| {
-                    text_layout.linebreak = LineBreak::AnyCharacter;
-                })
-                .with_patch_fn(|node: &mut Node| {
-                    node.max_width = Val::Px(300.0);
-                }),
-        );
 
         let render_context = RenderContext {
             render_storage: &render_storage,
@@ -135,11 +124,25 @@ pub fn render_component_inspector(
             component_id: inspector.component_id,
         };
 
-        tree.add_child(recursive_reflect_render(
+        let reflect_content = recursive_reflect_render(
             reflected_data.as_partial_reflect(),
             format!(""), // The string reflect path starts with a dot
             &render_context,
-        ));
+        );
+
+        tree.add_child(
+            EntityDiffTree::new()
+                .with_patch_fn(move |collapsing_header: &mut CollapsingHeader| {
+                    collapsing_header.text = name.to_string();
+                })
+                .with_patch_fn(|text_layout: &mut TextLayout| {
+                    text_layout.linebreak = LineBreak::AnyCharacter;
+                })
+                .with_patch_fn(|node: &mut Node| {
+                    node.max_width = Val::Px(300.0);
+                })
+                .with_child(reflect_content),
+        );
 
         tree.add_cascade_patch_fn::<TextFont, Text>(|font: &mut TextFont| {
             font.font_size = 14.0;

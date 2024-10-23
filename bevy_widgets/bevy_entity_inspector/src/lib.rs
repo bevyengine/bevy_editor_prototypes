@@ -1,6 +1,7 @@
 //! This crate provides a entity inspector pane for Bevy Editor
 
 use bevy::prelude::*;
+use bevy_collapsing_header::CollapsingHeaderPlugin;
 use bevy_field_forms::FieldFormsPlugin;
 use render::ChangeComponentField;
 use render_impl::RenderStorage;
@@ -14,6 +15,10 @@ impl Plugin for EntityInspectorPlugin {
     fn build(&self, app: &mut App) {
         if !app.is_plugin_added::<FieldFormsPlugin>() {
             app.add_plugins(FieldFormsPlugin);
+        }
+
+        if !app.is_plugin_added::<CollapsingHeaderPlugin>() {
+            app.add_plugins(CollapsingHeaderPlugin);
         }
 
         app.add_event::<ChangeComponentField>();

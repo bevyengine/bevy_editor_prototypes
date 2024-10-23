@@ -10,7 +10,7 @@ use bevy::{
     winit::cursor::CursorIcon,
 };
 use bevy_editor_styles::Theme;
-use bevy_scroll_box::ScrollBox;
+use bevy_scroll_box::ScrollBoxContent;
 
 use crate::{AssetBrowserLocation, AssetType};
 
@@ -116,7 +116,7 @@ pub(crate) fn run_if_content_as_changed(directory_content: Res<DirectoryContent>
 /// Refresh the UI with the content of the current [`AssetBrowserLocation`]
 pub(crate) fn refresh_ui(
     mut commands: Commands,
-    content_list_query: Query<(Entity, Option<&Children>), With<ScrollBox>>,
+    content_list_query: Query<(Entity, Option<&Children>), With<ScrollBoxContent>>,
     theme: Res<Theme>,
     asset_server: Res<AssetServer>,
     directory_content: Res<DirectoryContent>,
@@ -204,6 +204,7 @@ fn spawn_asset_button(
         theme.border_radius,
         crate::ButtonType::AssetButton(asset_type),
     ));
+
     entity_commands.with_children(|parent| {
         parent.spawn((
             UiImage::new(crate::content_button_to_icon(&asset_type, asset_server)),

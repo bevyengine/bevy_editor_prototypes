@@ -24,8 +24,9 @@ pub fn float_render_impl(float: &f32, path: String, context: &RenderContext) -> 
 
     tree.add_patch_fn(|node: &mut Node| {
         node.min_width = Val::Px(100.0);
-        node.height = Val::Px(25.0);
+        node.height = Val::Px(18.0);
         node.border = UiRect::all(Val::Px(1.0));
+        node.padding = UiRect::all(Val::Px(1.0));
     });
 
     tree.add_patch_fn(|background: &mut BackgroundColor| {
@@ -41,6 +42,10 @@ pub fn float_render_impl(float: &f32, path: String, context: &RenderContext) -> 
     });
 
     tree.add_patch_fn(|highlight: &mut SimpleBorderHighlight| {});
+
+    tree.add_patch_fn(|text_font: &mut TextFont| {
+        text_font.font_size = 14.0;
+    });
 
     tree.add_observer_patch(
         move |trigger: Trigger<ValueChanged<f32>>, mut commands: Commands| {

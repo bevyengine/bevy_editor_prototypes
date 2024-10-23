@@ -48,6 +48,7 @@ impl Plugin for EditableTextLinePlugin {
                 keyboard_input,
                 check_cursor_overflow,
                 set_cursor_pos,
+                propagate_text_font
             ),
         );
 
@@ -190,11 +191,13 @@ impl RenderWidget {
 
 fn spawn_system(
     mut commands: Commands,
-    mut q_texts: Query<(Entity, &EditableTextLine, &mut Node), Without<EditableTextInner>>,
+    mut q_texts: Query<(Entity, &EditableTextLine, &mut Node, Option<&TextFont>), Without<EditableTextInner>>,
 ) {
-    for (e, text, mut node) in q_texts.iter_mut() {
+    for (e, text, mut node, font) in q_texts.iter_mut() {
         // Set important properties of the node
         node.overflow = Overflow::clip();
+
+        let font = font.cloned().unwrap_or_default();
 
         let cursor = commands
             .spawn((
@@ -214,6 +217,7 @@ fn spawn_system(
                 TextColor(Color::srgba(0.0, 0.0, 0.0, 0.0)),
                 Node { ..default() },
                 TextLayout::new_with_no_wrap(),
+                font.clone(),
             ))
             .id();
 
@@ -240,6 +244,7 @@ fn spawn_system(
                 TextColor(Color::srgba(0.0, 0.0, 0.0, 0.0)),
                 Node { ..default() },
                 TextLayout::new_with_no_wrap(),
+                font.clone(),
             ))
             .id();
 
@@ -250,6 +255,7 @@ fn spawn_system(
                 Visibility::Hidden,
                 Node { ..default() },
                 TextLayout::new_with_no_wrap(),
+                font.clone(),
             ))
             .id();
 
@@ -283,6 +289,7 @@ fn spawn_system(
                     ..default()
                 },
                 TextLayout::new_with_no_wrap(),
+                font.clone(),
             ))
             .id();
 
@@ -332,4 +339,16 @@ fn set_text_trigger(
 
     // Trigger rerender
     commands.trigger_targets(RenderWidget::default(), entity);
+}
+
+fn propagate_text_font(
+    mut commands: Commands,
+    q_texts: Query<(&TextFont, &EditableTextInner), Or<(Added<TextFont>, Changed<TextFont>)>>,
+) {
+    for (font, inner) in q_texts.iter() {
+        commands.entity(inner.fake_cursor_text).insert(font.clone());
+        commands.entity(inner.fake_text_before_selection).insert(font.clone());
+        commands.entity(inner.fake_selection_text).insert(font.clone());
+        commands.entity(inner.text).insert(font.clone());
+    }
 }

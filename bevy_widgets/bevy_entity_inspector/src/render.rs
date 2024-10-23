@@ -141,6 +141,10 @@ pub fn render_component_inspector(
             &render_context,
         ));
 
+        tree.add_cascade_patch_fn::<TextFont, Text>(|font: &mut TextFont| {
+            font.font_size = 14.0;
+        });
+
         commands.entity(inspector_entity).diff_tree(tree);
 
         inspector.rendered = true;

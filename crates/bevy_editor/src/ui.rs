@@ -46,7 +46,7 @@ fn ui_setup(mut commands: Commands, theme: Res<Theme>) {
 
                 ..Default::default()
             },
-            theme.background_color,
+            theme.general.background_color,
             RootUINode,
         ))
         .with_children(|parent| {

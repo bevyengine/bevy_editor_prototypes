@@ -37,8 +37,8 @@ pub(crate) fn spawn_pane<'a>(
                 ..default()
             },
             PaneAreaNode,
-            theme.pane_area_background_color,
-            theme.border_radius,
+            theme.pane.area_background_color,
+            theme.general.border_radius,
         ))
         .set_parent(root)
         .id();
@@ -54,8 +54,8 @@ pub(crate) fn spawn_pane<'a>(
                 flex_shrink: 0.,
                 ..default()
             },
-            theme.pane_header_background_color,
-            theme.pane_header_border_radius,
+            theme.pane.header_background_color,
+            theme.general.border_radius,
             ContextMenu::new([
                 ContextMenuOption::new("Close", |mut commands, entity| {
                     commands.run_system_cached_with(remove_pane, entity);
@@ -93,7 +93,7 @@ pub(crate) fn spawn_pane<'a>(
         .with_child((
             Text::new(name),
             TextFont {
-                font: theme.font.clone(),
+                font: theme.text.font.clone(),
                 font_size: 14.,
                 ..default()
             },

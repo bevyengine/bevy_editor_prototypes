@@ -82,18 +82,18 @@ fn spawn_path_segment_ui(
                 ..default()
             },
             BackgroundColor(PATH_SEGMENT_BACKGROUND_COLOR),
-            theme.border_radius,
+            theme.general.border_radius,
             ButtonType::LocationSegment(segment_type),
         ))
         .with_children(|parent| {
             parent.spawn((
                 Text(directory_name),
                 TextFont {
-                    font: theme.font.clone(),
+                    font: theme.text.font.clone(),
                     font_size: 10.0,
                     ..default()
                 },
-                TextColor(theme.text_color),
+                TextColor(theme.text.text_color),
             ));
         })
         .observe(
@@ -122,10 +122,10 @@ fn path_separator_ui(theme: &Theme) -> impl Bundle {
     (
         Text("/".to_string()),
         TextFont {
-            font: theme.font.clone(),
+            font: theme.text.font.clone(),
             font_size: 10.0,
             ..default()
         },
-        TextColor(theme.text_color),
+        TextColor(theme.text.text_color),
     )
 }

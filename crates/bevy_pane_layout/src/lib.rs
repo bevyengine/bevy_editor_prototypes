@@ -152,7 +152,7 @@ fn setup(
 
             ..default()
         },
-        theme.background_color,
+        theme.general.background_color,
     ));
 
     let divider = spawn_divider(&mut commands, Divider::Horizontal, 1.)

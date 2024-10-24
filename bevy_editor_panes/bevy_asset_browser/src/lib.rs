@@ -152,7 +152,7 @@ pub fn on_pane_creation(
                     padding: UiRect::horizontal(Val::Px(10.0)),
                     ..default()
                 },
-                theme.pane_header_background_color,
+                theme.pane.header_background_color,
             ));
             top_bar::spawn_location_path_ui(&theme, &location, &mut top_bar_ec);
 

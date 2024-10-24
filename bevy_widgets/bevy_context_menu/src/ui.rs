@@ -28,8 +28,8 @@ pub(crate) fn spawn_context_menu<'a>(
                 color: Color::BLACK.with_alpha(0.8),
                 ..Default::default()
             },
-            theme.context_menu_background_color,
-            theme.border_radius,
+            theme.context_menu.background_color,
+            theme.general.border_radius,
         ))
         .id();
 
@@ -54,14 +54,13 @@ pub(crate) fn spawn_option<'a>(
                 flex_grow: 1.,
                 ..default()
             },
-            theme.button_border_radius,
+            theme.button.border_radius,
         ))
         .observe(
             |trigger: Trigger<Pointer<Over>>,
              theme: Res<Theme>,
              mut query: Query<&mut BackgroundColor>| {
-                *query.get_mut(trigger.entity()).unwrap() =
-                    theme.context_menu_button_hover_background_color;
+                *query.get_mut(trigger.entity()).unwrap() = theme.context_menu.hover_color;
             },
         )
         .observe(
@@ -112,7 +111,7 @@ pub(crate) fn spawn_option<'a>(
         .spawn((
             Text::new(label),
             TextFont {
-                font: theme.font.clone(),
+                font: theme.text.font.clone(),
                 font_size: 12.,
                 ..default()
             },

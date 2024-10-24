@@ -32,6 +32,8 @@ pub struct Theme {
     pub pane_header_border_radius: BorderRadius,
     /// The default button Border Radius.
     pub button_border_radius: BorderRadius,
+    /// The button background color.
+    pub button_background_color: BackgroundColor,
     /// The hover color for interactions.
     pub hover_color: Color,
     /// The background color of the context menu.
@@ -60,6 +62,7 @@ impl FromWorld for Theme {
             border_radius: BorderRadius::all(Val::Px(8.)),
             background_color: BackgroundColor(Color::oklch(0.209, 0.0, 0.0)),
             button_border_radius: BorderRadius::all(Val::Px(3.)),
+            button_background_color: BackgroundColor(Color::oklch(0.2768, 0.0, 0.0)),
 
             // Pane layout styles
             pane_header_background_color: BackgroundColor(Color::oklch(0.3407, 0.0, 0.0)),

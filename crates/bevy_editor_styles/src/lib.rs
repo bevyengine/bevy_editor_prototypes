@@ -31,7 +31,8 @@ pub struct Theme {
     pub pane_header_border_radius: BorderRadius,
     /// The default button Border Radius.
     pub button_border_radius: BorderRadius,
-
+    /// The hover color for interactions.
+    pub hover_color: Color,
     /// The background color of the context menu.
     pub context_menu_background_color: BackgroundColor,
     /// The background color of the context menu options when hovered.
@@ -73,6 +74,7 @@ impl Default for Theme {
             low_priority_text_color: Color::oklch(0.50, 0.0, 0.0),
             text_color: Color::oklch(0.9219, 0.0, 0.0),
             high_priority_text_color: Color::oklch(0.209, 0.0, 0.0),
+            hover_color: Color::oklch(0.7693, 0.116_877_146, 268.019_3),
         }
     }
 }

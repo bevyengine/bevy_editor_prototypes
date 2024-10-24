@@ -21,9 +21,9 @@ impl Plugin for MinimalEditorCamPlugin {
         app.add_systems(
             PreUpdate,
             (
-                crate::controller::component::EditorCam::update_camera_positions,
-                crate::controller::projections::update_orthographic,
-                crate::controller::projections::update_perspective,
+                component::EditorCam::update_camera_positions,
+                projections::update_orthographic,
+                projections::update_perspective,
             )
                 .chain()
                 .after(bevy::picking::PickSet::Last),

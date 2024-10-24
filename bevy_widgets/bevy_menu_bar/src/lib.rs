@@ -3,9 +3,13 @@
 //! This runs along the top of the screen and provides a list of options to the user,
 //! such as "File", "Edit", "View", etc.
 
+mod load_gltf;
+
 use bevy::{asset::embedded_asset, prelude::*};
 
 use bevy_editor_styles::Theme;
+
+use crate::load_gltf::LoadGltfPlugin;
 
 /// The root node for the menu bar.
 #[derive(Component)]
@@ -17,7 +21,8 @@ pub struct MenuBarPlugin;
 impl Plugin for MenuBarPlugin {
     fn build(&self, app: &mut App) {
         embedded_asset!(app, "assets/logo/bevy_logo.png");
-        app.add_systems(Startup, menu_setup.in_set(MenuBarSet));
+        app.add_plugins(LoadGltfPlugin)
+            .add_systems(Startup, menu_setup.in_set(MenuBarSet));
     }
 }
 
@@ -220,6 +225,40 @@ fn menu_setup(
         ))
         .id();
 
+    let load_gltf_text = commands
+        .spawn((
+            Text::new("Load GLTF"),
+            TextFont {
+                font_size: 12.,
+                ..default()
+            },
+            PickingBehavior::IGNORE,
+        ))
+        .id();
+
+    let load_gltf_container = commands
+        .spawn((
+            Node {
+                padding: UiRect {
+                    left: Val::Px(5.0),
+                    right: Val::Px(5.0),
+                    top: Val::Px(2.0),
+                    bottom: Val::Px(2.0),
+                },
+                align_content: AlignContent::Center,
+                justify_content: JustifyContent::Center,
+                flex_shrink: 0.,
+                ..Default::default()
+            },
+            BorderRadius::all(Val::Px(3.)),
+        ))
+        .observe(
+            |_trigger: Trigger<Pointer<Click>>, mut commands: Commands| {
+                commands.run_system_cached(load_gltf::pick_gltf);
+            },
+        )
+        .id();
+
     let menu_container = commands
         .spawn((Node {
             width: Val::Px(285.0),
@@ -246,6 +285,12 @@ fn menu_setup(
     commands.entity(window_text).set_parent(window_container);
     commands.entity(help_container).set_parent(menu_container);
     commands.entity(help_text).set_parent(help_container);
+    commands
+        .entity(load_gltf_container)
+        .set_parent(menu_container);
+    commands
+        .entity(load_gltf_text)
+        .set_parent(load_gltf_container);
 
     hover_over_observer.watch_entity(file_container);
     hover_out_observer.watch_entity(file_container);
@@ -257,6 +302,8 @@ fn menu_setup(
     hover_out_observer.watch_entity(window_container);
     hover_over_observer.watch_entity(help_container);
     hover_out_observer.watch_entity(help_container);
+    hover_over_observer.watch_entity(load_gltf_container);
+    hover_out_observer.watch_entity(load_gltf_container);
 
     commands.spawn(hover_out_observer);
     commands.spawn(hover_over_observer);

@@ -30,7 +30,7 @@ pub struct ScrollBox {
 /// Represents the content within a [`ScrollBox`].
 ///
 /// This [`Node`] can of any size and will be clipped to the size of the [`ScrollBox`].
-/// Unless specified otherwise, any content overflowing will be accessible via the [`ScrollBar`].
+/// Unless specified otherwise, any content overflowing will be accessible via the scroll bars.
 #[derive(Component, Default)]
 #[require(Node)]
 pub struct ScrollBoxContent;
@@ -48,8 +48,8 @@ pub enum ScrollBarHandleDirection {
 /// A component representing the handle of a scroll bar.
 ///
 /// This component is used to visually indicate the current scroll position within a [`ScrollBox`].
-/// It is a child of a [`ScrollBar`] and can be dragged to scroll the [`ScrollBoxContent`].
-/// Scroll bar can also be moved using the mouse wheel, or shift + mouse wheel if the [`ScrollBar`] is horizontal.
+/// It is a child of a scroll bar and can be dragged to scroll the [`ScrollBoxContent`].
+/// Scroll bar can also be moved using the mouse wheel, or shift + mouse wheel if the scroll bar is horizontal.
 #[derive(Component, Default)]
 #[require(Node)]
 pub struct ScrollBarHandle(pub ScrollBarHandleDirection);
@@ -79,7 +79,7 @@ pub fn spawn_scroll_box<'a>(
     ));
     scrollbox_ec.with_children(|parent| {
         let mut scrollbox_content_ec = parent.spawn((
-            ScrollBoxContent::default(),
+            ScrollBoxContent,
             Node {
                 grid_column: GridPlacement::start(1),
                 grid_row: GridPlacement::start(1),

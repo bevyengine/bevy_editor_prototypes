@@ -245,6 +245,7 @@ fn spawn_asset_button(
         parent.spawn((
             Text::new(name),
             TextFont {
+                font: theme.font.clone(),
                 font_size: 12.0,
                 ..default()
             },

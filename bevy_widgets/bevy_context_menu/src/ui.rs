@@ -112,6 +112,7 @@ pub(crate) fn spawn_option<'a>(
         .spawn((
             Text::new(label),
             TextFont {
+                font: theme.font.clone(),
                 font_size: 12.,
                 ..default()
             },

@@ -89,6 +89,7 @@ fn spawn_path_segment_ui(
             parent.spawn((
                 Text(directory_name),
                 TextFont {
+                    font: theme.font.clone(),
                     font_size: 10.0,
                     ..default()
                 },
@@ -121,6 +122,7 @@ fn path_separator_ui(theme: &Theme) -> impl Bundle {
     (
         Text("/".to_string()),
         TextFont {
+            font: theme.font.clone(),
             font_size: 10.0,
             ..default()
         },

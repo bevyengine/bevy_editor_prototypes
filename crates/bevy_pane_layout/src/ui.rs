@@ -93,6 +93,7 @@ pub(crate) fn spawn_pane<'a>(
         .with_child((
             Text::new(name),
             TextFont {
+                font: theme.font.clone(),
                 font_size: 14.,
                 ..default()
             },

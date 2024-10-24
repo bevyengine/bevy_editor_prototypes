@@ -1,16 +1,17 @@
 //! Palette plugin for the Bevy Editor. This plugin provides a color palette for the editor's UI.
-use bevy::prelude::*;
+use bevy::{asset::embedded_asset, prelude::*};
 
 /// The Pallet Plugin.
 pub struct StylesPlugin;
 
 impl Plugin for StylesPlugin {
     fn build(&self, app: &mut App) {
+        embedded_asset!(app, "assets/fonts/Inter-Regular.ttf");
         app.init_resource::<Theme>();
     }
 }
 
-/// The core resource for the editor's color palette. This resource is used to store the current theme of the editor.
+/// The core resource for the editor's color palette and fonts. This resource is used to store the current theme of the editor.
 /// All colors in the editor should be derived from this resource.
 /// All colors should use OKLCH color space, use <https://oklch.com/> to get colors. This ensures that the colors are perceptually uniform and work well for accessibility such as color blind adjustments.
 #[derive(Resource)]
@@ -45,10 +46,15 @@ pub struct Theme {
     pub low_priority_text_color: Color,
     /// The text color for high priority text. Text that the user needs to see asap.
     pub high_priority_text_color: Color,
+
+    /// The editor UI font.
+    pub font: Handle<Font>,
 }
 
-impl Default for Theme {
-    fn default() -> Self {
+impl FromWorld for Theme {
+    fn from_world(world: &mut World) -> Self {
+        let asset_server = world.resource::<AssetServer>();
+
         Self {
             // General styles
             border_radius: BorderRadius::all(Val::Px(8.)),
@@ -75,6 +81,9 @@ impl Default for Theme {
             text_color: Color::oklch(0.9219, 0.0, 0.0),
             high_priority_text_color: Color::oklch(0.209, 0.0, 0.0),
             hover_color: Color::oklch(0.7693, 0.116_877_146, 268.019_3),
+
+            // Font
+            font: asset_server.load("embedded://bevy_editor_styles/assets/fonts/Inter-Regular.ttf"),
         }
     }
 }

@@ -6,35 +6,47 @@ use std::{any::TypeId, sync::Arc};
 
 use bevy::{
     ecs::{
-        component::{ComponentId, Components, Tick},
+        component::{ComponentId, Components},
         system::SystemChangeTick,
     },
     prelude::*,
-    reflect::{ReflectFromPtr, TypeData},
-    utils::HashMap,
+    reflect::ReflectFromPtr,
 };
 use bevy_collapsing_header::CollapsingHeader;
 use bevy_incomplete_bsn::entity_diff_tree::{DiffTreeCommands, EntityDiffTree};
 
 use crate::{render_impl::RenderStorage, EntityInspector, InspectedEntity};
 
+#[allow(dead_code)]
+/// Context for rendering a component in the entity inspector.
 pub struct RenderContext<'w> {
+    /// Storage for render-related data.
     render_storage: &'w RenderStorage,
+    /// The entity being inspected.
     entity: Entity,
+    /// The ID of the component being rendered.
     component_id: ComponentId,
 }
 
+/// Component for managing the inspection of a specific component.
 #[derive(Component)]
 pub struct ComponentInspector {
+    /// The ID of the component being inspected.
     pub component_id: ComponentId,
+    /// The type ID of the component.
     pub type_id: TypeId,
+    /// Flag indicating whether the component has been rendered.
     pub rendered: bool,
 }
 
+/// Component representing a change to a field in a component.
 #[derive(Component, Clone)]
 pub struct ChangeComponentField {
+    /// The path to the field being changed.
     pub path: String,
+    /// The new value for the field.
     pub value: Arc<dyn PartialReflect + Send + Sync + 'static>,
+    /// Optional function for directly applying the change to the component.
     pub direct_cange:
         Option<Arc<dyn Fn(&mut dyn PartialReflect, &dyn PartialReflect) + Send + Sync + 'static>>,
 }
@@ -405,7 +417,7 @@ fn recursive_reflect_render(
                 }
             }
             bevy::reflect::ReflectRef::Map(v) => {
-                for (key, field) in v.iter() {
+                for (_, field) in v.iter() {
                     tree.add_child(recursive_reflect_render(
                         field,
                         format!("{}", path),

@@ -9,6 +9,7 @@ use render_impl::RenderStorage;
 pub mod render;
 pub mod render_impl;
 
+/// Plugin for the entity inspector.
 pub struct EntityInspectorPlugin;
 
 impl Plugin for EntityInspectorPlugin {
@@ -38,5 +39,6 @@ impl Plugin for EntityInspectorPlugin {
 #[derive(Component)]
 pub struct EntityInspector;
 
+/// Component for marking an entity as being inspected.
 #[derive(Component)]
 pub struct InspectedEntity;

@@ -9,6 +9,7 @@ use bevy_incomplete_bsn::entity_diff_tree::EntityDiffTree;
 
 use crate::render::RenderContext;
 
+/// Plugin for store implementation for type to be rendered in entity inspector
 pub struct RenderImplPlugin;
 
 impl Plugin for RenderImplPlugin {
@@ -17,8 +18,10 @@ impl Plugin for RenderImplPlugin {
     }
 }
 
+/// Storage for render-related data.
 #[derive(Resource, Default)]
 pub struct RenderStorage {
+    /// Map of type IDs to render functions.
     pub renders: HashMap<
         TypeId,
         Box<
@@ -30,7 +33,9 @@ pub struct RenderStorage {
     >,
 }
 
+/// Trait for adding render implementations to an application.
 pub trait RenderStorageApp {
+    /// Adds a render implementation for a type to the render storage.
     fn add_render_impl<T: Any + 'static>(
         &mut self,
         render_fn: impl Fn(&T, String, &RenderContext) -> EntityDiffTree + Send + Sync + 'static,

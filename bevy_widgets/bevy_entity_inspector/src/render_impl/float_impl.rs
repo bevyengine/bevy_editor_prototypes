@@ -1,3 +1,5 @@
+//! Implementation for rendering a float value in the entity inspector
+
 use std::sync::Arc;
 
 use bevy::prelude::*;
@@ -11,7 +13,8 @@ use bevy_incomplete_bsn::entity_diff_tree::EntityDiffTree;
 
 use crate::render::{ChangeComponentField, RenderContext};
 
-pub fn float_render_impl(float: &f32, path: String, context: &RenderContext) -> EntityDiffTree {
+/// Implementation for rendering a float value in the entity inspector
+pub fn float_render_impl(float: &f32, path: String, _: &RenderContext) -> EntityDiffTree {
     let mut tree = EntityDiffTree::new();
 
     let val = *float; //Clone the value to avoid borrowing issues
@@ -21,7 +24,7 @@ pub fn float_render_impl(float: &f32, path: String, context: &RenderContext) -> 
         input.controlled = true; // Value of input field is controlled by the inspector
     });
 
-    tree.add_patch_fn(|drag: &mut DragInput<f32>| {});
+    tree.add_patch_fn(|_: &mut DragInput<f32>| {});
 
     tree.add_patch_fn(|node: &mut Node| {
         node.min_width = Val::Px(100.0);
@@ -42,7 +45,7 @@ pub fn float_render_impl(float: &f32, path: String, context: &RenderContext) -> 
         *border_radius = BorderRadius::all(Val::Px(5.0));
     });
 
-    tree.add_patch_fn(|highlight: &mut SimpleBorderHighlight| {});
+    tree.add_patch_fn(|_: &mut SimpleBorderHighlight| {});
 
     tree.add_patch_fn(|text_font: &mut TextFont| {
         text_font.font_size = 14.0;

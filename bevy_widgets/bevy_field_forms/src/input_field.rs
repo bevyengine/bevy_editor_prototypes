@@ -1,8 +1,5 @@
-use std::str::FromStr;
-
-use bevy::{prelude::*, utils::HashSet};
+use bevy::prelude::*;
 use bevy_text_editing::*;
-use child_traversal::FirstChildTraversal;
 
 /// Plugin for validated input fields with a generic value type
 pub struct InputFieldPlugin<T: Validable> {
@@ -28,7 +25,7 @@ impl<T: Validable> Plugin for InputFieldPlugin<T> {
         app.add_event::<SetValue<T>>();
 
         app.add_systems(PreUpdate, spawn_system::<T>);
-        app.add_systems(PreUpdate, on_value_changed::<T>);
+        app.add_systems(PostUpdate, on_value_changed::<T>);
         app.add_systems(PreUpdate, on_created::<T>);
 
         app.add_observer(on_text_changed::<T>);

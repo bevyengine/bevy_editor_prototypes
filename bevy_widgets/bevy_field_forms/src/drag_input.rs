@@ -2,8 +2,9 @@
 
 use bevy::prelude::*;
 
-use crate::input_field::{InputField, SetValue, Validable, ValueChanged};
+use crate::input_field::{InputField, Validable, ValueChanged};
 
+/// Plugin for dragging a value stored in an input field
 pub struct DragInputPlugin<T: Draggable> {
     _marker: std::marker::PhantomData<T>,
 }

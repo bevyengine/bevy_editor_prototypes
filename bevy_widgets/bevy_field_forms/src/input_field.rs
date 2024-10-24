@@ -1,3 +1,5 @@
+//! This module provides a validated input field with a generic value type.
+
 use bevy::prelude::*;
 use bevy_text_editing::*;
 
@@ -24,7 +26,6 @@ impl<T: Validable> Plugin for InputFieldPlugin<T> {
         app.add_event::<ValueChanged<T>>();
         app.add_event::<SetValue<T>>();
 
-        app.add_systems(PreUpdate, spawn_system::<T>);
         app.add_systems(PostUpdate, on_value_changed::<T>);
         app.add_systems(PreUpdate, on_created::<T>);
 
@@ -117,12 +118,6 @@ pub struct ValueChanged<T: Validable>(pub T);
 /// This event is used to set the value of the validated input field.
 #[derive(Event)]
 pub struct SetValue<T: Validable>(pub T);
-
-fn spawn_system<T: Validable>(
-    mut commands: Commands,
-    query: Query<(Entity, &InputField<T>), Without<EditableTextLine>>,
-) {
-}
 
 fn on_text_changed<T: Validable>(
     mut trigger: Trigger<TextChanged>,

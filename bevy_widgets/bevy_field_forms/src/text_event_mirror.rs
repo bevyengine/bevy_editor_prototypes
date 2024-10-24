@@ -1,7 +1,7 @@
 //! This module provides a system to mirror the `TextChanged` event into a `SetText` event.
 //! This is useful to create controlled text widgets with filters on top of this text widget.
 
-use bevy::{prelude::*, ui::experimental::GhostNode};
+use bevy::prelude::*;
 use bevy_text_editing::{child_traversal::FirstChildTraversal, SetText, TextChanged};
 
 /// Plugin for the text event mirror.

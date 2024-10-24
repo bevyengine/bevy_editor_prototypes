@@ -1,3 +1,5 @@
+//! This module provides a simple border highlight for input fields
+
 use crate::input_field::*;
 use bevy::prelude::*;
 use bevy_focus::{Focus, LostFocus};
@@ -52,9 +54,6 @@ fn on_validation_changed(
     let Ok((mut highlight, interaction, focus)) = q_highlights.get_mut(entity) else {
         return;
     };
-
-    info!("Validation changed to {:?}", trigger.0);
-    info!("Focus: {:?}", focus);
 
     match &trigger.0 {
         ValidationState::Valid => {

@@ -3,13 +3,8 @@
 use bevy::{prelude::*, utils::HashSet};
 use bevy_field_forms::{
     input_field::{InputField, InputFieldPlugin, Validable, ValidationChanged, ValidationState},
-    validate_highlight::{SimpleBorderHighlight, SimpleBorderHighlightPlugin},
+    validate_highlight::SimpleBorderHighlight,
     FieldFormsPlugin,
-};
-use bevy_focus::{FocusPlugin, Focusable};
-use bevy_i_cant_believe_its_not_bsn::WithChild;
-use bevy_text_editing::{
-    child_traversal::FirstChildTraversalPlugin, EditableTextLine, EditableTextLinePlugin,
 };
 
 fn main() {
@@ -37,17 +32,15 @@ fn setup(mut commands: Commands) {
         .id();
 
     commands
-        .spawn(
-            (Node {
-                display: Display::Flex,
-                flex_direction: FlexDirection::Column,
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-                width: Val::Percent(100.0),
-                height: Val::Percent(100.0),
-                ..default()
-            }),
-        )
+        .spawn(Node {
+            display: Display::Flex,
+            flex_direction: FlexDirection::Column,
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            ..default()
+        })
         .with_children(move |cmd| {
             cmd.spawn(Text::new("Nickname:"));
             cmd.spawn((
@@ -96,12 +89,12 @@ impl ToString for CharacterName {
 }
 
 #[derive(Component)]
-pub struct CharacterValidator {
-    pub msg_text: Entity,
+struct CharacterValidator {
+    msg_text: Entity,
 }
 
 fn on_validation_changed(
-    mut trigger: Trigger<ValidationChanged>,
+    trigger: Trigger<ValidationChanged>,
     mut commands: Commands,
     q_character_validator: Query<&CharacterValidator>,
 ) {

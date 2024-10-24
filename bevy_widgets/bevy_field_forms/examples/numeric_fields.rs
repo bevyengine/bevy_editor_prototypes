@@ -20,20 +20,18 @@ fn setup(mut commands: Commands) {
     commands.spawn(Camera2d::default());
 
     commands
-        .spawn(
-            (Node {
-                display: Display::Grid,
-                grid_template_columns: vec![
-                    RepeatedGridTrack::min_content(1),
-                    RepeatedGridTrack::auto(1),
-                    RepeatedGridTrack::min_content(1),
-                    RepeatedGridTrack::auto(1),
-                ],
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-                ..default()
-            }),
-        )
+        .spawn(Node {
+            display: Display::Grid,
+            grid_template_columns: vec![
+                RepeatedGridTrack::min_content(1),
+                RepeatedGridTrack::auto(1),
+                RepeatedGridTrack::min_content(1),
+                RepeatedGridTrack::auto(1),
+            ],
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            ..default()
+        })
         .with_children(move |cmd| {
             spawn_numeric_field::<i8>(cmd, "i8");
             spawn_numeric_field::<u8>(cmd, "u8");

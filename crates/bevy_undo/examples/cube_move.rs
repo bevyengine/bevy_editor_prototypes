@@ -73,19 +73,16 @@ fn setup(
         Camera3d::default(),
     ));
 
-    cmd.spawn((
-        Node::default(),
-        Style {
-            width: Val::Percent(100.0),
-            height: Val::Percent(100.0),
-            justify_content: JustifyContent::Start,
-            align_items: AlignItems::Start,
-            ..Default::default()
-        },
-    ))
-    .with_children(|parent| {
-        parent.spawn((Text::new(""), TextFont::default()));
-    });
+    cmd.spawn((Node {
+        width: Val::Percent(100.0),
+        height: Val::Percent(100.0),
+        justify_content: JustifyContent::Start,
+        align_items: AlignItems::Start,
+        ..Default::default()
+    },))
+        .with_children(|parent| {
+            parent.spawn((Text::new(""), TextFont::default()));
+        });
 }
 
 fn move_cube(
@@ -96,13 +93,13 @@ fn move_cube(
     let speed = 10.0;
     if inputs.pressed(KeyCode::KeyA) {
         for mut transform in &mut query {
-            transform.translation += Vec3::new(-1.0, 0.0, 0.0) * time.delta_seconds() * speed;
+            transform.translation += Vec3::new(-1.0, 0.0, 0.0) * time.delta_secs() * speed;
         }
     }
 
     if inputs.pressed(KeyCode::KeyD) {
         for mut transform in &mut query {
-            transform.translation += Vec3::new(1.0, 0.0, 0.0) * time.delta_seconds() * speed;
+            transform.translation += Vec3::new(1.0, 0.0, 0.0) * time.delta_secs() * speed;
         }
     }
 }

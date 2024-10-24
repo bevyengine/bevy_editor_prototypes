@@ -1212,7 +1212,7 @@ fn apply_for_every_typed_field<D: Reflect + TypePath>(
         return;
     }
 
-    if let Some(v) = value.as_any_mut().downcast_mut::<D>() {
+    if let Some(v) = value.try_downcast_mut::<D>() {
         applyer(v);
     } else {
         match value.reflect_mut() {

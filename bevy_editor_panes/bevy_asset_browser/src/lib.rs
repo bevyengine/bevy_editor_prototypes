@@ -168,6 +168,7 @@ pub fn on_pane_creation(
                     spawn_scroll_box(
                         parent,
                         &theme,
+                        Overflow::scroll_y(),
                         Some(|content_list_ec: &mut EntityCommands| {
                             directory_content::spawn_content_list_ui(
                                 content_list_ec,

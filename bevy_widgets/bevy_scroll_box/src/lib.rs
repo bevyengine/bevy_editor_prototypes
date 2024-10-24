@@ -1,10 +1,6 @@
 //! A scroll widget for Bevy applications.
 
 use bevy::{
-    a11y::{
-        accesskit::{NodeBuilder, Role},
-        AccessibilityNode,
-    },
     input::mouse::{MouseScrollUnit, MouseWheel},
     prelude::*,
     ui::RelativeCursorPosition,
@@ -19,14 +15,17 @@ const SCROLL_LINE_SIZE_VALUE: f32 = 20.0;
 impl Plugin for ScrollBoxPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, on_scroll)
-            .add_systems(Update, update_scroll_bars);
+            .add_systems(Update, update_scroll_handles);
     }
 }
 
 /// A `ScrollBox` is a UI component that allows for content to be scrolled within a defined area.
 #[derive(Component, Default)]
-#[require(Node)]
-pub struct ScrollBox(ScrollPosition);
+#[require(Node, RelativeCursorPosition)]
+pub struct ScrollBox {
+    position: ScrollPosition,
+    overflow: Overflow,
+}
 
 /// Represents the content within a [`ScrollBox`].
 ///
@@ -36,13 +35,15 @@ pub struct ScrollBox(ScrollPosition);
 #[require(Node)]
 pub struct ScrollBoxContent;
 
-/// A component representing a scroll bar in a [`ScrollBox`].
-///
-/// This component is used to visually indicate the scrollable area within a [`ScrollBoxContent`].
-/// It contains a [`ScrollBarHandle`] which represents the draggable part of the scroll bar.
-#[derive(Component, Default)]
-#[require(Node)]
-pub struct ScrollBar;
+/// Determine in which direction the [`ScrollBarHandle`] is moving.
+#[derive(Default)]
+pub enum ScrollBarHandleDirection {
+    /// Handle scroll vertically
+    #[default]
+    Vertical,
+    /// Handle scroll horizontally
+    Horizontal,
+}
 
 /// A component representing the handle of a scroll bar.
 ///
@@ -51,22 +52,26 @@ pub struct ScrollBar;
 /// Scroll bar can also be moved using the mouse wheel, or shift + mouse wheel if the [`ScrollBar`] is horizontal.
 #[derive(Component, Default)]
 #[require(Node)]
-pub struct ScrollBarHandle;
+pub struct ScrollBarHandle(pub ScrollBarHandleDirection);
 
 /// Spawn a new [`ScrollBox`]
 pub fn spawn_scroll_box<'a>(
     parent: &'a mut ChildBuilder,
     theme: &Res<Theme>,
+    direction: Overflow,
     populate_content: Option<impl FnOnce(&mut EntityCommands)>,
 ) -> EntityCommands<'a> {
     let mut scrollbox_ec = parent.spawn((
-        ScrollBox::default(),
+        ScrollBox {
+            position: ScrollPosition::default(),
+            overflow: direction,
+        },
         RelativeCursorPosition::default(),
         Node {
             display: Display::Grid,
             grid_template_rows: vec![GridTrack::flex(1.0), GridTrack::auto()],
             grid_template_columns: vec![GridTrack::flex(1.0), GridTrack::auto()],
-            overflow: Overflow::clip_y(),
+            overflow: direction,
             width: Val::Percent(100.0),
             height: Val::Percent(100.0),
             ..default()
@@ -79,40 +84,71 @@ pub fn spawn_scroll_box<'a>(
                 grid_column: GridPlacement::start(1),
                 grid_row: GridPlacement::start(1),
                 position_type: PositionType::Absolute,
-                flex_wrap: FlexWrap::Wrap,
+                flex_wrap: if direction.x != OverflowAxis::Scroll {
+                    FlexWrap::Wrap
+                } else {
+                    FlexWrap::default()
+                },
                 ..default()
             },
-            BackgroundColor(Color::srgb(0.5, 0.5, 0.0)),
         ));
         if let Some(populate_content) = populate_content {
             populate_content(&mut scrollbox_content_ec);
         }
 
-        parent
-            .spawn((
-                ScrollBar,
-                Node {
-                    grid_column: GridPlacement::start(2),
-                    grid_row: GridPlacement::start(1),
-                    width: Val::Px(10.0),
-                    height: Val::Percent(100.0),
-                    ..default()
-                },
-                BackgroundColor(theme.scroll_bar_color),
-                BorderRadius::all(Val::Px(5.0)),
-            ))
-            .with_children(|parent| {
-                parent.spawn((
-                    ScrollBarHandle,
+        if direction.y == OverflowAxis::Scroll {
+            parent
+                .spawn((
                     Node {
-                        width: Val::Percent(100.0),
-                        height: Val::Percent(0.0),
+                        grid_column: GridPlacement::start(2),
+                        grid_row: GridPlacement::start(1),
+                        width: Val::Px(10.0),
+                        height: Val::Percent(100.0),
                         ..default()
                     },
-                    BackgroundColor(theme.scroll_bar_handle_color),
+                    BackgroundColor(theme.scroll_bar_color),
                     BorderRadius::all(Val::Px(5.0)),
-                ));
-            });
+                ))
+                .with_children(|parent| {
+                    parent.spawn((
+                        ScrollBarHandle(ScrollBarHandleDirection::Vertical),
+                        Node {
+                            width: Val::Percent(100.0),
+                            height: Val::Percent(0.0),
+                            ..default()
+                        },
+                        BackgroundColor(theme.scroll_bar_handle_color),
+                        BorderRadius::all(Val::Px(5.0)),
+                    ));
+                });
+        }
+
+        if direction.x == OverflowAxis::Scroll {
+            parent
+                .spawn((
+                    Node {
+                        grid_column: GridPlacement::start(1),
+                        grid_row: GridPlacement::start(2),
+                        width: Val::Percent(100.0),
+                        height: Val::Px(10.0),
+                        ..default()
+                    },
+                    BackgroundColor(theme.scroll_bar_color),
+                    BorderRadius::all(Val::Px(5.0)),
+                ))
+                .with_children(|parent| {
+                    parent.spawn((
+                        ScrollBarHandle(ScrollBarHandleDirection::Horizontal),
+                        Node {
+                            width: Val::Percent(0.0),
+                            height: Val::Percent(100.0),
+                            ..default()
+                        },
+                        BackgroundColor(theme.scroll_bar_handle_color),
+                        BorderRadius::all(Val::Px(5.0)),
+                    ));
+                });
+        }
     });
     scrollbox_ec
 }
@@ -122,6 +158,7 @@ fn on_scroll(
     mut query_scrollbox: Query<(&RelativeCursorPosition, Entity, &mut ScrollBox, &Children)>,
     mut query_scrollbox_content: Query<(&mut Node, &ComputedNode), With<ScrollBoxContent>>,
     query_computed_node: Query<&ComputedNode>,
+    keys: Res<ButtonInput<KeyCode>>,
 ) {
     for mouse_wheel_event in mouse_wheel_events.read() {
         for (cursor_pos, scrollbox_entity, mut scrollbox, children) in
@@ -133,58 +170,91 @@ fn on_scroll(
                 continue;
             }
 
-            let (mut content, content_computed) = query_scrollbox_content
-                .get_mut(children[0])
-                .expect("Scrollbox children 0 should be a ScrollBoxContent");
-            let content_height = content_computed.size().y;
-            let scrollbox_height = query_computed_node.get(scrollbox_entity).unwrap().size().y;
-            let max_scroll = (content_height - scrollbox_height).max(0.);
-            let delta_y = match mouse_wheel_event.unit {
+            let scroll_delta = match mouse_wheel_event.unit {
                 MouseScrollUnit::Line => mouse_wheel_event.y * SCROLL_LINE_SIZE_VALUE,
                 MouseScrollUnit::Pixel => mouse_wheel_event.y,
             };
-            scrollbox.0.offset_y += delta_y;
-            scrollbox.0.offset_y = scrollbox.0.offset_y.clamp(-max_scroll, 0.);
-            content.top = Val::Px(scrollbox.0.offset_y);
+
+            let (mut content, content_computed) = query_scrollbox_content
+                .get_mut(children[0])
+                .expect("Scrollbox children 0 should be a ScrollBoxContent");
+            let content_sizes = content_computed.size();
+            let scrollbox_sizes = query_computed_node.get(scrollbox_entity).unwrap().size();
+
+            let is_shift_pressed =
+                keys.pressed(KeyCode::ShiftLeft) || keys.pressed(KeyCode::ShiftRight);
+            if is_shift_pressed {
+                let max_scroll = (content_sizes.x - scrollbox_sizes.x).max(0.);
+                scrollbox.position.offset_x += scroll_delta;
+                scrollbox.position.offset_x = scrollbox.position.offset_x.clamp(-max_scroll, 0.);
+                content.left = Val::Px(scrollbox.position.offset_x);
+            } else {
+                let max_scroll = (content_sizes.y - scrollbox_sizes.y).max(0.);
+                scrollbox.position.offset_y += scroll_delta;
+                scrollbox.position.offset_y = scrollbox.position.offset_y.clamp(-max_scroll, 0.);
+                content.top = Val::Px(scrollbox.position.offset_y);
+            }
 
             return; // We only want to scroll 1 ScrollBox
         }
     }
 }
 
-// TODO: try Changed<ComputedNode>
-fn update_scroll_bars(
+fn update_scroll_handles(
     query_scrollboxes: Query<(&ScrollBox, &ComputedNode, &Children), With<ScrollBox>>,
     query_scrollbox_content: Query<&ComputedNode, With<ScrollBoxContent>>,
-    mut query_scrollbar_components: ParamSet<(
-        Query<&mut Node, With<ScrollBar>>,
-        Query<&mut Node, With<ScrollBarHandle>>,
-    )>,
+    query_children: Query<&Children>,
+    mut query_handle: Query<&mut Node, With<ScrollBarHandle>>,
 ) {
     for (scrollbox, scrollbox_computed, scrollbox_children) in query_scrollboxes.iter() {
-        let content_computed = query_scrollbox_content
+        let content_children = query_scrollbox_content
             .get(scrollbox_children[0])
             .expect("Scrollbox children 0 should be a ScrollBoxContent");
-        let content_height = content_computed.size().y;
-        let scrollbox_height = scrollbox_computed.size().y;
-        let handle_height = (scrollbox_height / content_height * 100.0).clamp(5.0, 100.0);
-        let handle_position = (-scrollbox.0.offset_y / content_height * 100.0).clamp(0.0, 100.0);
 
-        {
-            let mut query_scrollbars = query_scrollbar_components.p0();
-            let mut scrollbar = query_scrollbars.single_mut();
-            if handle_height == 100.0 {
-                scrollbar.display = Display::None;
-                return;
-            }
-            scrollbar.display = Display::DEFAULT;
+        if scrollbox.overflow.y == OverflowAxis::Scroll {
+            let scrollbar_children = query_children.get(scrollbox_children[1]).expect(
+                "Scrollbox children 1 should be a ScrollBar and have 1 child (ScrollBarHandle)",
+            );
+
+            let content_height = content_children.size().y;
+            let scrollbox_height = scrollbox_computed.size().y;
+
+            let handle_height = (scrollbox_height / content_height * 100.0).clamp(5.0, 100.0);
+            let handle_position =
+                (-scrollbox.position.offset_y / content_height * 100.0).clamp(0.0, 100.0);
+
+            let mut handle = query_handle
+                .get_mut(scrollbar_children[0])
+                .expect("ScrollBar should have 1 child (ScrollBarHandle)");
+            handle.height = Val::Percent(handle_height);
+            handle.top = Val::Percent(handle_position);
         }
 
-        {
-            let mut query_scrollbar_handle = query_scrollbar_components.p1();
-            let mut scrollbar_handle = query_scrollbar_handle.single_mut();
-            scrollbar_handle.height = Val::Percent(handle_height);
-            scrollbar_handle.top = Val::Percent(handle_position);
+        if scrollbox.overflow.x == OverflowAxis::Scroll {
+            let scrollbar_children = query_children
+                .get(
+                    scrollbox_children[if scrollbox.overflow.y == OverflowAxis::Scroll {
+                        2
+                    } else {
+                        1
+                    }],
+                )
+                .expect(
+                    "Scrollbox children 2 should be a ScrollBar and have 1 child (ScrollBarHandle)",
+                );
+
+            let content_width = content_children.size().x;
+            let scrollbox_width = scrollbox_computed.size().x;
+
+            let handle_width = (scrollbox_width / content_width * 100.0).clamp(5.0, 100.0);
+            let handle_position =
+                (-scrollbox.position.offset_x / content_width * 100.0).clamp(0.0, 100.0);
+
+            let mut handle = query_handle
+                .get_mut(scrollbar_children[0])
+                .expect("ScrollBar should have 1 child (ScrollBarHandle)");
+            handle.width = Val::Percent(handle_width);
+            handle.left = Val::Percent(handle_position);
         }
     }
 }

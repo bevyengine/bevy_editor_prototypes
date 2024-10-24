@@ -1,5 +1,16 @@
+//! This module provides functionality for traversing events to the first child of an entity.
+//!
+//! It includes:
+//! - `FirstChildTraversalPlugin`: A plugin that sets up the necessary systems for child traversal.
+//! - `FirstChildTraversal`: A marker component for entities that should use first-child traversal.
+//! - `CachedFirsChild`: A component that caches the first child of an entity for efficient traversal.
+//!
+//! The module also implements the `Traversal` trait for `CachedFirsChild`, allowing for easy
+//! integration with Bevy's event system.
+
 use bevy::{ecs::traversal::Traversal, prelude::*};
 
+/// Plugin for traversing events to the first child of an entity
 pub struct FirstChildTraversalPlugin;
 
 impl Plugin for FirstChildTraversalPlugin {
@@ -8,9 +19,11 @@ impl Plugin for FirstChildTraversalPlugin {
     }
 }
 
+/// Marker for traversing events to the first child of an entity
 #[derive(Component, Debug, Default)]
 pub struct FirstChildTraversal;
 
+/// State for caching the first child of an entity to make Traverse trait easier to implement
 #[derive(Component, Debug)]
 pub struct CachedFirsChild(pub Entity);
 

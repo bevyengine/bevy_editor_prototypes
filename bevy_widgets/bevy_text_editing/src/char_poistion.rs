@@ -86,6 +86,7 @@ impl From<usize> for CharPosition {
     }
 }
 
+/// Get the byte position of a character placed at a given position in a string
 pub fn get_byte_position(text: &str, char_position: CharPosition) -> usize {
     if char_position.0 < text.chars().count() {
         text.char_indices().nth(char_position.0).unwrap().0

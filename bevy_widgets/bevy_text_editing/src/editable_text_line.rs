@@ -3,24 +3,19 @@
 mod input;
 mod render;
 
-use bevy::{
-    prelude::*,
-    text::{cosmic_text::Buffer, TextLayoutInfo},
-    ui::experimental::GhostNode,
-    utils::HashSet,
-};
+use bevy::{prelude::*, utils::HashSet};
 use bevy_clipboard::ClipboardPlugin;
 use bevy_focus::{FocusPlugin, Focusable, SetFocus};
 
 use crate::{
     cursor::{Cursor, CursorPlugin},
-    text_change::TextChange,
     CharPosition, SetCursorPosition, SetText, TextChanged, TEXT_SELECTION_COLOR,
 };
 
 use input::*;
 use render::*;
 
+/// Plugin for editable text line
 pub struct EditableTextLinePlugin;
 
 impl Plugin for EditableTextLinePlugin {
@@ -59,6 +54,37 @@ impl Plugin for EditableTextLinePlugin {
         app.add_observer(on_set_cursor_position);
     }
 }
+
+/// A component representing an editable line of text.
+///
+/// This component provides functionality for text editing, including cursor positioning,
+/// text selection, and character filtering. It can be used in both controlled and
+/// uncontrolled modes, allowing for flexible integration with different UI paradigms.
+///
+/// # Fields
+///
+/// * `text`: The current text content of the editable line.
+/// * `cursor_position`: The current position of the cursor, measured in characters.
+/// * `selection_start`: The starting position of the text selection, if any.
+/// * `allowed_chars`: An optional set of characters that are allowed to be entered.
+/// * `controlled_widget`: A flag indicating whether the widget is controlled externally
+///   or manages its own state.
+///
+/// # Examples
+///
+/// ```
+/// use bevy_text_editing::EditableTextLine;
+///
+/// // Create an uncontrolled editable text line
+/// let uncontrolled = EditableTextLine::new("Hello, World!");
+///
+/// // Create a controlled editable text line
+/// let controlled = EditableTextLine::controlled("Editable Text");
+///
+/// // Create an editable text line with allowed characters
+/// let mut numeric = EditableTextLine::new("12345");
+/// numeric.allowed_chars = Some(('0'..='9').collect());
+/// ```
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component, Default)]
@@ -126,6 +152,24 @@ impl EditableTextLine {
         }
     }
 
+    /// Returns the text within the specified character range.
+    ///
+    /// # Arguments
+    ///
+    /// * `range` - A tuple of `(start, end)` positions, where both are `CharPosition`.
+    ///
+    /// # Returns
+    ///
+    /// * `Some(String)` - The substring within the specified range.
+    /// * `None` - If the range is invalid (start > end) or out of bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let text_line = EditableTextLine::new("Hello, world!");
+    /// let range = (CharPosition(0), CharPosition(5));
+    /// assert_eq!(text_line.get_text_range(range), Some("Hello".to_string()));
+    /// ```
     pub fn get_text_range(&self, range: (CharPosition, CharPosition)) -> Option<String> {
         if range.0 > range.1 {
             return None;
@@ -140,6 +184,12 @@ impl EditableTextLine {
         Some(self.text[start_byte_pos..end_byte_pos].to_string())
     }
 
+    /// Returns the selected text within the current selection range.
+    ///
+    /// # Returns
+    ///
+    /// * `Some(String)` - The selected text.
+    /// * `None` - If there is no selection.
     pub fn get_selected_text(&self) -> Option<String> {
         if let Some(range) = self.selection_range() {
             self.get_text_range(range)
@@ -148,6 +198,7 @@ impl EditableTextLine {
         }
     }
 
+    /// Get the byte position of a character placed at a given position in a string
     pub fn get_byte_position(&self, char_position: CharPosition) -> usize {
         if char_position.0 < self.text.chars().count() {
             self.text.char_indices().nth(char_position.0).unwrap().0
@@ -157,6 +208,7 @@ impl EditableTextLine {
     }
 }
 
+/// Hidden component for storing inner entities of editable text line
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct EditableTextInner {
@@ -176,6 +228,7 @@ pub struct EditableTextInner {
     skip_cursor_overflow_check: bool,
 }
 
+/// Event for rendering editable text line
 #[derive(Event, Default, Clone)]
 pub struct RenderWidget {
     /// Make cursor immediately visible and reset cursor blinking timer

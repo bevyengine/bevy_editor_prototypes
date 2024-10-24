@@ -1,3 +1,12 @@
+//! Defines the `TextChange` struct and related functionality for representing and manipulating text changes.
+//!
+//! This module provides a way to represent text changes as atomic operations, which can be useful
+//! for implementing undo/redo functionality, collaborative editing, or any scenario where
+//! tracking and applying text modifications is necessary.
+//!
+//! The main struct in this module is `TextChange`, which encapsulates a single text change operation,
+//! including the range of text to be modified and the new text to be inserted.
+
 use crate::{get_byte_position, CharPosition};
 
 /// Represents a single text change operation.

@@ -4,11 +4,11 @@ use bevy::prelude::*;
 pub fn render_system(
     trigger: Trigger<RenderWidget>,
     mut commands: Commands,
-    q_editable_texts: Query<(Entity, &EditableTextLine, &EditableTextInner)>,
+    q_editable_texts: Query<(&EditableTextLine, &EditableTextInner)>,
     mut q_texts: Query<&mut Text>,
     q_cursors: Query<Entity, With<Cursor>>,
 ) {
-    for (entity, text_line, inner) in q_editable_texts.iter() {
+    for (text_line, inner) in q_editable_texts.iter() {
         let Ok(mut text) = q_texts.get_mut(inner.text) else {
             continue;
         };

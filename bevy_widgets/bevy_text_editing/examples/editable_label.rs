@@ -15,19 +15,19 @@ fn setup(mut commands: Commands) {
     commands.spawn(Camera2d::default());
 
     commands
-        .spawn(
-            (Node {
-                width: Val::Percent(100.),
-                height: Val::Percent(100.),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                ..Default::default()
-            }),
-        )
+        .spawn(Node {
+            width: Val::Percent(100.),
+            height: Val::Percent(100.),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..Default::default()
+        })
         .with_children(|cmd| {
             cmd.spawn((
                 EditableTextLine::new("Hello, World!"),
                 Node {
+                    // We need to manually set the width and height for the editable text line
+                    // It is limitation of current implementation
                     width: Val::Px(300.0),
                     height: Val::Px(25.0),
                     ..Default::default()

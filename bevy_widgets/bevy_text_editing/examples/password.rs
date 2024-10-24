@@ -63,7 +63,7 @@ struct Password {
 }
 
 #[derive(Component)]
-pub struct ShowPassword(pub Entity);
+struct ShowPassword(pub Entity);
 
 fn update_password(
     trigger: Trigger<TextChanged>,

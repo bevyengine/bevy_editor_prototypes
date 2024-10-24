@@ -47,8 +47,8 @@ impl From<&MotionInputs> for MotionKind {
 pub struct DefaultInputPlugin;
 impl Plugin for DefaultInputPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<crate::input::EditorCamInputEvent>()
-            .init_resource::<crate::input::CameraPointerMap>()
+        app.add_event::<EditorCamInputEvent>()
+            .init_resource::<CameraPointerMap>()
             .add_systems(
                 PreUpdate,
                 (
@@ -58,7 +58,7 @@ impl Plugin for DefaultInputPlugin {
                 )
                     .chain()
                     .after(bevy::picking::PickSet::Last)
-                    .before(crate::controller::component::EditorCam::update_camera_positions),
+                    .before(EditorCam::update_camera_positions),
             )
             .register_type::<CameraPointerMap>()
             .register_type::<EditorCamInputEvent>();
@@ -135,8 +135,7 @@ pub fn default_camera_inputs(
                     });
                 }
             }
-            PointerId::Touch(_) => continue,
-            PointerId::Custom(_) => continue,
+            PointerId::Touch(_) | PointerId::Custom(_) => continue,
         }
     }
 
@@ -177,8 +176,9 @@ impl EditorCamInputEvent {
     /// Get the camera entity associated with this event.
     pub fn camera(&self) -> Entity {
         match self {
-            EditorCamInputEvent::Start { camera, .. } => *camera,
-            EditorCamInputEvent::End { camera } => *camera,
+            EditorCamInputEvent::End { camera, .. } | EditorCamInputEvent::Start { camera, .. } => {
+                *camera
+            }
         }
     }
 

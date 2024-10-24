@@ -19,3 +19,6 @@ bevy_derive.workspace = true
 [dev-dependencies]
 bevy = { workspace = true, features = ["jpeg", "ktx2", "zstd"] }
 rand = "0.8"
+
+[lints]
+workspace = true

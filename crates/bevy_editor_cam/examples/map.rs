@@ -1,3 +1,5 @@
+//! Editor camera example with a city map to traverse.
+
 use bevy::{
     color::palettes,
     core_pipeline::{bloom::Bloom, experimental::taa::TemporalAntiAliasing},

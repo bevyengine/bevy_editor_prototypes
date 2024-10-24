@@ -37,18 +37,9 @@ fn footer_setup(
         .insert((
             Node {
                 width: Val::Percent(100.0),
-                height: Val::Px(30.0),
-                display: Display::Flex,
-                flex_direction: FlexDirection::Row,
-                flex_basis: Val::Px(30.0),
-                justify_items: JustifyItems::Start,
+                height: Val::Px(20.0),
                 align_items: AlignItems::Center,
-                padding: UiRect {
-                    left: Val::Px(5.0),
-                    right: Val::Px(5.0),
-                    top: Val::Px(0.0),
-                    bottom: Val::Px(0.0),
-                },
+                padding: UiRect::axes(Val::Px(5.0), Val::Px(0.0)),
                 ..Default::default()
             },
             theme.background_color,

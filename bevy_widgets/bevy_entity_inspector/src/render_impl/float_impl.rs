@@ -18,6 +18,7 @@ pub fn float_render_impl(float: &f32, path: String, context: &RenderContext) -> 
 
     tree.add_patch_fn(move |input: &mut InputField<f32>| {
         input.value = val;
+        input.controlled = true; // Value of input field is controlled by the inspector
     });
 
     tree.add_patch_fn(|drag: &mut DragInput<f32>| {});

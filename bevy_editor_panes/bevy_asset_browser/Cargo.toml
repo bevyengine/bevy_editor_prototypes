@@ -10,6 +10,7 @@ bevy.workspace = true
 bevy_asset = "0.14.2"
 bevy_editor_styles.workspace = true
 bevy_pane_layout.workspace = true
+bevy_scroll_box.workspace = true
 atomicow.workspace = true
 
 [lints]

@@ -45,6 +45,11 @@ pub struct Theme {
     pub low_priority_text_color: Color,
     /// The text color for high priority text. Text that the user needs to see asap.
     pub high_priority_text_color: Color,
+
+    /// The scroll bar color.
+    pub scroll_bar_color: Color,
+    /// The scroll bar handle color.
+    pub scroll_bar_handle_color: Color,
 }
 
 impl Default for Theme {
@@ -75,6 +80,10 @@ impl Default for Theme {
             text_color: Color::oklch(0.9219, 0.0, 0.0),
             high_priority_text_color: Color::oklch(0.209, 0.0, 0.0),
             hover_color: Color::oklch(0.7693, 0.116_877_146, 268.019_3),
+
+            // Scroll bar styles
+            scroll_bar_color: Color::oklch(0.4, 0.0, 0.0),
+            scroll_bar_handle_color: Color::oklch(0.325, 0.0, 0.0),
         }
     }
 }

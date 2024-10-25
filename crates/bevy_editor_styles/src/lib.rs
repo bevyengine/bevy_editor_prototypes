@@ -142,8 +142,8 @@ impl FromWorld for Theme {
             },
             viewport: ViewportStyles {
                 background_color: Color::oklch(0.3677, 0.0, 0.0),
-                grid_major_line_color: Color::oklch(0.5, 0.0, 0.0),
-                grid_minor_line_color: Color::oklch(0.425, 0.0, 0.0),
+                grid_major_line_color: Color::oklch(0.45, 0.0, 0.0),
+                grid_minor_line_color: Color::oklch(0.4, 0.0, 0.0),
             },
             scroll_box: ScrollBoxStyles {
                 background_color: BackgroundColor(Color::oklch(0.4, 0.0, 0.0)),

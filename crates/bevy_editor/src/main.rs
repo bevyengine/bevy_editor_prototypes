@@ -21,6 +21,9 @@ use bevy_2d_viewport::Viewport2dPanePlugin;
 use bevy_3d_viewport::Viewport3dPanePlugin;
 use bevy_asset_browser::AssetBrowserPanePlugin;
 
+use crate::load_gltf::LoadGltfPlugin;
+
+mod load_gltf;
 mod ui;
 
 fn main() {
@@ -39,6 +42,7 @@ fn main() {
             Viewport3dPanePlugin,
             ui::EditorUIPlugin,
             AssetBrowserPanePlugin,
+            LoadGltfPlugin,
         ))
         .add_systems(Startup, setup)
         .run();
@@ -56,12 +60,15 @@ fn setup(
     ));
 
     commands.spawn((
-        Mesh3d(meshes.add(Cuboid::from_length(1.0))),
+        Mesh3d(meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(1.5)))),
         MeshMaterial3d(materials_3d.add(Color::WHITE)),
     ));
 
     commands.spawn((
-        DirectionalLight::default(),
+        DirectionalLight {
+            shadows_enabled: true,
+            ..default()
+        },
         Transform::default().looking_to(Vec3::NEG_ONE, Vec3::Y),
     ));
 }

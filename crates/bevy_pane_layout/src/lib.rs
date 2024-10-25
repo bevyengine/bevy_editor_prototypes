@@ -28,11 +28,6 @@ impl Plugin for PaneLayoutPlugin {
     fn build(&self, app: &mut App) {
         let mut pane_registry = app.world_mut().get_resource_or_init::<PaneRegistry>();
 
-        // TODO Move these registrations to their respective crates.
-        pane_registry.register("Properties", |mut _commands, _pane_root| {
-            // Todo
-        });
-
         pane_registry.register("Scene Tree", |mut _commands, _pane_root| {
             // Todo
         });

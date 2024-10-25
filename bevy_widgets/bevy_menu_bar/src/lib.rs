@@ -49,21 +49,21 @@ fn menu_setup(
             },
             ..Default::default()
         },
-        theme.background_color,
+        theme.general.background_color,
     ));
 
     let mut hover_over_observer = Observer::new(
         |trigger: Trigger<Pointer<Over>>,
          theme: Res<Theme>,
          mut query: Query<&mut BackgroundColor>| {
-            query.get_mut(trigger.entity()).unwrap().0 = theme.hover_color;
+            query.get_mut(trigger.entity()).unwrap().0 = theme.button.hover_color;
         },
     );
     let mut hover_out_observer = Observer::new(
         |trigger: Trigger<Pointer<Out>>,
          theme: Res<Theme>,
          mut query: Query<&mut BackgroundColor>| {
-            query.get_mut(trigger.entity()).unwrap().0 = theme.menu_bar_color.0;
+            query.get_mut(trigger.entity()).unwrap().0 = theme.menu.background_color;
         },
     );
 
@@ -78,7 +78,7 @@ fn menu_setup(
         .spawn((
             Text::new("File"),
             TextFont {
-                font: theme.font.clone(),
+                font: theme.text.font.clone(),
                 font_size: 12.,
                 ..default()
             },
@@ -107,7 +107,7 @@ fn menu_setup(
         .spawn((
             Text::new("Edit"),
             TextFont {
-                font: theme.font.clone(),
+                font: theme.text.font.clone(),
                 font_size: 12.,
                 ..default()
             },
@@ -136,7 +136,7 @@ fn menu_setup(
         .spawn((
             Text::new("Build"),
             TextFont {
-                font: theme.font.clone(),
+                font: theme.text.font.clone(),
                 font_size: 12.,
                 ..default()
             },
@@ -165,7 +165,7 @@ fn menu_setup(
         .spawn((
             Text::new("Window"),
             TextFont {
-                font: theme.font.clone(),
+                font: theme.text.font.clone(),
                 font_size: 12.,
                 ..default()
             },
@@ -194,7 +194,7 @@ fn menu_setup(
         .spawn((
             Text::new("Help"),
             TextFont {
-                font: theme.font.clone(),
+                font: theme.text.font.clone(),
                 font_size: 12.,
                 ..default()
             },

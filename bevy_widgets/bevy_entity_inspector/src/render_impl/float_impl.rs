@@ -9,13 +9,13 @@ use bevy_field_forms::{
     input_field::{InputField, ValueChanged},
     validate_highlight::SimpleBorderHighlight,
 };
-use bevy_incomplete_bsn::entity_diff_tree::EntityDiffTree;
+use bevy_incomplete_bsn::entity_diff_tree::DiffTree;
 
 use crate::render::{ChangeComponentField, RenderContext};
 
 /// Implementation for rendering a float value in the entity inspector
-pub fn float_render_impl(float: &f32, path: String, _: &RenderContext) -> EntityDiffTree {
-    let mut tree = EntityDiffTree::new();
+pub fn float_render_impl(float: &f32, path: String, _: &RenderContext) -> DiffTree {
+    let mut tree = DiffTree::new();
 
     let val = *float; //Clone the value to avoid borrowing issues
 

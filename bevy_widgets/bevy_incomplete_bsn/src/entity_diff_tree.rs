@@ -16,17 +16,17 @@ use crate::{children_patcher::ReflectChildrenPatcher, construct::Construct, patc
 /// This structure is designed to hold a collection of patches that can be applied to an entity,
 /// as well as a list of child trees that represent the entity's children in the scene hierarchy.
 #[derive(Default)]
-pub struct EntityDiffTree {
+pub struct DiffTree {
     /// A vector of patches that can be applied to the entity to modify its components.
     /// Each patch is a boxed trait object that implements `EntityComponentDiffPatch`.
     pub patch: Vec<Box<dyn EntityComponentDiffPatch>>,
     /// A vector of patches that are creating observers
     pub observer_patch: Vec<Box<dyn ObserverPatch>>,
     /// A vector of child trees, each representing a child entity in the scene hierarchy.
-    pub children: Vec<EntityDiffTree>,
+    pub children: Vec<DiffTree>,
 }
 
-impl EntityDiffTree {
+impl DiffTree {
     /// Creates a new `EntityDiffTree` with empty patch and children.
     pub fn new() -> Self {
         Self {
@@ -47,7 +47,7 @@ impl EntityDiffTree {
         self.add_patch(<C as Construct>::patch(func));
     }
 
-    pub fn add_child(&mut self, child: EntityDiffTree) {
+    pub fn add_child(&mut self, child: DiffTree) {
         self.children.push(child);
     }
 
@@ -66,7 +66,7 @@ impl EntityDiffTree {
     }
 
     /// Adds a child to the entity.
-    pub fn with_child(mut self, child: EntityDiffTree) -> Self {
+    pub fn with_child(mut self, child: DiffTree) -> Self {
         self.children.push(child);
         self
     }
@@ -299,11 +299,11 @@ pub trait DiffTreeCommands {
     /// # Arguments
     ///
     /// * `tree` - The `EntityDiffTree` containing the changes to apply to the entity.
-    fn diff_tree(&mut self, tree: EntityDiffTree);
+    fn diff_tree(&mut self, tree: DiffTree);
 }
 
 impl DiffTreeCommands for EntityCommands<'_> {
-    fn diff_tree(&mut self, mut tree: EntityDiffTree) {
+    fn diff_tree(&mut self, mut tree: DiffTree) {
         self.queue(move |entity: Entity, world: &mut World| {
             tree.apply(entity, world);
         });
@@ -321,7 +321,7 @@ mod tests {
     fn create_default_component() {
         let mut world = World::default();
         let entity = world.spawn_empty().id();
-        let mut tree = EntityDiffTree::new().with_patch(Transform::patch(|transform| {
+        let mut tree = DiffTree::new().with_patch(Transform::patch(|transform| {
             transform.translation = Vec3::new(1.0, 2.0, 3.0)
         }));
 
@@ -339,7 +339,7 @@ mod tests {
     fn check_component_removal() {
         let mut world = World::default();
         let entity = world.spawn_empty().id();
-        let mut tree = EntityDiffTree::new().with_patch(Transform::patch(|transform| {
+        let mut tree = DiffTree::new().with_patch(Transform::patch(|transform| {
             transform.translation = Vec3::new(1.0, 2.0, 3.0)
         }));
 
@@ -347,7 +347,7 @@ mod tests {
 
         assert!(world.entity(entity).contains::<Transform>());
 
-        let mut second_tree = EntityDiffTree::new().with_patch(Name::patch(|name| {
+        let mut second_tree = DiffTree::new().with_patch(Name::patch(|name| {
             name.set("test");
         }));
 
@@ -361,11 +361,11 @@ mod tests {
     fn check_children_create_and_remove() {
         let mut world = World::default();
         let entity = world.spawn_empty().id();
-        let mut tree = EntityDiffTree::new()
+        let mut tree = DiffTree::new()
             .with_patch(Transform::patch(|transform| {
                 transform.translation = Vec3::new(1.0, 2.0, 3.0)
             }))
-            .with_child(EntityDiffTree::new().with_patch(Transform::patch(|t| {
+            .with_child(DiffTree::new().with_patch(Transform::patch(|t| {
                 t.translation = Vec3::new(4.0, 5.0, 6.0)
             })));
 
@@ -382,7 +382,7 @@ mod tests {
             Vec3::new(4.0, 5.0, 6.0)
         );
 
-        let mut second_tree = EntityDiffTree::new();
+        let mut second_tree = DiffTree::new();
         second_tree.apply(entity, &mut world);
 
         assert!(world.get_entity(child_entity).is_err());
@@ -393,7 +393,7 @@ mod tests {
     fn test_fn_patches() {
         let mut world = World::default();
         let entity = world.spawn_empty().id();
-        let mut tree = EntityDiffTree::new().with_patch_fn(|t: &mut Transform| {
+        let mut tree = DiffTree::new().with_patch_fn(|t: &mut Transform| {
             t.translation = Vec3::new(1.0, 2.0, 3.0);
         });
 

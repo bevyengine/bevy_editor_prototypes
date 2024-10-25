@@ -13,7 +13,7 @@ use bevy::{
     reflect::ReflectFromPtr,
 };
 use bevy_collapsing_header::CollapsingHeader;
-use bevy_incomplete_bsn::entity_diff_tree::{DiffTreeCommands, EntityDiffTree};
+use bevy_incomplete_bsn::entity_diff_tree::{DiffTreeCommands, DiffTree};
 
 use crate::{render_impl::RenderStorage, EntityInspector, InspectedEntity};
 
@@ -118,7 +118,7 @@ pub fn render_component_inspector(
 
         let reflected_data = unsafe { reflect_from_ptr.from_ptr()(component_data) };
 
-        let mut tree = EntityDiffTree::new().with_patch_fn(|node: &mut Node| {
+        let mut tree = DiffTree::new().with_patch_fn(|node: &mut Node| {
             node.flex_direction = FlexDirection::Column;
             node.max_width = Val::Px(300.0);
         });
@@ -143,7 +143,7 @@ pub fn render_component_inspector(
         );
 
         tree.add_child(
-            EntityDiffTree::new()
+            DiffTree::new()
                 .with_patch_fn(move |collapsing_header: &mut CollapsingHeader| {
                     collapsing_header.text = name.to_string();
                 })
@@ -235,7 +235,7 @@ pub fn render_entity_inspector(
     for (inspector, children) in q_inspector.iter() {
         let entity = inspected_entity.id();
 
-        let mut tree = EntityDiffTree::new();
+        let mut tree = DiffTree::new();
 
         tree.add_patch_fn(|node: &mut Node| {
             node.display = Display::Flex;
@@ -246,7 +246,7 @@ pub fn render_entity_inspector(
 
         tree.add_patch_fn(|_: &mut Interaction| {});
 
-        tree.add_child(EntityDiffTree::new().with_patch_fn(move |text: &mut Text| {
+        tree.add_child(DiffTree::new().with_patch_fn(move |text: &mut Text| {
             text.0 = format!("Entity: {}", entity);
         }));
 
@@ -309,7 +309,7 @@ fn recursive_reflect_render(
     data: &dyn PartialReflect,
     path: String,
     render_context: &RenderContext,
-) -> EntityDiffTree {
+) -> DiffTree {
     if let Some(render_fn) = render_context
         .render_storage
         .renders
@@ -317,7 +317,7 @@ fn recursive_reflect_render(
     {
         return render_fn(data, path, render_context);
     } else {
-        let mut tree = EntityDiffTree::new();
+        let mut tree = DiffTree::new();
         tree.add_patch_fn(|node: &mut Node| {
             node.display = Display::Flex;
             node.flex_direction = FlexDirection::Column;
@@ -329,12 +329,12 @@ fn recursive_reflect_render(
                     let name = v.name_at(field_idx).unwrap_or_default().to_string();
                     if field.reflect_ref().as_opaque().is_ok() {
                         // Opaque fields are rendered as a row
-                        let mut row = EntityDiffTree::new().with_patch_fn(|node: &mut Node| {
+                        let mut row = DiffTree::new().with_patch_fn(|node: &mut Node| {
                             node.flex_direction = FlexDirection::Row;
                         });
                         let moving_name = name.clone();
                         row.add_child(
-                            EntityDiffTree::new()
+                            DiffTree::new()
                                 .with_patch_fn(move |text: &mut Text| {
                                     text.0 = format!("{}", moving_name);
                                 })
@@ -352,7 +352,7 @@ fn recursive_reflect_render(
                         // Other fields are rendered as a column with a shift
                         let moving_name = name.clone();
                         tree.add_child(
-                            EntityDiffTree::new()
+                            DiffTree::new()
                                 .with_patch_fn(move |text: &mut Text| {
                                     text.0 = format!("{}", moving_name);
                                 })
@@ -361,12 +361,12 @@ fn recursive_reflect_render(
                                 }),
                         );
 
-                        let mut row = EntityDiffTree::new().with_patch_fn(|node: &mut Node| {
+                        let mut row = DiffTree::new().with_patch_fn(|node: &mut Node| {
                             node.flex_direction = FlexDirection::Row;
                         });
 
                         // Add tab
-                        row.add_child(EntityDiffTree::new().with_patch_fn(|node: &mut Node| {
+                        row.add_child(DiffTree::new().with_patch_fn(|node: &mut Node| {
                             node.width = Val::Px(20.0);
                         }));
 
@@ -446,7 +446,7 @@ fn recursive_reflect_render(
             bevy::reflect::ReflectRef::Opaque(v) => {
                 let v = v.clone_value();
                 tree.add_child(
-                    EntityDiffTree::new()
+                    DiffTree::new()
                         .with_patch_fn(move |text: &mut Text| {
                             text.0 = format!("{:?}", v);
                         })

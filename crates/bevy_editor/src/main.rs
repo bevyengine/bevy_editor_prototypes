@@ -20,6 +20,7 @@ use bevy_editor_styles::StylesPlugin;
 use bevy_2d_viewport::Viewport2dPanePlugin;
 use bevy_3d_viewport::Viewport3dPanePlugin;
 use bevy_asset_browser::AssetBrowserPanePlugin;
+use bevy_properties_pane::{InspectedEntity, PropertiesPanePlugin};
 
 mod ui;
 
@@ -39,6 +40,7 @@ fn main() {
             Viewport3dPanePlugin,
             ui::EditorUIPlugin,
             AssetBrowserPanePlugin,
+            PropertiesPanePlugin,
         ))
         .add_systems(Startup, setup)
         .run();
@@ -58,6 +60,7 @@ fn setup(
     commands.spawn((
         Mesh3d(meshes.add(Cuboid::from_length(1.0))),
         MeshMaterial3d(materials_3d.add(Color::WHITE)),
+        InspectedEntity,
     ));
 
     commands.spawn((

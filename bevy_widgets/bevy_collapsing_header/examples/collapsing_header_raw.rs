@@ -2,7 +2,6 @@
 
 use bevy::prelude::*;
 use bevy_collapsing_header::*;
-use bevy_incomplete_bsn::entity_diff_tree::{DiffTreeCommands, EntityDiffTree};
 
 fn main() {
     App::new()

@@ -1,7 +1,8 @@
 //! This crate provides a collapsing header widget for Bevy.
 
 pub use bevy::prelude::*;
-use bevy_incomplete_bsn::{children_patcher::*, entity_diff_tree::EntityDiffTree};
+use bevy_editor_styles::Theme;
+use bevy_incomplete_bsn::{children_patcher::*, entity_diff_tree::DiffTree};
 
 /// A plugin that adds collapsing header functionality to the Bevy UI.
 pub struct CollapsingHeaderPlugin;
@@ -40,6 +41,7 @@ impl Default for CollapsingHeader {
 }
 
 impl CollapsingHeader {
+    /// Create a new collapsing header with the given text.
     pub fn new(text: impl Into<String>) -> Self {
         Self {
             text: text.into(),
@@ -49,10 +51,10 @@ impl CollapsingHeader {
 }
 
 impl ChildrenPatcher for CollapsingHeader {
-    fn children_patch(&mut self, children: &mut Vec<EntityDiffTree>) {
+    fn children_patch(&mut self, children: &mut Vec<DiffTree>) {
         let move_text = self.text.clone();
         let collapsed = self.is_collapsed;
-        let header = EntityDiffTree::new()
+        let header = DiffTree::new()
             .with_patch_fn(move |text: &mut Text| {
                 let pred = if collapsed {
                     format!("+ {}", move_text.clone())
@@ -64,7 +66,7 @@ impl ChildrenPatcher for CollapsingHeader {
             .with_patch_fn(|_: &mut CollapsingHeaderText| {});
 
         let collapsed = self.is_collapsed;
-        let mut collapsable = EntityDiffTree::new()
+        let mut collapsable = DiffTree::new()
             .with_patch_fn(move |node: &mut Node| {
                 if collapsed {
                     node.height = Val::Px(0.0);
@@ -149,5 +151,14 @@ fn on_header_change(
             format!("- {}", header.text.clone())
         };
         text.0 = pred;
+    }
+}
+
+fn update_header_font(
+    q_changed: Query<&mut TextFont, (Changed<Text>, With<CollapsingHeaderText>)>,
+    theme : Res<Theme>
+) {
+    for mut font in q_changed.iter() {
+        
     }
 }

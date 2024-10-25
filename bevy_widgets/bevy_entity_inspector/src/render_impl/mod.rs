@@ -5,7 +5,7 @@ pub mod float_impl;
 use std::any::{Any, TypeId};
 
 use bevy::{prelude::*, utils::HashMap};
-use bevy_incomplete_bsn::entity_diff_tree::EntityDiffTree;
+use bevy_incomplete_bsn::entity_diff_tree::DiffTree;
 
 use crate::render::RenderContext;
 
@@ -25,7 +25,7 @@ pub struct RenderStorage {
     pub renders: HashMap<
         TypeId,
         Box<
-            dyn Fn(&dyn PartialReflect, String, &RenderContext) -> EntityDiffTree
+            dyn Fn(&dyn PartialReflect, String, &RenderContext) -> DiffTree
                 + Send
                 + Sync
                 + 'static,
@@ -38,14 +38,14 @@ pub trait RenderStorageApp {
     /// Adds a render implementation for a type to the render storage.
     fn add_render_impl<T: Any + 'static>(
         &mut self,
-        render_fn: impl Fn(&T, String, &RenderContext) -> EntityDiffTree + Send + Sync + 'static,
+        render_fn: impl Fn(&T, String, &RenderContext) -> DiffTree + Send + Sync + 'static,
     ) -> &mut Self;
 }
 
 impl RenderStorageApp for App {
     fn add_render_impl<T: Any + 'static>(
         &mut self,
-        render_fn: impl Fn(&T, String, &RenderContext) -> EntityDiffTree + Send + Sync + 'static,
+        render_fn: impl Fn(&T, String, &RenderContext) -> DiffTree + Send + Sync + 'static,
     ) -> &mut Self {
         self.world_mut()
             .resource_mut::<RenderStorage>()

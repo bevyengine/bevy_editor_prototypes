@@ -204,7 +204,7 @@ fn update_scroll_handles(
     query_scrollboxes: Query<(&ScrollBox, &ComputedNode, &Children), With<ScrollBox>>,
     query_scrollbox_content: Query<&ComputedNode, With<ScrollBoxContent>>,
     query_children: Query<&Children>,
-    mut query_handle: Query<&mut Node, With<ScrollBarHandle>>,
+    mut query_node: Query<&mut Node>,
 ) {
     for (scrollbox, scrollbox_computed, scrollbox_children) in query_scrollboxes.iter() {
         let content_children = query_scrollbox_content
@@ -223,11 +223,22 @@ fn update_scroll_handles(
             let handle_position =
                 (-scrollbox.position.offset_y / content_height * 100.0).clamp(0.0, 100.0);
 
-            let mut handle = query_handle
-                .get_mut(scrollbar_children[0])
-                .expect("ScrollBar should have 1 child (ScrollBarHandle)");
-            handle.height = Val::Percent(handle_height);
-            handle.top = Val::Percent(handle_position);
+            {
+                let mut scrollbar_node = query_node.get_mut(scrollbox_children[1]).unwrap();
+                if handle_height == 100.0 {
+                    scrollbar_node.display = Display::None;
+                    continue;
+                }
+                scrollbar_node.display = Display::DEFAULT;
+            }
+
+            {
+                let mut handle_node = query_node
+                    .get_mut(scrollbar_children[0])
+                    .expect("ScrollBar should have 1 child (ScrollBarHandle)");
+                handle_node.height = Val::Percent(handle_height);
+                handle_node.top = Val::Percent(handle_position);
+            }
         }
 
         if scrollbox.overflow.x == OverflowAxis::Scroll {
@@ -250,11 +261,22 @@ fn update_scroll_handles(
             let handle_position =
                 (-scrollbox.position.offset_x / content_width * 100.0).clamp(0.0, 100.0);
 
-            let mut handle = query_handle
-                .get_mut(scrollbar_children[0])
-                .expect("ScrollBar should have 1 child (ScrollBarHandle)");
-            handle.width = Val::Percent(handle_width);
-            handle.left = Val::Percent(handle_position);
+            {
+                let mut scrollbar_node = query_node.get_mut(scrollbox_children[1]).unwrap();
+                if handle_width == 100.0 {
+                    scrollbar_node.display = Display::None;
+                    continue;
+                }
+                scrollbar_node.display = Display::DEFAULT;
+            }
+
+            {
+                let mut handle_node = query_node
+                    .get_mut(scrollbar_children[0])
+                    .expect("ScrollBar should have 1 child (ScrollBarHandle)");
+                handle_node.width = Val::Percent(handle_width);
+                handle_node.left = Val::Percent(handle_position);
+            }
         }
     }
 }

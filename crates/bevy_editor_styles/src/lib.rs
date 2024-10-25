@@ -30,6 +30,8 @@ pub struct Theme {
     pub context_menu: ContextMenuStyles,
     /// The styles for viewports in the editor.
     pub viewport: ViewportStyles,
+    /// The styles for scroll boxes in the editor.
+    pub scroll_box: ScrollBoxStyles,
 }
 
 /// The general styles for the editor.
@@ -92,6 +94,16 @@ pub struct ViewportStyles {
     pub background_color: Color,
 }
 
+/// The styles for the scroll boxes in the editor.
+pub struct ScrollBoxStyles {
+    /// The background color of the scroll box.
+    pub background_color: BackgroundColor,
+    /// The color of the scroll handle.
+    pub handle_color: Color,
+    /// The border radius of the scroll box.
+    pub border_radius: BorderRadius,
+}
+
 impl FromWorld for Theme {
     fn from_world(world: &mut World) -> Self {
         let asset_server = world.resource::<AssetServer>();
@@ -126,6 +138,11 @@ impl FromWorld for Theme {
             },
             viewport: ViewportStyles {
                 background_color: Color::oklch(0.3677, 0.0, 0.0),
+            },
+            scroll_box: ScrollBoxStyles {
+                background_color: BackgroundColor(Color::oklch(0.4, 0.0, 0.0)),
+                handle_color: Color::oklch(0.325, 0.0, 0.0),
+                border_radius: BorderRadius::all(Val::Px(8.)),
             },
         }
     }

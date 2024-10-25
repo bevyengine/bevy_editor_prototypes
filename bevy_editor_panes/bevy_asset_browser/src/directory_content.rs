@@ -1,6 +1,5 @@
 use bevy::{
     asset::io::AssetSourceBuilders,
-    input::mouse::{MouseScrollUnit, MouseWheel},
     prelude::*,
     tasks::{
         block_on,
@@ -11,11 +10,13 @@ use bevy::{
     winit::cursor::CursorIcon,
 };
 use bevy_editor_styles::Theme;
+use bevy_scroll_box::ScrollBoxContent;
 
 use crate::{AssetBrowserLocation, AssetType};
 
 /// The root node for the directory content view
 #[derive(Component)]
+#[require(Node)]
 pub struct DirectoryContentNode;
 
 /// One entry of [`DirectoryContent`]
@@ -107,37 +108,6 @@ pub fn fetch_directory_content(
         .insert(FetchDirectoryContentTask(task));
 }
 
-#[derive(Component, Default)]
-pub(crate) struct ScrollingList {
-    position: f32,
-}
-
-// TODO: Replace with an editor widget
-/// Handle the scrolling of the content list
-pub(crate) fn scrolling(
-    mut mouse_wheel_events: EventReader<MouseWheel>,
-    mut query_list: Query<(&mut ScrollingList, &ComputedNode, &Parent, &mut Node)>,
-    query_node: Query<&ComputedNode>,
-) {
-    for mouse_wheel_event in mouse_wheel_events.read() {
-        for (mut scrolling_list, list_computed_node, parent, mut list_node) in &mut query_list {
-            let items_height = list_computed_node.size().y;
-            let container_height = query_node.get(parent.get()).unwrap().size().y;
-            let max_scroll = (items_height - container_height).max(0.);
-
-            let dy = match mouse_wheel_event.unit {
-                MouseScrollUnit::Line => mouse_wheel_event.y * 20.0,
-                MouseScrollUnit::Pixel => mouse_wheel_event.y,
-            };
-
-            scrolling_list.position += dy;
-            scrolling_list.position = scrolling_list.position.clamp(-max_scroll, 0.);
-
-            list_node.top = Val::Px(scrolling_list.position);
-        }
-    }
-}
-
 /// Check if the [`DirectoryContent`] has changed, which relate to the content of the current [`AssetBrowserLocation`]
 pub(crate) fn run_if_content_as_changed(directory_content: Res<DirectoryContent>) -> bool {
     directory_content.is_changed()
@@ -146,7 +116,7 @@ pub(crate) fn run_if_content_as_changed(directory_content: Res<DirectoryContent>
 /// Refresh the UI with the content of the current [`AssetBrowserLocation`]
 pub(crate) fn refresh_ui(
     mut commands: Commands,
-    content_list_query: Query<(Entity, Option<&Children>), With<ScrollingList>>,
+    content_list_query: Query<(Entity, Option<&Children>), With<ScrollBoxContent>>,
     theme: Res<Theme>,
     asset_server: Res<AssetServer>,
     directory_content: Res<DirectoryContent>,
@@ -234,6 +204,7 @@ fn spawn_asset_button(
         theme.general.border_radius,
         crate::ButtonType::AssetButton(asset_type),
     ));
+
     entity_commands.with_children(|parent| {
         parent.spawn((
             UiImage::new(crate::content_button_to_icon(&asset_type, asset_server)),

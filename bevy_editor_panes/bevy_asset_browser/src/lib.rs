@@ -5,10 +5,6 @@ use std::{path::PathBuf, time::SystemTime};
 
 use atomicow::CowArc;
 use bevy::{
-    a11y::{
-        accesskit::{NodeBuilder, Role},
-        AccessibilityNode,
-    },
     asset::{
         embedded_asset,
         io::{AssetSource, AssetSourceBuilders, AssetSourceId},
@@ -18,7 +14,8 @@ use bevy::{
 };
 use bevy_editor_styles::Theme;
 use bevy_pane_layout::{PaneContentNode, PaneRegistry};
-use directory_content::{DirectoryContentNode, ScrollingList};
+use bevy_scroll_box::{spawn_scroll_box, ScrollBoxPlugin};
+use directory_content::DirectoryContentNode;
 use top_bar::TopBarNode;
 
 mod directory_content;
@@ -39,13 +36,14 @@ impl Plugin for AssetBrowserPanePlugin {
                 commands.entity(pane_root).insert(AssetBrowserNode);
             });
 
-        app.insert_resource(AssetBrowserLocation::default())
+        app.add_plugins(ScrollBoxPlugin)
+            .insert_resource(AssetBrowserLocation::default())
             .insert_resource(directory_content::DirectoryContent::default())
             .init_resource::<AssetBrowserOneShotSystems>()
             .insert_resource(DirectoryLastModifiedTime(SystemTime::UNIX_EPOCH))
             .add_observer(on_pane_creation)
             .add_systems(Startup, directory_content::fetch_directory_content)
-            .add_systems(Update, (button_interaction, directory_content::scrolling))
+            .add_systems(Update, button_interaction)
             .add_systems(
                 Update,
                 (
@@ -161,32 +159,26 @@ pub fn on_pane_creation(
                 .spawn((
                     DirectoryContentNode,
                     Node {
-                        flex_direction: FlexDirection::Column,
                         width: Val::Percent(100.0),
                         height: Val::Percent(100.0),
-                        align_self: AlignSelf::Stretch,
-                        overflow: Overflow::clip_y(),
                         ..default()
                     },
                 ))
                 .with_children(|parent| {
-                    // Scroll box moving panel
-                    let mut content_list_ec = parent.spawn((
-                        Node {
-                            position_type: PositionType::Absolute,
-                            flex_wrap: FlexWrap::Wrap,
-                            ..default()
-                        },
-                        ScrollingList::default(),
-                        AccessibilityNode(NodeBuilder::new(Role::Grid)),
-                    ));
-                    directory_content::spawn_content_list_ui(
-                        &mut content_list_ec,
+                    spawn_scroll_box(
+                        parent,
                         &theme,
-                        &asset_server,
-                        &directory_content,
-                        &location,
-                        &mut asset_sources_builder,
+                        Overflow::scroll_y(),
+                        Some(|content_list_ec: &mut EntityCommands| {
+                            directory_content::spawn_content_list_ui(
+                                content_list_ec,
+                                &theme,
+                                &asset_server,
+                                &directory_content,
+                                &location,
+                                &mut asset_sources_builder,
+                            );
+                        }),
                     );
                 });
         });

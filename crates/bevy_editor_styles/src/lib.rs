@@ -92,6 +92,10 @@ pub struct ContextMenuStyles {
 pub struct ViewportStyles {
     /// The background color of the viewports.
     pub background_color: Color,
+    /// The color of the major grid lines.
+    pub grid_major_line_color: Color,
+    /// The color of the minor grid lines.
+    pub grid_minor_line_color: Color,
 }
 
 /// The styles for the scroll boxes in the editor.
@@ -138,6 +142,8 @@ impl FromWorld for Theme {
             },
             viewport: ViewportStyles {
                 background_color: Color::oklch(0.3677, 0.0, 0.0),
+                grid_major_line_color: Color::oklch(0.45, 0.0, 0.0),
+                grid_minor_line_color: Color::oklch(0.4, 0.0, 0.0),
             },
             scroll_box: ScrollBoxStyles {
                 background_color: BackgroundColor(Color::oklch(0.4, 0.0, 0.0)),

@@ -69,8 +69,8 @@ fn setup(mut commands: Commands, theme: Res<Theme>) {
             scale: 0.01,
             dot_fadeout_strength: 0.,
             z_axis_color: Color::srgb(0.2, 8., 0.3),
-            major_line_color: theme.general.background_color.0,
-            minor_line_color: theme.pane.header_background_color.0,
+            major_line_color: theme.viewport.grid_major_line_color,
+            minor_line_color: theme.viewport.grid_minor_line_color,
             ..default()
         },
         Transform::from_rotation(Quat::from_rotation_arc(Vec3::Y, Vec3::Z)),

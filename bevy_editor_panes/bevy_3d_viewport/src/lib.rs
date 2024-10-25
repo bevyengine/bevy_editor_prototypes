@@ -131,8 +131,8 @@ fn setup(mut commands: Commands, theme: Res<Theme>) {
     commands.spawn((
         InfiniteGrid,
         InfiniteGridSettings {
-            major_line_color: theme.general.background_color.0,
-            minor_line_color: theme.pane.header_background_color.0,
+            major_line_color: theme.viewport.grid_major_line_color,
+            minor_line_color: theme.viewport.grid_minor_line_color,
             ..default()
         },
         RenderLayers::layer(1),

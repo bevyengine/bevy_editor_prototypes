@@ -131,8 +131,8 @@ fn setup(mut commands: Commands, theme: Res<Theme>) {
     commands.spawn((
         InfiniteGrid,
         InfiniteGridSettings {
-            major_line_color: theme.background_color.0,
-            minor_line_color: theme.pane_header_background_color.0,
+            major_line_color: theme.general.background_color.0,
+            minor_line_color: theme.pane.header_background_color.0,
             ..default()
         },
         RenderLayers::layer(1),
@@ -189,7 +189,7 @@ fn on_pane_creation(
             Camera3d::default(),
             Camera {
                 target: RenderTarget::Image(image_handle),
-                clear_color: ClearColorConfig::Custom(theme.viewport_background_color),
+                clear_color: ClearColorConfig::Custom(theme.viewport.background_color),
                 ..default()
             },
             EditorCam::default(),

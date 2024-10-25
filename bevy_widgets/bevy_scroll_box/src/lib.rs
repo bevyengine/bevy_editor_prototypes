@@ -106,7 +106,7 @@ pub fn spawn_scroll_box<'a>(
                         height: Val::Percent(100.0),
                         ..default()
                     },
-                    BackgroundColor(theme.scroll_bar_color),
+                    theme.scroll_box.background_color,
                     BorderRadius::all(Val::Px(5.0)),
                 ))
                 .with_children(|parent| {
@@ -117,8 +117,8 @@ pub fn spawn_scroll_box<'a>(
                             height: Val::Percent(0.0),
                             ..default()
                         },
-                        BackgroundColor(theme.scroll_bar_handle_color),
-                        BorderRadius::all(Val::Px(5.0)),
+                        BackgroundColor(theme.scroll_box.handle_color),
+                        theme.scroll_box.border_radius,
                     ));
                 });
         }
@@ -133,7 +133,7 @@ pub fn spawn_scroll_box<'a>(
                         height: Val::Px(10.0),
                         ..default()
                     },
-                    BackgroundColor(theme.scroll_bar_color),
+                    theme.scroll_box.background_color,
                     BorderRadius::all(Val::Px(5.0)),
                 ))
                 .with_children(|parent| {
@@ -144,8 +144,8 @@ pub fn spawn_scroll_box<'a>(
                             height: Val::Percent(100.0),
                             ..default()
                         },
-                        BackgroundColor(theme.scroll_bar_handle_color),
-                        BorderRadius::all(Val::Px(5.0)),
+                        BackgroundColor(theme.scroll_box.handle_color),
+                        theme.scroll_box.border_radius,
                     ));
                 });
         }

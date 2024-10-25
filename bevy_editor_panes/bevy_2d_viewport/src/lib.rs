@@ -69,8 +69,8 @@ fn setup(mut commands: Commands, theme: Res<Theme>) {
             scale: 0.01,
             dot_fadeout_strength: 0.,
             z_axis_color: Color::srgb(0.2, 8., 0.3),
-            major_line_color: theme.background_color.0,
-            minor_line_color: theme.pane_header_background_color.0,
+            major_line_color: theme.general.background_color.0,
+            minor_line_color: theme.pane.header_background_color.0,
             ..default()
         },
         Transform::from_rotation(Quat::from_rotation_arc(Vec3::Y, Vec3::Z)),
@@ -127,7 +127,7 @@ fn on_pane_creation(
             },
             Camera {
                 target: RenderTarget::Image(image_handle),
-                clear_color: ClearColorConfig::Custom(theme.viewport_background_color),
+                clear_color: ClearColorConfig::Custom(theme.viewport.background_color),
                 ..default()
             },
             RenderLayers::from_layers(&[0, 2]),

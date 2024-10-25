@@ -42,7 +42,7 @@ fn footer_setup(
                 padding: UiRect::axes(Val::Px(5.0), Val::Px(0.0)),
                 ..Default::default()
             },
-            theme.background_color,
+            theme.general.background_color,
         ))
         .with_children(|parent| {
             parent.spawn(Node {
@@ -64,10 +64,11 @@ fn footer_setup(
                 .with_child((
                     Text::new(VERSION),
                     TextFont {
+                        font: theme.text.font.clone(),
                         font_size: 10.,
                         ..default()
                     },
-                    TextColor(theme.low_priority_text_color),
+                    TextColor(theme.text.low_priority),
                 ));
         });
 }

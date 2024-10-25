@@ -231,7 +231,7 @@ fn spawn_asset_button(
             justify_content: JustifyContent::SpaceBetween,
             ..default()
         },
-        theme.border_radius,
+        theme.general.border_radius,
         crate::ButtonType::AssetButton(asset_type),
     ));
     entity_commands.with_children(|parent| {
@@ -245,10 +245,11 @@ fn spawn_asset_button(
         parent.spawn((
             Text::new(name),
             TextFont {
+                font: theme.text.font.clone(),
                 font_size: 12.0,
                 ..default()
             },
-            TextColor(theme.text_color),
+            TextColor(theme.text.text_color),
         ));
     });
 

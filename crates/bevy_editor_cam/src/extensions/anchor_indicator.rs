@@ -4,33 +4,69 @@
 
 use crate::prelude::*;
 
-use bevy::app::prelude::*;
-use bevy::color::Color;
-use bevy::ecs::prelude::*;
-use bevy::gizmos::prelude::*;
-use bevy::math::prelude::*;
-use bevy::reflect::prelude::*;
-use bevy::render::prelude::*;
-use bevy::transform::prelude::*;
+use bevy::{asset::embedded_asset, prelude::*};
 
 /// See the [module](self) docs.
 pub struct AnchorIndicatorPlugin;
 
 impl Plugin for AnchorIndicatorPlugin {
     fn build(&self, app: &mut App) {
+        embedded_asset!(app, "assets/tilt-shift.png");
+
         app.add_systems(
             PostUpdate,
             draw_anchor
                 .after(TransformSystem::TransformPropagate)
                 .after(bevy::render::camera::CameraUpdateSystem),
         )
-        .register_type::<AnchorIndicator>();
+        .add_observer(
+            |trigger: Trigger<OnAdd, EditorCam>,
+             mut commands: Commands,
+             asset_server: Res<AssetServer>| {
+                let image = asset_server
+                    .load("embedded://bevy_editor_cam/extensions/assets/tilt-shift.png");
+
+                let id = commands
+                    .spawn((
+                        UiImage::new(image),
+                        Node {
+                            position_type: PositionType::Absolute,
+                            width: Val::Px(24.),
+                            height: Val::Px(24.),
+                            margin: UiRect::all(Val::Px(-12.)),
+                            ..default()
+                        },
+                        TargetCamera(trigger.entity()),
+                        PickingBehavior::IGNORE,
+                    ))
+                    .id();
+
+                commands.entity(trigger.entity()).insert(AnchorRoot(id));
+            },
+        )
+        .add_observer(
+            |trigger: Trigger<OnRemove, AnchorRoot>,
+             mut commands: Commands,
+             anchor_root_query: Query<&AnchorRoot>| {
+                if let Ok(anchor_root) = anchor_root_query.get(trigger.entity()) {
+                    commands.entity(anchor_root.0).despawn_recursive();
+                }
+            },
+        )
+        .register_type::<AnchorIndicator>()
+        .register_type::<AnchorRoot>();
     }
 }
+
+/// A reference to the image node used for the orbit anchor indicator.
+#[derive(Component, Reflect, Debug)]
+#[reflect(Component)]
+pub struct AnchorRoot(pub Entity);
 
 /// Optional. Configures whether or not an [`EditorCam`] should show an anchor indicator when the
 /// camera is orbiting. The indicator will be enabled if this component is not present.
 #[derive(Debug, Component, Reflect)]
+#[reflect(Component)]
 pub struct AnchorIndicator {
     /// Should the indicator be visible on this camera?
     pub enabled: bool,
@@ -43,69 +79,39 @@ impl Default for AnchorIndicator {
 }
 
 /// Use gizmos to draw the camera anchor in world space.
+#[expect(clippy::type_complexity)]
 pub fn draw_anchor(
     cameras: Query<(
-        &EditorCam,
+        Ref<EditorCam>,
         &GlobalTransform,
         &Camera,
-        Option<&AnchorIndicator>,
+        &AnchorRoot,
+        Option<Ref<AnchorIndicator>>,
     )>,
-    mut gizmos: Gizmos,
+    mut node_query: Query<&mut Node>,
 ) {
-    for (editor_cam, cam_transform, cam, _) in cameras
-        .iter()
-        .filter(|(.., anchor_indicator)| anchor_indicator.map(|a| a.enabled).unwrap_or(true))
-    {
-        let Some(anchor_world) = editor_cam.anchor_world_space(cam_transform) else {
+    for (editor_cam, cam_transform, cam, anchor_root, anchor_indicator) in &cameras {
+        let Ok(mut node) = node_query.get_mut(anchor_root.0) else {
             continue;
         };
-        let p1 = cam
-            .world_to_viewport(cam_transform, anchor_world.as_vec3())
-            .unwrap_or_default();
-        let p2 = cam
-            .world_to_viewport(
-                cam_transform,
-                anchor_world.as_vec3() + cam_transform.right().as_vec3(),
-            )
-            .unwrap_or_default();
-
-        let scale = 8.0 / (p2 - p1).length();
-
-        // Shift the indicator toward the camera to prevent it clipping objects near parallel
-        let shift = (cam_transform.translation() - anchor_world.as_vec3()).normalize() * scale;
-        let anchor_world = anchor_world.as_vec3() + shift;
-
+        let enabled = anchor_indicator.map(|a| a.enabled).unwrap_or(true);
+        let Some(anchor_world) = enabled
+            .then(|| editor_cam.anchor_world_space(cam_transform))
+            .flatten()
+        else {
+            node.display = Display::None;
+            continue;
+        };
         if editor_cam.current_motion.is_orbiting() {
-            let gizmo_color = || Color::WHITE;
-            let arm_length = 0.4;
+            let position = cam
+                .world_to_viewport(cam_transform, anchor_world.as_vec3())
+                .unwrap_or_default();
 
-            let isometry = Isometry3d::new(
-                anchor_world,
-                Quat::from_rotation_arc(Vec3::Z, *cam_transform.forward()),
-            );
-
-            gizmos.circle(isometry, scale, gizmo_color());
-            let offset = 1.5 * scale;
-            gizmos.ray(
-                anchor_world + offset * cam_transform.left(),
-                offset * arm_length * cam_transform.left(),
-                gizmo_color(),
-            );
-            gizmos.ray(
-                anchor_world + offset * cam_transform.right(),
-                offset * arm_length * cam_transform.right(),
-                gizmo_color(),
-            );
-            gizmos.ray(
-                anchor_world + offset * cam_transform.up(),
-                offset * arm_length * cam_transform.up(),
-                gizmo_color(),
-            );
-            gizmos.ray(
-                anchor_world + offset * cam_transform.down(),
-                offset * arm_length * cam_transform.down(),
-                gizmo_color(),
-            );
+            node.display = Display::Flex;
+            node.top = Val::Px(position.y);
+            node.left = Val::Px(position.x);
+        } else {
+            node.display = Display::None;
         }
     }
 }

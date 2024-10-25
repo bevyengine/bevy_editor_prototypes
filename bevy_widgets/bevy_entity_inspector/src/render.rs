@@ -13,19 +13,22 @@ use bevy::{
     reflect::ReflectFromPtr,
 };
 use bevy_collapsing_header::CollapsingHeader;
+use bevy_editor_styles::Theme;
 use bevy_incomplete_bsn::entity_diff_tree::{DiffTreeCommands, DiffTree};
 
 use crate::{render_impl::RenderStorage, EntityInspector, InspectedEntity};
 
 #[allow(dead_code)]
 /// Context for rendering a component in the entity inspector.
-pub struct RenderContext<'w> {
+pub struct RenderContext<'w, 's> {
     /// Storage for render-related data.
     render_storage: &'w RenderStorage,
     /// The entity being inspected.
     entity: Entity,
     /// The ID of the component being rendered.
     component_id: ComponentId,
+    /// Theme to unify style
+    theme: &'s Theme
 }
 
 /// Component for managing the inspection of a specific component.
@@ -81,6 +84,7 @@ pub fn render_component_inspector(
     app_registry: Res<AppTypeRegistry>,
     system_change_ticks: SystemChangeTick,
     render_storage: Res<RenderStorage>,
+    theme: Res<Theme>
 ) {
     let Ok(inspected_entity) = q_inspected.get_single() else {
         return;
@@ -134,6 +138,7 @@ pub fn render_component_inspector(
             render_storage: &render_storage,
             entity: inspected_entity.id(),
             component_id: inspector.component_id,
+            theme: &theme
         };
 
         let reflect_content = recursive_reflect_render(
@@ -156,8 +161,14 @@ pub fn render_component_inspector(
                 .with_child(reflect_content),
         );
 
-        tree.add_cascade_patch_fn::<TextFont, Text>(|font: &mut TextFont| {
+        let font_cloned = theme.text.font.clone();
+        let color_cloned = theme.text.text_color;
+        tree.add_cascade_patch_fn::<TextFont, Text>(move |font: &mut TextFont| {
+            font.font = font_cloned.clone();
             font.font_size = 14.0;
+        });
+        tree.add_cascade_patch_fn::<TextColor, Text>(move |color: &mut TextColor| {
+            color.0 = color_cloned.clone();
         });
 
         commands.entity(inspector_entity).diff_tree(tree);
@@ -445,10 +456,18 @@ fn recursive_reflect_render(
             }
             bevy::reflect::ReflectRef::Opaque(v) => {
                 let v = v.clone_value();
+                let font_cloned = render_context.theme.text.font.clone();
+                let color_cloned = render_context.theme.text.text_color;
                 tree.add_child(
                     DiffTree::new()
                         .with_patch_fn(move |text: &mut Text| {
                             text.0 = format!("{:?}", v);
+                        })
+                        .with_patch_fn(move |font: &mut TextFont| {
+                            font.font = font_cloned.clone();
+                        })
+                        .with_patch_fn(move |color: &mut TextColor| {
+                            color.0 = color_cloned.clone();
                         })
                         .with_patch_fn(|node: &mut Node| {
                             node.padding = UiRect::all(Val::Px(2.0));

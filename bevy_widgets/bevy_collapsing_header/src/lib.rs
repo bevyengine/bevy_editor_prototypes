@@ -13,6 +13,7 @@ impl Plugin for CollapsingHeaderPlugin {
 
         app.add_observer(on_header_click);
         app.add_systems(PreUpdate, on_header_change);
+        app.add_systems(PreUpdate, update_header_font);
     }
 }
 
@@ -20,7 +21,6 @@ impl Plugin for CollapsingHeaderPlugin {
 ///
 /// This struct provides functionality for creating and managing a collapsible header
 /// in a Bevy UI. It allows for toggling the visibility of its child elements.
-
 #[derive(Component, Reflect, Clone)]
 #[reflect(Component, ChildrenPatcher, Default)]
 #[require(Node)]
@@ -155,10 +155,11 @@ fn on_header_change(
 }
 
 fn update_header_font(
-    q_changed: Query<&mut TextFont, (Changed<Text>, With<CollapsingHeaderText>)>,
+    mut q_changed: Query<(&mut TextFont, &mut TextColor), (Changed<Text>, With<CollapsingHeaderText>)>,
     theme : Res<Theme>
 ) {
-    for mut font in q_changed.iter() {
-        
+    for (mut font, mut color) in q_changed.iter_mut() {
+        font.font = theme.text.font.clone();
+        color.0 = theme.text.text_color;
     }
 }

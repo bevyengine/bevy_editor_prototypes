@@ -97,60 +97,122 @@ pub fn spawn_scroll_box<'a>(
         }
 
         if direction.y == OverflowAxis::Scroll {
-            parent
-                .spawn((
-                    Node {
-                        grid_column: GridPlacement::start(2),
-                        grid_row: GridPlacement::start(1),
-                        width: Val::Px(10.0),
-                        height: Val::Percent(100.0),
-                        ..default()
-                    },
-                    theme.scroll_box.background_color,
-                    BorderRadius::all(Val::Px(5.0)),
-                ))
-                .with_children(|parent| {
-                    parent.spawn((
-                        ScrollBarHandle(ScrollBarHandleDirection::Vertical),
-                        Node {
-                            width: Val::Percent(100.0),
-                            height: Val::Percent(0.0),
-                            ..default()
-                        },
-                        BackgroundColor(theme.scroll_box.handle_color),
-                        theme.scroll_box.border_radius,
-                    ));
-                });
+            spawn_scroll_bar(parent, theme, ScrollBarHandleDirection::Vertical);
         }
-
         if direction.x == OverflowAxis::Scroll {
-            parent
-                .spawn((
-                    Node {
-                        grid_column: GridPlacement::start(1),
-                        grid_row: GridPlacement::start(2),
-                        width: Val::Percent(100.0),
-                        height: Val::Px(10.0),
-                        ..default()
-                    },
-                    theme.scroll_box.background_color,
-                    BorderRadius::all(Val::Px(5.0)),
-                ))
-                .with_children(|parent| {
-                    parent.spawn((
-                        ScrollBarHandle(ScrollBarHandleDirection::Horizontal),
-                        Node {
-                            width: Val::Percent(0.0),
-                            height: Val::Percent(100.0),
-                            ..default()
-                        },
-                        BackgroundColor(theme.scroll_box.handle_color),
-                        theme.scroll_box.border_radius,
-                    ));
-                });
+            spawn_scroll_bar(parent, theme, ScrollBarHandleDirection::Horizontal);
         }
     });
     scrollbox_ec
+}
+
+fn spawn_scroll_bar<'a>(
+    parent: &'a mut ChildBuilder,
+    theme: &Res<Theme>,
+    direction: ScrollBarHandleDirection,
+) -> EntityCommands<'a> {
+    let mut scrollbar_ec = parent.spawn((
+        match direction {
+            ScrollBarHandleDirection::Vertical => Node {
+                grid_column: GridPlacement::start(2),
+                grid_row: GridPlacement::start(1),
+                width: Val::Px(10.0),
+                height: Val::Percent(100.0),
+                ..default()
+            },
+            ScrollBarHandleDirection::Horizontal => Node {
+                grid_column: GridPlacement::start(1),
+                grid_row: GridPlacement::start(2),
+                width: Val::Percent(100.0),
+                height: Val::Px(10.0),
+                ..default()
+            },
+        },
+        theme.scroll_box.background_color,
+        BorderRadius::all(Val::Px(5.0)),
+    ));
+    scrollbar_ec.with_children(|parent| {
+        parent
+            .spawn((
+                match direction {
+                    ScrollBarHandleDirection::Vertical => Node {
+                        width: Val::Percent(100.0),
+                        height: Val::Percent(0.0),
+                        ..default()
+                    },
+                    ScrollBarHandleDirection::Horizontal => Node {
+                        width: Val::Percent(0.0),
+                        height: Val::Percent(100.0),
+                        ..default()
+                    },
+                },
+                ScrollBarHandle(direction),
+                BackgroundColor(theme.scroll_box.handle_color),
+                theme.scroll_box.border_radius,
+            ))
+            .observe(
+                |trigger: Trigger<Pointer<Drag>>,
+                 query_handle: Query<&ScrollBarHandle>,
+                 query_parent: Query<&Parent>,
+                 mut query_scrollbox: Query<(
+                    &mut ScrollBox,
+                    &RelativeCursorPosition,
+                    &Children,
+                )>,
+                 query_computed_node: Query<&ComputedNode>,
+                 mut query_node: Query<&mut Node>| {
+                    let handle_entity = trigger.entity();
+                    let handle = query_handle.get(handle_entity).unwrap();
+                    let scrollbox_entity = {
+                        let scrollbar_parent = query_parent.get(handle_entity).unwrap();
+                        query_parent.get(scrollbar_parent.get()).unwrap().get()
+                    };
+                    let (mut scrollbox, cursor_pos, scrollbox_children) =
+                        query_scrollbox.get_mut(scrollbox_entity).unwrap();
+                    if let Some(norm_cursor_pos) = cursor_pos.normalized {
+                        let content_computed = query_computed_node
+                            .get(scrollbox_children[0])
+                            .expect("Scrollbox children 0 should exist and be a ScrollBoxContent");
+                        let mut content_node = query_node.get_mut(scrollbox_children[0]).unwrap();
+                        match handle.0 {
+                            ScrollBarHandleDirection::Vertical => {
+                                let content_size = content_computed.size().y;
+                                let norm_handle_size = {
+                                    let scrollbox_size =
+                                        query_computed_node.get(scrollbox_entity).unwrap().size().y;
+                                    query_computed_node.get(handle_entity).unwrap().size().y
+                                        / scrollbox_size
+                                };
+                                scrollbox.position.offset_y =
+                                    -((norm_cursor_pos.y - norm_handle_size / 2.0) * content_size);
+                                scrollbox.position.offset_y = scrollbox.position.offset_y.clamp(
+                                    -(content_size - (norm_handle_size * content_size)),
+                                    0.0,
+                                );
+                                content_node.top = Val::Px(scrollbox.position.offset_y);
+                            }
+                            ScrollBarHandleDirection::Horizontal => {
+                                let content_size = content_computed.size().x;
+                                let norm_handle_size = {
+                                    let scrollbox_size =
+                                        query_computed_node.get(scrollbox_entity).unwrap().size().x;
+                                    query_computed_node.get(handle_entity).unwrap().size().x
+                                        / scrollbox_size
+                                };
+                                scrollbox.position.offset_x =
+                                    -((norm_cursor_pos.x - norm_handle_size / 2.0) * content_size);
+                                scrollbox.position.offset_x = scrollbox.position.offset_x.clamp(
+                                    -(content_size - (norm_handle_size * content_size)),
+                                    0.0,
+                                );
+                                content_node.left = Val::Px(scrollbox.position.offset_x);
+                            }
+                        }
+                    }
+                },
+            );
+    });
+    scrollbar_ec
 }
 
 fn on_scroll(

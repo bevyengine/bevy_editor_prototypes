@@ -97,60 +97,60 @@ pub fn spawn_scroll_box<'a>(
         }
 
         if direction.y == OverflowAxis::Scroll {
-            parent
-                .spawn((
-                    Node {
-                        grid_column: GridPlacement::start(2),
-                        grid_row: GridPlacement::start(1),
-                        width: Val::Px(10.0),
-                        height: Val::Percent(100.0),
-                        ..default()
-                    },
-                    theme.scroll_box.background_color,
-                    BorderRadius::all(Val::Px(5.0)),
-                ))
-                .with_children(|parent| {
-                    parent.spawn((
-                        ScrollBarHandle(ScrollBarHandleDirection::Vertical),
-                        Node {
-                            width: Val::Percent(100.0),
-                            height: Val::Percent(0.0),
-                            ..default()
-                        },
-                        BackgroundColor(theme.scroll_box.handle_color),
-                        theme.scroll_box.border_radius,
-                    ));
-                });
+            spawn_scroll_bar(parent, theme, ScrollBarHandleDirection::Vertical);
         }
-
         if direction.x == OverflowAxis::Scroll {
-            parent
-                .spawn((
-                    Node {
-                        grid_column: GridPlacement::start(1),
-                        grid_row: GridPlacement::start(2),
-                        width: Val::Percent(100.0),
-                        height: Val::Px(10.0),
-                        ..default()
-                    },
-                    theme.scroll_box.background_color,
-                    BorderRadius::all(Val::Px(5.0)),
-                ))
-                .with_children(|parent| {
-                    parent.spawn((
-                        ScrollBarHandle(ScrollBarHandleDirection::Horizontal),
-                        Node {
-                            width: Val::Percent(0.0),
-                            height: Val::Percent(100.0),
-                            ..default()
-                        },
-                        BackgroundColor(theme.scroll_box.handle_color),
-                        theme.scroll_box.border_radius,
-                    ));
-                });
+            spawn_scroll_bar(parent, theme, ScrollBarHandleDirection::Horizontal);
         }
     });
     scrollbox_ec
+}
+
+fn spawn_scroll_bar<'a>(
+    parent: &'a mut ChildBuilder,
+    theme: &Res<Theme>,
+    direction: ScrollBarHandleDirection,
+) -> EntityCommands<'a> {
+    let mut scrollbar_ec = parent.spawn((
+        match direction {
+            ScrollBarHandleDirection::Vertical => Node {
+                grid_column: GridPlacement::start(2),
+                grid_row: GridPlacement::start(1),
+                width: Val::Px(10.0),
+                height: Val::Percent(100.0),
+                ..default()
+            },
+            ScrollBarHandleDirection::Horizontal => Node {
+                grid_column: GridPlacement::start(1),
+                grid_row: GridPlacement::start(2),
+                width: Val::Percent(100.0),
+                height: Val::Px(10.0),
+                ..default()
+            },
+        },
+        theme.scroll_box.background_color,
+        BorderRadius::all(Val::Px(5.0)),
+    ));
+    scrollbar_ec.with_children(|parent| {
+        parent.spawn((
+            match direction {
+                ScrollBarHandleDirection::Vertical => Node {
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(0.0),
+                    ..default()
+                },
+                ScrollBarHandleDirection::Horizontal => Node {
+                    width: Val::Percent(0.0),
+                    height: Val::Percent(100.0),
+                    ..default()
+                },
+            },
+            ScrollBarHandle(direction),
+            BackgroundColor(theme.scroll_box.handle_color),
+            theme.scroll_box.border_radius,
+        ));
+    });
+    scrollbar_ec
 }
 
 fn on_scroll(

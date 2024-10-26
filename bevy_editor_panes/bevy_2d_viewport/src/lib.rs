@@ -66,7 +66,7 @@ fn setup(mut commands: Commands, theme: Res<Theme>) {
     commands.spawn((
         InfiniteGrid,
         InfiniteGridSettings {
-            scale: 0.01,
+            scale: 100.,
             dot_fadeout_strength: 0.,
             x_axis_color: theme.viewport.x_axis_color,
             z_axis_color: theme.viewport.y_axis_color,

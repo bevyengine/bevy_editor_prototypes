@@ -4,6 +4,12 @@ Low-friction experiments for the bevy_editor.
 
 Read about what we're building in the [Design Book](https://bevyengine.github.io/bevy_editor_prototypes/)!
 
+## Figma Designs
+
+While laying out the foundations for an editor prototype in this repository, we are also experimenting with various UI designs in a public [Figma document]. If you are interested in collaborating and sharing your own designs, head over to the document and request write permissions to join the effort.
+
+[Figma document]: https://www.figma.com/design/fkYfFPSBgnGkhbQd3HOMsL/Bevy-Editor?node-id=90-2
+
 ## License
 
 Bevy is free, open source and permissively licensed!

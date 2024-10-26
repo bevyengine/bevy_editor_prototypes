@@ -92,6 +92,12 @@ pub struct ContextMenuStyles {
 pub struct ViewportStyles {
     /// The background color of the viewports.
     pub background_color: Color,
+    /// The color of the x-axis.
+    pub x_axis_color: Color,
+    /// The color of the y-axis.
+    pub y_axis_color: Color,
+    /// The color of the z-axis.
+    pub z_axis_color: Color,
     /// The color of the major grid lines.
     pub grid_major_line_color: Color,
     /// The color of the minor grid lines.
@@ -142,6 +148,9 @@ impl FromWorld for Theme {
             },
             viewport: ViewportStyles {
                 background_color: Color::oklch(0.3677, 0.0, 0.0),
+                x_axis_color: Color::oklch(0.65, 0.24, 27.0),
+                y_axis_color: Color::oklch(0.87, 0.27, 144.0),
+                z_axis_color: Color::oklch(0.65, 0.19, 255.0),
                 grid_major_line_color: Color::oklch(0.45, 0.0, 0.0),
                 grid_minor_line_color: Color::oklch(0.4, 0.0, 0.0),
             },

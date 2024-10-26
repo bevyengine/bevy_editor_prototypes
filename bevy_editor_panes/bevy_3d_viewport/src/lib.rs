@@ -131,6 +131,8 @@ fn setup(mut commands: Commands, theme: Res<Theme>) {
     commands.spawn((
         InfiniteGrid,
         InfiniteGridSettings {
+            x_axis_color: theme.viewport.x_axis_color,
+            z_axis_color: theme.viewport.z_axis_color,
             major_line_color: theme.viewport.grid_major_line_color,
             minor_line_color: theme.viewport.grid_minor_line_color,
             ..default()

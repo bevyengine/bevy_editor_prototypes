@@ -98,8 +98,8 @@ pub(crate) fn spawn_pane<'a>(
                     margin: UiRect::right(Val::Px(5.)),
                     ..default()
                 },
-                theme.button_background_color,
-                theme.button_border_radius,
+                theme.button.background_color,
+                theme.button.border_radius,
             ));
             parent.spawn((
                 Text::new(name),

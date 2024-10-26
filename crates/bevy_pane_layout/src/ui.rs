@@ -55,7 +55,7 @@ pub(crate) fn spawn_pane<'a>(
                 ..default()
             },
             theme.pane.header_background_color,
-            theme.general.border_radius,
+            theme.pane.header_border_radius,
             ContextMenu::new([
                 ContextMenuOption::new("Close", |mut commands, entity| {
                     commands.run_system_cached_with(remove_pane, entity);

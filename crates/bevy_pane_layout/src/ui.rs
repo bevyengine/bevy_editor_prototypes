@@ -91,6 +91,8 @@ pub(crate) fn spawn_pane<'a>(
         )
         .set_parent(area)
         .with_children(|parent| {
+            // Drop down button for selecting the pane type.
+            // Once a drop down menu is implemented, this will have that added.
             parent.spawn((
                 Node {
                     width: Val::Px(31.),

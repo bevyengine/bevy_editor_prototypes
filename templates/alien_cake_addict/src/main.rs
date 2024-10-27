@@ -6,6 +6,8 @@ use bevy::prelude::*;
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 
+use bevy_editor::EditorPlugin;
+
 #[derive(Clone, Eq, PartialEq, Debug, Hash, Default, States)]
 enum GameState {
     #[default]
@@ -18,33 +20,37 @@ struct BonusSpawnTimer(Timer);
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
-        .init_resource::<Game>()
-        .insert_resource(BonusSpawnTimer(Timer::from_seconds(
-            5.0,
-            TimerMode::Repeating,
-        )))
-        .init_state::<GameState>()
-        .add_systems(Startup, setup_cameras)
-        .add_systems(OnEnter(GameState::Playing), setup)
-        .add_systems(
-            Update,
-            (
-                move_player,
-                focus_camera,
-                rotate_bonus,
-                scoreboard_system,
-                spawn_bonus,
-            )
-                .run_if(in_state(GameState::Playing)),
-        )
-        .add_systems(OnExit(GameState::Playing), teardown)
-        .add_systems(OnEnter(GameState::GameOver), display_score)
-        .add_systems(
-            Update,
-            gameover_keyboard.run_if(in_state(GameState::GameOver)),
-        )
-        .add_systems(OnExit(GameState::GameOver), teardown)
+        .add_plugins(EditorPlugin {
+            project_run: Box::new(|app| {
+                app.add_plugins(DefaultPlugins)
+                    .init_resource::<Game>()
+                    .insert_resource(BonusSpawnTimer(Timer::from_seconds(
+                        5.0,
+                        TimerMode::Repeating,
+                    )))
+                    .init_state::<GameState>()
+                    .add_systems(Startup, setup_cameras)
+                    .add_systems(OnEnter(GameState::Playing), setup)
+                    .add_systems(
+                        Update,
+                        (
+                            move_player,
+                            focus_camera,
+                            rotate_bonus,
+                            scoreboard_system,
+                            spawn_bonus,
+                        )
+                            .run_if(in_state(GameState::Playing)),
+                    )
+                    .add_systems(OnExit(GameState::Playing), teardown)
+                    .add_systems(OnEnter(GameState::GameOver), display_score)
+                    .add_systems(
+                        Update,
+                        gameover_keyboard.run_if(in_state(GameState::GameOver)),
+                    )
+                    .add_systems(OnExit(GameState::GameOver), teardown);
+            }),
+        })
         .run();
 }
 
@@ -132,8 +138,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
     ));
 
     // spawn the game board
-    let cell_scene =
-        asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/AlienCake/tile.glb"));
+    let cell_scene = asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/tile.glb"));
     game.board = (0..BOARD_SIZE_J)
         .map(|j| {
             (0..BOARD_SIZE_I)
@@ -163,8 +168,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
                     ..default()
                 },
                 SceneRoot(
-                    asset_server
-                        .load(GltfAssetLabel::Scene(0).from_asset("models/AlienCake/alien.glb")),
+                    asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/alien.glb")),
                 ),
             ))
             .id(),
@@ -172,7 +176,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMu
 
     // load the scene for the cake
     game.bonus.handle =
-        asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/AlienCake/cakeBirthday.glb"));
+        asset_server.load(GltfAssetLabel::Scene(0).from_asset("models/cakeBirthday.glb"));
 
     // scoreboard
     commands.spawn((

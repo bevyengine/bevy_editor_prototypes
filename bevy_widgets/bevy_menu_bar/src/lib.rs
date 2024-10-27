@@ -233,6 +233,49 @@ fn menu_setup(
         },))
         .id();
 
+    let run_text = commands
+        .spawn((
+            Text::new("Run"),
+            TextFont {
+                font: theme.text.font.clone(),
+                font_size: 12.,
+                ..default()
+            },
+            PickingBehavior::IGNORE,
+        ))
+        .id();
+
+    let run_container = commands
+        .spawn((
+            Node {
+                padding: UiRect {
+                    left: Val::Px(5.0),
+                    right: Val::Px(5.0),
+                    top: Val::Px(2.0),
+                    bottom: Val::Px(2.0),
+                },
+                align_content: AlignContent::Center,
+                justify_content: JustifyContent::Center,
+                ..default()
+            },
+            BorderRadius::all(Val::Px(3.)),
+        ))
+        .observe(|_: Trigger<Pointer<Up>>| {
+            println!("Run button clicked!");
+            #[cfg(target_os = "windows")]
+            std::process::Command::new("cmd")
+                .args(["/C", "cargo", "run", "--", "-game"])
+                .output()
+                .expect("failed to execute process");
+
+            #[cfg(not(target_os = "windows"))]
+            std::process::Command::new("sh")
+                .args(["-c", "cargo", "run", "--", "-game"])
+                .output()
+                .expect("failed to execute process");
+        })
+        .id();
+
     commands.entity(menu_container).set_parent(root.single());
 
     commands.entity(logo).set_parent(menu_container);
@@ -246,6 +289,8 @@ fn menu_setup(
     commands.entity(window_text).set_parent(window_container);
     commands.entity(help_container).set_parent(menu_container);
     commands.entity(help_text).set_parent(help_container);
+    commands.entity(run_container).set_parent(menu_container);
+    commands.entity(run_text).set_parent(run_container);
 
     hover_over_observer.watch_entity(file_container);
     hover_out_observer.watch_entity(file_container);
@@ -257,6 +302,8 @@ fn menu_setup(
     hover_out_observer.watch_entity(window_container);
     hover_over_observer.watch_entity(help_container);
     hover_out_observer.watch_entity(help_container);
+    hover_over_observer.watch_entity(run_container);
+    hover_out_observer.watch_entity(run_container);
 
     commands.spawn(hover_out_observer);
     commands.spawn(hover_over_observer);

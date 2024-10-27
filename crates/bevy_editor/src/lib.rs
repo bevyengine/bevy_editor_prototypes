@@ -27,27 +27,36 @@ mod load_gltf;
 mod ui;
 
 /// The main Bevy Editor application.
-pub struct EditorPlugin;
+pub struct EditorPlugin {
+    /// The function to run the game.
+    pub project_run: Box<dyn Fn(&mut App) + Send + Sync>,
+}
 
 impl Plugin for EditorPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((
-            DefaultPlugins.set(WindowPlugin {
-                primary_window: Some(Window {
-                    title: "Bevy Editor".to_string(),
+        let args = std::env::args().collect::<Vec<_>>();
+        let run_game = args.iter().any(|arg| arg == "-game");
+        if run_game {
+            (self.project_run)(app);
+        } else {
+            app.add_plugins((
+                DefaultPlugins.set(WindowPlugin {
+                    primary_window: Some(Window {
+                        title: "Bevy Editor".to_string(),
+                        ..default()
+                    }),
                     ..default()
                 }),
-                ..default()
-            }),
-            ContextMenuPlugin,
-            StylesPlugin,
-            Viewport2dPanePlugin,
-            Viewport3dPanePlugin,
-            ui::EditorUIPlugin,
-            AssetBrowserPanePlugin,
-            LoadGltfPlugin,
-        ))
-        .add_systems(Startup, setup);
+                ContextMenuPlugin,
+                StylesPlugin,
+                Viewport2dPanePlugin,
+                Viewport3dPanePlugin,
+                ui::EditorUIPlugin,
+                AssetBrowserPanePlugin,
+                LoadGltfPlugin,
+            ))
+            .add_systems(Startup, setup);
+        }
     }
 }
 

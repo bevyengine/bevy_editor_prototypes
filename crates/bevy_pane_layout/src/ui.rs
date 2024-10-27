@@ -55,7 +55,7 @@ pub(crate) fn spawn_pane<'a>(
                 ..default()
             },
             theme.pane.header_background_color,
-            theme.general.border_radius,
+            theme.pane.header_border_radius,
             ContextMenu::new([
                 ContextMenuOption::new("Close", |mut commands, entity| {
                     commands.run_system_cached_with(remove_pane, entity);
@@ -90,18 +90,32 @@ pub(crate) fn spawn_pane<'a>(
             },
         )
         .set_parent(area)
-        .with_child((
-            Text::new(name),
-            TextFont {
-                font: theme.text.font.clone(),
-                font_size: 14.,
-                ..default()
-            },
-            Node {
-                flex_shrink: 0.,
-                ..default()
-            },
-        ));
+        .with_children(|parent| {
+            // Drop down button for selecting the pane type.
+            // Once a drop down menu is implemented, this will have that added.
+            parent.spawn((
+                Node {
+                    width: Val::Px(31.),
+                    height: Val::Px(19.),
+                    margin: UiRect::right(Val::Px(5.)),
+                    ..default()
+                },
+                theme.button.background_color,
+                theme.button.border_radius,
+            ));
+            parent.spawn((
+                Text::new(name),
+                TextFont {
+                    font: theme.text.font.clone(),
+                    font_size: 14.,
+                    ..default()
+                },
+                Node {
+                    flex_shrink: 0.,
+                    ..default()
+                },
+            ));
+        });
 
     // Content
     commands

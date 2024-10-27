@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = ["crates/*", "bevy_editor_panes/*", "bevy_widgets/*", "projects/*"]
+exclude = ["templates/"]
 default-members = ["crates/bevy_editor"]
 
 [workspace.lints.clippy]

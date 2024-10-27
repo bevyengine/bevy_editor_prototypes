@@ -27,7 +27,6 @@ mod load_gltf;
 mod ui;
 
 /// The main Bevy Editor application.
-#[derive(Default)]
 pub struct EditorPlugin;
 
 impl Plugin for EditorPlugin {

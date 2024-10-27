@@ -26,9 +26,13 @@ use crate::load_gltf::LoadGltfPlugin;
 mod load_gltf;
 mod ui;
 
-fn main() {
-    App::new()
-        .add_plugins((
+/// The main Bevy Editor application.
+#[derive(Default)]
+pub struct EditorPlugin;
+
+impl Plugin for EditorPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins((
             DefaultPlugins.set(WindowPlugin {
                 primary_window: Some(Window {
                     title: "Bevy Editor".to_string(),
@@ -44,8 +48,8 @@ fn main() {
             AssetBrowserPanePlugin,
             LoadGltfPlugin,
         ))
-        .add_systems(Startup, setup)
-        .run();
+        .add_systems(Startup, setup);
+    }
 }
 
 fn setup(

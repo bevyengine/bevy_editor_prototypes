@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/*", "bevy_editor_panes/*", "bevy_widgets/*", "projects/*"]
+members = ["crates/*", "bevy_editor_panes/*", "bevy_widgets/*"]
 exclude = ["templates/"]
 default-members = ["crates/bevy_editor"]
 
@@ -33,6 +33,7 @@ thiserror = "1"
 serde = { version = "1", features = ["derive"] }
 atomicow = "1.0.0"
 rfd = "0.15"
+ron = "0.8.1"
 
 # local crates
 

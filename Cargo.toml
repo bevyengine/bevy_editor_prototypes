@@ -2,7 +2,7 @@
 resolver = "2"
 members = ["crates/*", "bevy_editor_panes/*", "bevy_widgets/*"]
 exclude = ["templates/"]
-default-members = ["crates/bevy_editor"]
+default-members = ["crates/bevy_editor_launcher"]
 
 [workspace.lints.clippy]
 doc_markdown = "warn"
@@ -61,6 +61,7 @@ bevy_tooltips = { path = "bevy_widgets/bevy_tooltips" }
 bevy_asset_preview = { path = "crates/bevy_asset_preview" }
 bevy_editor = { path = "crates/bevy_editor" }
 bevy_editor_camera = { path = "crates/bevy_editor_camera" }
+bevy_editor_launcher = { path = "crates/bevy_editor_launcher" }
 bevy_editor_settings = { path = "crates/bevy_editor_settings" }
 bevy_editor_styles = { path = "crates/bevy_editor_styles" }
 bevy_localization = { path = "crates/bevy_localization" }

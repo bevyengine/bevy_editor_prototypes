@@ -280,6 +280,9 @@ fn update_scroll_handles(
 
             let content_height = content_children.size().y;
             let scrollbox_height = scrollbox_computed.size().y;
+            if content_height == 0.0 {
+                continue;
+            }
 
             let handle_height = (scrollbox_height / content_height * 100.0).clamp(5.0, 100.0);
             let handle_position =
@@ -318,6 +321,9 @@ fn update_scroll_handles(
 
             let content_width = content_children.size().x;
             let scrollbox_width = scrollbox_computed.size().x;
+            if content_width == 0.0 {
+                continue;
+            }
 
             let handle_width = (scrollbox_width / content_width * 100.0).clamp(5.0, 100.0);
             let handle_position =

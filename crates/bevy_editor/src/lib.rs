@@ -24,6 +24,7 @@ use bevy_asset_browser::AssetBrowserPanePlugin;
 use crate::load_gltf::LoadGltfPlugin;
 
 mod load_gltf;
+pub mod project;
 mod ui;
 
 /// The main Bevy Editor application.

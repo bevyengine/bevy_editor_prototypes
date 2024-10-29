@@ -83,22 +83,17 @@ pub fn setup(mut commands: Commands, theme: Res<Theme>, asset_server: Res<AssetS
                                 },
                                 UiImage::new(asset_server.load("plus.png")),
                             ))
-                            .observe(
-                                |_trigger: Trigger<Pointer<Up>>,
-                                 mut commands: Commands,
-                                 theme: Res<Theme>,
-                                 asset_server: Res<AssetServer>| {
-                                    let new_project_path = rfd::FileDialog::new().pick_folder();
-                                    if let Some(path) = new_project_path {
-                                        crate::spawn_create_new_project_task(
-                                            &mut commands,
-                                            Templates::Blank,
-                                            "New Project".to_string(),
-                                            path,
-                                        );
-                                    }
-                                },
-                            );
+                            .observe(|_trigger: Trigger<Pointer<Up>>, mut commands: Commands| {
+                                let new_project_path = rfd::FileDialog::new().pick_folder();
+                                if let Some(path) = new_project_path {
+                                    crate::spawn_create_new_project_task(
+                                        &mut commands,
+                                        Templates::Blank,
+                                        "New Project".to_string(),
+                                        path,
+                                    );
+                                }
+                            });
                     });
                 }),
             );
@@ -135,7 +130,7 @@ pub(crate) fn spawn_project_node<'a>(
                     let project_children = query_children.get(project_entity).unwrap();
                     let text_container = project_children.get(1).expect("Expected project node to have 2 children, (the second being a container for the name)");
 					let text_container_children = query_children.get(*text_container).unwrap();
-                    let text_entity = text_container_children.get(0).expect("Expected text container to have 1 child, the text entity");
+                    let text_entity = text_container_children.first().expect("Expected text container to have 1 child, the text entity");
                     query.get(*text_entity).expect("Expected text entity to have a Text component")
                 };
 

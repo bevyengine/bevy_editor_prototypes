@@ -36,15 +36,21 @@ pub struct App {
     window: Window,
 }
 
-impl App {
-    /// create new instance of [`App`]
-    pub fn new() -> Self {
+impl Default for App {
+    fn default() -> Self {
         App {
             window: Window {
                 title: "Bevy Editor".to_string(),
                 ..default()
             },
         }
+    }
+}
+
+impl App {
+    /// create new instance of [`App`]
+    pub fn new() -> Self {
+        Self::default()
     }
 
     /// Set default window resolution/size
@@ -64,7 +70,7 @@ impl App {
     /// Run the application
     pub fn run(&self) -> AppExit {
         let args = std::env::args().collect::<Vec<String>>();
-        let editor_mode = args.iter().any(|arg| arg == "-game") == false;
+        let editor_mode = !args.iter().any(|arg| arg == "-game");
 
         let mut bevy_app = BevyApp::new();
         bevy_app.add_plugins(DefaultPlugins.set(WindowPlugin {

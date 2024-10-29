@@ -15,10 +15,10 @@ struct ProjectsCache {
 }
 
 /// Get Bevy Editor's cache folder path
-/// Windows: %LOCALAPPDATA%/[`CACHE_FOLDER_NAME`]
-/// MacOS: ~/Library/Caches/[`CACHE_FOLDER_NAME`]
-/// Linux: ~/.cache/[`CACHE_FOLDER_NAME`]
-fn get_chache_folder() -> PathBuf {
+/// `Windows`: %LOCALAPPDATA%/[`CACHE_FOLDER_NAME`]
+/// `MacOS`: ~/Library/Caches/[`CACHE_FOLDER_NAME`]
+/// `Linux`: ~/.cache/[`CACHE_FOLDER_NAME`]
+fn get_cache_folder() -> PathBuf {
     #[cfg(target_os = "windows")]
     let path = PathBuf::from(std::env::var("LOCALAPPDATA").unwrap());
 
@@ -33,7 +33,7 @@ fn get_chache_folder() -> PathBuf {
 
 /// Load the projects from the cache file
 pub(super) fn load_projects() -> io::Result<Vec<ProjectInfo>> {
-    let cache_folder = get_chache_folder();
+    let cache_folder = get_cache_folder();
     let cache_file = cache_folder.join(CACHE_FILE);
 
     if !cache_file.exists() {
@@ -56,7 +56,7 @@ pub(super) fn load_projects() -> io::Result<Vec<ProjectInfo>> {
 
 /// Save the projects to the cache file
 pub(super) fn save_projects(projects: Vec<ProjectInfo>) -> io::Result<()> {
-    let cache_folder = get_chache_folder();
+    let cache_folder = get_cache_folder();
     let cache_file = cache_folder.join(CACHE_FILE);
 
     let cache_value = ProjectsCache { projects };

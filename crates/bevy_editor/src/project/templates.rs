@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-///	The path to the folder containing the templates project
+/// The path to the folder containing the templates project
 const TEMPLATE_FOLDER_PATH: &str = "templates/";
 
 /// The names of the templates project

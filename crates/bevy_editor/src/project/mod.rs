@@ -32,7 +32,7 @@ pub async fn create_new_project(
         last_opened: SystemTime::now(),
     };
 
-    if let Err(error) = copy_template(template, &info.path.as_path()).await {
+    if let Err(error) = copy_template(template, info.path.as_path()).await {
         error!("Failed to create new project");
         return Err(error);
     }
@@ -63,7 +63,7 @@ pub fn run_project(project: ProjectInfo) -> Result<(), String> {
     #[cfg(target_os = "windows")]
     std::process::Command::new("cmd")
         .current_dir(&project.path)
-        .args(&["/C", "cargo", "run"])
+        .args(["/C", "cargo", "run"])
         .spawn()
         .map_err(|error| error.to_string())?;
 

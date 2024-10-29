@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "015f2c69ca2a2c009fd04eadada282482deaf469", features = ["wayland"] }
-bevy_editor = { path = "../../crates/bevy_editor" }
+bevy_editor = { path = "C:/MyProject/bevy_editor/crates/bevy_editor" }
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 

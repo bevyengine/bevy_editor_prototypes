@@ -272,6 +272,7 @@ fn move_player(
 }
 
 // change the focus of the camera
+#[allow(clippy::type_complexity)]
 fn focus_camera(
     time: Res<Time>,
     mut game: ResMut<Game>,

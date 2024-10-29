@@ -1,6 +1,5 @@
-use bevy::prelude::*;
-use bevy_editor::EditorPlugin;
+use bevy_editor::App;
 
 fn main() {
-    App::new().add_plugins(EditorPlugin).run();
+    App::new().run();
 }

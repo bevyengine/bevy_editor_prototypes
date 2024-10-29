@@ -5,4 +5,3 @@ edition = "2021"
 
 [dependencies]
 bevy_editor = { git = "https://github.com/bevyengine/bevy_editor_prototypes.git" }
-bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "015f2c69ca2a2c009fd04eadada282482deaf469", features = ["wayland"] }

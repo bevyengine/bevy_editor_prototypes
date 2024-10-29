@@ -2,11 +2,10 @@
 
 use std::f32::consts::PI;
 
-use bevy::prelude::*;
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 
-use bevy_editor::EditorPlugin;
+use bevy_editor::{bevy::prelude::*, App};
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash, Default, States)]
 enum GameState {
@@ -19,39 +18,36 @@ enum GameState {
 struct BonusSpawnTimer(Timer);
 
 fn main() {
-    App::new()
-        .add_plugins(EditorPlugin {
-            project_run: Box::new(|app| {
-                app.add_plugins(DefaultPlugins)
-                    .init_resource::<Game>()
-                    .insert_resource(BonusSpawnTimer(Timer::from_seconds(
-                        5.0,
-                        TimerMode::Repeating,
-                    )))
-                    .init_state::<GameState>()
-                    .add_systems(Startup, setup_cameras)
-                    .add_systems(OnEnter(GameState::Playing), setup)
-                    .add_systems(
-                        Update,
-                        (
-                            move_player,
-                            focus_camera,
-                            rotate_bonus,
-                            scoreboard_system,
-                            spawn_bonus,
-                        )
-                            .run_if(in_state(GameState::Playing)),
-                    )
-                    .add_systems(OnExit(GameState::Playing), teardown)
-                    .add_systems(OnEnter(GameState::GameOver), display_score)
-                    .add_systems(
-                        Update,
-                        gameover_keyboard.run_if(in_state(GameState::GameOver)),
-                    )
-                    .add_systems(OnExit(GameState::GameOver), teardown);
-            }),
-        })
-        .run();
+    App::new().run();
+
+    // TODO: Somehow integrate this. My guess is that it's probably going to go in a World
+    // app.add_plugins(DefaultPlugins)
+    //     .init_resource::<Game>()
+    //     .insert_resource(BonusSpawnTimer(Timer::from_seconds(
+    //         5.0,
+    //         TimerMode::Repeating,
+    //     )))
+    //     .init_state::<GameState>()
+    //     .add_systems(Startup, setup_cameras)
+    //     .add_systems(OnEnter(GameState::Playing), setup)
+    //     .add_systems(
+    //         Update,
+    //         (
+    //             move_player,
+    //             focus_camera,
+    //             rotate_bonus,
+    //             scoreboard_system,
+    //             spawn_bonus,
+    //         )
+    //             .run_if(in_state(GameState::Playing)),
+    //     )
+    //     .add_systems(OnExit(GameState::Playing), teardown)
+    //     .add_systems(OnEnter(GameState::GameOver), display_score)
+    //     .add_systems(
+    //         Update,
+    //         gameover_keyboard.run_if(in_state(GameState::GameOver)),
+    //     )
+    //     .add_systems(OnExit(GameState::GameOver), teardown);
 }
 
 struct Cell {

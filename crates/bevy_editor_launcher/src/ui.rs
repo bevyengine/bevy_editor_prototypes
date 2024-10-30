@@ -1,5 +1,9 @@
+use std::io::ErrorKind;
+
 use bevy::{prelude::*, ui::RelativeCursorPosition};
-use bevy_editor::project::{get_local_projects, run_project, templates::Templates, ProjectInfo};
+use bevy_editor::project::{
+    get_local_projects, remove_project, run_project, templates::Templates, ProjectInfo,
+};
 use bevy_editor_styles::Theme;
 use bevy_footer_bar::FooterBarNode;
 
@@ -123,7 +127,7 @@ pub(crate) fn spawn_project_node<'a>(
     ));
 
     root_ec.observe(
-        |trigger: Trigger<Pointer<Up>>, query_children: Query<&Children>, query: Query<&Text>, mut exit: EventWriter<AppExit>| {
+        |trigger: Trigger<Pointer<Up>>, mut commands: Commands, query_children: Query<&Children>, query_text: Query<&Text>, mut exit: EventWriter<AppExit>, query_parent: Query<&Parent>|{
             let project = {
                 let text = {
                     let project_entity = trigger.entity();
@@ -131,7 +135,7 @@ pub(crate) fn spawn_project_node<'a>(
                     let text_container = project_children.get(1).expect("Expected project node to have 2 children, (the second being a container for the name)");
 					let text_container_children = query_children.get(*text_container).unwrap();
                     let text_entity = text_container_children.first().expect("Expected text container to have 1 child, the text entity");
-                    query.get(*text_entity).expect("Expected text entity to have a Text component")
+                    query_text.get(*text_entity).expect("Expected text entity to have a Text component")
                 };
 
                 let projects = get_local_projects();
@@ -142,10 +146,20 @@ pub(crate) fn spawn_project_node<'a>(
                     .clone()
             };
 
-			match run_project(project) {
+			match run_project(&project) {
 				Ok(_) => { exit.send(AppExit::Success); },
 				Err(error) => {
 					error!("Failed to run project: {:?}", error);
+					match error.kind() {
+						ErrorKind::NotFound | ErrorKind::InvalidData => {
+							remove_project(&project);
+		                    let project_entity = trigger.entity();
+							let parent = query_parent.get(project_entity).unwrap();
+							commands.entity(parent.get()).remove_children(&[project_entity]);
+							commands.entity(project_entity).despawn_recursive();
+						},
+						_ => {},
+					}
 				}
 			}
 		},

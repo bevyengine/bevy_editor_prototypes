@@ -36,13 +36,7 @@ pub async fn create_new_project(
         error!("Failed to create new project");
         return Err(error);
     }
-
-    let mut projects = get_local_projects();
-    projects.push(info.clone());
-    if let Err(error) = cache::save_projects(projects) {
-        error!("Failed to add new project to project file cache");
-        return Err(error);
-    }
+    add_project(info.clone());
 
     Ok(info)
 }
@@ -58,7 +52,7 @@ pub fn get_local_projects() -> Vec<ProjectInfo> {
     }
 }
 
-/// Update the project info or create new ones if doesn't exist.
+/// Update the current project info or create new ones if doesn't exist.
 pub fn update_project_info() {
     let mut projects = get_local_projects();
     let current_dir = std::env::current_dir().unwrap();
@@ -89,14 +83,61 @@ pub fn update_project_info() {
     }
 }
 
+/// Add project to project list
+pub fn add_project(project: ProjectInfo) {
+    let mut projects = get_local_projects();
+    projects.push(project);
+
+    if let Err(error) = cache::save_projects(projects) {
+        error!("Failed to add project to project file cache: {:?}", error);
+    }
+}
+
+/// Remove project from project list (does not delete any files)
+pub fn remove_project(project: &ProjectInfo) {
+    let mut projects = get_local_projects();
+    projects.retain(|p| p.path != project.path);
+
+    if let Err(error) = cache::save_projects(projects) {
+        error!(
+            "Failed to remove project from project file cache: {:?}",
+            error
+        );
+    }
+}
+
 /// Run a project in editor mode.
 #[cfg(target_os = "windows")]
-pub fn run_project(project: ProjectInfo) -> Result<(), String> {
+pub fn run_project(project: &ProjectInfo) -> std::io::Result<()> {
+    // Make sure the project folder exist
+    if !project.path.exists() {
+        return std::io::Result::Err(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            "Project root folder not found",
+        ));
+    }
+
+    // Make sure it has the minium file to be a valid project
+    let cargo_toml = project.path.join("Cargo.toml");
+    let src_folder = project.path.join("src");
+    let main_rs = src_folder.join("main.rs");
+    if !cargo_toml.exists() || !src_folder.exists() || !main_rs.exists() {
+        return std::io::Result::Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            "Project isn't a valid one of the following mising: Cargo.toml, src folder or main.rs file",
+        ));
+    }
+
     std::process::Command::new("cmd")
         .current_dir(&project.path)
         .args(["/C", "cargo", "run"])
         .spawn()
-        .map_err(|error| error.to_string())?;
+        .map_err(|error| {
+            std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Failed to run project: {}", error),
+            )
+        })?;
 
     info!("Project '{}' started successfully", project.name);
     Ok(())

@@ -59,17 +59,19 @@ pub fn get_local_projects() -> Vec<ProjectInfo> {
 }
 
 /// Run a project in editor mode.
+#[cfg(target_os = "windows")]
 pub fn run_project(project: ProjectInfo) -> Result<(), String> {
-    #[cfg(target_os = "windows")]
     std::process::Command::new("cmd")
         .current_dir(&project.path)
         .args(["/C", "cargo", "run"])
         .spawn()
         .map_err(|error| error.to_string())?;
 
-    #[cfg(not(target_os = "windows"))]
-    unimplemented!("Run project is not implemented for this platform");
-
     info!("Project '{}' started successfully", project.name);
     Ok(())
+}
+
+#[cfg(not(target_os = "windows"))]
+pub fn run_project(_project: ProjectInfo) -> Result<(), String> {
+    unimplemented!("Run project is not implemented for this platform");
 }

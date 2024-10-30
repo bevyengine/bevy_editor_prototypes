@@ -1,19 +1,24 @@
 use std::io::ErrorKind;
 
 use bevy::{prelude::*, ui::RelativeCursorPosition};
-use bevy_editor::project::{
-    get_local_projects, remove_project, run_project, templates::Templates, ProjectInfo,
-};
+use bevy_editor::project::{run_project, set_project_list, templates::Templates, ProjectInfo};
 use bevy_editor_styles::Theme;
 use bevy_footer_bar::FooterBarNode;
 
 use bevy_scroll_box::spawn_scroll_box;
 
+use crate::ProjectInfoList;
+
 #[derive(Component)]
 #[require(Node)]
 pub struct ProjectList;
 
-pub fn setup(mut commands: Commands, theme: Res<Theme>, asset_server: Res<AssetServer>) {
+pub fn setup(
+    mut commands: Commands,
+    theme: Res<Theme>,
+    asset_server: Res<AssetServer>,
+    project_list: Res<ProjectInfoList>,
+) {
     commands.spawn((
         Camera2d,
         Camera {
@@ -50,7 +55,7 @@ pub fn setup(mut commands: Commands, theme: Res<Theme>, asset_server: Res<AssetS
                 Some(|content_ec: &mut EntityCommands| {
                     content_ec.insert(ProjectList);
                     content_ec.with_children(|parent| {
-                        for project in get_local_projects().iter() {
+                        for project in project_list.0.iter() {
                             spawn_project_node(parent, &theme, &asset_server, project);
                         }
                         parent
@@ -126,43 +131,62 @@ pub(crate) fn spawn_project_node<'a>(
     ));
 
     root_ec.observe(
-        |trigger: Trigger<Pointer<Up>>, mut commands: Commands, query_children: Query<&Children>, query_text: Query<&Text>, mut exit: EventWriter<AppExit>, query_parent: Query<&Parent>|{
+        |trigger: Trigger<Pointer<Up>>,
+         mut commands: Commands,
+         query_children: Query<&Children>,
+         query_text: Query<&Text>,
+         mut exit: EventWriter<AppExit>,
+         query_parent: Query<&Parent>,
+         mut project_list: ResMut<ProjectInfoList>| {
             let project = {
                 let text = {
                     let project_entity = trigger.entity();
                     let project_children = query_children.get(project_entity).unwrap();
-                    let text_container = project_children.get(1).expect("Expected project node to have 2 children, (the second being a container for the name)");
-					let text_container_children = query_children.get(*text_container).unwrap();
-                    let text_entity = text_container_children.first().expect("Expected text container to have 1 child, the text entity");
-                    query_text.get(*text_entity).expect("Expected text entity to have a Text component")
+                    let text_container = project_children.get(1).expect(
+                        "Expected project node to have 2 children, (the second being a container for the name)"
+                    );
+                    let text_container_children = query_children.get(*text_container).unwrap();
+                    let text_entity = text_container_children
+                        .first()
+                        .expect("Expected text container to have 1 child, the text entity");
+                    query_text
+                        .get(*text_entity)
+                        .expect("Expected text entity to have a Text component")
                 };
 
-                let projects = get_local_projects();
-                projects
+                project_list
+                    .0
                     .iter()
                     .find(|p| p.name().unwrap() == text.0)
                     .unwrap()
                     .clone()
             };
 
-			match run_project(&project) {
-				Ok(_) => { exit.send(AppExit::Success); },
-				Err(error) => {
-					error!("Failed to run project: {:?}", error);
-					match error.kind() {
-						ErrorKind::NotFound | ErrorKind::InvalidData => {
-							remove_project(&project);
-		                    let project_entity = trigger.entity();
-							let parent = query_parent.get(project_entity).unwrap();
-							commands.entity(parent.get()).remove_children(&[project_entity]);
-							commands.entity(project_entity).despawn_recursive();
-						},
-						_ => {},
-					}
-				}
-			}
-		},
-	);
+            match run_project(&project) {
+                Ok(_) => {
+                    exit.send(AppExit::Success);
+                }
+                Err(error) => {
+                    error!("Failed to run project: {:?}", error);
+                    match error.kind() {
+                        ErrorKind::NotFound | ErrorKind::InvalidData => {
+                            // Remove project from list
+                            project_list.0.retain(|p| p.path != project.path);
+                            set_project_list(project_list.0.clone());
+                            // Remove project node from UI
+                            let project_entity = trigger.entity();
+                            let parent = query_parent.get(project_entity).unwrap();
+                            commands
+                                .entity(parent.get())
+                                .remove_children(&[project_entity]);
+                            commands.entity(project_entity).despawn_recursive();
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        },
+    );
 
     root_ec.with_children(|parent| {
         // Project preview (TODO: add thumbnail)

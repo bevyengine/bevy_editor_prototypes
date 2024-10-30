@@ -45,7 +45,10 @@ pub async fn create_new_project(
         error!("Failed to create new project");
         return Err(error);
     }
-    add_project(info.clone());
+
+    let mut projects = get_local_projects();
+    projects.push(info.clone());
+    set_project_list(projects);
 
     Ok(info)
 }
@@ -86,26 +89,10 @@ pub fn update_project_info() {
     }
 }
 
-/// Add project to project list
-pub fn add_project(project: ProjectInfo) {
-    let mut projects = get_local_projects();
-    projects.push(project);
-
+/// Set the project list to the given list of projects.
+pub fn set_project_list(projects: Vec<ProjectInfo>) {
     if let Err(error) = cache::save_projects(projects) {
-        error!("Failed to add project to project file cache: {:?}", error);
-    }
-}
-
-/// Remove project from project list (does not delete any files)
-pub fn remove_project(project: &ProjectInfo) {
-    let mut projects = get_local_projects();
-    projects.retain(|p| p.path != project.path);
-
-    if let Err(error) = cache::save_projects(projects) {
-        error!(
-            "Failed to remove project from project file cache: {:?}",
-            error
-        );
+        error!("Failed to set project list: {:?}", error);
     }
 }
 

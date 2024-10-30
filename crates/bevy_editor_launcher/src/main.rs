@@ -9,7 +9,9 @@ use bevy::{
     tasks::{block_on, futures_lite::future, IoTaskPool, Task},
 };
 
-use bevy_editor::project::{create_new_project, templates::Templates, ProjectInfo};
+use bevy_editor::project::{
+    create_new_project, get_local_projects, set_project_list, templates::Templates, ProjectInfo,
+};
 use bevy_editor_styles::{StylesPlugin, Theme};
 use bevy_footer_bar::{FooterBarPlugin, FooterBarSet};
 use bevy_scroll_box::ScrollBoxPlugin;
@@ -33,11 +35,16 @@ fn poll_create_project_task(
     query: Query<(Entity, &Children), With<ProjectList>>,
     theme: Res<Theme>,
     asset_server: Res<AssetServer>,
+    mut project_list: ResMut<ProjectInfoList>,
 ) {
     let (task_entity, mut task) = task_query.single_mut();
     if let Some(result) = block_on(future::poll_once(&mut task.0)) {
         match result {
             Ok(project_info) => {
+                // Add the new project to the list of projects
+                project_list.0.push(project_info.clone());
+                set_project_list(project_list.0.clone());
+                // Add new project node Ui element
                 commands.entity(task_entity).despawn();
                 let (project_list_entity, children) = query.iter().next().unwrap();
                 let plus_button_entity = children.last().unwrap();
@@ -65,6 +72,9 @@ fn spawn_create_new_project_task(commands: &mut Commands, template: Templates, p
     commands.spawn_empty().insert(CreateProjectTask(task));
 }
 
+#[derive(Resource)]
+struct ProjectInfoList(Vec<ProjectInfo>);
+
 fn main() {
     App::new()
         .add_plugins((
@@ -79,6 +89,7 @@ fn main() {
             FooterBarPlugin,
             ScrollBoxPlugin,
         ))
+        .insert_resource(ProjectInfoList(get_local_projects()))
         .add_systems(Startup, ui::setup)
         .add_systems(
             Update,

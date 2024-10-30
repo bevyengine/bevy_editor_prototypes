@@ -107,7 +107,6 @@ pub fn remove_project(project: &ProjectInfo) {
 }
 
 /// Run a project in editor mode.
-#[cfg(target_os = "windows")]
 pub fn run_project(project: &ProjectInfo) -> std::io::Result<()> {
     // Make sure the project folder exist
     if !project.path.exists() {
@@ -128,6 +127,7 @@ pub fn run_project(project: &ProjectInfo) -> std::io::Result<()> {
         ));
     }
 
+    #[cfg(target_os = "windows")]
     std::process::Command::new("cmd")
         .current_dir(&project.path)
         .args(["/C", "cargo", "run"])
@@ -139,11 +139,18 @@ pub fn run_project(project: &ProjectInfo) -> std::io::Result<()> {
             )
         })?;
 
+    #[cfg(not(target_os = "windows"))]
+    std::process::Command::new("sh")
+        .current_dir(&project.path)
+        .args(["-c", "cargo", "run"])
+        .spawn()
+        .map_err(|error| {
+            std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Failed to run project: {}", error),
+            )
+        })?;
+
     info!("Project '{}' started successfully", project.name);
     Ok(())
-}
-
-#[cfg(not(target_os = "windows"))]
-pub fn run_project(_project: ProjectInfo) -> Result<(), String> {
-    unimplemented!("Run project is not implemented for this platform");
 }

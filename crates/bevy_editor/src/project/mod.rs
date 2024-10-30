@@ -106,14 +106,14 @@ pub fn run_project(project: &ProjectInfo) -> std::io::Result<()> {
         ));
     }
 
-    // Make sure it has the minium file to be a valid project
+    // Make sure it has the minimum file to be a valid project
     let cargo_toml = project.path.join("Cargo.toml");
     let src_folder = project.path.join("src");
     let main_rs = src_folder.join("main.rs");
     if !cargo_toml.exists() || !src_folder.exists() || !main_rs.exists() {
         return std::io::Result::Err(std::io::Error::new(
             std::io::ErrorKind::InvalidData,
-            "Project isn't a valid one of the following mising: Cargo.toml, src folder or main.rs file",
+            "Project isn't a valid one of the following missing: Cargo.toml, src folder or main.rs file",
         ));
     }
 

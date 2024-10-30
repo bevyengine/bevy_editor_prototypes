@@ -58,6 +58,37 @@ pub fn get_local_projects() -> Vec<ProjectInfo> {
     }
 }
 
+/// Update the project info or create new ones if doesn't exist.
+pub fn update_project_info() {
+    let mut projects = get_local_projects();
+    let current_dir = std::env::current_dir().unwrap();
+
+    match projects.iter_mut().find(|p| p.path == current_dir) {
+        Some(project) => {
+            // Update info
+            project.last_opened = SystemTime::now();
+        }
+        None => {
+            // Create new info
+            let project = ProjectInfo {
+                name: current_dir
+                    .file_name()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string(),
+                path: current_dir.clone(),
+                last_opened: SystemTime::now(),
+            };
+            projects.push(project);
+        }
+    }
+
+    if let Err(error) = cache::save_projects(projects) {
+        error!("Failed to update project last opened time: {:?}", error);
+    }
+}
+
 /// Run a project in editor mode.
 #[cfg(target_os = "windows")]
 pub fn run_project(project: ProjectInfo) -> Result<(), String> {

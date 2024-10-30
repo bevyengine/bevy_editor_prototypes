@@ -78,6 +78,8 @@ impl App {
             ..default()
         }));
         if editor_mode {
+            project::update_project_info();
+
             bevy_app
                 .add_plugins((
                     ContextMenuPlugin,

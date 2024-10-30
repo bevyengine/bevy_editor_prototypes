@@ -1,3 +1,7 @@
+//! The launcher for the Bevy Editor.
+//!
+//! The launcher provide a bunch of functionalities to manage your projects.
+
 use std::path::PathBuf;
 
 use bevy::{

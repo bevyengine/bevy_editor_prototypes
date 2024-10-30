@@ -60,14 +60,8 @@ fn poll_create_project_task(
 }
 
 /// Spawn a new [`CreateProjectTask`] to create a new project
-fn spawn_create_new_project_task(
-    commands: &mut Commands,
-    template: Templates,
-    name: String,
-    path: PathBuf,
-) {
-    let task =
-        IoTaskPool::get().spawn(async move { create_new_project(template, name, path).await });
+fn spawn_create_new_project_task(commands: &mut Commands, template: Templates, path: PathBuf) {
+    let task = IoTaskPool::get().spawn(async move { create_new_project(template, path).await });
     commands.spawn_empty().insert(CreateProjectTask(task));
 }
 

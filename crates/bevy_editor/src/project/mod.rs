@@ -11,23 +11,32 @@ pub mod templates;
 /// Basic information about a project.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProjectInfo {
-    /// The name of the project.
-    pub name: String,
     /// The path to the root of the project.
     pub path: PathBuf,
     /// The last time the project was opened.
     pub last_opened: SystemTime,
 }
 
+impl PartialEq for ProjectInfo {
+    fn eq(&self, other: &Self) -> bool {
+        self.path == other.path
+    }
+}
+
+impl ProjectInfo {
+    /// Get the name of the project.
+    pub fn name(&self) -> Option<String> {
+        Some(self.path.file_name()?.to_str()?.to_string())
+    }
+}
+
 /// Create a new project with the given name and path.
 /// Copy the blank project template from the local templates folder
 pub async fn create_new_project(
     template: Templates,
-    name: String,
     path: PathBuf,
 ) -> std::io::Result<ProjectInfo> {
     let info = ProjectInfo {
-        name,
         path,
         last_opened: SystemTime::now(),
     };
@@ -65,12 +74,6 @@ pub fn update_project_info() {
         None => {
             // Create new info
             let project = ProjectInfo {
-                name: current_dir
-                    .file_name()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .to_string(),
                 path: current_dir.clone(),
                 last_opened: SystemTime::now(),
             };
@@ -151,6 +154,6 @@ pub fn run_project(project: &ProjectInfo) -> std::io::Result<()> {
             )
         })?;
 
-    info!("Project '{}' started successfully", project.name);
+    info!("Project started successfully");
     Ok(())
 }

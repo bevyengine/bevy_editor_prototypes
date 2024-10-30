@@ -3,6 +3,9 @@ name = "bevy_editor_launcher"
 version = "0.1.0"
 edition = "2021"
 
+[lints]
+workspace = true
+
 [dependencies]
 bevy.workspace = true
 bevy_editor.workspace = true

@@ -93,7 +93,6 @@ pub fn setup(mut commands: Commands, theme: Res<Theme>, asset_server: Res<AssetS
                                     crate::spawn_create_new_project_task(
                                         &mut commands,
                                         Templates::Blank,
-                                        "New Project".to_string(),
                                         path,
                                     );
                                 }
@@ -141,7 +140,7 @@ pub(crate) fn spawn_project_node<'a>(
                 let projects = get_local_projects();
                 projects
                     .iter()
-                    .find(|p| p.name == text.0)
+                    .find(|p| p.name().unwrap() == text.0)
                     .unwrap()
                     .clone()
             };
@@ -201,7 +200,7 @@ pub(crate) fn spawn_project_node<'a>(
                 BorderRadius::new(Val::Px(0.0), Val::Px(0.0), Val::Px(15.0), Val::Px(15.0)),
             ))
             .with_child((
-                Text::new(project.name.clone()),
+                Text::new(project.name().unwrap().to_string()),
                 TextFont {
                     font: theme.text.font.clone(),
                     font_size: 16.0,

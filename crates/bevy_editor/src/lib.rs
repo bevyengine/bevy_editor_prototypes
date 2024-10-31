@@ -11,8 +11,12 @@
 //!     which transforms the user's application into an editor that runs their game.
 //! - Finally, it will be a standalone application that communicates with a running Bevy game via the Bevy Remote Protocol.
 
+use bevy::app::App as BevyApp;
 use bevy::prelude::*;
+// Re-export Bevy for project use
+pub use bevy;
 
+use bevy::window::WindowResolution;
 use bevy_context_menu::ContextMenuPlugin;
 use bevy_editor_styles::StylesPlugin;
 
@@ -24,28 +28,72 @@ use bevy_asset_browser::AssetBrowserPanePlugin;
 use crate::load_gltf::LoadGltfPlugin;
 
 mod load_gltf;
+pub mod project;
 mod ui;
 
-fn main() {
-    App::new()
-        .add_plugins((
-            DefaultPlugins.set(WindowPlugin {
-                primary_window: Some(Window {
-                    title: "Bevy Editor".to_string(),
-                    ..default()
-                }),
+/// The main application
+pub struct App {
+    window: Window,
+}
+
+impl Default for App {
+    fn default() -> Self {
+        App {
+            window: Window {
+                title: "Bevy Editor".to_string(),
                 ..default()
-            }),
-            ContextMenuPlugin,
-            StylesPlugin,
-            Viewport2dPanePlugin,
-            Viewport3dPanePlugin,
-            ui::EditorUIPlugin,
-            AssetBrowserPanePlugin,
-            LoadGltfPlugin,
-        ))
-        .add_systems(Startup, setup)
-        .run();
+            },
+        }
+    }
+}
+
+impl App {
+    /// create new instance of [`App`]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Set default window resolution/size
+    #[inline]
+    pub fn window_resolution(&mut self, resolution: WindowResolution) -> &mut Self {
+        self.window.resolution = resolution;
+        self
+    }
+
+    /// Set the window title
+    #[inline]
+    pub fn window_name(&mut self, name: &str) -> &mut Self {
+        self.window.title = name.to_string();
+        self
+    }
+
+    /// Run the application
+    pub fn run(&self) -> AppExit {
+        let args = std::env::args().collect::<Vec<String>>();
+        let editor_mode = !args.iter().any(|arg| arg == "-game");
+
+        let mut bevy_app = BevyApp::new();
+        bevy_app.add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(self.window.clone()),
+            ..default()
+        }));
+        if editor_mode {
+            project::update_project_info();
+
+            bevy_app
+                .add_plugins((
+                    ContextMenuPlugin,
+                    StylesPlugin,
+                    Viewport2dPanePlugin,
+                    Viewport3dPanePlugin,
+                    ui::EditorUIPlugin,
+                    AssetBrowserPanePlugin,
+                    LoadGltfPlugin,
+                ))
+                .add_systems(Startup, setup);
+        }
+        bevy_app.run()
+    }
 }
 
 fn setup(

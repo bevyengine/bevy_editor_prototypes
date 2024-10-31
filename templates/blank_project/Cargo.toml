@@ -1,0 +1,7 @@
+[package]
+name = "blank_project"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+bevy_editor = { git = "https://github.com/bevyengine/bevy_editor_prototypes.git" }

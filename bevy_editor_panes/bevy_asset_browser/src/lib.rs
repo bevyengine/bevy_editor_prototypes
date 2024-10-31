@@ -110,6 +110,10 @@ pub struct DirectoryLastModifiedTime(pub SystemTime);
 #[derive(Component)]
 pub struct AssetBrowserNode;
 
+/// Tag for all the asset browser scroll boxes
+#[derive(Component)]
+struct ContentBrowserScrollBox;
+
 /// Spawn [`AssetBrowserNode`] once the pane is created
 #[allow(clippy::too_many_arguments)]
 pub fn on_pane_creation(
@@ -179,7 +183,8 @@ pub fn on_pane_creation(
                                 &mut asset_sources_builder,
                             );
                         }),
-                    );
+                    )
+                    .insert(ContentBrowserScrollBox);
                 });
         });
 }

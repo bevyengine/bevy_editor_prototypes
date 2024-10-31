@@ -14,8 +14,7 @@ const SCROLL_LINE_SIZE_VALUE: f32 = 20.0;
 
 impl Plugin for ScrollBoxPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, on_scroll)
-            .add_systems(Update, update_scroll_handles);
+        app.add_systems(Update, (on_scroll, update_scroll_box, update_scroll_bars));
     }
 }
 
@@ -25,6 +24,13 @@ impl Plugin for ScrollBoxPlugin {
 pub struct ScrollBox {
     position: ScrollPosition,
     overflow: Overflow,
+}
+
+impl ScrollBox {
+    /// Reset the scroll position to 0
+    pub fn scroll_to_top(&mut self) {
+        self.position = ScrollPosition::default();
+    }
 }
 
 /// Represents the content within a [`ScrollBox`].
@@ -218,7 +224,7 @@ fn spawn_scroll_bar<'a>(
 fn on_scroll(
     mut mouse_wheel_events: EventReader<MouseWheel>,
     mut query_scrollbox: Query<(&RelativeCursorPosition, Entity, &mut ScrollBox, &Children)>,
-    mut query_scrollbox_content: Query<(&mut Node, &ComputedNode), With<ScrollBoxContent>>,
+    query_scrollbox_content: Query<&ComputedNode, With<ScrollBoxContent>>,
     query_computed_node: Query<&ComputedNode>,
     keys: Res<ButtonInput<KeyCode>>,
 ) {
@@ -237,24 +243,20 @@ fn on_scroll(
                 MouseScrollUnit::Pixel => mouse_wheel_event.y,
             };
 
-            let (mut content, content_computed) = query_scrollbox_content
-                .get_mut(children[0])
-                .expect("Scrollbox children 0 should be a ScrollBoxContent");
-            let content_sizes = content_computed.size();
+            let content_sizes = query_scrollbox_content
+                .get(children[0])
+                .expect("Scrollbox children 0 should be a ScrollBoxContent")
+                .size();
             let scrollbox_sizes = query_computed_node.get(scrollbox_entity).unwrap().size();
 
-            let is_shift_pressed =
-                keys.pressed(KeyCode::ShiftLeft) || keys.pressed(KeyCode::ShiftRight);
-            if is_shift_pressed {
-                let max_scroll = (content_sizes.x - scrollbox_sizes.x).max(0.);
-                scrollbox.position.offset_x += scroll_delta;
-                scrollbox.position.offset_x = scrollbox.position.offset_x.clamp(-max_scroll, 0.);
-                content.left = Val::Px(scrollbox.position.offset_x);
+            if keys.pressed(KeyCode::ShiftLeft) || keys.pressed(KeyCode::ShiftRight) {
+                let max_scroll = (content_sizes.x - scrollbox_sizes.x).max(0.0);
+                scrollbox.position.offset_x =
+                    (scrollbox.position.offset_x + scroll_delta).clamp(-max_scroll, 0.0);
             } else {
                 let max_scroll = (content_sizes.y - scrollbox_sizes.y).max(0.);
-                scrollbox.position.offset_y += scroll_delta;
-                scrollbox.position.offset_y = scrollbox.position.offset_y.clamp(-max_scroll, 0.);
-                content.top = Val::Px(scrollbox.position.offset_y);
+                scrollbox.position.offset_y =
+                    (scrollbox.position.offset_y + scroll_delta).clamp(-max_scroll, 0.0);
             }
 
             return; // We only want to scroll 1 ScrollBox
@@ -262,12 +264,43 @@ fn on_scroll(
     }
 }
 
-fn update_scroll_handles(
-    query_scrollboxes: Query<(&ScrollBox, &ComputedNode, &Children), With<ScrollBox>>,
+fn update_scroll_box(
+    query_scrolllboxes: Query<(&ScrollBox, &Children), Changed<ScrollBox>>,
+    mut query_node: Query<&mut Node>,
+) {
+    for (scrollbox, children) in query_scrolllboxes.iter() {
+        if scrollbox.overflow.y == OverflowAxis::Scroll {
+            let scroll_content = children
+                .first()
+                .expect("Scrollbox children 0 should be a ScrollBoxContent");
+            let mut content_node = query_node.get_mut(*scroll_content).unwrap();
+            content_node.top = Val::Px(scrollbox.position.offset_y);
+        }
+
+        if scrollbox.overflow.x == OverflowAxis::Scroll {
+            let scroll_content = children
+                .first()
+                .expect("Scrollbox children 0 should be a ScrollBoxContent");
+            let mut content_node = query_node.get_mut(*scroll_content).unwrap();
+            content_node.left = Val::Px(scrollbox.position.offset_x);
+        }
+    }
+}
+
+/// Recalacule the scroll bar handle position and size
+fn update_scroll_bars(
+    query_scrollboxes: Query<
+        (&ScrollBox, &ComputedNode, &Children),
+        (
+            With<ScrollBox>,
+            Or<(Changed<ComputedNode>, Changed<ScrollBox>)>,
+        ),
+    >,
     query_scrollbox_content: Query<&ComputedNode, With<ScrollBoxContent>>,
     query_children: Query<&Children>,
     mut query_node: Query<&mut Node>,
 ) {
+    let mut i = 0;
     for (scrollbox, scrollbox_computed, scrollbox_children) in query_scrollboxes.iter() {
         let content_children = query_scrollbox_content
             .get(scrollbox_children[0])
@@ -280,14 +313,19 @@ fn update_scroll_handles(
 
             let content_height = content_children.size().y;
             let scrollbox_height = scrollbox_computed.size().y;
-            if content_height == 0.0 {
-                continue;
-            }
+            let (handle_height, handle_pos) = if content_height == 0.0 {
+                (100.0, 0.0)
+            } else {
+                let height = (scrollbox_height / content_height * 100.0).clamp(5.0, 100.0);
+                let pos = (-scrollbox.position.offset_y / content_height * 100.0).clamp(0.0, 100.0);
+                (height, pos)
+            };
 
-            let handle_height = (scrollbox_height / content_height * 100.0).clamp(5.0, 100.0);
-            let handle_position =
-                (-scrollbox.position.offset_y / content_height * 100.0).clamp(0.0, 100.0);
-
+            println!(
+                "UPDATE {}: {}/{} = {}",
+                i, scrollbox_height, content_height, handle_height
+            );
+            i += 1;
             {
                 let mut scrollbar_node = query_node.get_mut(scrollbox_children[1]).unwrap();
                 if handle_height == 100.0 {
@@ -302,7 +340,7 @@ fn update_scroll_handles(
                     .get_mut(scrollbar_children[0])
                     .expect("ScrollBar should have 1 child (ScrollBarHandle)");
                 handle_node.height = Val::Percent(handle_height);
-                handle_node.top = Val::Percent(handle_position);
+                handle_node.top = Val::Percent(handle_pos);
             }
         }
 
@@ -321,13 +359,13 @@ fn update_scroll_handles(
 
             let content_width = content_children.size().x;
             let scrollbox_width = scrollbox_computed.size().x;
-            if content_width == 0.0 {
-                continue;
-            }
-
-            let handle_width = (scrollbox_width / content_width * 100.0).clamp(5.0, 100.0);
-            let handle_position =
-                (-scrollbox.position.offset_x / content_width * 100.0).clamp(0.0, 100.0);
+            let (handle_width, handle_pos) = if content_width == 0.0 {
+                (100.0, 0.0)
+            } else {
+                let width = (scrollbox_width / content_width * 100.0).clamp(5.0, 100.0);
+                let pos = (-scrollbox.position.offset_x / content_width * 100.0).clamp(0.0, 100.0);
+                (width, pos)
+            };
 
             {
                 let mut scrollbar_node = query_node.get_mut(scrollbox_children[1]).unwrap();
@@ -343,7 +381,7 @@ fn update_scroll_handles(
                     .get_mut(scrollbar_children[0])
                     .expect("ScrollBar should have 1 child (ScrollBarHandle)");
                 handle_node.width = Val::Percent(handle_width);
-                handle_node.left = Val::Percent(handle_position);
+                handle_node.left = Val::Percent(handle_pos);
             }
         }
     }

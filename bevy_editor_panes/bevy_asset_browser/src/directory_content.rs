@@ -114,6 +114,7 @@ pub(crate) fn run_if_content_as_changed(directory_content: Res<DirectoryContent>
 }
 
 /// Refresh the UI with the content of the current [`AssetBrowserLocation`]
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn refresh_ui(
     mut commands: Commands,
     content_list_query: Query<(Entity, Option<&Children>), With<ScrollBoxContent>>,

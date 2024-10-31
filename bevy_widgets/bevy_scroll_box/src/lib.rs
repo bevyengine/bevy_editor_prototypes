@@ -271,7 +271,7 @@ fn update_scroll_box(
     for (scrollbox, children) in query_scrolllboxes.iter() {
         if scrollbox.overflow.y == OverflowAxis::Scroll {
             let scroll_content = children
-                .get(0)
+                .first()
                 .expect("Scrollbox children 0 should be a ScrollBoxContent");
             let mut content_node = query_node.get_mut(*scroll_content).unwrap();
             content_node.top = Val::Px(scrollbox.position.offset_y);
@@ -279,7 +279,7 @@ fn update_scroll_box(
 
         if scrollbox.overflow.x == OverflowAxis::Scroll {
             let scroll_content = children
-                .get(0)
+                .first()
                 .expect("Scrollbox children 0 should be a ScrollBoxContent");
             let mut content_node = query_node.get_mut(*scroll_content).unwrap();
             content_node.left = Val::Px(scrollbox.position.offset_x);

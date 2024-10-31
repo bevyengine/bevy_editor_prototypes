@@ -10,9 +10,9 @@ use bevy::{
     winit::cursor::CursorIcon,
 };
 use bevy_editor_styles::Theme;
-use bevy_scroll_box::ScrollBoxContent;
+use bevy_scroll_box::{ScrollBox, ScrollBoxContent};
 
-use crate::{AssetBrowserLocation, AssetType};
+use crate::{AssetBrowserLocation, AssetType, ContentBrowserScrollBox};
 
 /// The root node for the directory content view
 #[derive(Component)]
@@ -122,6 +122,7 @@ pub(crate) fn refresh_ui(
     directory_content: Res<DirectoryContent>,
     location: Res<AssetBrowserLocation>,
     mut asset_sources_builder: ResMut<AssetSourceBuilders>,
+    mut query_scrollbox: Query<&mut ScrollBox, With<ContentBrowserScrollBox>>,
 ) {
     for (content_list_entity, content_list_children) in content_list_query.iter() {
         // Clear content list
@@ -143,6 +144,10 @@ pub(crate) fn refresh_ui(
             &location,
             &mut asset_sources_builder,
         );
+    }
+    // Reset scroll boxes
+    for mut scrollbox in query_scrollbox.iter_mut() {
+        scrollbox.scroll_to_top();
     }
 }
 

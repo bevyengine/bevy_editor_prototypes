@@ -16,7 +16,6 @@ use bevy::prelude::*;
 // Re-export Bevy for project use
 pub use bevy;
 
-use bevy::window::WindowResolution;
 use bevy_context_menu::ContextMenuPlugin;
 use bevy_editor_styles::StylesPlugin;
 
@@ -64,18 +63,13 @@ impl Plugin for EditorPlugin {
 
 /// Your game application
 /// This appllication allow your game to run, and the editor to be attached to it
+#[derive(Default)]
 pub struct App;
-
-impl Default for App {
-    fn default() -> Self {
-        App {}
-    }
-}
 
 impl App {
     /// create new instance of [`App`]
     pub fn new() -> Self {
-        Self::default()
+        Self
     }
 
     /// Run the application

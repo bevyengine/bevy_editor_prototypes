@@ -7,11 +7,13 @@ use atomicow::CowArc;
 use bevy::{
     asset::{
         embedded_asset,
-        io::{AssetSource, AssetSourceBuilders, AssetSourceId},
+        io::{file::FileAssetReader, AssetSource, AssetSourceBuilders, AssetSourceId},
+        AssetPlugin,
     },
     ecs::system::SystemId,
     prelude::*,
 };
+use bevy_context_menu::{ContextMenu, ContextMenuOption};
 use bevy_editor_styles::Theme;
 use bevy_pane_layout::{PaneContentNode, PaneRegistry};
 use bevy_scroll_box::{spawn_scroll_box, ScrollBoxPlugin};
@@ -36,7 +38,23 @@ impl Plugin for AssetBrowserPanePlugin {
                 commands.entity(pane_root).insert(AssetBrowserNode);
             });
 
+        // Fetch the AssetPlugin file path, this is used to create assets at the correct location
+        let default_source_absolute_file_path = {
+            let asset_plugins: Vec<&AssetPlugin> = app.get_added_plugins();
+            let asset_plugin_file_path = match asset_plugins.first() {
+                Some(plugin) => plugin.file_path.clone(),
+                None => {
+                    app.add_plugins(AssetPlugin::default());
+                    AssetPlugin::default().file_path
+                }
+            };
+            let mut absolute_path = FileAssetReader::get_base_path();
+            absolute_path.push(asset_plugin_file_path);
+            absolute_path
+        };
+
         app.add_plugins(ScrollBoxPlugin)
+            .insert_resource(DefaultSourceFilePath(default_source_absolute_file_path))
             .insert_resource(AssetBrowserLocation::default())
             .insert_resource(directory_content::DirectoryContent::default())
             .init_resource::<AssetBrowserOneShotSystems>()
@@ -56,6 +74,9 @@ impl Plugin for AssetBrowserPanePlugin {
             );
     }
 }
+
+#[derive(Resource)]
+struct DefaultSourceFilePath(pub PathBuf);
 
 /// All the asset browser one shot systems
 pub enum OneShotSystem {
@@ -174,6 +195,13 @@ pub fn on_pane_creation(
                         &theme,
                         Overflow::scroll_y(),
                         Some(|content_list_ec: &mut EntityCommands| {
+                            content_list_ec.insert(ContextMenu::new([ContextMenuOption::new(
+                                "Create Folder",
+                                |mut commands, _entity| {
+                                    commands
+                                        .run_system_cached(directory_content::create_new_folder);
+                                },
+                            )]));
                             directory_content::spawn_content_list_ui(
                                 content_list_ec,
                                 &theme,

@@ -90,6 +90,8 @@ pub fn spawn_scroll_box<'a>(
                 grid_column: GridPlacement::start(1),
                 grid_row: GridPlacement::start(1),
                 position_type: PositionType::Absolute,
+                min_width: Val::Percent(100.0),
+                min_height: Val::Percent(100.0),
                 flex_wrap: if direction.x != OverflowAxis::Scroll {
                     FlexWrap::Wrap
                 } else {

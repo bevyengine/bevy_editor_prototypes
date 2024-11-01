@@ -1,5 +1,7 @@
+use std::path::PathBuf;
+
 use bevy::{
-    asset::io::AssetSourceBuilders,
+    asset::io::{file::FileAssetReader, AssetSourceBuilders, AssetSourceId},
     prelude::*,
     tasks::{
         block_on,
@@ -12,7 +14,7 @@ use bevy::{
 use bevy_editor_styles::Theme;
 use bevy_scroll_box::{ScrollBox, ScrollBoxContent};
 
-use crate::{AssetBrowserLocation, AssetType, ContentBrowserScrollBox};
+use crate::{AssetBrowserLocation, AssetType, ContentBrowserScrollBox, DefaultSourceFilePath};
 
 /// The root node for the directory content view
 #[derive(Component)]
@@ -106,6 +108,46 @@ pub fn fetch_directory_content(
     commands
         .spawn_empty()
         .insert(FetchDirectoryContentTask(task));
+}
+
+pub(crate) fn create_new_folder(
+    mut commands: Commands,
+    default_source_file_path: Res<DefaultSourceFilePath>,
+    location: Res<AssetBrowserLocation>,
+    directory_content: Res<DirectoryContent>,
+) {
+    if location.source_id.is_none() || location.source_id != Some(AssetSourceId::Default) {
+        error!("Cannot create folder: Invalid source id, make sure your inside the Default source");
+        return;
+    }
+    let mut path = default_source_file_path.0.clone();
+    path.push(location.path.as_path());
+    path.push("New Folder");
+    // increment name until it's unique
+    let mut index = 0;
+    while path.exists() {
+        // increment name and rename last part of the path
+        index += 1;
+        path.pop();
+        path.push(format!("New Folder {}", index));
+    }
+    match std::fs::create_dir_all(path.as_path()) {
+        Ok(_) => {
+            let mut updated_content = directory_content.0.clone();
+            updated_content.push(AssetEntry {
+                name: path
+                    .components()
+                    .last()
+                    .unwrap()
+                    .as_os_str()
+                    .to_string_lossy()
+                    .to_string(),
+                asset_type: AssetType::Directory,
+            });
+            commands.insert_resource(DirectoryContent(updated_content));
+        }
+        Err(e) => eprintln!("Failed to create directory: {}", e),
+    }
 }
 
 /// Check if the [`DirectoryContent`] has changed, which relate to the content of the current [`AssetBrowserLocation`]

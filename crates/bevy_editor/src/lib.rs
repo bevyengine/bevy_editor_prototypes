@@ -16,7 +16,6 @@ use bevy::prelude::*;
 // Re-export Bevy for project use
 pub use bevy;
 
-use bevy::window::WindowResolution;
 use bevy_context_menu::ContextMenuPlugin;
 use bevy_editor_styles::StylesPlugin;
 
@@ -31,40 +30,46 @@ mod load_gltf;
 pub mod project;
 mod ui;
 
-/// The main application
-pub struct App {
-    window: Window,
-}
+/// The plugin that handle the bare minimum to run the application
+pub struct RuntimePlugin;
 
-impl Default for App {
-    fn default() -> Self {
-        App {
-            window: Window {
-                title: "Bevy Editor".to_string(),
-                ..default()
-            },
-        }
+impl Plugin for RuntimePlugin {
+    fn build(&self, bevy_app: &mut BevyApp) {
+        bevy_app.add_plugins(DefaultPlugins);
     }
 }
+
+/// The plugin that attach your editor to the application
+pub struct EditorPlugin;
+
+impl Plugin for EditorPlugin {
+    fn build(&self, bevy_app: &mut BevyApp) {
+        // Update/register this project to the editor project list
+        project::update_project_info();
+
+        bevy_app
+            .add_plugins((
+                ContextMenuPlugin,
+                StylesPlugin,
+                Viewport2dPanePlugin,
+                Viewport3dPanePlugin,
+                ui::EditorUIPlugin,
+                AssetBrowserPanePlugin,
+                LoadGltfPlugin,
+            ))
+            .add_systems(Startup, dummy_setup);
+    }
+}
+
+/// Your game application
+/// This appllication allow your game to run, and the editor to be attached to it
+#[derive(Default)]
+pub struct App;
 
 impl App {
     /// create new instance of [`App`]
     pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Set default window resolution/size
-    #[inline]
-    pub fn window_resolution(&mut self, resolution: WindowResolution) -> &mut Self {
-        self.window.resolution = resolution;
-        self
-    }
-
-    /// Set the window title
-    #[inline]
-    pub fn window_name(&mut self, name: &str) -> &mut Self {
-        self.window.title = name.to_string();
-        self
+        Self
     }
 
     /// Run the application
@@ -73,30 +78,17 @@ impl App {
         let editor_mode = !args.iter().any(|arg| arg == "-game");
 
         let mut bevy_app = BevyApp::new();
-        bevy_app.add_plugins(DefaultPlugins.set(WindowPlugin {
-            primary_window: Some(self.window.clone()),
-            ..default()
-        }));
+        bevy_app.add_plugins(RuntimePlugin);
         if editor_mode {
-            project::update_project_info();
-
-            bevy_app
-                .add_plugins((
-                    ContextMenuPlugin,
-                    StylesPlugin,
-                    Viewport2dPanePlugin,
-                    Viewport3dPanePlugin,
-                    ui::EditorUIPlugin,
-                    AssetBrowserPanePlugin,
-                    LoadGltfPlugin,
-                ))
-                .add_systems(Startup, setup);
+            bevy_app.add_plugins(EditorPlugin);
         }
+
         bevy_app.run()
     }
 }
 
-fn setup(
+/// This is temporary, until we can load maps from the asset browser
+fn dummy_setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials_2d: ResMut<Assets<ColorMaterial>>,

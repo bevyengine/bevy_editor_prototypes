@@ -300,7 +300,6 @@ fn update_scroll_bars(
     query_children: Query<&Children>,
     mut query_node: Query<&mut Node>,
 ) {
-    let mut i = 0;
     for (scrollbox, scrollbox_computed, scrollbox_children) in query_scrollboxes.iter() {
         let content_children = query_scrollbox_content
             .get(scrollbox_children[0])
@@ -321,11 +320,6 @@ fn update_scroll_bars(
                 (height, pos)
             };
 
-            println!(
-                "UPDATE {}: {}/{} = {}",
-                i, scrollbox_height, content_height, handle_height
-            );
-            i += 1;
             {
                 let mut scrollbar_node = query_node.get_mut(scrollbox_children[1]).unwrap();
                 if handle_height == 100.0 {

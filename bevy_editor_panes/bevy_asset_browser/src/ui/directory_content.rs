@@ -1,8 +1,9 @@
-use bevy::prelude::*;
+use bevy::{asset::io::AssetSourceId, prelude::*};
+use bevy_context_menu::{ContextMenu, ContextMenuOption};
 use bevy_editor_styles::Theme;
 use bevy_scroll_box::{spawn_scroll_box, ScrollBox, ScrollBoxContent};
 
-use crate::{DirectoryContent, Entry};
+use crate::{io, AssetBrowserLocation, DefaultSourceFilePath, DirectoryContent, Entry};
 
 use crate::ui::nodes::{spawn_file_node, spawn_folder_node, spawn_source_node};
 
@@ -22,9 +23,17 @@ pub(crate) fn spawn_directory_content<'a>(
         .id();
     spawn_scroll_box(
         commands,
-        theme,
+        &theme,
         Overflow::scroll_y(),
         Some(|commands: &mut Commands, content_list: Entity| {
+            commands
+                .entity(content_list)
+                .insert(ContextMenu::new([ContextMenuOption::new(
+                    "Create Folder",
+                    |mut commands, _entity| {
+                        commands.run_system_cached(create_new_folder);
+                    },
+                )]));
             populate_directory_content(
                 commands,
                 content_list,
@@ -100,5 +109,27 @@ fn populate_directory_content(
                     .set_parent(parent_entity);
             }
         }
+    }
+}
+
+pub(crate) fn create_new_folder(
+    mut commands: Commands,
+    default_source_file_path: Res<DefaultSourceFilePath>,
+    location: Res<AssetBrowserLocation>,
+    directory_content: Res<DirectoryContent>,
+) {
+    if location.source_id.is_none() || location.source_id != Some(AssetSourceId::Default) {
+        error!("Cannot create folder: Invalid source id, make sure your inside the Default source");
+        return;
+    }
+    let mut path = default_source_file_path.0.clone();
+    path.push(location.path.as_path());
+    match io::create_new_folder(path) {
+        Ok(folder_name) => {
+            let mut updated_content = directory_content.0.clone();
+            updated_content.push(Entry::Folder(folder_name));
+            commands.insert_resource(DirectoryContent(updated_content));
+        }
+        Err(e) => eprintln!("Failed to create directory: {}", e),
     }
 }

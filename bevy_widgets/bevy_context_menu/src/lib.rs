@@ -12,15 +12,25 @@ pub struct ContextMenuPlugin;
 
 impl Plugin for ContextMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_observer(on_secondary_button_down_entity_with_context_menu);
+        app.add_observer(on_secondary_button_down_entity_with_context_menu)
+            .insert_resource(OpenedContextMenu(None));
     }
 }
+
+struct OpenedContextMenuInfo {
+    owner: Entity,
+    entity: Entity,
+}
+#[derive(Resource)]
+struct OpenedContextMenu(Option<OpenedContextMenuInfo>);
 
 fn on_secondary_button_down_entity_with_context_menu(
     trigger: Trigger<Pointer<Down>>,
     mut commands: Commands,
     query: Query<&ContextMenu>,
+    query_zindex: Query<&ZIndex>,
     theme: Res<Theme>,
+    mut opened_contex_menu: ResMut<OpenedContextMenu>,
 ) {
     let event = trigger.event();
     if event.button != PointerButton::Secondary {
@@ -32,6 +42,22 @@ fn on_secondary_button_down_entity_with_context_menu(
         return;
     };
 
+    match &opened_contex_menu.0 {
+        Some(opened_context_menu) => {
+            let owner_z_index = query_zindex
+                .get(opened_context_menu.owner)
+                .unwrap_or(&ZIndex(0));
+            let target_z_index = query_zindex.get(target).unwrap_or(&ZIndex(0));
+            if target_z_index.0 < owner_z_index.0 {
+                return;
+            }
+            commands
+                .entity(opened_context_menu.entity)
+                .despawn_recursive();
+        }
+        None => {}
+    }
+
     // Prevent all other entities from being picked by placing a node over the entire window.
     let root = commands
         .spawn((
@@ -42,12 +68,17 @@ fn on_secondary_button_down_entity_with_context_menu(
             },
             ZIndex(10),
         ))
-        .observe(|trigger: Trigger<Pointer<Down>>, mut commands: Commands| {
-            commands.entity(trigger.entity()).despawn_recursive();
-        })
+        .observe(
+            |trigger: Trigger<Pointer<Down>>,
+             mut commands: Commands,
+             mut opened_contex_menu: ResMut<OpenedContextMenu>| {
+                commands.entity(trigger.entity()).despawn_recursive();
+                *opened_contex_menu = OpenedContextMenu(None);
+            },
+        )
         .id();
 
-    spawn_context_menu(
+    let contex_menu_entity = spawn_context_menu(
         &mut commands,
         &theme,
         menu,
@@ -58,7 +89,13 @@ fn on_secondary_button_down_entity_with_context_menu(
         // Prevent the context menu root from despawning the context menu when clicking on the menu
         trigger.propagate(false);
     })
-    .set_parent(root);
+    .set_parent(root)
+    .id();
+
+    *opened_contex_menu = OpenedContextMenu(Some(OpenedContextMenuInfo {
+        owner: target,
+        entity: contex_menu_entity,
+    }));
 }
 
 /// Entities with this component will have a context menu.

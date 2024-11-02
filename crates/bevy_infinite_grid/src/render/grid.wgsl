@@ -95,17 +95,35 @@ fn fragment(in: VertexOutput) -> FragmentOutput {
     let rotation_matrix = grid_position.planar_rotation_matrix;
     let plane_coords = (grid_position.planar_rotation_matrix * planar_offset).xz;
 
+    // TODO Handle ray misses/NaNs
+
+    // To scale the grid, we need to know how far the camera is from the grid plane. The naive
+    // solution is to simply use the distance, however this breaks down when changing FOV or
+    // when using an orthographic projection.
+    //
+    // Instead, we want a solution that is related to the size of objects on screen.
+
+    // Cast a ray from the camera to the plane and get the point where the ray hits the plane.
     let point_a = raycast_plane(plane_origin, plane_normal, view.world_position, view.world_forward);
+
+    // Then we offset that hit one world-space unit in the direction of the camera's right.
     let point_b = point_a + view.world_right;
 
+    // Convert the points to view space
     let view_space_point_a = view.view_from_world * vec4(point_a, 1.);
     let view_space_point_b = view.view_from_world * vec4(point_b, 1.);
+    // Take the flat distance between the points in view space
     let view_space_distance = distance(view_space_point_a.xy, view_space_point_b.xy);
 
+    // Finally, we use the relationship that the scale of an object is inversely proportional to
+    // the distance from the camera. We can now do the reverse - compute a distance based on the
+    // size in the view. If we are very far from the plane, the two points will be very close
+    // in the view, if we are very close to the plane, the two objects will be very far apart
+    // in the view. This will work for any camera projection regardless of the camera's
+    // translational distance.
     let log10_scale = log10(max(grid_settings.scale, 1. / view_space_distance));
 
-    let minor_alpha_multiplier = 1. - fract(log10_scale);
-
+    // Floor the scaling to the nearest power of 10.
     let scaling = pow(10., floor(log10_scale));
 
     let view_space_pos = view.view_from_world * vec4(frag_pos_3d, 1.);
@@ -131,6 +149,7 @@ fn fragment(in: VertexOutput) -> FragmentOutput {
     let derivative2 = fwidth(coord * 0.1);
     let grid2 = abs(fract(coord * 0.1 - 0.5) - 0.5) / derivative2;
     let is_minor_line = step(1., min(grid2.x, grid2.y));
+    let minor_alpha_multiplier = 1. - fract(log10_scale);
 
     let grid_alpha = 1.0 - min(lne, 1.0);
     let base_grid_color = mix(grid_settings.major_line_col, grid_settings.minor_line_col * vec4(1., 1., 1., minor_alpha_multiplier), is_minor_line);

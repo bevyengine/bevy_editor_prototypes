@@ -52,3 +52,12 @@ pub fn on_pane_creation(
     )
     .set_parent(asset_browser);
 }
+
+pub(crate) const DEFAULT_SOURCE_ID_NAME: &str = "Default";
+
+pub(crate) fn source_id_to_string(source_id: &crate::AssetSourceId) -> String {
+    match source_id {
+        crate::AssetSourceId::Default => DEFAULT_SOURCE_ID_NAME.to_string(),
+        crate::AssetSourceId::Name(name) => name.to_string(),
+    }
+}

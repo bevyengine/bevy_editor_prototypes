@@ -1,7 +1,11 @@
-use bevy::{prelude::*, window::SystemCursorIcon, winit::cursor::CursorIcon};
+use bevy::{
+    asset::io::AssetSourceId, prelude::*, window::SystemCursorIcon, winit::cursor::CursorIcon,
+};
 use bevy_editor_styles::Theme;
 
 use crate::{io, AssetBrowserLocation};
+
+use super::source_id_to_string;
 
 /// Color of the path segment background when idle
 pub const PATH_SEGMENT_BACKGROUND_COLOR: Color = Color::srgb(0.2, 0.2, 0.2);
@@ -88,7 +92,7 @@ pub fn spawn_location_path_ui<'a>(
         let source_id = location.source_id.as_ref().unwrap();
         spawn_path_segment_ui(
             commands,
-            source_id.to_string(),
+            source_id_to_string(source_id),
             theme.as_ref(),
             LocationSegmentType::Source,
         )

@@ -9,7 +9,9 @@ use bevy::{
 };
 use bevy_editor_styles::Theme;
 
-use crate::{io, AssetBrowserLocation};
+use crate::{io, ui::source_id_to_string, AssetBrowserLocation};
+
+use super::DEFAULT_SOURCE_ID_NAME;
 
 pub(crate) fn spawn_source_node<'a>(
     commands: &'a mut Commands,
@@ -17,7 +19,6 @@ pub(crate) fn spawn_source_node<'a>(
     asset_server: &Res<AssetServer>,
     theme: &Res<Theme>,
 ) -> EntityCommands<'a> {
-    const DEFAULT_SOURCE_ID_NAME: &str = "Default";
     let base_node = spawn_base_node(commands, theme)
         .observe(
             move |trigger: Trigger<Pointer<Up>>,
@@ -62,11 +63,7 @@ pub(crate) fn spawn_source_node<'a>(
     // Source Name
     commands
         .spawn((
-            Text::new(match source_id {
-                AssetSourceId::Default => DEFAULT_SOURCE_ID_NAME.to_string(),
-                AssetSourceId::Name(CowArc::Static(name)) => name.to_string(),
-                _ => "Unknown".to_string(),
-            }),
+            Text::new(source_id_to_string(source_id)),
             TextFont {
                 font: theme.text.font.clone(),
                 font_size: 10.0,

@@ -42,20 +42,17 @@ fn on_secondary_button_down_entity_with_context_menu(
         return;
     };
 
-    match &opened_contex_menu.0 {
-        Some(opened_context_menu) => {
-            let owner_z_index = query_zindex
-                .get(opened_context_menu.owner)
-                .unwrap_or(&ZIndex(0));
-            let target_z_index = query_zindex.get(target).unwrap_or(&ZIndex(0));
-            if target_z_index.0 < owner_z_index.0 {
-                return;
-            }
-            commands
-                .entity(opened_context_menu.entity)
-                .despawn_recursive();
+    if let Some(opened_context_menu) = &opened_contex_menu.0 {
+        let owner_z_index = query_zindex
+            .get(opened_context_menu.owner)
+            .unwrap_or(&ZIndex(0));
+        let target_z_index = query_zindex.get(target).unwrap_or(&ZIndex(0));
+        if target_z_index.0 < owner_z_index.0 {
+            return;
         }
-        None => {}
+        commands
+            .entity(opened_context_menu.entity)
+            .despawn_recursive();
     }
 
     // Prevent all other entities from being picked by placing a node over the entire window.

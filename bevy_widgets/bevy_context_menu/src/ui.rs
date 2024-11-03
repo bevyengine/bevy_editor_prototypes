@@ -93,7 +93,7 @@ pub(crate) fn spawn_option<'a>(
                   mut commands: Commands,
                   parent_query: Query<&Parent>,
                   mut query: Query<&mut ContextMenu>,
-                  mut opened_contex_menu: ResMut<OpenedContextMenu>| {
+                  mut opened_context_menu: ResMut<OpenedContextMenu>| {
                 // Despawn the context menu when an option is selected
                 let root = parent_query
                     .iter_ancestors(trigger.entity())
@@ -101,7 +101,7 @@ pub(crate) fn spawn_option<'a>(
                     .unwrap();
                 commands.entity(root).despawn_recursive();
                 // Invalidate opened context menu
-                *opened_contex_menu = OpenedContextMenu(None);
+                *opened_context_menu = OpenedContextMenu(None);
 
                 // Run the option callback
                 let callback = &mut query.get_mut(target).unwrap().options[index].f;

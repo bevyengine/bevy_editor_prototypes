@@ -30,7 +30,7 @@ fn on_secondary_button_down_entity_with_context_menu(
     query: Query<&ContextMenu>,
     query_zindex: Query<&ZIndex>,
     theme: Res<Theme>,
-    mut opened_contex_menu: ResMut<OpenedContextMenu>,
+    mut opened_context_menu: ResMut<OpenedContextMenu>,
 ) {
     let event = trigger.event();
     if event.button != PointerButton::Secondary {
@@ -42,7 +42,7 @@ fn on_secondary_button_down_entity_with_context_menu(
         return;
     };
 
-    if let Some(opened_context_menu) = &opened_contex_menu.0 {
+    if let Some(opened_context_menu) = &opened_context_menu.0 {
         let owner_z_index = query_zindex
             .get(opened_context_menu.owner)
             .unwrap_or(&ZIndex(0));
@@ -68,14 +68,14 @@ fn on_secondary_button_down_entity_with_context_menu(
         .observe(
             |trigger: Trigger<Pointer<Down>>,
              mut commands: Commands,
-             mut opened_contex_menu: ResMut<OpenedContextMenu>| {
+             mut opened_context_menu: ResMut<OpenedContextMenu>| {
                 commands.entity(trigger.entity()).despawn_recursive();
-                *opened_contex_menu = OpenedContextMenu(None);
+                *opened_context_menu = OpenedContextMenu(None);
             },
         )
         .id();
 
-    let contex_menu_entity = spawn_context_menu(
+    let context_menu_entity = spawn_context_menu(
         &mut commands,
         &theme,
         menu,
@@ -89,9 +89,9 @@ fn on_secondary_button_down_entity_with_context_menu(
     .set_parent(root)
     .id();
 
-    *opened_contex_menu = OpenedContextMenu(Some(OpenedContextMenuInfo {
+    *opened_context_menu = OpenedContextMenu(Some(OpenedContextMenuInfo {
         owner: target,
-        entity: contex_menu_entity,
+        entity: context_menu_entity,
     }));
 }
 

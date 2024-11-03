@@ -79,7 +79,7 @@ impl Plugin for AssetBrowserPanePlugin {
 /// One entry of [`DirectoryContent`]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Entry {
-    /// Represent a [`BevyAssetSource`]
+    /// Represent an [`AssetSourceId`]
     Source(AssetSourceId<'static>),
     /// Represent a directory
     Folder(String),
@@ -119,8 +119,4 @@ impl Default for AssetBrowserLocation {
             path: PathBuf::from(""),
         }
     }
-}
-
-pub fn is_in_default_source(location: &Res<AssetBrowserLocation>) -> bool {
-    location.source_id == Some(AssetSourceId::Default)
 }

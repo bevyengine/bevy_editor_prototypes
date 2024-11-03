@@ -1,4 +1,4 @@
-//! this module encapsulate all the [`AssetBrowser`] IO operations
+//! this module encapsulate all the asset browser IO operations
 
 pub(crate) mod task;
 
@@ -30,13 +30,5 @@ pub fn create_new_folder(mut parent: PathBuf) -> std::io::Result<String> {
 /// Delete a folder and all its content
 pub fn delete_folder(path: PathBuf) -> std::io::Result<()> {
     std::fs::remove_dir_all(path)?;
-    Ok(())
-}
-
-pub fn rename(path: PathBuf, new_name: &str) -> std::io::Result<()> {
-    let parent = path.parent().unwrap();
-    let mut new_path = parent.to_path_buf();
-    new_path.push(new_name);
-    std::fs::rename(path, new_path)?;
     Ok(())
 }

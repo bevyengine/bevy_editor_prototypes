@@ -219,11 +219,11 @@ fn path_separator_ui(theme: &Theme) -> impl Bundle {
 /// All the types of segment the exist in the [`AssetBrowserLocation`] path
 #[derive(Component, Clone, Copy, PartialEq, Eq, Debug)]
 pub enum LocationSegmentType {
-    /// Root segement, is the segment representing the very first segment of the path
+    /// Root segment, is the segment representing the very first segment of the path
     /// It doesn't actually represent anything, instead it's just mean your nowhere
-    /// We use this to display all the [`bevy::asset::AssetSource`] available
+    /// We use this to display all the [`bevy::asset::io::AssetSource`] available
     Root,
-    /// A source segment, is a segment that represent one of the [`bevy::asset::AssetSource`] available
+    /// A source segment, is a segment that represent one of the [`bevy::asset::io::AssetSource`] available
     Source,
     /// A directory segment, is a segment that represent a directory relative to the source root
     Directory,

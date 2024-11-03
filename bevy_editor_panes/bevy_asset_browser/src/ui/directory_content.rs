@@ -3,9 +3,7 @@ use bevy_context_menu::{ContextMenu, ContextMenuOption};
 use bevy_editor_styles::Theme;
 use bevy_scroll_box::{spawn_scroll_box, ScrollBox, ScrollBoxContent};
 
-use crate::{
-    io, is_in_default_source, AssetBrowserLocation, DefaultSourceFilePath, DirectoryContent, Entry,
-};
+use crate::{io, AssetBrowserLocation, DefaultSourceFilePath, DirectoryContent, Entry};
 
 use crate::ui::nodes::{spawn_file_node, spawn_folder_node, spawn_source_node};
 
@@ -30,7 +28,7 @@ pub(crate) fn spawn_directory_content<'a>(
         .id();
     spawn_scroll_box(
         commands,
-        &theme,
+        theme,
         Overflow::scroll_y(),
         Some(|commands: &mut Commands, content_list: Entity| {
             commands
@@ -142,7 +140,7 @@ pub(crate) fn create_new_folder(
     location: Res<AssetBrowserLocation>,
     directory_content: Res<DirectoryContent>,
 ) {
-    if is_in_default_source(&location) {
+    if location.source_id == Some(AssetSourceId::Default) {
         panic!("Cannot create folder: Invalid source id, make sure your inside the Default source");
     }
     let mut path = default_source_file_path.0.clone();
@@ -166,7 +164,7 @@ pub(crate) fn delete_folder(
     location: Res<AssetBrowserLocation>,
     directory_content: Res<DirectoryContent>,
 ) {
-    if is_in_default_source(&location) {
+    if location.source_id == Some(AssetSourceId::Default) {
         panic!("Cannot delete folder: Invalid source id, make sure your inside the Default source");
     }
     let folder_children = query_children.get(*folder_entity).unwrap();

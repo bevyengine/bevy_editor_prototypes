@@ -10,7 +10,7 @@ use bevy::{
 use bevy_context_menu::{ContextMenu, ContextMenuOption};
 use bevy_editor_styles::Theme;
 
-use crate::{io, is_in_default_source, ui::source_id_to_string, AssetBrowserLocation};
+use crate::{io, ui::source_id_to_string, AssetBrowserLocation};
 
 use super::{directory_content::delete_folder, DEFAULT_SOURCE_ID_NAME};
 
@@ -108,7 +108,7 @@ pub(crate) fn spawn_folder_node<'a>(
                 commands.run_system_cached(io::task::fetch_directory_content);
             },
         );
-        if is_in_default_source(location) {
+        if location.source_id == Some(AssetSourceId::Default) {
             ec.insert(ContextMenu::new([
                 // ContextMenuOption::new("Rename", |mut commands, entity| {
                 //     commands.run_system_cached_with(rename_asset, entity);

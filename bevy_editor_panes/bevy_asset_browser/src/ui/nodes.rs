@@ -7,11 +7,12 @@ use bevy::{
     window::SystemCursorIcon,
     winit::cursor::CursorIcon,
 };
+use bevy_context_menu::{ContextMenu, ContextMenuOption};
 use bevy_editor_styles::Theme;
 
 use crate::{io, ui::source_id_to_string, AssetBrowserLocation};
 
-use super::DEFAULT_SOURCE_ID_NAME;
+use super::{directory_content::delete_folder, DEFAULT_SOURCE_ID_NAME};
 
 pub(crate) fn spawn_source_node<'a>(
     commands: &'a mut Commands,
@@ -83,6 +84,14 @@ pub(crate) fn spawn_folder_node<'a>(
     theme: &Res<Theme>,
 ) -> EntityCommands<'a> {
     let base_node = spawn_base_node(commands, theme)
+        .insert(ContextMenu::new([
+            // ContextMenuOption::new("Rename", |mut commands, entity| {
+            //     commands.run_system_cached_with(rename_asset, entity);
+            // }),
+            ContextMenuOption::new("Delete", |mut commands, entity| {
+                commands.run_system_cached_with(delete_folder, entity);
+            }),
+        ]))
         .observe(
             |trigger: Trigger<Pointer<Up>>,
              mut commands: Commands,
@@ -100,11 +109,6 @@ pub(crate) fn spawn_folder_node<'a>(
             },
         )
         .id();
-
-    // BackgroundColor(Color::WHITE),
-    // ContextMenu::new([ContextMenuOption::new("Rename", |mut commands, entity| {
-    //     commands.run_system_cached_with(rename_asset, entity);
-    // })]),
 
     // Icon
     commands

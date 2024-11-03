@@ -133,3 +133,38 @@ pub(crate) fn create_new_folder(
         Err(e) => eprintln!("Failed to create directory: {}", e),
     }
 }
+
+pub(crate) fn delete_folder(
+    folder_entity: In<Entity>,
+    query_children: Query<&Children>,
+    query_text: Query<&Text>,
+    mut commands: Commands,
+    default_source_file_path: Res<DefaultSourceFilePath>,
+    location: Res<AssetBrowserLocation>,
+    directory_content: Res<DirectoryContent>,
+) {
+    if location.source_id.is_none() || location.source_id != Some(AssetSourceId::Default) {
+        error!("Cannot delete folder: Invalid source id, make sure your inside the Default source");
+        return;
+    }
+    let folder_children = query_children.get(*folder_entity).unwrap();
+    let folder_name = query_text
+        .get(*folder_children.get(1).unwrap())
+        .unwrap()
+        .0
+        .clone();
+    let mut path = default_source_file_path.0.clone();
+    path.push(location.path.as_path());
+    path.push(folder_name.clone());
+    match io::delete_folder(path) {
+        Ok(_) => {
+            let mut updated_content = directory_content.0.clone();
+            updated_content.retain(|entry| match entry {
+                Entry::Folder(name) => name != &folder_name,
+                _ => true,
+            });
+            commands.insert_resource(DirectoryContent(updated_content));
+        }
+        Err(e) => eprintln!("Failed to delete directory: {}", e),
+    }
+}

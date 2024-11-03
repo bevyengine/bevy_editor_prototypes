@@ -49,6 +49,7 @@ pub fn on_pane_creation(
         &directory_content,
         &theme,
         &asset_server,
+        &location,
     )
     .set_parent(asset_browser);
 }

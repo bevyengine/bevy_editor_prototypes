@@ -3,7 +3,9 @@ use bevy_context_menu::{ContextMenu, ContextMenuOption};
 use bevy_editor_styles::Theme;
 use bevy_scroll_box::{spawn_scroll_box, ScrollBox, ScrollBoxContent};
 
-use crate::{io, AssetBrowserLocation, DefaultSourceFilePath, DirectoryContent, Entry};
+use crate::{
+    io, is_in_default_source, AssetBrowserLocation, DefaultSourceFilePath, DirectoryContent, Entry,
+};
 
 use crate::ui::nodes::{spawn_file_node, spawn_folder_node, spawn_source_node};
 
@@ -17,6 +19,7 @@ pub(crate) fn spawn_directory_content<'a>(
     directory_content: &Res<DirectoryContent>,
     theme: &Res<Theme>,
     asset_server: &Res<AssetServer>,
+    location: &Res<AssetBrowserLocation>,
 ) -> EntityCommands<'a> {
     let root = commands
         .spawn(Node {
@@ -38,6 +41,7 @@ pub(crate) fn spawn_directory_content<'a>(
                 content_list,
                 directory_content,
                 asset_server,
+                location,
                 theme,
             );
         }),
@@ -75,6 +79,7 @@ pub(crate) fn refresh_ui(
     content_list_query: Query<(Entity, Option<&Children>), With<ScrollBoxContent>>,
     theme: Res<Theme>,
     asset_server: Res<AssetServer>,
+    location: Res<AssetBrowserLocation>,
     directory_content: Res<DirectoryContent>,
     mut query_scrollbox: Query<&mut ScrollBox, With<AssetBrowserContent>>,
 ) {
@@ -85,6 +90,7 @@ pub(crate) fn refresh_ui(
             content_list_entity,
             &directory_content,
             &asset_server,
+            &location,
             &theme,
         );
     }
@@ -110,6 +116,7 @@ fn populate_directory_content(
     parent_entity: Entity,
     directory_content: &Res<DirectoryContent>,
     asset_server: &Res<AssetServer>,
+    location: &Res<AssetBrowserLocation>,
     theme: &Res<Theme>,
 ) {
     for entry in &directory_content.0 {
@@ -118,7 +125,7 @@ fn populate_directory_content(
                 spawn_source_node(commands, id, asset_server, theme).set_parent(parent_entity);
             }
             Entry::Folder(name) => {
-                spawn_folder_node(commands, name.clone(), asset_server, theme)
+                spawn_folder_node(commands, name.clone(), asset_server, location, theme)
                     .set_parent(parent_entity);
             }
             Entry::File(name) => {
@@ -135,7 +142,7 @@ pub(crate) fn create_new_folder(
     location: Res<AssetBrowserLocation>,
     directory_content: Res<DirectoryContent>,
 ) {
-    if location.source_id.is_none() || location.source_id != Some(AssetSourceId::Default) {
+    if is_in_default_source(&location) {
         panic!("Cannot create folder: Invalid source id, make sure your inside the Default source");
     }
     let mut path = default_source_file_path.0.clone();
@@ -159,7 +166,7 @@ pub(crate) fn delete_folder(
     location: Res<AssetBrowserLocation>,
     directory_content: Res<DirectoryContent>,
 ) {
-    if location.source_id.is_none() || location.source_id != Some(AssetSourceId::Default) {
+    if is_in_default_source(&location) {
         panic!("Cannot delete folder: Invalid source id, make sure your inside the Default source");
     }
     let folder_children = query_children.get(*folder_entity).unwrap();

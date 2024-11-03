@@ -1,6 +1,4 @@
-use bevy::{
-    asset::io::AssetSourceId, prelude::*, window::SystemCursorIcon, winit::cursor::CursorIcon,
-};
+use bevy::{prelude::*, window::SystemCursorIcon, winit::cursor::CursorIcon};
 use bevy_editor_styles::Theme;
 
 use crate::{io, AssetBrowserLocation};

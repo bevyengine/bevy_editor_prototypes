@@ -10,7 +10,7 @@ use bevy::{
 use bevy_context_menu::{ContextMenu, ContextMenuOption};
 use bevy_editor_styles::Theme;
 
-use crate::{io, ui::source_id_to_string, AssetBrowserLocation};
+use crate::{io, is_in_default_source, ui::source_id_to_string, AssetBrowserLocation};
 
 use super::{directory_content::delete_folder, DEFAULT_SOURCE_ID_NAME};
 
@@ -28,6 +28,9 @@ pub(crate) fn spawn_source_node<'a>(
                   mut asset_source_builder: ResMut<AssetSourceBuilders>,
                   query_text: Query<&Text>,
                   query_children: Query<&Children>| {
+                if trigger.event().button != PointerButton::Primary {
+                    return;
+                }
                 let button = trigger.entity();
                 let button_children = query_children.get(button).unwrap();
                 let source_name = &query_text
@@ -81,23 +84,20 @@ pub(crate) fn spawn_folder_node<'a>(
     commands: &'a mut Commands,
     folder_name: String,
     asset_server: &Res<AssetServer>,
+    location: &Res<AssetBrowserLocation>,
     theme: &Res<Theme>,
 ) -> EntityCommands<'a> {
-    let base_node = spawn_base_node(commands, theme)
-        .insert(ContextMenu::new([
-            // ContextMenuOption::new("Rename", |mut commands, entity| {
-            //     commands.run_system_cached_with(rename_asset, entity);
-            // }),
-            ContextMenuOption::new("Delete", |mut commands, entity| {
-                commands.run_system_cached_with(delete_folder, entity);
-            }),
-        ]))
-        .observe(
+    let base_node = {
+        let mut ec = spawn_base_node(commands, theme);
+        ec.observe(
             |trigger: Trigger<Pointer<Up>>,
              mut commands: Commands,
              mut location: ResMut<AssetBrowserLocation>,
              query_text: Query<&Text>,
              query_children: Query<&Children>| {
+                if trigger.event().button != PointerButton::Primary {
+                    return;
+                }
                 let button = trigger.entity();
                 let button_children = query_children.get(button).unwrap();
                 let folder_name = &query_text
@@ -107,8 +107,19 @@ pub(crate) fn spawn_folder_node<'a>(
                 location.path.push(folder_name.clone());
                 commands.run_system_cached(io::task::fetch_directory_content);
             },
-        )
-        .id();
+        );
+        if is_in_default_source(location) {
+            ec.insert(ContextMenu::new([
+                // ContextMenuOption::new("Rename", |mut commands, entity| {
+                //     commands.run_system_cached_with(rename_asset, entity);
+                // }),
+                ContextMenuOption::new("Delete", |mut commands, entity| {
+                    commands.run_system_cached_with(delete_folder, entity);
+                }),
+            ]));
+        }
+        ec.id()
+    };
 
     // Icon
     commands

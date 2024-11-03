@@ -120,3 +120,7 @@ impl Default for AssetBrowserLocation {
         }
     }
 }
+
+pub fn is_in_default_source(location: &Res<AssetBrowserLocation>) -> bool {
+    location.source_id == Some(AssetSourceId::Default)
+}

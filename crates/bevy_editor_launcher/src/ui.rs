@@ -27,7 +27,7 @@ pub fn setup(
         },
     ));
 
-    let ui_root = commands
+    let root = commands
         .spawn((
             Node {
                 width: Val::Percent(100.0),
@@ -40,74 +40,74 @@ pub fn setup(
         ))
         .id();
 
-    commands
+    let main = commands
         .spawn(Node {
             width: Val::Percent(100.0),
             flex_grow: 1.0,
             ..default()
         })
-        .set_parent(ui_root)
-        .with_children(|parent| {
-            spawn_scroll_box(
-                parent,
-                &theme,
-                Overflow::scroll_y(),
-                Some(|content_ec: &mut EntityCommands| {
-                    content_ec.insert(ProjectList);
-                    content_ec.with_children(|parent| {
-                        for project in project_list.0.iter() {
-                            spawn_project_node(parent, &theme, &asset_server, project);
-                        }
-                        parent
-                            .spawn((
-                                Node {
-                                    display: Display::Flex,
-                                    flex_direction: FlexDirection::Column,
-                                    margin: UiRect::axes(
-                                        Val::Px((250.0 - 100.0) / 2.0),
-                                        Val::Px((200.0 - 100.0) / 2.0),
-                                    ),
-                                    width: Val::Px(100.0),
-                                    height: Val::Px(100.0),
-                                    align_items: AlignItems::Center,
-                                    justify_content: JustifyContent::Center,
-                                    align_self: AlignSelf::Center,
-                                    justify_self: JustifySelf::Center,
-                                    border: UiRect::all(Val::Px(5.0)),
-                                    ..default()
-                                },
-                                BorderRadius::new(
-                                    Val::Px(20.0),
-                                    Val::Px(20.0),
-                                    Val::Px(20.0),
-                                    Val::Px(20.0),
-                                ),
-                                BorderColor(theme.button.background_color.0),
-                            ))
-                            .with_child((
-                                Node {
-                                    width: Val::Px(30.0),
-                                    height: Val::Px(30.0),
-                                    ..default()
-                                },
-                                UiImage::new(asset_server.load("plus.png")),
-                            ))
-                            .observe(|_trigger: Trigger<Pointer<Up>>, mut commands: Commands| {
-                                let new_project_path = rfd::FileDialog::new().pick_folder();
-                                if let Some(path) = new_project_path {
-                                    crate::spawn_create_new_project_task(
-                                        &mut commands,
-                                        Templates::Blank,
-                                        path,
-                                    );
-                                }
-                            });
-                    });
-                }),
-            );
-        });
+        .set_parent(root)
+        .id();
 
-    let _footer = commands.spawn(FooterBarNode).set_parent(ui_root).id();
+    spawn_scroll_box(
+        &mut commands,
+        &theme,
+        Overflow::scroll_y(),
+        Some(|commands: &mut Commands, content_box: Entity| {
+            let mut content_ec = commands.entity(content_box);
+            content_ec.insert(ProjectList);
+            content_ec.with_children(|parent| {
+                for project in project_list.0.iter() {
+                    spawn_project_node(parent, &theme, &asset_server, project);
+                }
+                parent
+                    .spawn((
+                        Node {
+                            display: Display::Flex,
+                            flex_direction: FlexDirection::Column,
+                            margin: UiRect::axes(
+                                Val::Px((250.0 - 100.0) / 2.0),
+                                Val::Px((200.0 - 100.0) / 2.0),
+                            ),
+                            width: Val::Px(100.0),
+                            height: Val::Px(100.0),
+                            align_items: AlignItems::Center,
+                            justify_content: JustifyContent::Center,
+                            border: UiRect::all(Val::Px(5.0)),
+                            ..default()
+                        },
+                        BorderRadius::new(
+                            Val::Px(20.0),
+                            Val::Px(20.0),
+                            Val::Px(20.0),
+                            Val::Px(20.0),
+                        ),
+                        BorderColor(theme.button.background_color.0),
+                    ))
+                    .with_child((
+                        Node {
+                            width: Val::Px(30.0),
+                            height: Val::Px(30.0),
+                            ..default()
+                        },
+                        UiImage::new(asset_server.load("plus.png")),
+                    ))
+                    .observe(|_trigger: Trigger<Pointer<Up>>, mut commands: Commands| {
+                        let new_project_path = rfd::FileDialog::new().pick_folder();
+                        if let Some(path) = new_project_path {
+                            crate::spawn_create_new_project_task(
+                                &mut commands,
+                                Templates::Blank,
+                                path,
+                            );
+                        }
+                    });
+            });
+        }),
+    )
+    .set_parent(main);
+
+    let _footer = commands.spawn(FooterBarNode).set_parent(root).id();
 }
 
 pub(crate) fn spawn_project_node<'a>(

@@ -54,7 +54,7 @@ pub(crate) fn refresh_context_menu(
     query: Query<Entity, With<AssetBrowserContent>>,
 ) {
     for entity in query.iter() {
-        if location.source_id.is_none() || location.source_id != Some(AssetSourceId::Default) {
+        if location.source_id != Some(AssetSourceId::Default) {
             commands.entity(entity).remove::<ContextMenu>();
         } else {
             commands.entity(entity).insert(asset_browser_context_menu());
@@ -140,7 +140,7 @@ pub(crate) fn create_new_folder(
     location: Res<AssetBrowserLocation>,
     directory_content: Res<DirectoryContent>,
 ) {
-    if location.source_id == Some(AssetSourceId::Default) {
+    if location.source_id != Some(AssetSourceId::Default) {
         panic!("Cannot create folder: Invalid source id, make sure your inside the Default source");
     }
     let mut path = default_source_file_path.0.clone();
@@ -164,7 +164,7 @@ pub(crate) fn delete_folder(
     location: Res<AssetBrowserLocation>,
     directory_content: Res<DirectoryContent>,
 ) {
-    if location.source_id == Some(AssetSourceId::Default) {
+    if location.source_id != Some(AssetSourceId::Default) {
         panic!("Cannot delete folder: Invalid source id, make sure your inside the Default source");
     }
     let folder_children = query_children.get(*folder_entity).unwrap();

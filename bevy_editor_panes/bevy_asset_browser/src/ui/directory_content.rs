@@ -7,6 +7,10 @@ use crate::{io, AssetBrowserLocation, DefaultSourceFilePath, DirectoryContent, E
 
 use crate::ui::nodes::{spawn_file_node, spawn_folder_node, spawn_source_node};
 
+/// Tag for all the asset browser scroll boxes
+#[derive(Component)]
+pub(crate) struct AssetBrowserContent;
+
 /// Spawn the directory content UI
 pub(crate) fn spawn_directory_content<'a>(
     commands: &'a mut Commands,
@@ -28,12 +32,7 @@ pub(crate) fn spawn_directory_content<'a>(
         Some(|commands: &mut Commands, content_list: Entity| {
             commands
                 .entity(content_list)
-                .insert(ContextMenu::new([ContextMenuOption::new(
-                    "Create Folder",
-                    |mut commands, _entity| {
-                        commands.run_system_cached(create_new_folder);
-                    },
-                )]));
+                .insert((AssetBrowserContent, asset_browser_context_menu()));
             populate_directory_content(
                 commands,
                 content_list,
@@ -43,14 +42,32 @@ pub(crate) fn spawn_directory_content<'a>(
             );
         }),
     )
-    .insert(ContentBrowserScrollBox)
     .set_parent(root);
     commands.entity(root)
 }
 
-/// Tag for all the asset browser scroll boxes
-#[derive(Component)]
-pub(crate) struct ContentBrowserScrollBox;
+pub(crate) fn refresh_context_menu(
+    mut commands: Commands,
+    location: Res<AssetBrowserLocation>,
+    query: Query<Entity, With<AssetBrowserContent>>,
+) {
+    for entity in query.iter() {
+        if location.source_id.is_none() || location.source_id != Some(AssetSourceId::Default) {
+            commands.entity(entity).remove::<ContextMenu>();
+        } else {
+            commands.entity(entity).insert(asset_browser_context_menu());
+        }
+    }
+}
+
+fn asset_browser_context_menu() -> ContextMenu {
+    ContextMenu::new([ContextMenuOption::new(
+        "Create Folder",
+        |mut commands, _entity| {
+            commands.run_system_cached(create_new_folder);
+        },
+    )])
+}
 
 /// Refresh the UI with the content of the current [`AssetBrowserLocation`]
 pub(crate) fn refresh_ui(
@@ -59,7 +76,7 @@ pub(crate) fn refresh_ui(
     theme: Res<Theme>,
     asset_server: Res<AssetServer>,
     directory_content: Res<DirectoryContent>,
-    mut query_scrollbox: Query<&mut ScrollBox, With<ContentBrowserScrollBox>>,
+    mut query_scrollbox: Query<&mut ScrollBox, With<AssetBrowserContent>>,
 ) {
     for (content_list_entity, content_list_children) in content_list_query.iter() {
         despawn_content_entries(&mut commands, content_list_entity, content_list_children);
@@ -119,8 +136,7 @@ pub(crate) fn create_new_folder(
     directory_content: Res<DirectoryContent>,
 ) {
     if location.source_id.is_none() || location.source_id != Some(AssetSourceId::Default) {
-        error!("Cannot create folder: Invalid source id, make sure your inside the Default source");
-        return;
+        panic!("Cannot create folder: Invalid source id, make sure your inside the Default source");
     }
     let mut path = default_source_file_path.0.clone();
     path.push(location.path.as_path());
@@ -144,8 +160,7 @@ pub(crate) fn delete_folder(
     directory_content: Res<DirectoryContent>,
 ) {
     if location.source_id.is_none() || location.source_id != Some(AssetSourceId::Default) {
-        error!("Cannot delete folder: Invalid source id, make sure your inside the Default source");
-        return;
+        panic!("Cannot delete folder: Invalid source id, make sure your inside the Default source");
     }
     let folder_children = query_children.get(*folder_entity).unwrap();
     let folder_name = query_text

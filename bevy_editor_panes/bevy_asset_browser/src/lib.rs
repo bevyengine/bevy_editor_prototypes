@@ -65,7 +65,14 @@ impl Plugin for AssetBrowserPanePlugin {
                     .run_if(directory_content_as_changed)
                     .after(io::task::poll_task),
             )
-            .add_systems(Update, ui::top_bar::refresh_ui.run_if(location_as_changed));
+            .add_systems(
+                Update,
+                (
+                    ui::top_bar::refresh_ui,
+                    ui::directory_content::refresh_context_menu,
+                )
+                    .run_if(location_as_changed),
+            );
     }
 }
 

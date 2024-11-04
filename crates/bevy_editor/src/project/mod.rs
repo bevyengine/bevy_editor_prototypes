@@ -1,6 +1,6 @@
 //! This module contains project management functionalities for the Bevy Editor.
 
-use bevy::log::{error, info};
+use bevy::log::{error, info, warn};
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, time::SystemTime};
 use templates::{copy_template, Templates};
@@ -58,7 +58,7 @@ pub fn get_local_projects() -> Vec<ProjectInfo> {
     match cache::load_projects() {
         Ok(projects) => projects,
         Err(error) => {
-            error!("Failed to load projects from cache file: {:?}", error);
+            warn!("Failed to load projects from cache file: {:?}", error);
             Vec::new()
         }
     }
@@ -85,14 +85,14 @@ pub fn update_project_info() {
     }
 
     if let Err(error) = cache::save_projects(projects) {
-        error!("Failed to update project last opened time: {:?}", error);
+        error!("Couldn't update project info: {:?}", error);
     }
 }
 
 /// Set the project list to the given list of projects.
 pub fn set_project_list(projects: Vec<ProjectInfo>) {
     if let Err(error) = cache::save_projects(projects) {
-        error!("Failed to set project list: {:?}", error);
+        error!("Unable to save project list: {:?}", error);
     }
 }
 
@@ -132,7 +132,7 @@ pub fn run_project(project: &ProjectInfo) -> std::io::Result<()> {
     #[cfg(not(target_os = "windows"))]
     std::process::Command::new("sh")
         .current_dir(&project.path)
-        .args(["-c", "cargo", "run"])
+        .args(["-c", "cargo run"])
         .spawn()
         .map_err(|error| {
             std::io::Error::new(

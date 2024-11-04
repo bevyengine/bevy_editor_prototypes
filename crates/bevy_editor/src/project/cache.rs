@@ -39,7 +39,7 @@ pub(super) fn load_projects() -> io::Result<Vec<ProjectInfo>> {
     if !cache_file.exists() {
         return Err(io::Error::new(
             io::ErrorKind::NotFound,
-            "Project file cache not found",
+            "Project cache file not found",
         ));
     }
 
@@ -47,7 +47,7 @@ pub(super) fn load_projects() -> io::Result<Vec<ProjectInfo>> {
     let cache_value: ProjectsCache = ron::de::from_reader(file).map_err(|error| {
         io::Error::new(
             io::ErrorKind::InvalidData,
-            format!("Failed to parse project file cache: {}", error),
+            format!("Couldn't parse project cache file: {}", error),
         )
     })?;
 
@@ -58,7 +58,9 @@ pub(super) fn load_projects() -> io::Result<Vec<ProjectInfo>> {
 pub(super) fn save_projects(projects: Vec<ProjectInfo>) -> io::Result<()> {
     let cache_folder = get_cache_folder();
     let cache_file = cache_folder.join(CACHE_FILE);
-
+    if !cache_folder.exists() {
+        std::fs::create_dir(&cache_folder)?;
+    }
     let cache_value = ProjectsCache { projects };
     let file = File::create(cache_file)?;
     ron::ser::to_writer(file, &cache_value).map_err(|error| {

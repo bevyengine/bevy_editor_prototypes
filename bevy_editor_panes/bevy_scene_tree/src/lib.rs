@@ -137,6 +137,7 @@ fn entity_widget(entity_name: &Name, is_selected: bool) -> impl Bundle {
     (
         Node {
             padding: UiRect::all(Val::Px(4.0)),
+            align_items: AlignItems::Center,
             ..Default::default()
         },
         BorderRadius::all(Val::Px(4.0)),

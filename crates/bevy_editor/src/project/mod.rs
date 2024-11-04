@@ -132,7 +132,7 @@ pub fn run_project(project: &ProjectInfo) -> std::io::Result<()> {
     #[cfg(not(target_os = "windows"))]
     std::process::Command::new("sh")
         .current_dir(&project.path)
-        .args(["-c", "cargo", "run"])
+        .args(["-c", "cargo run"])
         .spawn()
         .map_err(|error| {
             std::io::Error::new(

@@ -2,6 +2,7 @@
 
 use bevy::{
     app::{Plugin, Update},
+    color::palettes::tailwind,
     core::Name,
     ecs::{
         component::{ComponentHooks, StorageType},
@@ -46,12 +47,15 @@ impl Component for HasSceneTreeRow {
     }
 }
 
+#[derive(Component)]
+struct Hovered;
+
 fn update_scene_tree(
     mut commands: Commands,
     scene_tree: Option<Single<Entity, With<SceneTreeRoot>>>,
     children: Query<&Children>,
     content: Query<&PaneContentNode>,
-    scene: Query<(Entity, &Name, Option<&HasSceneTreeRow>)>,
+    scene: Query<(Entity, &Name, Option<&HasSceneTreeRow>, Has<Hovered>)>,
     mut selected_entity: ResMut<SelectedEntity>,
     entities: &Entities,
     mut init: Local<bool>,
@@ -84,7 +88,7 @@ fn update_scene_tree(
                     padding: UiRect::all(Val::Px(8.0)),
                     ..Default::default()
                 },
-                BackgroundColor(Srgba::hex("#181818").unwrap().into()),
+                BackgroundColor(tailwind::NEUTRAL_600.into()),
             ))
             .observe(
                 |mut trigger: Trigger<Pointer<Click>>,
@@ -97,8 +101,12 @@ fn update_scene_tree(
     }
 
     // Create/update rows for new/changed scene entities
-    for (scene_entity, scene_entity_name, has_scene_tree_row) in &scene {
-        let row_widget = entity_widget(scene_entity_name, selected_entity.0 == Some(scene_entity));
+    for (scene_entity, scene_entity_name, has_scene_tree_row, is_hovered) in &scene {
+        let row_widget = entity_widget(
+            scene_entity_name,
+            selected_entity.0 == Some(scene_entity),
+            is_hovered,
+        );
 
         let set_selected_entity_on_click =
             move |mut trigger: Trigger<Pointer<Click>>,
@@ -108,6 +116,17 @@ fn update_scene_tree(
                 } else {
                     selected_entity.0 = Some(scene_entity);
                 }
+                trigger.propagate(false);
+            };
+
+        let add_hover_on_cursor_over =
+            move |mut trigger: Trigger<Pointer<Over>>, mut commands: Commands| {
+                commands.entity(scene_entity).insert(Hovered);
+                trigger.propagate(false);
+            };
+        let remove_hover_on_cursor_out =
+            move |mut trigger: Trigger<Pointer<Out>>, mut commands: Commands| {
+                commands.entity(scene_entity).remove::<Hovered>();
                 trigger.propagate(false);
             };
 
@@ -123,6 +142,8 @@ fn update_scene_tree(
                 .spawn(row_widget)
                 .set_parent(tree_node)
                 .observe(set_selected_entity_on_click)
+                .observe(add_hover_on_cursor_over)
+                .observe(remove_hover_on_cursor_out)
                 .id();
 
             commands
@@ -132,7 +153,7 @@ fn update_scene_tree(
     }
 }
 
-fn entity_widget(entity_name: &Name, is_selected: bool) -> impl Bundle {
+fn entity_widget(entity_name: &Name, is_selected: bool, is_hovered: bool) -> impl Bundle {
     (
         Node {
             padding: UiRect::all(Val::Px(4.0)),
@@ -141,7 +162,9 @@ fn entity_widget(entity_name: &Name, is_selected: bool) -> impl Bundle {
         },
         BorderRadius::all(Val::Px(4.0)),
         if is_selected {
-            BackgroundColor(Srgba::hex("#252525").unwrap().into())
+            BackgroundColor(tailwind::NEUTRAL_700.into())
+        } else if is_hovered {
+            BackgroundColor(tailwind::NEUTRAL_500.into())
         } else {
             BackgroundColor::default()
         },

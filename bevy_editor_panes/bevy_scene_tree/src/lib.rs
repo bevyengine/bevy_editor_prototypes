@@ -51,8 +51,7 @@ fn update_scene_tree(
     scene_tree: Option<Single<Entity, With<SceneTreeRoot>>>,
     children: Query<&Children>,
     content: Query<&PaneContentNode>,
-    scene: Query<(Entity, &Name)>,
-    has_scene_tree_row: Query<&HasSceneTreeRow>,
+    scene: Query<(Entity, &Name, Option<&HasSceneTreeRow>)>,
     mut selected_entity: ResMut<SelectedEntity>,
     entities: &Entities,
     mut init: Local<bool>,
@@ -98,7 +97,7 @@ fn update_scene_tree(
     }
 
     // Create/update rows for new/changed scene entities
-    for (scene_entity, scene_entity_name) in &scene {
+    for (scene_entity, scene_entity_name, has_scene_tree_row) in &scene {
         let row_widget = entity_widget(scene_entity_name, selected_entity.0 == Some(scene_entity));
 
         let set_selected_entity_on_click =
@@ -112,7 +111,7 @@ fn update_scene_tree(
                 trigger.propagate(false);
             };
 
-        if let Ok(HasSceneTreeRow(row_entity)) = has_scene_tree_row.get(scene_entity) {
+        if let Some(HasSceneTreeRow(row_entity)) = has_scene_tree_row {
             // Update existing row (TODO: Skip if name/is_selected is unchanged)
             commands
                 .entity(*row_entity)

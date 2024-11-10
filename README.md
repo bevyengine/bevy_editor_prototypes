@@ -2,11 +2,8 @@
 
 > [!WARNING]
 > Bevy Editor is still a prototype in development and testing. 
-> Everything you see is still to be working or cleaned up.
-> Read about what we're building in the [Design Book](https://bevyengine.github.io/bevy_editor_prototypes/)! or [Figma document](#Figma)
+> Everything you see is still to be working or cleaned up. read about what we're building in the [Design Book](https://bevyengine.github.io/bevy_editor_prototypes/)! or [Figma document](#Figma)
 > to run just type this ```cargo run``` or ```cargo run --example simple_editor``` command in the terminal of the ```bevy_editor_prototypes folder```
-
-Low-friction experiments for the bevy_editor.
 
 ## Figma Designs
 

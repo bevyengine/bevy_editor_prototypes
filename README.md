@@ -5,6 +5,8 @@
 > Everything you see is still to be working or cleaned up. read about what we're building in the [Design Book](https://bevyengine.github.io/bevy_editor_prototypes/)! or [Figma document]
 > to run just type this ```cargo run``` or ```cargo run --example simple_editor``` command in the terminal of the ```bevy_editor_prototypes folder```
 
+Bevy Editor Prototypes will be the next editor for [Bevy Engine](https://bevyengine.org/). is still being tested, help us to contribute!
+
 ## Figma Designs
 
 While laying out the foundations for an editor prototype in this repository, we are also experimenting with various UI designs in a public [Figma document]. If you are interested in collaborating and sharing your own designs, head over to the document and request write permissions to join the effort.

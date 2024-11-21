@@ -7,15 +7,13 @@ use bevy::{
     window::SystemCursorIcon,
     winit::cursor::CursorIcon,
 };
+use bevy_asset_preview::RequestPreview;
 use bevy_context_menu::{ContextMenu, ContextMenuOption};
 use bevy_editor_styles::Theme;
 
 use crate::{io, ui::source_id_to_string, AssetBrowserLocation};
 
 use super::{directory_content::delete_folder, DEFAULT_SOURCE_ID_NAME};
-
-#[derive(Component)]
-pub struct RequestPreview;
 
 pub(crate) fn spawn_source_node<'a>(
     commands: &'a mut Commands,
@@ -162,16 +160,21 @@ pub(crate) fn spawn_file_node<'a>(
     let base_node = spawn_base_node(commands, theme).id();
 
     // Icon
-    commands
-        .spawn((
-            UiImage::new(asset_server.load("embedded://bevy_asset_browser/assets/file_icon.png")),
-            Node {
-                height: Val::Px(50.0),
-                ..default()
-            },
-            RequestPreview,
-        ))
-        .set_parent(base_node);
+    let mut icon = commands.spawn_empty();
+    let icon_entity = icon.id();
+    icon.insert((
+        // RequestPreview {
+        //     target: icon_entity,
+        //     asset: asset_server
+        //         .load::<()>(location.path.join(&file_name))
+        //         .untyped(),
+        // },
+        Node {
+            height: Val::Px(50.0),
+            ..default()
+        },
+    ))
+    .set_parent(base_node);
     // Folder Name
     commands
         .spawn((

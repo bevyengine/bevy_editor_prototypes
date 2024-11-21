@@ -104,7 +104,7 @@ fn on_pane_creation(
     let image_id = commands
         .spawn((
             UiImage {
-                texture: image_handle.clone(),
+                image: image_handle.clone(),
                 ..Default::default()
             },
             Node {

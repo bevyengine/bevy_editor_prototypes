@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 mod render;
-mod sprite;
+mod ui;
 
 /// This crate is a work in progress and is not yet ready for use.
 /// The intention is to provide a way to load/render/unload assets in the background and provide previews of them in the Bevy Editor.
@@ -12,18 +12,12 @@ mod sprite;
 
 #[derive(Component)]
 pub enum RequestPreview {
-    /// A simple sprite image.
     Image(Handle<Image>),
-
-    /// A 2d mesh.
-    Mesh2d(Handle<Mesh2d>),
-
-    /// A 3d mesh like a character.
-    Mesh3d(Handle<Mesh3d>),
+    Mesh(Handle<Mesh>),
 }
 
 pub struct AssetPreviewPlugin;
 
 impl Plugin for AssetPreviewPlugin {
-    fn build(&self, _app: &mut App) {}
+    fn build(&self, app: &mut App) {}
 }

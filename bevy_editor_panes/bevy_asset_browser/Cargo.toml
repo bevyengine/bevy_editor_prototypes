@@ -12,6 +12,7 @@ bevy_pane_layout.workspace = true
 bevy_scroll_box.workspace = true
 bevy_context_menu.workspace = true
 atomicow.workspace = true
+bevy_asset_preview.workspace = true
 
 [lints]
 workspace = true

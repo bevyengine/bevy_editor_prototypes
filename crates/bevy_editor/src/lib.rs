@@ -54,7 +54,7 @@ impl Plugin for EditorPlugin {
                 Viewport2dPanePlugin,
                 Viewport3dPanePlugin,
                 ui::EditorUIPlugin,
-                AssetBrowserPanePlugin,
+                AssetBrowserPanePlugin { preview: true },
                 LoadGltfPlugin,
             ))
             .add_systems(Startup, dummy_setup);

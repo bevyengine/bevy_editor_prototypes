@@ -127,7 +127,7 @@ fn populate_directory_content(
                     .set_parent(parent_entity);
             }
             Entry::File(name) => {
-                spawn_file_node(commands, name.clone(), asset_server, theme)
+                spawn_file_node(commands, name.clone(), asset_server, location, theme)
                     .set_parent(parent_entity);
             }
         }

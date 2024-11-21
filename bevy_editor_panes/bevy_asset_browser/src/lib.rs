@@ -11,6 +11,7 @@ use bevy::{
     },
     prelude::*,
 };
+use bevy_asset_preview::AssetPreviewPlugin;
 use bevy_pane_layout::PaneRegistry;
 use bevy_scroll_box::ScrollBoxPlugin;
 use ui::{top_bar::location_as_changed, AssetBrowserNode};
@@ -19,13 +20,19 @@ mod io;
 mod ui;
 
 /// The bevy asset browser plugin
-pub struct AssetBrowserPanePlugin;
+pub struct AssetBrowserPanePlugin {
+    pub preview: bool,
+}
 
 impl Plugin for AssetBrowserPanePlugin {
     fn build(&self, app: &mut App) {
         embedded_asset!(app, "assets/directory_icon.png");
         embedded_asset!(app, "assets/source_icon.png");
         embedded_asset!(app, "assets/file_icon.png");
+
+        if self.preview {
+            app.add_plugins(AssetPreviewPlugin);
+        }
 
         app.world_mut()
             .get_resource_or_init::<PaneRegistry>()

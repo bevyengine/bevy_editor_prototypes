@@ -14,6 +14,9 @@ use crate::{io, ui::source_id_to_string, AssetBrowserLocation};
 
 use super::{directory_content::delete_folder, DEFAULT_SOURCE_ID_NAME};
 
+#[derive(Component)]
+pub struct RequestPreview;
+
 pub(crate) fn spawn_source_node<'a>(
     commands: &'a mut Commands,
     source_id: &AssetSourceId,
@@ -153,6 +156,7 @@ pub(crate) fn spawn_file_node<'a>(
     commands: &'a mut Commands,
     file_name: String,
     asset_server: &Res<AssetServer>,
+    location: &Res<AssetBrowserLocation>,
     theme: &Res<Theme>,
 ) -> EntityCommands<'a> {
     let base_node = spawn_base_node(commands, theme).id();
@@ -165,6 +169,7 @@ pub(crate) fn spawn_file_node<'a>(
                 height: Val::Px(50.0),
                 ..default()
             },
+            RequestPreview,
         ))
         .set_parent(base_node);
     // Folder Name

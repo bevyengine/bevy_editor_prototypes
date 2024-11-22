@@ -1,4 +1,9 @@
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    render::{extract_component::ExtractComponentPlugin, extract_resource::ExtractResourcePlugin},
+};
+
+use crate::render::{PrerenderMesh, PrerenderedMeshes};
 
 mod render;
 mod ui;
@@ -19,5 +24,9 @@ pub enum RequestPreview {
 pub struct AssetPreviewPlugin;
 
 impl Plugin for AssetPreviewPlugin {
-    fn build(&self, app: &mut App) {}
+    fn build(&self, app: &mut App) {
+        app.add_systems(Startup, render::setup_prerender_scene)
+            .add_systems(Update, (render::flush_queue, ui::preview_handler))
+            .init_resource::<PrerenderedMeshes>();
+    }
 }

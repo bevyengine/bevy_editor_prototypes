@@ -38,11 +38,11 @@ pub fn preview_handler(
         };
 
         if let Some(mut reuseable) = reuseable_image {
-            reuseable.image = preview;
+            reuseable.texture = preview;
         } else {
             // TODO: sprite atlas.
             commands.entity(entity).insert(UiImage {
-                image: preview,
+                texture: preview,
                 ..Default::default()
             });
         }

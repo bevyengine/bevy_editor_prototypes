@@ -106,7 +106,7 @@ fn render_target_picking_passthrough(
 
             let new_location = Location {
                 position: event.location.position - node_rect.min,
-                target: NormalizedRenderTarget::Image(ui_image.image.clone()),
+                target: NormalizedRenderTarget::Image(ui_image.texture.clone()),
             };
 
             // Duplicate the event
@@ -166,7 +166,7 @@ fn on_pane_creation(
     commands
         .spawn((
             UiImage {
-                image: image_handle.clone(),
+                texture: image_handle.clone(),
                 ..Default::default()
             },
             Node {

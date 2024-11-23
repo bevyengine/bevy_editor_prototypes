@@ -9,15 +9,21 @@ use bevy::{
     render::{
         camera::RenderTarget,
         render_resource::{Extent3d, TextureDimension, TextureFormat, TextureUsages},
+        renderer::RenderDevice,
+        texture::BevyDefault,
         view::RenderLayers,
     },
     scene::{InstanceId, Scene, SceneSpawner},
     utils::{Entry, HashMap, HashSet},
 };
 
+use crate::render::receive::{PreviewImageCopies, PreviewImageCopy};
+
 pub const BASE_PREVIEW_LAYER: usize = 128;
 pub const PREVIEW_LAYERS_COUNT: usize = 8;
-pub const PREVIEW_RENDER_FRAMES: u32 = 16;
+pub const PREVIEW_RENDER_FRAMES: u32 = 32;
+
+pub mod receive;
 
 #[derive(Resource)]
 pub struct PreviewSettings {
@@ -41,12 +47,14 @@ fn create_prerender_target(settings: &PreviewSettings) -> Image {
         },
         TextureDimension::D2,
         &[0, 0, 0, 0],
-        TextureFormat::Bgra8UnormSrgb,
+        TextureFormat::bevy_default(),
         Default::default(),
     );
 
-    image.texture_descriptor.usage |=
-        TextureUsages::TEXTURE_BINDING | TextureUsages::COPY_DST | TextureUsages::RENDER_ATTACHMENT;
+    image.texture_descriptor.usage |= TextureUsages::TEXTURE_BINDING
+        | TextureUsages::COPY_DST
+        | TextureUsages::COPY_SRC
+        | TextureUsages::RENDER_ATTACHMENT;
 
     image
 }
@@ -148,21 +156,23 @@ impl PreviewSceneState {
 /// Scenes that are rendered for preview purpose. This should be inserted into
 /// main world.
 #[derive(Resource, Default)]
-pub struct PrerenderedScenes {
-    rendered: HashMap<AssetId<Scene>, Handle<Image>>,
-    rendering: HashSet<AssetId<Scene>>,
-    queue: HashSet<Handle<Scene>>,
+pub struct RenderedScenePreviews {
+    pub(crate) changed: HashMap<AssetId<Image>, AssetId<Scene>>,
+    pub(crate) available: HashMap<AssetId<Scene>, Handle<Image>>,
+    pub(crate) rendering: HashSet<AssetId<Scene>>,
+    pub(crate) queue: HashSet<Handle<Scene>>,
 }
 
-impl PrerenderedScenes {
+impl RenderedScenePreviews {
     pub fn get_or_schedule(&mut self, handle: Handle<Scene>) -> Option<Handle<Image>> {
         let id = handle.id();
-        match self.rendered.entry(id) {
+        match self.available.entry(id) {
             Entry::Occupied(e) => Some(e.get().clone()),
             Entry::Vacant(_) => {
                 if !self.rendering.contains(&id) {
                     self.queue.insert(handle);
                     self.rendering.insert(id);
+                } else {
                 }
                 None
             }
@@ -172,18 +182,20 @@ impl PrerenderedScenes {
 
 pub(crate) fn update_queue(
     mut commands: Commands,
-    mut prerendered: ResMut<PrerenderedScenes>,
+    mut previews: ResMut<RenderedScenePreviews>,
     mut scene_spawner: ResMut<SceneSpawner>,
     mut scene_state: ResMut<PreviewSceneState>,
     settings: Res<PreviewSettings>,
     mut images: ResMut<Assets<Image>>,
     mut preview_rendered: EventReader<PreviewRendered>,
+    mut image_copies: ResMut<PreviewImageCopies>,
+    render_device: Res<RenderDevice>,
 ) {
     while !scene_state.is_full() {
-        let Some(handle) = prerendered.queue.iter().nth(0).cloned() else {
+        let Some(handle) = previews.queue.iter().nth(0).cloned() else {
             break;
         };
-        prerendered.queue.remove(&handle);
+        previews.queue.remove(&handle);
 
         let instance = scene_spawner.spawn(handle.clone());
         let render_target = images.add(create_prerender_target(&settings));
@@ -192,11 +204,16 @@ pub(crate) fn update_queue(
 
     for finished in preview_rendered.read() {
         let scene_handle = scene_state.scene_handles[finished.layer].clone();
-        prerendered.rendering.remove(&scene_handle.id());
+        previews.rendering.remove(&scene_handle.id());
         let render_target = scene_state.render_targets[finished.layer].clone();
-        prerendered
-            .rendered
-            .insert(scene_handle.id(), render_target);
+        image_copies.insert(
+            render_target.id(),
+            PreviewImageCopy::new(settings.resolution.x, settings.resolution.y, &render_device),
+        );
+        previews
+            .changed
+            .insert(render_target.id(), scene_handle.id());
+        previews.available.insert(scene_handle.id(), render_target);
 
         let instance = scene_state.scene_instances[finished.layer].unwrap();
         scene_spawner.despawn_instance(instance);

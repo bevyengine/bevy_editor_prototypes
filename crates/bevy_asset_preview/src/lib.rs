@@ -2,12 +2,23 @@ use bevy::{
     app::{App, Last, Plugin, Update},
     asset::{AssetPath, AssetServer, Handle},
     gltf::GltfAssetLabel,
-    prelude::{Component, Image},
+    prelude::{Component, Image, IntoSystemConfigs},
+    render::{
+        extract_resource::ExtractResourcePlugin, graph::CameraDriverLabel,
+        render_graph::RenderGraph, Render, RenderApp, RenderSet,
+    },
     scene::Scene,
 };
 
-use crate::render::{PrerenderedScenes, PreviewRendered, PreviewSceneState, PreviewSettings};
+use crate::render::{
+    receive::{
+        MainWorldPreviewImageReceiver, PreviewImageCopies, PreviewTextureToBufferLabel,
+        PreviewTextureToBufferNode, RenderWorldPreviewImageSender,
+    },
+    PreviewRendered, PreviewSceneState, PreviewSettings, RenderedScenePreviews,
+};
 
+mod io;
 mod render;
 mod ui;
 
@@ -47,19 +58,36 @@ pub struct AssetPreviewPlugin;
 
 impl Plugin for AssetPreviewPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<PreviewRendered>()
+        let (s, r) = crossbeam_channel::unbounded();
+
+        app.add_plugins(ExtractResourcePlugin::<PreviewImageCopies>::default())
+            .add_event::<PreviewRendered>()
             .add_systems(
                 Update,
                 (
                     render::update_queue,
                     render::update_preview_frames_counter,
                     ui::preview_handler,
+                    io::save_preview,
                 ),
             )
-            // Add to PostUpdate to avoid flashing
             .add_systems(Last, render::change_render_layers)
-            .init_resource::<PrerenderedScenes>()
+            .init_resource::<RenderedScenePreviews>()
             .init_resource::<PreviewSettings>()
-            .init_resource::<PreviewSceneState>();
+            .init_resource::<PreviewSceneState>()
+            .init_resource::<PreviewImageCopies>()
+            .insert_resource(MainWorldPreviewImageReceiver(r));
+
+        let render_app = app.sub_app_mut(RenderApp);
+        render_app
+            .add_systems(
+                Render,
+                render::receive::receive_image_from_buffer.after(RenderSet::Render),
+            )
+            .insert_resource(RenderWorldPreviewImageSender(s));
+
+        let mut graph = render_app.world_mut().resource_mut::<RenderGraph>();
+        graph.add_node(PreviewTextureToBufferLabel, PreviewTextureToBufferNode);
+        graph.add_node_edge(CameraDriverLabel, PreviewTextureToBufferLabel);
     }
 }

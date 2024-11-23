@@ -1,10 +1,16 @@
+use std::path::Path;
+
 use bevy::{
-    asset::AssetServer,
+    asset::{
+        io::{file::FileAssetReader, AssetReader},
+        AssetServer,
+    },
     prelude::{Commands, Entity, Query, Res, ResMut},
+    tasks::block_on,
     ui::UiImage,
 };
 
-use crate::{render::PrerenderedScenes, PreviewAsset};
+use crate::{render::RenderedScenePreviews, PreviewAsset};
 
 const FILE_PLACEHOLDER: &'static str = "embedded://bevy_asset_browser/assets/file_icon.png";
 
@@ -13,7 +19,7 @@ pub fn preview_handler(
     mut commands: Commands,
     mut requests_query: Query<(Entity, &PreviewAsset, Option<&mut UiImage>)>,
     asset_server: Res<AssetServer>,
-    mut prerendered: ResMut<PrerenderedScenes>,
+    mut prerendered: ResMut<RenderedScenePreviews>,
 ) {
     for (entity, request, reuseable_image) in &mut requests_query {
         let preview = match request {
@@ -22,7 +28,20 @@ pub fn preview_handler(
                 handle.clone()
             }
             PreviewAsset::Scene(handle) => {
-                if let Some(handle) = prerendered.get_or_schedule(handle.clone()) {
+                let path = asset_server.get_path(handle).map(|p| {
+                    Path::new("cache")
+                        .join("asset_preview")
+                        .join(p.path().with_extension("png"))
+                });
+                let reader = FileAssetReader::new("cache");
+                dbg!(&handle, handle.id());
+
+                if path
+                    .as_ref()
+                    .is_some_and(|p| block_on(reader.read(p)).is_ok())
+                {
+                    asset_server.load(path.unwrap())
+                } else if let Some(handle) = prerendered.get_or_schedule(handle.clone()) {
                     commands.entity(entity).remove::<PreviewAsset>();
                     handle
                 } else {

@@ -1,6 +1,7 @@
 use std::{
+    env,
     io::{BufWriter, Cursor},
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 use bevy::{
@@ -12,11 +13,24 @@ use bevy::{
     render::{renderer::RenderDevice, texture::TextureFormatPixelInfo},
     tasks::IoTaskPool,
 };
+use image::ImageEncoder;
 
 use crate::render::{
     receive::{MainWorldPreviewImageReceiver, PreviewImageCopies},
     RenderedScenePreviews,
 };
+
+pub(crate) fn get_base_path() -> PathBuf {
+    if let Ok(manifest_dir) = env::var("BEVY_ASSET_ROOT") {
+        PathBuf::from(manifest_dir)
+    } else if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
+        PathBuf::from(manifest_dir)
+    } else {
+        env::current_exe()
+            .map(|path| path.parent().map(ToOwned::to_owned).unwrap())
+            .unwrap()
+    }
+}
 
 pub fn receive_preview(
     mut previews: ResMut<RenderedScenePreviews>,
@@ -51,21 +65,28 @@ pub fn receive_preview(
             continue;
         };
 
-        let image_buffer = image.clone().try_into_dynamic().unwrap().to_rgb8();
+        let image_buffer = image.clone().try_into_dynamic().unwrap().into_rgba8();
         let image_path =
-            Path::new("assets/cache/asset_preview").join(path.path().with_extension("jpeg"));
+            Path::new("assets/cache/asset_preview").join(path.path().with_extension("png"));
 
         thread_pool
             .spawn(async move {
-                let image_path = image_path;
-                let mut writer = BufWriter::new(Cursor::new(Vec::new()));
-                image_buffer
-                    .write_to(&mut writer, image::ImageFormat::Jpeg)
-                    .unwrap();
+                let image_path_full = get_base_path().join(&image_path);
                 FileAssetWriter::new("", true)
-                    .write_bytes(&image_path, writer.buffer())
+                    .write(&image_path)
                     .await
                     .unwrap();
+                image_buffer.save(image_path_full).unwrap();
+
+                // TODO use the following code once know why it fails sometimes.
+                // let mut writer = BufWriter::new(Cursor::new(Vec::new()));
+                // image_buffer
+                //     .write_to(&mut writer, image::ImageFormat::Png)
+                //     .unwrap();
+                // FileAssetWriter::new("", true)
+                //     .write_bytes(&image_path, writer.buffer())
+                //     .await
+                //     .unwrap();
             })
             .detach();
     }

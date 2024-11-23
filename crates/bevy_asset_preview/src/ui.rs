@@ -30,8 +30,8 @@ pub fn preview_handler(
     for (entity, preview, reuseable_image) in &mut requests_query {
         let ty = match preview.extension() {
             Some(ext) => match ext.to_str().unwrap() {
-                "jpeg" | "jpeg" | "png" | "bmp" | "gif" | "ico" | "pnm" | "pam" | "pbm" | "pgm"
-                | "ppm" | "tga" | "webp" => PreviewType::Image,
+                "jpeg" | "png" | "bmp" | "gif" | "ico" | "pnm" | "pam" | "pbm" | "pgm" | "ppm"
+                | "tga" | "webp" => PreviewType::Image,
                 "glb" | "gltf" => PreviewType::Scene,
                 _ => PreviewType::Other,
             },

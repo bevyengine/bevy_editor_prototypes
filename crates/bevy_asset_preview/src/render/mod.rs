@@ -199,7 +199,7 @@ impl RenderedScenePreviews {
                 }
             }
             Entry::Vacant(e) => {
-                let cached_path = Path::new("cache/asset_preview").join(path.with_extension("jpeg"));
+                let cached_path = Path::new("cache/asset_preview").join(path.with_extension("png"));
                 let reader = FileAssetReader::new("assets");
 
                 if block_on(reader.read(&cached_path)).is_ok() {

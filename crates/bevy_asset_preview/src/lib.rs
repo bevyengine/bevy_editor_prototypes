@@ -1,8 +1,8 @@
 use bevy::{
-    app::{App, Last, Plugin, PostUpdate, PreUpdate, Startup, Update},
+    app::{App, Last, Plugin, Update},
     asset::{AssetPath, AssetServer, Handle},
     gltf::GltfAssetLabel,
-    prelude::{Component, Image, Mesh},
+    prelude::{Component, Image},
     scene::Scene,
 };
 
@@ -30,8 +30,9 @@ impl PreviewAsset {
         let path = <_ as Into<AssetPath<'a>>>::into(path);
         match path.path().extension() {
             Some(ext) => match ext.to_str().unwrap() {
-                "png" => Self::Image(asset_server.load(path)),
-                "glb" => Self::Scene(
+                "jpg" | "jpeg" | "png" | "bmp" | "gif" | "ico" | "pnm" | "pam" | "pbm" | "pgm"
+                | "ppm" | "tga" | "webp" => Self::Image(asset_server.load(path)),
+                "glb" | "gltf" => Self::Scene(
                     asset_server
                         .load(GltfAssetLabel::Scene(0).from_asset(path.path().to_path_buf())),
                 ),

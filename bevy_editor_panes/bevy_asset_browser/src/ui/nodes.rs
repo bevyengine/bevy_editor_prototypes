@@ -15,9 +15,6 @@ use crate::{io, ui::source_id_to_string, AssetBrowserLocation};
 
 use super::{directory_content::delete_folder, DEFAULT_SOURCE_ID_NAME};
 
-#[derive(Component)]
-pub struct RequestPreview;
-
 pub(crate) fn spawn_source_node<'a>(
     commands: &'a mut Commands,
     source_id: &AssetSourceId,

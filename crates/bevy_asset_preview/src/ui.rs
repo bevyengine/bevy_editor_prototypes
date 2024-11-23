@@ -1,6 +1,5 @@
 use bevy::{
     asset::AssetServer,
-    gltf::GltfAssetLabel,
     prelude::{Commands, Entity, Query, Res, ResMut},
     ui::UiImage,
 };

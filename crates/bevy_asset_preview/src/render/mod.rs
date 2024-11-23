@@ -1,50 +1,23 @@
-use std::collections::VecDeque;
-
 use bevy::{
-    app::{App, First, Main, MainSchedulePlugin, PluginsState, Update},
-    asset::{AssetId, AssetPlugin, AssetServer, Assets, Handle},
-    core::{FrameCountPlugin, TaskPoolPlugin, TypeRegistrationPlugin},
-    core_pipeline::CorePipelinePlugin,
-    diagnostic::LogDiagnosticsPlugin,
-    ecs::{
-        entity::EntityHashMap,
-        event::{event_update_condition, event_update_system, EventUpdates},
-        query::QuerySingleError,
-        schedule::ScheduleLabel,
-        world,
-    },
-    gltf::GltfAssetLabel,
-    log::{debug, error, info, LogPlugin},
+    asset::{AssetId, Assets, Handle},
     math::{UVec2, Vec3},
-    pbr::{DirectionalLight, MeshMaterial3d, PbrPlugin, StandardMaterial},
+    pbr::DirectionalLight,
     prelude::{
-        AppTypeRegistry, Camera, Camera3d, Commands, Component, Deref, DerefMut,
-        DespawnRecursiveExt, Entity, Event, EventReader, EventWriter, FromWorld, Image,
-        ImagePlugin, IntoSystemConfigs, Mesh, Mesh3d, NonSendMut, PluginGroup, Query, Res, ResMut,
-        Resource, Transform, With, World,
+        Camera, Camera3d, Commands, Component, Entity, Event, EventReader, EventWriter, Image,
+        Query, Res, ResMut, Resource, Transform,
     },
     render::{
         camera::RenderTarget,
-        pipelined_rendering::PipelinedRenderingPlugin,
         render_resource::{Extent3d, TextureDimension, TextureFormat, TextureUsages},
-        renderer::RenderDevice,
-        view::{GpuCulling, RenderLayers},
-        Extract, ExtractSchedule, RenderApp, RenderPlugin,
+        view::RenderLayers,
     },
-    scene::{InstanceId, Scene, SceneInstance, SceneRoot, SceneSpawner},
-    time::TimePlugin,
-    ui::{IsDefaultUiCamera, TargetCamera},
+    scene::{InstanceId, Scene, SceneSpawner},
     utils::{Entry, HashMap, HashSet},
-    window::{WindowClosing, WindowCreated, WindowPlugin, WindowResized},
-    winit::WinitPlugin,
-    DefaultPlugins, MinimalPlugins,
 };
-
-use crate::PreviewAsset;
 
 pub const BASE_PREVIEW_LAYER: usize = 128;
 pub const PREVIEW_LAYERS_COUNT: usize = 8;
-pub const PREVIEW_RENDER_FRAMES: u32 = 8;
+pub const PREVIEW_RENDER_FRAMES: u32 = 16;
 
 #[derive(Resource)]
 pub struct PreviewSettings {
@@ -214,7 +187,6 @@ pub(crate) fn update_queue(
 
         let instance = scene_spawner.spawn(handle.clone());
         let render_target = images.add(create_prerender_target(&settings));
-        info!("Generating preview image for {:?}", handle);
         scene_state.occupy(handle, instance, render_target, &mut commands);
     }
 
@@ -225,7 +197,6 @@ pub(crate) fn update_queue(
         prerendered
             .rendered
             .insert(scene_handle.id(), render_target);
-        info!("Preview image for {:?} generated.", scene_handle);
 
         let instance = scene_state.scene_instances[finished.layer].unwrap();
         scene_spawner.despawn_instance(instance);

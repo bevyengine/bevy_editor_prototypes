@@ -20,3 +20,5 @@ Cargo.lock
 
 # mdbook generated files
 design-book/book
+
+crates/bevy_editor_launcher/assets/Bevy Assets

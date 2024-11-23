@@ -1,8 +1,10 @@
+use std::path::PathBuf;
+
 use bevy::{
     app::{App, Last, Plugin, Update},
     asset::{AssetPath, AssetServer, Handle},
     gltf::GltfAssetLabel,
-    prelude::{Component, Image, IntoSystemConfigs},
+    prelude::{Component, Deref, Image, IntoSystemConfigs},
     render::{
         extract_resource::ExtractResourcePlugin, graph::CameraDriverLabel,
         render_graph::RenderGraph, Render, RenderApp, RenderSet,
@@ -29,30 +31,8 @@ mod ui;
 /// So long as the assets are unchanged, the previews will be cached and will not need to be re-rendered.
 /// In theory this can be done passively in the background, and the previews will be ready when the user needs them.
 
-#[derive(Component)]
-pub enum PreviewAsset {
-    Image(Handle<Image>),
-    Scene(Handle<Scene>),
-    Other,
-}
-
-impl PreviewAsset {
-    pub fn new<'a>(path: impl Into<AssetPath<'a>>, asset_server: &AssetServer) -> Self {
-        let path = <_ as Into<AssetPath<'a>>>::into(path);
-        match path.path().extension() {
-            Some(ext) => match ext.to_str().unwrap() {
-                "jpg" | "jpeg" | "png" | "bmp" | "gif" | "ico" | "pnm" | "pam" | "pbm" | "pgm"
-                | "ppm" | "tga" | "webp" => Self::Image(asset_server.load(path)),
-                "glb" | "gltf" => Self::Scene(
-                    asset_server
-                        .load(GltfAssetLabel::Scene(0).from_asset(path.path().to_path_buf())),
-                ),
-                _ => Self::Other,
-            },
-            None => Self::Other,
-        }
-    }
-}
+#[derive(Component, Deref)]
+pub struct PreviewAsset(pub PathBuf);
 
 pub struct AssetPreviewPlugin;
 
@@ -68,7 +48,7 @@ impl Plugin for AssetPreviewPlugin {
                     render::update_queue,
                     render::update_preview_frames_counter,
                     ui::preview_handler,
-                    io::save_preview,
+                    io::receive_preview,
                 ),
             )
             .add_systems(Last, render::change_render_layers)

@@ -13,9 +13,12 @@ use bevy::{
     tasks::IoTaskPool,
 };
 
-use crate::render::{receive::{MainWorldPreviewImageReceiver, PreviewImageCopies}, RenderedScenePreviews};
+use crate::render::{
+    receive::{MainWorldPreviewImageReceiver, PreviewImageCopies},
+    RenderedScenePreviews,
+};
 
-pub fn save_preview(
+pub fn receive_preview(
     mut previews: ResMut<RenderedScenePreviews>,
     asset_server: Res<AssetServer>,
     mut images: ResMut<Assets<Image>>,
@@ -41,27 +44,23 @@ pub fn save_preview(
 
         image_copies.remove(&id);
 
-        let Some(scene_handle)=previews.changed.remove(&id) else {
+        let Some(scene_handle) = previews.changed.remove(&id) else {
             continue;
         };
         let Some(path) = asset_server.get_path(scene_handle) else {
             continue;
         };
 
-        let image_buffer = match image.clone().try_into_dynamic() {
-            Ok(img) => img.to_rgba8(),
-            Err(err) => panic!("Failed to create image buffer {err:?}"),
-        };
-        let image_path = Path::new("cache")
-            .join("asset_preview")
-            .join(path.path().with_extension("png"));
+        let image_buffer = image.clone().try_into_dynamic().unwrap().to_rgb8();
+        let image_path =
+            Path::new("assets/cache/asset_preview").join(path.path().with_extension("jpeg"));
 
         thread_pool
             .spawn(async move {
-                let image_path = image_path.clone();
+                let image_path = image_path;
                 let mut writer = BufWriter::new(Cursor::new(Vec::new()));
                 image_buffer
-                    .write_to(&mut writer, image::ImageFormat::Png)
+                    .write_to(&mut writer, image::ImageFormat::Jpeg)
                     .unwrap();
                 FileAssetWriter::new("", true)
                     .write_bytes(&image_path, writer.buffer())

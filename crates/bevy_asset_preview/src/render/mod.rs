@@ -1,5 +1,11 @@
+use std::path::{Path, PathBuf};
+
 use bevy::{
-    asset::{AssetId, Assets, Handle},
+    asset::{
+        io::{file::FileAssetReader, AssetReader},
+        AssetId, AssetServer, Assets, Handle,
+    },
+    gltf::GltfAssetLabel,
     math::{UVec2, Vec3},
     pbr::DirectionalLight,
     prelude::{
@@ -14,6 +20,7 @@ use bevy::{
         view::RenderLayers,
     },
     scene::{InstanceId, Scene, SceneSpawner},
+    tasks::block_on,
     utils::{Entry, HashMap, HashSet},
 };
 
@@ -157,6 +164,8 @@ impl PreviewSceneState {
 /// main world.
 #[derive(Resource, Default)]
 pub struct RenderedScenePreviews {
+    pub(crate) cached: HashMap<PathBuf, Handle<Image>>,
+    pub(crate) path_to_handle: HashMap<PathBuf, Handle<Scene>>,
     pub(crate) changed: HashMap<AssetId<Image>, AssetId<Scene>>,
     pub(crate) available: HashMap<AssetId<Scene>, Handle<Image>>,
     pub(crate) rendering: HashSet<AssetId<Scene>>,
@@ -164,17 +173,43 @@ pub struct RenderedScenePreviews {
 }
 
 impl RenderedScenePreviews {
-    pub fn get_or_schedule(&mut self, handle: Handle<Scene>) -> Option<Handle<Image>> {
-        let id = handle.id();
-        match self.available.entry(id) {
-            Entry::Occupied(e) => Some(e.get().clone()),
-            Entry::Vacant(_) => {
-                if !self.rendering.contains(&id) {
-                    self.queue.insert(handle);
-                    self.rendering.insert(id);
-                } else {
+    pub fn get_or_schedule(
+        &mut self,
+        path: PathBuf,
+        asset_server: &AssetServer,
+    ) -> Option<Handle<Image>> {
+        if let Some(cached) = self.cached.get(&path) {
+            return Some(cached.clone());
+        }
+
+        match self.path_to_handle.entry(path.clone()) {
+            Entry::Occupied(e) => {
+                let handle = e.get();
+                let id = handle.id();
+                match self.available.entry(id) {
+                    Entry::Occupied(e) => Some(e.get().clone()),
+                    Entry::Vacant(_) => {
+                        if !self.rendering.contains(&id) {
+                            self.queue.insert(handle.clone());
+                            self.rendering.insert(id);
+                        } else {
+                        }
+                        None
+                    }
                 }
-                None
+            }
+            Entry::Vacant(e) => {
+                let cached_path = Path::new("cache/asset_preview").join(path.with_extension("jpeg"));
+                let reader = FileAssetReader::new("assets");
+
+                if block_on(reader.read(&cached_path)).is_ok() {
+                    let cached = asset_server.load(cached_path);
+                    self.cached.insert(path, cached.clone());
+                    Some(cached)
+                } else {
+                    e.insert(asset_server.load(GltfAssetLabel::Scene(0).from_asset(path)));
+                    None
+                }
             }
         }
     }

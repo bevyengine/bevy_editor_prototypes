@@ -153,7 +153,6 @@ pub(crate) fn spawn_folder_node<'a>(
 pub(crate) fn spawn_file_node<'a>(
     commands: &'a mut Commands,
     file_name: String,
-    asset_server: &Res<AssetServer>,
     location: &Res<AssetBrowserLocation>,
     theme: &Res<Theme>,
 ) -> EntityCommands<'a> {
@@ -162,7 +161,7 @@ pub(crate) fn spawn_file_node<'a>(
     // Icon
     commands
         .spawn((
-            PreviewAsset::new(location.path.join(&file_name), asset_server),
+            PreviewAsset(location.path.join(&file_name)),
             Node {
                 height: Val::Px(50.0),
                 ..default()

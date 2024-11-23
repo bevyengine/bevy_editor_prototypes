@@ -1,14 +1,12 @@
 use bevy::{
-    app::{App, Plugin, Startup, Update},
+    app::{App, Last, Plugin, PostUpdate, PreUpdate, Startup, Update},
     asset::{AssetPath, AssetServer, Handle},
     gltf::GltfAssetLabel,
     prelude::{Component, Image, Mesh},
     scene::Scene,
 };
 
-use crate::render::{
-    PrerenderedScenes, PreviewRenderLayers, PreviewRendered, PreviewSceneState, PreviewSettings,
-};
+use crate::render::{PrerenderedScenes, PreviewRendered, PreviewSceneState, PreviewSettings};
 
 mod render;
 mod ui;
@@ -54,13 +52,13 @@ impl Plugin for AssetPreviewPlugin {
                 (
                     render::update_queue,
                     render::update_preview_frames_counter,
-                    render::change_render_layers,
                     ui::preview_handler,
                 ),
             )
+            // Add to PostUpdate to avoid flashing
+            .add_systems(Last, render::change_render_layers)
             .init_resource::<PrerenderedScenes>()
             .init_resource::<PreviewSettings>()
-            .init_resource::<PreviewSceneState>()
-            .init_resource::<PreviewRenderLayers>();
+            .init_resource::<PreviewSceneState>();
     }
 }

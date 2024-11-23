@@ -21,6 +21,7 @@ mod ui;
 
 /// The bevy asset browser plugin
 pub struct AssetBrowserPanePlugin {
+    /// Enable asset preview or not.
     pub preview: bool,
 }
 

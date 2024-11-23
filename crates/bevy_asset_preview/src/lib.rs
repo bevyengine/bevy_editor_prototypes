@@ -1,4 +1,14 @@
-use bevy::prelude::*;
+use bevy::{
+    app::{App, Plugin, Startup, Update},
+    asset::{AssetPath, AssetServer, Handle},
+    gltf::GltfAssetLabel,
+    prelude::{Component, Image, Mesh},
+    scene::Scene,
+};
+
+use crate::render::{
+    PrerenderedScenes, PreviewRenderLayers, PreviewRendered, PreviewSceneState, PreviewSettings,
+};
 
 mod render;
 mod ui;
@@ -11,13 +21,46 @@ mod ui;
 /// In theory this can be done passively in the background, and the previews will be ready when the user needs them.
 
 #[derive(Component)]
-pub enum RequestPreview {
+pub enum PreviewAsset {
     Image(Handle<Image>),
-    Mesh(Handle<Mesh>),
+    Scene(Handle<Scene>),
+    Other,
+}
+
+impl PreviewAsset {
+    pub fn new<'a>(path: impl Into<AssetPath<'a>>, asset_server: &AssetServer) -> Self {
+        let path = <_ as Into<AssetPath<'a>>>::into(path);
+        match path.path().extension() {
+            Some(ext) => match ext.to_str().unwrap() {
+                "png" => Self::Image(asset_server.load(path)),
+                "glb" => Self::Scene(
+                    asset_server
+                        .load(GltfAssetLabel::Scene(0).from_asset(path.path().to_path_buf())),
+                ),
+                _ => Self::Other,
+            },
+            None => Self::Other,
+        }
+    }
 }
 
 pub struct AssetPreviewPlugin;
 
 impl Plugin for AssetPreviewPlugin {
-    fn build(&self, app: &mut App) {}
+    fn build(&self, app: &mut App) {
+        app.add_event::<PreviewRendered>()
+            .add_systems(
+                Update,
+                (
+                    render::update_queue,
+                    render::update_preview_frames_counter,
+                    render::change_render_layers,
+                    ui::preview_handler,
+                ),
+            )
+            .init_resource::<PrerenderedScenes>()
+            .init_resource::<PreviewSettings>()
+            .init_resource::<PreviewSceneState>()
+            .init_resource::<PreviewRenderLayers>();
+    }
 }

@@ -63,12 +63,14 @@ pub(crate) fn refresh_context_menu(
 }
 
 fn asset_browser_context_menu() -> ContextMenu {
-    ContextMenu::new([ContextMenuOption::new(
-        "Create Folder",
-        |mut commands, _entity| {
+    ContextMenu::new([
+        ContextMenuOption::new("Create Folder", |mut commands, _entity| {
             commands.run_system_cached(create_new_folder);
-        },
-    )])
+        }),
+        ContextMenuOption::new("Create New Script", |mut commands, _entity| {
+            commands.run_system_cached(create_new_script);
+        }),
+    ])
 }
 
 /// Refresh the UI with the content of the current [`AssetBrowserLocation`]
@@ -127,7 +129,7 @@ fn populate_directory_content(
                     .set_parent(parent_entity);
             }
             Entry::File(name) => {
-                spawn_file_node(commands, name.clone(), asset_server, theme)
+                spawn_file_node(commands, name.clone(), asset_server, location, theme)
                     .set_parent(parent_entity);
             }
         }
@@ -186,5 +188,60 @@ pub(crate) fn delete_folder(
             commands.insert_resource(DirectoryContent(updated_content));
         }
         Err(e) => eprintln!("Failed to delete directory: {}", e),
+    }
+}
+
+pub(crate) fn create_new_script(
+    mut commands: Commands,
+    default_source_file_path: Res<DefaultSourceFilePath>,
+    location: Res<AssetBrowserLocation>,
+    directory_content: Res<DirectoryContent>,
+) {
+    if location.source_id != Some(AssetSourceId::Default) {
+        panic!("Cannot create script: Invalid source id, make sure your inside the Default source");
+    }
+    let mut path = default_source_file_path.0.clone();
+    path.push(location.path.as_path());
+    match io::create_new_script(path) {
+        Ok(file_name) => {
+            let mut updated_content = directory_content.0.clone();
+            updated_content.push(Entry::File(file_name));
+            commands.insert_resource(DirectoryContent(updated_content));
+        }
+        Err(e) => eprintln!("Failed to create script: {}", e),
+    }
+}
+
+pub(crate) fn delete_file(
+    file_entity: In<Entity>,
+    query_children: Query<&Children>,
+    query_text: Query<&Text>,
+    mut commands: Commands,
+    default_source_file_path: Res<DefaultSourceFilePath>,
+    location: Res<AssetBrowserLocation>,
+    directory_content: Res<DirectoryContent>,
+) {
+    if location.source_id != Some(AssetSourceId::Default) {
+        panic!("Cannot delete file: Invalid source id, make sure your inside the Default source");
+    }
+    let file_children = query_children.get(*file_entity).unwrap();
+    let file_name = query_text
+        .get(*file_children.get(1).unwrap())
+        .unwrap()
+        .0
+        .clone();
+    let mut path = default_source_file_path.0.clone();
+    path.push(location.path.as_path());
+    path.push(file_name.clone());
+    match io::delete_file(path) {
+        Ok(_) => {
+            let mut updated_content = directory_content.0.clone();
+            updated_content.retain(|entry| match entry {
+                Entry::File(name) => name != &file_name,
+                _ => true,
+            });
+            commands.insert_resource(DirectoryContent(updated_content));
+        }
+        Err(e) => eprintln!("Failed to delete file: {}", e),
     }
 }

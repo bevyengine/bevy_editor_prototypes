@@ -12,7 +12,10 @@ use bevy_editor_styles::Theme;
 
 use crate::{io, ui::source_id_to_string, AssetBrowserLocation};
 
-use super::{directory_content::delete_folder, DEFAULT_SOURCE_ID_NAME};
+use super::{
+    directory_content::{delete_file, delete_folder},
+    DEFAULT_SOURCE_ID_NAME,
+};
 
 pub(crate) fn spawn_source_node<'a>(
     commands: &'a mut Commands,
@@ -153,9 +156,23 @@ pub(crate) fn spawn_file_node<'a>(
     commands: &'a mut Commands,
     file_name: String,
     asset_server: &Res<AssetServer>,
+    location: &Res<AssetBrowserLocation>,
     theme: &Res<Theme>,
 ) -> EntityCommands<'a> {
-    let base_node = spawn_base_node(commands, theme).id();
+    let base_node = {
+        let mut ec = spawn_base_node(commands, theme);
+        if location.source_id == Some(AssetSourceId::Default) {
+            ec.insert(ContextMenu::new([
+                // ContextMenuOption::new("Rename", |mut commands, entity| {
+                //     commands.run_system_cached_with(rename_asset, entity);
+                // }),
+                ContextMenuOption::new("Delete", |mut commands, entity| {
+                    commands.run_system_cached_with(delete_file, entity);
+                }),
+            ]));
+        }
+        ec.id()
+    };
 
     // Icon
     commands

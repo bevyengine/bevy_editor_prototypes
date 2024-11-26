@@ -67,7 +67,7 @@ fn asset_browser_context_menu() -> ContextMenu {
         ContextMenuOption::new("Create Folder", |mut commands, _entity| {
             commands.run_system_cached(create_new_folder);
         }),
-        ContextMenuOption::new("Create New Sript", |mut commands, _entity| {
+        ContextMenuOption::new("Create New Script", |mut commands, _entity| {
             commands.run_system_cached(create_new_script);
         }),
     ])

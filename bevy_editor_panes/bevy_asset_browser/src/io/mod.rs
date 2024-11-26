@@ -27,6 +27,34 @@ pub fn create_new_folder(mut parent: PathBuf) -> std::io::Result<String> {
         .to_string())
 }
 
+pub fn create_new_script(mut parent: PathBuf) -> std::io::Result<String> {
+    parent.push("script.rs");
+    // increment name until it's unique
+    let mut index = 0;
+    while parent.exists() {
+        // increment name and rename last part of the path
+        index += 1;
+        parent.pop();
+        parent.push(format!("script_{}.rs", index));
+    }
+    std::fs::write(
+        &parent,
+        "pub fn new_system(mut commands: Commands) {\n    // system\n}\n",
+    )?;
+    Ok(parent
+        .components()
+        .last()
+        .unwrap()
+        .as_os_str()
+        .to_str()
+        .unwrap()
+        .to_string())
+}
+
+pub fn delete_file(path: PathBuf) -> std::io::Result<()> {
+    std::fs::remove_file(path)?;
+    Ok(())
+}
 /// Delete a folder and all its content
 pub fn delete_folder(path: PathBuf) -> std::io::Result<()> {
     std::fs::remove_dir_all(path)?;

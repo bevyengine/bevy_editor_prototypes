@@ -43,7 +43,7 @@ fn get_center_rect(rect: &Rect) -> Rect {
 
         Rect::from_center_size(rect.center(), Vec2::new(width, height))
     } else {
-        rect.clone()
+        *rect
     }
 }
 

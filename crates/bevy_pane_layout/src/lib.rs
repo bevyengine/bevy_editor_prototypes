@@ -1,6 +1,7 @@
 //! Resizable, divider-able panes for Bevy.
 
 mod handlers;
+mod pane_drop_area;
 mod ui;
 
 /// The Bevy Pane Layout system.

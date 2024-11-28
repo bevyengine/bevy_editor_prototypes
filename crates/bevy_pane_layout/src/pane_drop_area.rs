@@ -15,6 +15,8 @@
 //! |  ⟋ B  ⟍  |
 //! |⟋________⟍|
 //! ```
+#![allow(unused)]
+
 use bevy::{math::AspectRatio, prelude::*};
 
 #[derive(Debug, PartialEq)]

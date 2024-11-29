@@ -95,6 +95,7 @@ It's best not to plan too far in advance!
   - [ ] Blender-style workspaces
   - [ ] context menus
   - [ ] command palette
+  - [ ] toggleable fullscreen panes
 - [ ] dedicated hotkeys and controls for the most common operations:
   - [ ] manipulating camera
   - [ ] modifying transforms

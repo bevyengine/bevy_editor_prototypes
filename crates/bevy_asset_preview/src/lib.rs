@@ -6,7 +6,6 @@ use bevy::prelude::*;
 /// This code may be reused for the Bevy Marketplace Viewer to provide previews of assets and plugins.
 /// So long as the assets are unchanged, the previews will be cached and will not need to be re-rendered.
 /// In theory this can be done passively in the background, and the previews will be ready when the user needs them.
-
 pub struct AssetPreviewPlugin;
 
 impl Plugin for AssetPreviewPlugin {

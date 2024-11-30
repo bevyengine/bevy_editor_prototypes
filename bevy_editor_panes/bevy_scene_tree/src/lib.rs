@@ -168,7 +168,7 @@ struct SceneTreeRow(Entity);
 /// A component on an entity in the scene that holds the corresponding scene tree row UI node entity.
 ///
 /// If the entity with this component is despawned, the corresponding scene tree row UI node entity
-/// will be automatically desapwned.
+/// will be automatically despawned.
 struct HasSceneTreeRow(Entity);
 
 impl Component for HasSceneTreeRow {

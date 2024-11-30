@@ -159,12 +159,20 @@ fn update_scene_tree_rows(
     }
 }
 
+/// Root UI node of the scene tree.
 #[derive(Component)]
 struct SceneTreeRoot;
 
+/// A scene tree row UI node.
+///
+/// Contains the row's corresponding scene entity.
 #[derive(Component)]
 struct SceneTreeRow(Entity);
 
+/// A component on an entity in the scene that holds the corresponding scene tree row UI node entity.
+///
+/// If the entity with this component is despawned, the corresponding scene tree row UI node entity
+/// will be automatically desapwned.
 struct HasSceneTreeRow(Entity);
 
 impl Component for HasSceneTreeRow {

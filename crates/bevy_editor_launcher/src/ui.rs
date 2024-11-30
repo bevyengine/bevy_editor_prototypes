@@ -90,7 +90,7 @@ pub fn setup(
                             height: Val::Px(30.0),
                             ..default()
                         },
-                        UiImage::new(asset_server.load("plus.png")),
+                        ImageNode::new(asset_server.load("plus.png")),
                     ))
                     .observe(|_trigger: Trigger<Pointer<Up>>, mut commands: Commands| {
                         let new_project_path = rfd::FileDialog::new().pick_folder();
@@ -202,7 +202,7 @@ pub(crate) fn spawn_project_node<'a>(
             },))
             .with_children(|parent| {
                 parent.spawn((
-                    UiImage::new(asset_server.load("image-off.png")),
+                    ImageNode::new(asset_server.load("image-off.png")),
                     Node {
                         width: Val::Percent(30.0),
                         ..default()

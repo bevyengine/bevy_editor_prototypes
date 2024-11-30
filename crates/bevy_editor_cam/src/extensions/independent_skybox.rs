@@ -9,6 +9,7 @@ use bevy::app::prelude::*;
 use bevy::asset::Handle;
 use bevy::core_pipeline::{prelude::*, Skybox};
 use bevy::ecs::prelude::*;
+use bevy::image::Image;
 use bevy::reflect::prelude::*;
 use bevy::render::{prelude::*, view::RenderLayers};
 use bevy::transform::prelude::*;

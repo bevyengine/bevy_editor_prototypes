@@ -28,7 +28,7 @@ impl Plugin for AnchorIndicatorPlugin {
 
                 let id = commands
                     .spawn((
-                        UiImage::new(image),
+                        ImageNode::new(image),
                         Node {
                             position_type: PositionType::Absolute,
                             width: Val::Px(24.),

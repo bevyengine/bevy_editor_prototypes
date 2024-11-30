@@ -103,10 +103,7 @@ fn on_pane_creation(
 
     let image_id = commands
         .spawn((
-            UiImage {
-                texture: image_handle.clone(),
-                ..Default::default()
-            },
+            ImageNode::new(image_handle.clone()),
             Node {
                 position_type: PositionType::Absolute,
                 top: Val::ZERO,

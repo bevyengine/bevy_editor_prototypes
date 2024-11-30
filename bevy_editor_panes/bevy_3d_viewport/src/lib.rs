@@ -80,7 +80,7 @@ fn render_target_picking_passthrough(
     viewports: Query<(Entity, &Bevy3dViewport)>,
     content: Query<&PaneContentNode>,
     children_query: Query<&Children>,
-    node_query: Query<(&ComputedNode, &GlobalTransform, &UiImage), With<Active>>,
+    node_query: Query<(&ComputedNode, &GlobalTransform, &ImageNode), With<Active>>,
     mut pointers: Query<(&PointerId, &mut PointerLocation)>,
     mut pointer_input_reader: EventReader<PointerInput>,
 ) {
@@ -106,7 +106,7 @@ fn render_target_picking_passthrough(
 
             let new_location = Location {
                 position: event.location.position - node_rect.min,
-                target: NormalizedRenderTarget::Image(ui_image.texture.clone()),
+                target: NormalizedRenderTarget::Image(ui_image.image.clone()),
             };
 
             // Duplicate the event
@@ -165,10 +165,7 @@ fn on_pane_creation(
 
     commands
         .spawn((
-            UiImage {
-                texture: image_handle.clone(),
-                ..Default::default()
-            },
+            ImageNode::new(image_handle.clone()),
             Node {
                 position_type: PositionType::Absolute,
                 top: Val::ZERO,

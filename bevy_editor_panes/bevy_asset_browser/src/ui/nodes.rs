@@ -60,7 +60,9 @@ pub(crate) fn spawn_source_node<'a>(
     // Icon
     commands
         .spawn((
-            UiImage::new(asset_server.load("embedded://bevy_asset_browser/assets/source_icon.png")),
+            ImageNode::new(
+                asset_server.load("embedded://bevy_asset_browser/assets/source_icon.png"),
+            ),
             Node {
                 height: Val::Px(50.0),
                 ..default()
@@ -127,7 +129,7 @@ pub(crate) fn spawn_folder_node<'a>(
     // Icon
     commands
         .spawn((
-            UiImage::new(
+            ImageNode::new(
                 asset_server.load("embedded://bevy_asset_browser/assets/directory_icon.png"),
             ),
             Node {
@@ -177,7 +179,7 @@ pub(crate) fn spawn_file_node<'a>(
     // Icon
     commands
         .spawn((
-            UiImage::new(asset_server.load("embedded://bevy_asset_browser/assets/file_icon.png")),
+            ImageNode::new(asset_server.load("embedded://bevy_asset_browser/assets/file_icon.png")),
             Node {
                 height: Val::Px(50.0),
                 ..default()

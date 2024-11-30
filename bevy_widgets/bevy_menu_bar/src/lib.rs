@@ -68,8 +68,8 @@ fn menu_setup(
     );
 
     let logo = commands
-        .spawn(UiImage {
-            texture: asset_server.load("embedded://bevy_menu_bar/assets/logo/bevy_logo.png"),
+        .spawn(ImageNode {
+            image: asset_server.load("embedded://bevy_menu_bar/assets/logo/bevy_logo.png"),
             ..Default::default()
         })
         .id();

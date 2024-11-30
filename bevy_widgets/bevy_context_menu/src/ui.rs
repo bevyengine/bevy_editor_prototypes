@@ -54,7 +54,7 @@ pub(crate) fn spawn_option<'a>(
                 flex_grow: 1.,
                 ..default()
             },
-            theme.button.border_radius,
+            theme.context_menu.option_border_radius,
         ))
         .observe(
             |trigger: Trigger<Pointer<Over>>,

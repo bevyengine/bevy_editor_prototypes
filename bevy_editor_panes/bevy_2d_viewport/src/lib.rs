@@ -56,9 +56,13 @@ impl Plugin for Viewport2dPanePlugin {
 
         app.world_mut()
             .get_resource_or_init::<PaneRegistry>()
-            .register("Viewport 2D", |mut commands, pane_root| {
-                commands.entity(pane_root).insert(Bevy2dViewport::default());
-            });
+            .register(
+                "Viewport 2D",
+                |mut commands, pane_root| {
+                    commands.entity(pane_root).insert(Bevy2dViewport::default());
+                },
+                |mut _commands, _pane_content| {},
+            );
     }
 }
 

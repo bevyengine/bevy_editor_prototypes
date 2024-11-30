@@ -11,7 +11,7 @@ use bevy::{
     prelude::*,
 };
 use bevy_i_cant_believe_its_not_bsn::WithChild;
-use bevy_pane_layout::{PaneContentNode, PaneRegistry};
+use bevy_pane_layout::PaneRegistry;
 
 /// Plugin for the editor scene tree pane.
 pub struct SceneTreePlugin;
@@ -19,13 +19,33 @@ pub struct SceneTreePlugin;
 impl Plugin for SceneTreePlugin {
     fn build(&self, app: &mut App) {
         let mut pane_registry = app.world_mut().resource_mut::<PaneRegistry>();
-        pane_registry.register("Scene Tree", |mut commands, pane_root| {
-            commands.entity(pane_root).insert(SceneTreeRoot);
-        });
+        pane_registry.register("Scene Tree", |mut _commands, _pane_root| {}, setup_pane);
 
         app.init_resource::<SelectedEntity>()
             .add_systems(Update, update_scene_tree);
     }
+}
+
+fn setup_pane(mut commands: Commands, pane_content: Entity) {
+    commands
+        .entity(pane_content)
+        .insert((
+            SceneTreeRoot,
+            Node {
+                flex_direction: FlexDirection::Column,
+                flex_grow: 1.0,
+                column_gap: Val::Px(2.0),
+                padding: UiRect::all(Val::Px(8.0)),
+                ..Default::default()
+            },
+            BackgroundColor(tailwind::NEUTRAL_600.into()),
+        ))
+        .observe(
+            |mut trigger: Trigger<Pointer<Click>>, mut selected_entity: ResMut<SelectedEntity>| {
+                selected_entity.0 = None;
+                trigger.propagate(false);
+            },
+        );
 }
 
 #[derive(Component)]
@@ -53,12 +73,9 @@ struct Hovered;
 fn update_scene_tree(
     mut commands: Commands,
     scene_tree: Option<Single<Entity, With<SceneTreeRoot>>>,
-    children: Query<&Children>,
-    content: Query<&PaneContentNode>,
     scene: Query<(Entity, &Name, Option<&HasSceneTreeRow>, Has<Hovered>)>,
     mut selected_entity: ResMut<SelectedEntity>,
     entities: &Entities,
-    mut init: Local<bool>,
 ) {
     // Unselect entity if entity was deleted
     if let Some(e) = selected_entity.0 {
@@ -68,37 +85,9 @@ fn update_scene_tree(
     }
 
     // Get scene tree node
-    let Some(scene_tree) = scene_tree else {
+    let Some(scene_tree) = scene_tree.as_deref().copied() else {
         return;
     };
-    let tree_node = children
-        .iter_descendants(*scene_tree)
-        .find(|e| content.contains(*e))
-        .unwrap();
-
-    // Setup tree on first run
-    if !*init {
-        commands
-            .entity(tree_node)
-            .insert((
-                Node {
-                    flex_direction: FlexDirection::Column,
-                    flex_grow: 1.0,
-                    column_gap: Val::Px(2.0),
-                    padding: UiRect::all(Val::Px(8.0)),
-                    ..Default::default()
-                },
-                BackgroundColor(tailwind::NEUTRAL_600.into()),
-            ))
-            .observe(
-                |mut trigger: Trigger<Pointer<Click>>,
-                 mut selected_entity: ResMut<SelectedEntity>| {
-                    selected_entity.0 = None;
-                    trigger.propagate(false);
-                },
-            );
-        *init = true;
-    }
 
     // Create/update rows for new/changed scene entities
     for (scene_entity, scene_entity_name, has_scene_tree_row, is_hovered) in &scene {
@@ -140,7 +129,7 @@ fn update_scene_tree(
             // Create new row
             let row_entity = commands
                 .spawn(row_widget)
-                .set_parent(tree_node)
+                .set_parent(scene_tree)
                 .observe(set_selected_entity_on_click)
                 .observe(add_hover_on_cursor_over)
                 .observe(remove_hover_on_cursor_out)

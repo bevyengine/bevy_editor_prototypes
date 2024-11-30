@@ -64,9 +64,13 @@ impl Plugin for Viewport3dPanePlugin {
 
         app.world_mut()
             .get_resource_or_init::<PaneRegistry>()
-            .register("Viewport 3D", |mut commands, pane_root| {
-                commands.entity(pane_root).insert(Bevy3dViewport::default());
-            });
+            .register(
+                "Viewport 3D",
+                |mut commands, pane_root| {
+                    commands.entity(pane_root).insert(Bevy3dViewport::default());
+                },
+                |mut _commands, _pane_content| {},
+            );
     }
 }
 

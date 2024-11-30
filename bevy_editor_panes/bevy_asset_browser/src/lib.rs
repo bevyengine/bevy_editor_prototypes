@@ -32,9 +32,13 @@ impl Plugin for AssetBrowserPanePlugin {
 
         app.world_mut()
             .get_resource_or_init::<PaneRegistry>()
-            .register("Asset Browser", |mut commands, pane_root| {
-                commands.entity(pane_root).insert(AssetBrowserNode);
-            });
+            .register(
+                "Asset Browser",
+                |mut commands, pane_root| {
+                    commands.entity(pane_root).insert(AssetBrowserNode);
+                },
+                |mut _commands, _pane_content| {},
+            );
 
         app.add_plugins(ScrollBoxPlugin)
             .insert_resource(AssetBrowserLocation::default())

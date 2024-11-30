@@ -29,9 +29,15 @@ impl Plugin for PaneLayoutPlugin {
         let mut pane_registry = app.world_mut().get_resource_or_init::<PaneRegistry>();
 
         // TODO Move these registrations to their respective crates.
-        pane_registry.register("Properties", |mut _commands, _pane_root| {
-            // Todo
-        });
+        pane_registry.register(
+            "Properties",
+            |mut _commands, _pane_root| {
+                // Todo
+            },
+            |mut _commands, _pane_content| {
+                // Todo
+            },
+        );
 
         app.init_resource::<DragState>()
             .init_resource::<PaneRegistry>()
@@ -83,11 +89,13 @@ struct DragState {
 }
 
 fn on_pane_creation(
-    mut query: Query<(Entity, &PaneRootNode), Added<PaneRootNode>>,
+    mut root_query: Query<(Entity, &PaneRootNode), Added<PaneRootNode>>,
+    content_query: Query<&PaneContentNode>,
+    children_query: Query<&Children>,
     mut pane_registry: ResMut<PaneRegistry>,
     mut commands: Commands,
 ) {
-    for (entity, pane_root) in &mut query {
+    for (entity, pane_root) in &mut root_query {
         let pane = pane_registry
             .panes
             .iter_mut()
@@ -95,6 +103,12 @@ fn on_pane_creation(
 
         if let Some(pane) = pane {
             (pane.creation_callback)(commands.reborrow(), entity);
+
+            let content_node = children_query
+                .iter_descendants(entity)
+                .find(|e| content_query.contains(*e))
+                .unwrap();
+            (pane.content_creation_callback)(commands.reborrow(), content_node);
         } else {
             warn!(
                 "No pane found in the registry with name: '{}'",
@@ -120,10 +134,12 @@ impl PaneRegistry {
         &mut self,
         name: impl Into<String>,
         creation_callback: impl FnMut(Commands, Entity) + Send + Sync + 'static,
+        content_creation_callback: impl FnMut(Commands, Entity) + Send + Sync + 'static,
     ) {
         self.panes.push(Pane {
             name: name.into(),
             creation_callback: Box::new(creation_callback),
+            content_creation_callback: Box::new(content_creation_callback),
         });
     }
 }
@@ -131,6 +147,7 @@ impl PaneRegistry {
 struct Pane {
     name: String,
     creation_callback: Box<dyn FnMut(Commands, Entity) + Send + Sync>,
+    content_creation_callback: Box<dyn FnMut(Commands, Entity) + Send + Sync>,
 }
 
 // TODO There is no way to save or load layouts at this moment.

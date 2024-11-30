@@ -44,10 +44,6 @@ impl Plugin for PaneLayoutPlugin {
             // Todo
         });
 
-        app.register_pane("Scene Tree", |_pane_structure: In<PaneStructure>| {
-            // Todo
-        });
-
         app.add_plugins(PaneRegistryPlugin)
             .init_resource::<DragState>()
             .add_systems(Startup, setup.in_set(PaneLayoutSet))

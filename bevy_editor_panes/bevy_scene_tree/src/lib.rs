@@ -12,7 +12,7 @@ use bevy::{
     prelude::*,
 };
 use bevy_i_cant_believe_its_not_bsn::WithChild;
-use bevy_pane_layout::PaneRegistry;
+use bevy_pane_layout::prelude::{PaneAppExt, PaneStructure};
 use std::ops::Deref;
 
 /// Plugin for the editor scene tree pane.
@@ -20,11 +20,7 @@ pub struct SceneTreePlugin;
 
 impl Plugin for SceneTreePlugin {
     fn build(&self, app: &mut App) {
-        app.world_mut().resource_mut::<PaneRegistry>().register(
-            "Scene Tree",
-            |mut _commands, _pane_root| {},
-            setup_pane,
-        );
+        app.register_pane("Scene Tree", setup_pane);
 
         app.init_resource::<SelectedEntity>().add_systems(
             PostUpdate,
@@ -38,9 +34,9 @@ impl Plugin for SceneTreePlugin {
     }
 }
 
-fn setup_pane(mut commands: Commands, pane_content: Entity) {
+fn setup_pane(pane: In<PaneStructure>, mut commands: Commands) {
     commands
-        .entity(pane_content)
+        .entity(pane.content)
         .insert((
             SceneTreeRoot,
             Node {

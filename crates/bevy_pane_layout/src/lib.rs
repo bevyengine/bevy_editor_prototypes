@@ -1,6 +1,8 @@
 //! Resizable, divider-able panes for Bevy.
 
 mod handlers;
+mod pane_drop_area;
+pub mod registry;
 mod ui;
 
 /// The Bevy Pane Layout system.
@@ -19,35 +21,40 @@ mod ui;
 use bevy::prelude::*;
 use bevy_editor_styles::Theme;
 
-use crate::ui::{spawn_divider, spawn_pane, spawn_resize_handle};
+use crate::{
+    registry::{PaneAppExt, PaneRegistryPlugin, PaneStructure},
+    ui::{spawn_divider, spawn_pane, spawn_resize_handle},
+};
+
+/// Crate prelude.
+pub mod prelude {
+    pub use crate::{
+        registry::{PaneAppExt, PaneStructure},
+        PaneAreaNode, PaneContentNode, PaneHeaderNode,
+    };
+}
 
 /// The Bevy Pane Layout Plugin.
 pub struct PaneLayoutPlugin;
 
 impl Plugin for PaneLayoutPlugin {
     fn build(&self, app: &mut App) {
-        let mut pane_registry = app.world_mut().get_resource_or_init::<PaneRegistry>();
-
         // TODO Move these registrations to their respective crates.
-        pane_registry.register(
-            "Properties",
-            |mut _commands, _pane_root| {
-                // Todo
-            },
-            |mut _commands, _pane_content| {
-                // Todo
-            },
-        );
+        app.register_pane("Properties", |_pane_structure: In<PaneStructure>| {
+            // Todo
+        });
 
-        app.init_resource::<DragState>()
-            .init_resource::<PaneRegistry>()
+        app.register_pane("Scene Tree", |_pane_structure: In<PaneStructure>| {
+            // Todo
+        });
+
+        app.add_plugins(PaneRegistryPlugin)
+            .init_resource::<DragState>()
             .add_systems(Startup, setup.in_set(PaneLayoutSet))
             .add_systems(
                 Update,
-                (
-                    (cleanup_divider_single_child, apply_size).chain(),
-                    on_pane_creation,
-                )
+                (cleanup_divider_single_child, apply_size)
+                    .chain()
                     .in_set(PaneLayoutSet),
             );
     }
@@ -88,67 +95,9 @@ struct DragState {
     parent_node_size: f32,
 }
 
-fn on_pane_creation(
-    mut root_query: Query<(Entity, &PaneRootNode), Added<PaneRootNode>>,
-    content_query: Query<&PaneContentNode>,
-    children_query: Query<&Children>,
-    mut pane_registry: ResMut<PaneRegistry>,
-    mut commands: Commands,
-) {
-    for (entity, pane_root) in &mut root_query {
-        let pane = pane_registry
-            .panes
-            .iter_mut()
-            .find(|pane| pane.name == pane_root.name);
-
-        if let Some(pane) = pane {
-            (pane.creation_callback)(commands.reborrow(), entity);
-
-            let content_node = children_query
-                .iter_descendants(entity)
-                .find(|e| content_query.contains(*e))
-                .unwrap();
-            (pane.content_creation_callback)(commands.reborrow(), content_node);
-        } else {
-            warn!(
-                "No pane found in the registry with name: '{}'",
-                pane_root.name
-            );
-        }
-    }
-}
-
 /// System Set to set up the Pane Layout.
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PaneLayoutSet;
-
-/// A registry of pane types.
-#[derive(Resource, Default)]
-pub struct PaneRegistry {
-    panes: Vec<Pane>,
-}
-
-impl PaneRegistry {
-    /// Register a new pane type.
-    pub fn register(
-        &mut self,
-        name: impl Into<String>,
-        creation_callback: impl FnMut(Commands, Entity) + Send + Sync + 'static,
-        content_creation_callback: impl FnMut(Commands, Entity) + Send + Sync + 'static,
-    ) {
-        self.panes.push(Pane {
-            name: name.into(),
-            creation_callback: Box::new(creation_callback),
-            content_creation_callback: Box::new(content_creation_callback),
-        });
-    }
-}
-
-struct Pane {
-    name: String,
-    creation_callback: Box<dyn FnMut(Commands, Entity) + Send + Sync>,
-    content_creation_callback: Box<dyn FnMut(Commands, Entity) + Send + Sync>,
-}
 
 // TODO There is no way to save or load layouts at this moment.
 // The setup system currently just creates a default layout at startup.

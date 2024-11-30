@@ -1,7 +1,7 @@
 use bevy::{prelude::*, window::SystemCursorIcon, winit::cursor::CursorIcon};
 use bevy_editor_styles::Theme;
 
-use crate::ContextMenu;
+use crate::{ContextMenu, OpenedContextMenu};
 
 pub(crate) fn spawn_context_menu<'a>(
     commands: &'a mut Commands,
@@ -92,13 +92,16 @@ pub(crate) fn spawn_option<'a>(
             move |trigger: Trigger<Pointer<Up>>,
                   mut commands: Commands,
                   parent_query: Query<&Parent>,
-                  mut query: Query<&mut ContextMenu>| {
+                  mut query: Query<&mut ContextMenu>,
+                  mut opened_context_menu: ResMut<OpenedContextMenu>| {
                 // Despawn the context menu when an option is selected
                 let root = parent_query
                     .iter_ancestors(trigger.entity())
                     .last()
                     .unwrap();
                 commands.entity(root).despawn_recursive();
+                // Invalidate opened context menu
+                *opened_context_menu = OpenedContextMenu(None);
 
                 // Run the option callback
                 let callback = &mut query.get_mut(target).unwrap().options[index].f;

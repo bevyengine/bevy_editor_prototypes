@@ -1,0 +1,18 @@
+[package]
+name = "bevy_editor_launcher"
+version = "0.1.0"
+edition = "2021"
+
+[lints]
+workspace = true
+
+[dependencies]
+bevy.workspace = true
+bevy_editor.workspace = true
+bevy_scroll_box.workspace = true
+bevy_footer_bar.workspace = true
+bevy_editor_styles.workspace = true
+
+rfd.workspace = true
+serde.workspace = true
+ron.workspace = true

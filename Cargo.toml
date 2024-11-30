@@ -1,7 +1,8 @@
 [workspace]
 resolver = "2"
-members = ["crates/*", "bevy_editor_panes/*", "bevy_widgets/*", "projects/*"]
-default-members = ["crates/bevy_editor"]
+members = ["crates/*", "bevy_editor_panes/*", "bevy_widgets/*"]
+exclude = ["templates/"]
+default-members = ["crates/bevy_editor_launcher"]
 
 [workspace.lints.clippy]
 doc_markdown = "warn"
@@ -26,12 +27,13 @@ unsafe_op_in_unsafe_fn = "warn"
 unused_qualifications = "warn"
 
 [workspace.dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "015f2c69ca2a2c009fd04eadada282482deaf469", features = ["wayland"] }
-bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "015f2c69ca2a2c009fd04eadada282482deaf469" }
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "89d094e50f10fc56ec3c4b046c830c650f9f09d5", features = ["wayland"] }
+bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "89d094e50f10fc56ec3c4b046c830c650f9f09d5" }
 thiserror = "1"
 serde = { version = "1", features = ["derive"] }
 atomicow = "1.0.0"
 rfd = "0.15"
+ron = "0.8.1"
 
 # local crates
 
@@ -59,6 +61,7 @@ bevy_tooltips = { path = "bevy_widgets/bevy_tooltips" }
 bevy_asset_preview = { path = "crates/bevy_asset_preview" }
 bevy_editor = { path = "crates/bevy_editor" }
 bevy_editor_camera = { path = "crates/bevy_editor_camera" }
+bevy_editor_launcher = { path = "crates/bevy_editor_launcher" }
 bevy_editor_settings = { path = "crates/bevy_editor_settings" }
 bevy_editor_styles = { path = "crates/bevy_editor_styles" }
 bevy_localization = { path = "crates/bevy_localization" }

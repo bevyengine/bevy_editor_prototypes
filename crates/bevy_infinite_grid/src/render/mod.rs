@@ -10,6 +10,7 @@ use bevy::{
             SystemParamItem,
         },
     },
+    image::BevyDefault,
     math::FloatOrd,
     pbr::MeshPipelineKey,
     prelude::*,
@@ -29,7 +30,6 @@ use bevy::{
         },
         renderer::{RenderDevice, RenderQueue},
         sync_world::RenderEntity,
-        texture::BevyDefault,
         view::{ExtractedView, RenderVisibleEntities, ViewTarget, VisibleEntities},
         Extract, ExtractSchedule, Render, RenderApp, RenderSet,
     },
@@ -575,6 +575,7 @@ impl SpecializedRenderPipeline for InfiniteGridPipeline {
                     write_mask: ColorWrites::ALL,
                 })],
             }),
+            zero_initialize_workgroup_memory: false,
         }
     }
 }

@@ -11,7 +11,10 @@
 //!     which transforms the user's application into an editor that runs their game.
 //! - Finally, it will be a standalone application that communicates with a running Bevy game via the Bevy Remote Protocol.
 
+use bevy::app::App as BevyApp;
 use bevy::prelude::*;
+// Re-export Bevy for project use
+pub use bevy;
 
 use bevy_context_menu::ContextMenuPlugin;
 use bevy_editor_styles::StylesPlugin;
@@ -24,31 +27,68 @@ use bevy_asset_browser::AssetBrowserPanePlugin;
 use crate::load_gltf::LoadGltfPlugin;
 
 mod load_gltf;
+pub mod project;
 mod ui;
 
-fn main() {
-    App::new()
-        .add_plugins((
-            DefaultPlugins.set(WindowPlugin {
-                primary_window: Some(Window {
-                    title: "Bevy Editor".to_string(),
-                    ..default()
-                }),
-                ..default()
-            }),
-            ContextMenuPlugin,
-            StylesPlugin,
-            Viewport2dPanePlugin,
-            Viewport3dPanePlugin,
-            ui::EditorUIPlugin,
-            AssetBrowserPanePlugin,
-            LoadGltfPlugin,
-        ))
-        .add_systems(Startup, setup)
-        .run();
+/// The plugin that handle the bare minimum to run the application
+pub struct RuntimePlugin;
+
+impl Plugin for RuntimePlugin {
+    fn build(&self, bevy_app: &mut BevyApp) {
+        bevy_app.add_plugins(DefaultPlugins);
+    }
 }
 
-fn setup(
+/// The plugin that attach your editor to the application
+pub struct EditorPlugin;
+
+impl Plugin for EditorPlugin {
+    fn build(&self, bevy_app: &mut BevyApp) {
+        // Update/register this project to the editor project list
+        project::update_project_info();
+
+        bevy_app
+            .add_plugins((
+                ContextMenuPlugin,
+                StylesPlugin,
+                Viewport2dPanePlugin,
+                Viewport3dPanePlugin,
+                ui::EditorUIPlugin,
+                AssetBrowserPanePlugin,
+                LoadGltfPlugin,
+            ))
+            .add_systems(Startup, dummy_setup);
+    }
+}
+
+/// Your game application
+/// This appllication allow your game to run, and the editor to be attached to it
+#[derive(Default)]
+pub struct App;
+
+impl App {
+    /// create new instance of [`App`]
+    pub fn new() -> Self {
+        Self
+    }
+
+    /// Run the application
+    pub fn run(&self) -> AppExit {
+        let args = std::env::args().collect::<Vec<String>>();
+        let editor_mode = !args.iter().any(|arg| arg == "-game");
+
+        let mut bevy_app = BevyApp::new();
+        bevy_app.add_plugins(RuntimePlugin);
+        if editor_mode {
+            bevy_app.add_plugins(EditorPlugin);
+        }
+
+        bevy_app.run()
+    }
+}
+
+/// This is temporary, until we can load maps from the asset browser
+fn dummy_setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials_2d: ResMut<Assets<ColorMaterial>>,

@@ -68,10 +68,9 @@ fn menu_setup(
     );
 
     let logo = commands
-        .spawn(ImageNode {
-            image: asset_server.load("embedded://bevy_menu_bar/assets/logo/bevy_logo.png"),
-            ..Default::default()
-        })
+        .spawn(ImageNode::new(
+            asset_server.load("embedded://bevy_menu_bar/assets/logo/bevy_logo.png"),
+        ))
         .id();
 
     let file_text = commands

@@ -60,7 +60,9 @@ pub(crate) fn spawn_source_node<'a>(
     // Icon
     commands
         .spawn((
-            ImageNode::new(asset_server.load("embedded://bevy_asset_browser/assets/source_icon.png")),
+            ImageNode::new(
+                asset_server.load("embedded://bevy_asset_browser/assets/source_icon.png"),
+            ),
             Node {
                 height: Val::Px(50.0),
                 ..default()

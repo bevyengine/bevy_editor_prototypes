@@ -11,9 +11,9 @@ use bevy::{
     },
     prelude::*,
 };
-use bevy_pane_layout::PaneRegistry;
+use bevy_pane_layout::prelude::*;
 use bevy_scroll_box::ScrollBoxPlugin;
-use ui::{top_bar::location_as_changed, AssetBrowserNode};
+use ui::top_bar::location_as_changed;
 
 mod io;
 mod ui;
@@ -27,11 +27,7 @@ impl Plugin for AssetBrowserPanePlugin {
         embedded_asset!(app, "assets/source_icon.png");
         embedded_asset!(app, "assets/file_icon.png");
 
-        app.world_mut()
-            .get_resource_or_init::<PaneRegistry>()
-            .register("Asset Browser", |mut commands, pane_root| {
-                commands.entity(pane_root).insert(AssetBrowserNode);
-            });
+        app.register_pane("Asset Browser", ui::on_pane_creation);
 
         // Fetch the AssetPlugin file path, this is used to create assets at the correct location
         let default_source_absolute_file_path = {
@@ -52,7 +48,6 @@ impl Plugin for AssetBrowserPanePlugin {
             .insert_resource(DefaultSourceFilePath(default_source_absolute_file_path))
             .insert_resource(AssetBrowserLocation::default())
             .insert_resource(DirectoryContent::default())
-            .add_observer(ui::on_pane_creation)
             .add_systems(Startup, io::task::fetch_directory_content)
             // .add_systems(Update, button_interaction)
             .add_systems(

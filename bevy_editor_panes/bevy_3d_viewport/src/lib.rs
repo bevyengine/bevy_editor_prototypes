@@ -15,19 +15,19 @@ use bevy::{
 use bevy_editor_cam::prelude::{DefaultEditorCamPlugins, EditorCam};
 use bevy_editor_styles::Theme;
 use bevy_infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings};
-use bevy_pane_layout::{PaneContentNode, PaneRegistry};
+use bevy_pane_layout::prelude::*;
 
 /// The identifier for the 3D Viewport.
 /// This is present on any pane that is a 3D Viewport.
 #[derive(Component)]
 pub struct Bevy3dViewport {
-    camera: Entity,
+    camera_id: Entity,
 }
 
 impl Default for Bevy3dViewport {
     fn default() -> Self {
         Bevy3dViewport {
-            camera: Entity::PLACEHOLDER,
+            camera_id: Entity::PLACEHOLDER,
         }
     }
 }
@@ -50,23 +50,18 @@ impl Plugin for Viewport3dPanePlugin {
                 PostUpdate,
                 update_render_target_size.after(ui_layout_system),
             )
-            .add_observer(on_pane_creation)
             .add_observer(
                 |trigger: Trigger<OnRemove, Bevy3dViewport>,
                  mut commands: Commands,
                  query: Query<&Bevy3dViewport>| {
                     // Despawn the viewport camera
                     commands
-                        .entity(query.get(trigger.entity()).unwrap().camera)
+                        .entity(query.get(trigger.entity()).unwrap().camera_id)
                         .despawn_recursive();
                 },
             );
 
-        app.world_mut()
-            .get_resource_or_init::<PaneRegistry>()
-            .register("Viewport 3D", |mut commands, pane_root| {
-                commands.entity(pane_root).insert(Bevy3dViewport::default());
-            });
+        app.register_pane("Viewport 3D", on_pane_creation);
     }
 }
 
@@ -142,20 +137,11 @@ fn setup(mut commands: Commands, theme: Res<Theme>) {
 }
 
 fn on_pane_creation(
-    trigger: Trigger<OnAdd, Bevy3dViewport>,
+    structure: In<PaneStructure>,
     mut commands: Commands,
-    children_query: Query<&Children>,
-    mut query: Query<&mut Bevy3dViewport>,
-    content: Query<&PaneContentNode>,
     mut images: ResMut<Assets<Image>>,
     theme: Res<Theme>,
 ) {
-    let pane_root = trigger.entity();
-    let content_node = children_query
-        .iter_descendants(pane_root)
-        .find(|e| content.contains(*e))
-        .unwrap();
-
     let mut image = Image::default();
 
     image.texture_descriptor.usage |= TextureUsages::RENDER_ATTACHMENT;
@@ -175,7 +161,7 @@ fn on_pane_creation(
                 ..default()
             },
         ))
-        .set_parent(content_node)
+        .set_parent(structure.content)
         .observe(|trigger: Trigger<Pointer<Over>>, mut commands: Commands| {
             commands.entity(trigger.entity()).insert(Active);
         })
@@ -197,7 +183,9 @@ fn on_pane_creation(
         ))
         .id();
 
-    query.get_mut(pane_root).unwrap().camera = camera_id;
+    commands
+        .entity(structure.root)
+        .insert(Bevy3dViewport { camera_id });
 }
 
 fn update_render_target_size(
@@ -220,7 +208,7 @@ fn update_render_target_size(
         // TODO Convert to physical pixels
         let content_node_size = computed_node.size();
 
-        let camera = camera_query.get_mut(viewport.camera).unwrap();
+        let camera = camera_query.get_mut(viewport.camera_id).unwrap();
 
         let image_handle = camera.target.as_image().unwrap();
         let size = Extent3d {

@@ -3,8 +3,8 @@ use bevy_context_menu::{ContextMenu, ContextMenuOption};
 use bevy_editor_styles::Theme;
 
 use crate::{
-    handlers::*, Divider, DragState, PaneAreaNode, PaneContentNode, PaneHeaderNode, PaneRootNode,
-    ResizeHandle, Size,
+    handlers::*, registry::PaneStructure, Divider, DragState, PaneAreaNode, PaneContentNode,
+    PaneHeaderNode, PaneRootNode, ResizeHandle, Size,
 };
 
 pub(crate) fn spawn_pane<'a>(
@@ -44,7 +44,7 @@ pub(crate) fn spawn_pane<'a>(
         .id();
 
     // Header
-    commands
+    let header = commands
         .spawn((
             Node {
                 padding: UiRect::axes(Val::Px(5.), Val::Px(3.)),
@@ -115,10 +115,11 @@ pub(crate) fn spawn_pane<'a>(
                     ..default()
                 },
             ));
-        });
+        })
+        .id();
 
     // Content
-    commands
+    let content = commands
         .spawn((
             Node {
                 flex_grow: 1.,
@@ -126,7 +127,15 @@ pub(crate) fn spawn_pane<'a>(
             },
             PaneContentNode,
         ))
-        .set_parent(area);
+        .set_parent(area)
+        .id();
+
+    commands.entity(root).insert(PaneStructure {
+        root,
+        area,
+        header,
+        content,
+    });
 
     commands.entity(root)
 }

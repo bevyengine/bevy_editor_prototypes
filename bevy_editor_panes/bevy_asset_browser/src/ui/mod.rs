@@ -2,7 +2,7 @@
 
 use bevy::prelude::*;
 use bevy_editor_styles::Theme;
-use bevy_pane_layout::PaneContentNode;
+use bevy_pane_layout::prelude::*;
 
 use crate::{AssetBrowserLocation, DirectoryContent};
 
@@ -17,23 +17,15 @@ pub struct AssetBrowserNode;
 /// Spawn [`AssetBrowserNode`] once the pane is created
 #[allow(clippy::too_many_arguments)]
 pub fn on_pane_creation(
-    trigger: Trigger<OnAdd, AssetBrowserNode>,
+    structure: In<PaneStructure>,
     mut commands: Commands,
     theme: Res<Theme>,
-    children_query: Query<&Children>,
-    content: Query<&PaneContentNode>,
     location: Res<AssetBrowserLocation>,
     asset_server: Res<AssetServer>,
     directory_content: Res<DirectoryContent>,
 ) {
-    let pane_root = trigger.entity();
-    let content_node = children_query
-        .iter_descendants(pane_root)
-        .find(|e| content.contains(*e))
-        .unwrap();
-
     let asset_browser = commands
-        .entity(content_node)
+        .entity(structure.content)
         .insert(Node {
             width: Val::Percent(100.0),
             height: Val::Percent(100.0),
@@ -52,6 +44,8 @@ pub fn on_pane_creation(
         &location,
     )
     .set_parent(asset_browser);
+
+    commands.entity(structure.root).insert(AssetBrowserNode);
 }
 
 pub(crate) const DEFAULT_SOURCE_ID_NAME: &str = "Default";

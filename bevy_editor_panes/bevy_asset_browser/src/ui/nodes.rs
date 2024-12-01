@@ -171,6 +171,11 @@ pub(crate) fn spawn_file_node<'a>(
                 ContextMenuOption::new("Delete", |mut commands, entity| {
                     commands.run_system_cached_with(delete_file, entity);
                 }),
+                // TODO: add this to the folders as well
+                // TODO: fix this, doesn't yet work, it opens the file instead of revealing it in the file manager (at least on linux)
+                // ContextMenuOption::new("Reveal in File Manager", |mut commands, entity| {
+                //     commands.run_system_cached_with(reveal_in_file_manager, entity);
+                // }),
             ]));
         }
         ec.id()

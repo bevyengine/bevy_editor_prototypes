@@ -70,6 +70,9 @@ fn asset_browser_context_menu() -> ContextMenu {
         ContextMenuOption::new("Create New Script", |mut commands, _entity| {
             commands.run_system_cached(create_new_script);
         }),
+        ContextMenuOption::new("Open in File Manager", |mut commands, _entity| {
+            commands.run_system_cached(open_in_file_manager);
+        }),
     ])
 }
 
@@ -209,6 +212,48 @@ pub(crate) fn create_new_script(
             commands.insert_resource(DirectoryContent(updated_content));
         }
         Err(e) => eprintln!("Failed to create script: {}", e),
+    }
+}
+
+pub(crate) fn open_in_file_manager(
+    default_source_file_path: Res<DefaultSourceFilePath>,
+    location: Res<AssetBrowserLocation>,
+) {
+    if location.source_id != Some(AssetSourceId::Default) {
+        panic!("Cannot create script: Invalid source id, make sure your inside the Default source");
+    }
+    let mut path = default_source_file_path.0.clone();
+    path.push(location.path.as_path());
+    match io::open_in_file_manager(path) {
+        Ok(_) => {}
+        Err(e) => eprintln!("Failed to open in file manager: {}", e),
+    }
+}
+
+// TODO: fix this, doesn't yet work, it opens the file instead of revealing it in the file manager (at least on linux)
+#[allow(dead_code)]
+pub(crate) fn reveal_in_file_manager(
+    file_entity: In<Entity>,
+    query_children: Query<&Children>,
+    query_text: Query<&Text>,
+    default_source_file_path: Res<DefaultSourceFilePath>,
+    location: Res<AssetBrowserLocation>,
+) {
+    if location.source_id != Some(AssetSourceId::Default) {
+        panic!("Cannot delete file: Invalid source id, make sure your inside the Default source");
+    }
+    let file_children = query_children.get(*file_entity).unwrap();
+    let file_name = query_text
+        .get(*file_children.get(1).unwrap())
+        .unwrap()
+        .0
+        .clone();
+    let mut path = default_source_file_path.0.clone();
+    path.push(location.path.as_path());
+    path.push(file_name.clone());
+    match io::open_in_file_manager(path) {
+        Ok(_) => {}
+        Err(e) => eprintln!("Failed to reveal in file manager: {}", e),
     }
 }
 

@@ -11,6 +11,7 @@ use bevy::{
     picking::focus::PickingInteraction,
     prelude::*,
 };
+use bevy_context_menu::{ContextMenu, ContextMenuOption};
 use bevy_i_cant_believe_its_not_bsn::WithChild;
 use bevy_pane_layout::prelude::{PaneAppExt, PaneStructure};
 use std::ops::Deref;
@@ -105,6 +106,9 @@ fn spawn_new_scene_tree_rows(
                     ..Default::default()
                 },
                 BorderRadius::all(Val::Px(4.0)),
+                ContextMenu::new([ContextMenuOption::new("Despawn", move |mut commands, _| {
+                    commands.entity(scene_entity).try_despawn();
+                })]),
                 WithChild((
                     Text(name.into()),
                     TextFont {

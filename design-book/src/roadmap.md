@@ -29,20 +29,20 @@ It's best not to plan too far in advance!
 
 ## Stage 1: Standalone Read-Only Editor
 
-- [ ] can load scenes from disk using a native file picking widget
-- [ ] can display scenes in a viewer
-  - [ ] 2D
-  - [ ] 3D
-- [ ] simple camera controller
-  - [ ] 2D
-  - [ ] 3D
+- [x] can load scenes from disk using a native file picking widget
+- [x] can display scenes in a viewer
+  - [x] 2D
+  - [x] 3D
+- [x] simple camera controller
+  - [x] 2D
+  - [x] 3D
 - [ ] gizmos can be toggled
   - [ ] UI outlines
   - [ ] lights
   - [ ] AABBs
-- [ ] lists entities in the scene
+- [x] lists entities in the scene
   - [ ] supports hierarchy via a folding tree view
-- [ ] click entities in the list to select them.
+- [x] click entities in the list to select them.
 - [ ] components of selected entity are shown in the inspector with component values, including components specific to the user's game
 - [ ] resources can be inspected, showing their values
 - [ ] loaded assets can be inspected, providing basic information about them

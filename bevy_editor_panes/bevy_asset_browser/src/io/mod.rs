@@ -27,6 +27,7 @@ pub fn create_new_folder(mut parent: PathBuf) -> std::io::Result<String> {
         .to_string())
 }
 
+/// Create a new rust file with an empty system inside
 pub fn create_new_script(mut parent: PathBuf) -> std::io::Result<String> {
     parent.push("script.rs");
     // increment name until it's unique
@@ -51,6 +52,25 @@ pub fn create_new_script(mut parent: PathBuf) -> std::io::Result<String> {
         .to_string())
 }
 
+/// Open the folder in the file manager that the target os uses
+pub fn open_in_file_manager(path: PathBuf) -> std::io::Result<()> {
+    /// TODO: test for windows and mac (works on linux)
+    #[cfg(target_os = "windows")]
+    std::process::Command::new("explorer")
+        .arg(path.as_os_str().to_str().unwrap())
+        .spawn()?;
+    #[cfg(target_os = "linux")]
+    std::process::Command::new("xdg-open")
+        .arg(path.as_os_str().to_str().unwrap())
+        .spawn()?;
+    #[cfg(target_os = "macos")]
+    std::process::Command::new("open")
+        .arg(path.as_os_str().to_str().unwrap())
+        .spawn()?;
+    Ok(())
+}
+
+/// Delete a file
 pub fn delete_file(path: PathBuf) -> std::io::Result<()> {
     std::fs::remove_file(path)?;
     Ok(())

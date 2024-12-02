@@ -11,6 +11,7 @@ use bevy::{
     picking::focus::PickingInteraction,
     prelude::*,
 };
+use bevy_editor_core::SelectedEntity;
 use bevy_i_cant_believe_its_not_bsn::WithChild;
 use bevy_pane_layout::prelude::{PaneAppExt, PaneStructure};
 use std::ops::Deref;
@@ -22,7 +23,7 @@ impl Plugin for SceneTreePlugin {
     fn build(&self, app: &mut App) {
         app.register_pane("Scene Tree", setup_pane);
 
-        app.init_resource::<SelectedEntity>().add_systems(
+        app.add_systems(
             PostUpdate,
             (
                 reset_selected_entity_if_entity_despawned,
@@ -55,12 +56,6 @@ fn setup_pane(pane: In<PaneStructure>, mut commands: Commands) {
             },
         );
 }
-
-/// The currently selected entity in the scene.
-// TODO: Move to a different crate so that it can be controlled by things like mesh picking
-// and accessed by the inspector without depending on this crate.
-#[derive(Resource, Default)]
-pub struct SelectedEntity(Option<Entity>);
 
 fn reset_selected_entity_if_entity_despawned(
     mut selected_entity: ResMut<SelectedEntity>,

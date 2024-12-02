@@ -58,6 +58,7 @@ bevy_toolbar = { path = "bevy_widgets/bevy_toolbar" }
 bevy_tooltips = { path = "bevy_widgets/bevy_tooltips" }
 
 # general crates
+bevy_editor_core = { path = "crates/bevy_editor_core" }
 bevy_asset_preview = { path = "crates/bevy_asset_preview" }
 bevy_editor = { path = "crates/bevy_editor" }
 bevy_editor_camera = { path = "crates/bevy_editor_camera" }

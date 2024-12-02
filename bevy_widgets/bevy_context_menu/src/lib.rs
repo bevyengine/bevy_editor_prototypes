@@ -12,48 +12,28 @@ pub struct ContextMenuPlugin;
 
 impl Plugin for ContextMenuPlugin {
     fn build(&self, app: &mut App) {
-        app.add_observer(on_secondary_button_down_entity_with_context_menu)
-            .insert_resource(OpenedContextMenu(None));
+        app.add_observer(on_secondary_button_down_entity_with_context_menu);
     }
 }
-
-struct OpenedContextMenuInfo {
-    owner: Entity,
-    entity: Entity,
-}
-#[derive(Resource)]
-struct OpenedContextMenu(Option<OpenedContextMenuInfo>);
 
 fn on_secondary_button_down_entity_with_context_menu(
-    trigger: Trigger<Pointer<Down>>,
+    mut trigger: Trigger<Pointer<Down>>,
     mut commands: Commands,
     query: Query<&ContextMenu>,
-    query_zindex: Query<&ZIndex>,
     theme: Res<Theme>,
-    mut opened_context_menu: ResMut<OpenedContextMenu>,
 ) {
-    let event = trigger.event();
-    if event.button != PointerButton::Secondary {
+    if trigger.event().button != PointerButton::Secondary {
         return;
     }
-    let target = trigger.entity();
 
+    let target = trigger.entity();
     let Ok(menu) = query.get(target) else {
         return;
     };
 
-    if let Some(opened_context_menu) = &opened_context_menu.0 {
-        let owner_z_index = query_zindex
-            .get(opened_context_menu.owner)
-            .unwrap_or(&ZIndex(0));
-        let target_z_index = query_zindex.get(target).unwrap_or(&ZIndex(0));
-        if target_z_index.0 < owner_z_index.0 {
-            return;
-        }
-        commands
-            .entity(opened_context_menu.entity)
-            .despawn_recursive();
-    }
+    trigger.propagate(false);
+
+    let event = trigger.event();
 
     // Prevent all other entities from being picked by placing a node over the entire window.
     let root = commands
@@ -65,17 +45,12 @@ fn on_secondary_button_down_entity_with_context_menu(
             },
             ZIndex(10),
         ))
-        .observe(
-            |trigger: Trigger<Pointer<Down>>,
-             mut commands: Commands,
-             mut opened_context_menu: ResMut<OpenedContextMenu>| {
-                commands.entity(trigger.entity()).despawn_recursive();
-                *opened_context_menu = OpenedContextMenu(None);
-            },
-        )
+        .observe(|trigger: Trigger<Pointer<Down>>, mut commands: Commands| {
+            commands.entity(trigger.entity()).despawn_recursive();
+        })
         .id();
 
-    let context_menu_entity = spawn_context_menu(
+    spawn_context_menu(
         &mut commands,
         &theme,
         menu,
@@ -86,13 +61,7 @@ fn on_secondary_button_down_entity_with_context_menu(
         // Prevent the context menu root from despawning the context menu when clicking on the menu
         trigger.propagate(false);
     })
-    .set_parent(root)
-    .id();
-
-    *opened_context_menu = OpenedContextMenu(Some(OpenedContextMenuInfo {
-        owner: target,
-        entity: context_menu_entity,
-    }));
+    .set_parent(root);
 }
 
 /// Entities with this component will have a context menu.

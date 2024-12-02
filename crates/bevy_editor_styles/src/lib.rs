@@ -86,6 +86,8 @@ pub struct ContextMenuStyles {
     pub background_color: BackgroundColor,
     /// The hover color of the context menu.
     pub hover_color: BackgroundColor,
+    /// The border radius of the context menu options.
+    pub option_border_radius: BorderRadius,
 }
 
 /// The styles for viewports in the editor.
@@ -145,6 +147,7 @@ impl FromWorld for Theme {
             context_menu: ContextMenuStyles {
                 background_color: BackgroundColor(Color::oklch(0.209, 0., 0.)),
                 hover_color: BackgroundColor(Color::oklch(0.3677, 0., 0.)),
+                option_border_radius: BorderRadius::all(Val::Px(5.)),
             },
             viewport: ViewportStyles {
                 background_color: Color::oklch(0.3677, 0.0, 0.0),

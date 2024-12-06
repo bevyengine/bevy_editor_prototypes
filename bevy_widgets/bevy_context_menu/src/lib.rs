@@ -17,7 +17,7 @@ impl Plugin for ContextMenuPlugin {
 }
 
 fn on_secondary_button_down_entity_with_context_menu(
-    mut trigger: Trigger<Pointer<Down>>,
+    mut trigger: Trigger<Pointer<Up>>,
     mut commands: Commands,
     query: Query<&ContextMenu>,
     theme: Res<Theme>,

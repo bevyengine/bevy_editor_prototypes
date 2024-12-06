@@ -93,18 +93,19 @@ pub(crate) fn spawn_option<'a>(
                   mut commands: Commands,
                   parent_query: Query<&Parent>,
                   mut query: Query<&mut ContextMenu>| {
-                // Despawn the context menu when an option is selected
-                if trigger.button == PointerButton::Primary {
-                    let root = parent_query
-                        .iter_ancestors(trigger.entity())
-                        .last()
-                        .unwrap();
-                    commands.entity(root).despawn_recursive();
-
-                    // Run the option callback
-                    let callback = &mut query.get_mut(target).unwrap().options[index].f;
-                    (callback)(commands.reborrow(), target);
+                if trigger.event().button != PointerButton::Primary {
+                    return;
                 }
+                // Despawn the context menu when an option is selected
+                let root = parent_query
+                    .iter_ancestors(trigger.entity())
+                    .last()
+                    .unwrap();
+                commands.entity(root).despawn_recursive();
+
+                // Run the option callback
+                let callback = &mut query.get_mut(target).unwrap().options[index].f;
+                (callback)(commands.reborrow(), target);
             },
         )
         .id();

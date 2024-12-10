@@ -21,7 +21,6 @@ pub struct PropertiesPanePlugin;
 
 impl Plugin for PropertiesPanePlugin {
     fn build(&self, app: &mut App) {
-
         app.add_plugins(EntityInspectorPlugin);
 
         app.add_observer(on_pane_creation);
@@ -29,7 +28,9 @@ impl Plugin for PropertiesPanePlugin {
         app.world_mut()
             .get_resource_or_init::<PaneRegistry>()
             .register("Properties", |mut commands, pane_root| {
-                commands.entity(pane_root).insert(BevyPropertiesPane::default());
+                commands
+                    .entity(pane_root)
+                    .insert(BevyPropertiesPane::default());
             });
     }
 }
@@ -38,7 +39,7 @@ fn on_pane_creation(
     trigger: Trigger<OnAdd, BevyPropertiesPane>,
     mut commands: Commands,
     children_query: Query<&Children>,
-    content: Query<&PaneContentNode>
+    content: Query<&PaneContentNode>,
 ) {
     info!("Properties pane created");
 
@@ -54,6 +55,6 @@ fn on_pane_creation(
             width: Val::Percent(100.),
             height: Val::Percent(100.),
             ..default()
-        }
+        },
     ));
 }

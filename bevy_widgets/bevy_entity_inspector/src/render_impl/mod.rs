@@ -25,10 +25,7 @@ pub struct RenderStorage {
     pub renders: HashMap<
         TypeId,
         Box<
-            dyn Fn(&dyn PartialReflect, String, &RenderContext) -> DiffTree
-                + Send
-                + Sync
-                + 'static,
+            dyn Fn(&dyn PartialReflect, String, &RenderContext) -> DiffTree + Send + Sync + 'static,
         >,
     >,
 }

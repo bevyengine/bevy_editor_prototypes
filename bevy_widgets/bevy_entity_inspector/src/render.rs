@@ -14,7 +14,7 @@ use bevy::{
 };
 use bevy_collapsing_header::CollapsingHeader;
 use bevy_editor_styles::Theme;
-use bevy_incomplete_bsn::entity_diff_tree::{DiffTreeCommands, DiffTree};
+use bevy_incomplete_bsn::entity_diff_tree::{DiffTree, DiffTreeCommands};
 
 use crate::{render_impl::RenderStorage, EntityInspector, InspectedEntity};
 
@@ -28,7 +28,7 @@ pub struct RenderContext<'w, 's> {
     /// The ID of the component being rendered.
     component_id: ComponentId,
     /// Theme to unify style
-    theme: &'s Theme
+    theme: &'s Theme,
 }
 
 /// Component for managing the inspection of a specific component.
@@ -84,7 +84,7 @@ pub fn render_component_inspector(
     app_registry: Res<AppTypeRegistry>,
     system_change_ticks: SystemChangeTick,
     render_storage: Res<RenderStorage>,
-    theme: Res<Theme>
+    theme: Res<Theme>,
 ) {
     let Ok(inspected_entity) = q_inspected.get_single() else {
         return;
@@ -138,7 +138,7 @@ pub fn render_component_inspector(
             render_storage: &render_storage,
             entity: inspected_entity.id(),
             component_id: inspector.component_id,
-            theme: &theme
+            theme: &theme,
         };
 
         let reflect_content = recursive_reflect_render(
@@ -260,6 +260,7 @@ pub fn render_entity_inspector(
         tree.add_child(DiffTree::new().with_patch_fn(move |text: &mut Text| {
             text.0 = format!("Entity: {}", entity);
         }));
+        commands.entity(inspector).diff_tree(tree);
 
         let mut compenent_id_set = inspected_entity
             .archetype()
@@ -312,7 +313,6 @@ pub fn render_entity_inspector(
                 .add_child(component_inspector_entity);
         }
 
-        commands.entity(inspector).diff_tree(tree);
     }
 }
 

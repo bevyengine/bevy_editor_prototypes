@@ -391,7 +391,7 @@ fn set_text_trigger(
     };
 
     line.text = trigger.0.clone();
-    info!("Set text for {} to {}", entity, trigger.0);
+    // info!("Set text for {} to {}", entity, trigger.0);
 
     // Trigger rerender
     commands.trigger_targets(RenderWidget::default(), entity);

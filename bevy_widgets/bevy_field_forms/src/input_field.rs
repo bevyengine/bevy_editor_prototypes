@@ -159,7 +159,7 @@ fn on_value_changed<T: Validable>(
 ) {
     for (entity, mut field) in q_changed_inputs.iter_mut() {
         if field.value != field.old_value {
-            info!("Trigger value rerender by field change for {:?}", entity);
+            // info!("Trigger value rerender by field change for {:?}", entity);
             field.old_value = field.value.clone();
 
             // We will not trigger ValueChanged because it must be triggered only by input change

@@ -52,6 +52,9 @@ impl CollapsingHeader {
 
 impl ChildrenPatcher for CollapsingHeader {
     fn children_patch(&mut self, children: &mut Vec<DiffTree>) {
+
+        info!("Patching children for header {:?}. Children count: {}", &self.text, children.len());
+
         let move_text = self.text.clone();
         let collapsed = self.is_collapsed;
         let header = DiffTree::new()
@@ -155,8 +158,11 @@ fn on_header_change(
 }
 
 fn update_header_font(
-    mut q_changed: Query<(&mut TextFont, &mut TextColor), (Changed<Text>, With<CollapsingHeaderText>)>,
-    theme : Res<Theme>
+    mut q_changed: Query<
+        (&mut TextFont, &mut TextColor),
+        (Changed<Text>, With<CollapsingHeaderText>),
+    >,
+    theme: Res<Theme>,
 ) {
     for (mut font, mut color) in q_changed.iter_mut() {
         font.font = theme.text.font.clone();

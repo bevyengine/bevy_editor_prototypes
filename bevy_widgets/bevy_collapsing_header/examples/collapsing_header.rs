@@ -2,7 +2,7 @@
 
 use bevy::prelude::*;
 use bevy_collapsing_header::*;
-use bevy_incomplete_bsn::entity_diff_tree::{DiffTreeCommands, DiffTree};
+use bevy_incomplete_bsn::entity_diff_tree::{DiffTree, DiffTreeCommands};
 
 fn main() {
     App::new()
@@ -22,7 +22,6 @@ fn setup(mut commands: Commands) {
         .with_patch_fn(|color: &mut BackgroundColor| {
             *color = BackgroundColor(Color::srgb(0.1, 0.1, 0.1));
         })
-
         .with_child(DiffTree::new())
         .with_child(DiffTree::new().with_patch_fn(|text: &mut Text| {
             text.0 = "Content 1".to_string();

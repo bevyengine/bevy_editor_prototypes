@@ -22,6 +22,10 @@ impl Plugin for EntityInspectorPlugin {
             app.add_plugins(CollapsingHeaderPlugin);
         }
 
+        if !app.is_plugin_added::<bevy_editor_styles::StylesPlugin>() {
+            app.add_plugins(bevy_editor_styles::StylesPlugin);
+        }
+
         app.add_event::<ChangeComponentField>();
 
         app.init_resource::<RenderStorage>();

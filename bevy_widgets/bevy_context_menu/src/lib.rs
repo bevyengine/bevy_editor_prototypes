@@ -17,20 +17,23 @@ impl Plugin for ContextMenuPlugin {
 }
 
 fn on_secondary_button_down_entity_with_context_menu(
-    trigger: Trigger<Pointer<Down>>,
+    mut trigger: Trigger<Pointer<Up>>,
     mut commands: Commands,
     query: Query<&ContextMenu>,
     theme: Res<Theme>,
 ) {
-    let event = trigger.event();
-    if event.button != PointerButton::Secondary {
+    if trigger.event().button != PointerButton::Secondary {
         return;
     }
-    let target = trigger.entity();
 
+    let target = trigger.entity();
     let Ok(menu) = query.get(target) else {
         return;
     };
+
+    trigger.propagate(false);
+
+    let event = trigger.event();
 
     // Prevent all other entities from being picked by placing a node over the entire window.
     let root = commands

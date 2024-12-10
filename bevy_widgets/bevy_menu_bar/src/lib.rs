@@ -25,6 +25,23 @@ impl Plugin for MenuBarPlugin {
 #[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct MenuBarSet;
 
+/// Top bar item enum
+#[derive(Component)]
+pub enum TopBarItem {
+    /// Bevy logo
+    Logo,
+    /// the File item
+    File,
+    /// the Edit item
+    Edit,
+    /// the Build item
+    Build,
+    /// the Window item
+    Window,
+    /// the Help item
+    Help,
+}
+
 /// The setup system for the menu bar.
 fn menu_setup(
     mut commands: Commands,
@@ -67,11 +84,37 @@ fn menu_setup(
         },
     );
 
+    let mut click_observer = Observer::new(
+        |trigger: Trigger<Pointer<Down>>, mut query: Query<&TopBarItem>| {
+            #[allow(clippy::match_same_arms)]
+            match query.get_mut(trigger.entity()).unwrap() {
+                TopBarItem::Logo => {
+                    // TODO: Implement logo click action
+                }
+                TopBarItem::File => {
+                    // TODO: Implement file click action
+                }
+                TopBarItem::Edit => {
+                    // TODO: Implement edit click action
+                }
+                TopBarItem::Build => {
+                    // TODO: Implement build click action
+                }
+                TopBarItem::Window => {
+                    // TODO: Implement window click action
+                }
+                TopBarItem::Help => {
+                    // TODO: Implement help click action
+                }
+            }
+        },
+    );
+
     let logo = commands
-        .spawn(UiImage {
-            texture: asset_server.load("embedded://bevy_menu_bar/assets/logo/bevy_logo.png"),
-            ..Default::default()
-        })
+        .spawn((
+            TopBarItem::Logo,
+            ImageNode::new(asset_server.load("embedded://bevy_menu_bar/assets/logo/bevy_logo.png")),
+        ))
         .id();
 
     let file_text = commands
@@ -87,6 +130,7 @@ fn menu_setup(
         .id();
     let file_container = commands
         .spawn((
+            TopBarItem::File,
             Node {
                 padding: UiRect {
                     left: Val::Px(5.0),
@@ -116,6 +160,7 @@ fn menu_setup(
         .id();
     let edit_container = commands
         .spawn((
+            TopBarItem::Edit,
             Node {
                 padding: UiRect {
                     left: Val::Px(5.0),
@@ -145,6 +190,7 @@ fn menu_setup(
         .id();
     let build_container = commands
         .spawn((
+            TopBarItem::Build,
             Node {
                 padding: UiRect {
                     left: Val::Px(5.0),
@@ -174,6 +220,7 @@ fn menu_setup(
         .id();
     let window_container = commands
         .spawn((
+            TopBarItem::Window,
             Node {
                 padding: UiRect {
                     left: Val::Px(5.0),
@@ -204,6 +251,7 @@ fn menu_setup(
 
     let help_container = commands
         .spawn((
+            TopBarItem::Help,
             Node {
                 padding: UiRect {
                     left: Val::Px(5.0),
@@ -247,17 +295,24 @@ fn menu_setup(
     commands.entity(help_container).set_parent(menu_container);
     commands.entity(help_text).set_parent(help_container);
 
+    click_observer.watch_entity(logo);
     hover_over_observer.watch_entity(file_container);
     hover_out_observer.watch_entity(file_container);
+    click_observer.watch_entity(file_container);
     hover_over_observer.watch_entity(edit_container);
     hover_out_observer.watch_entity(edit_container);
+    click_observer.watch_entity(edit_container);
     hover_over_observer.watch_entity(build_container);
     hover_out_observer.watch_entity(build_container);
+    click_observer.watch_entity(build_container);
     hover_over_observer.watch_entity(window_container);
     hover_out_observer.watch_entity(window_container);
+    click_observer.watch_entity(window_container);
     hover_over_observer.watch_entity(help_container);
     hover_out_observer.watch_entity(help_container);
+    click_observer.watch_entity(help_container);
 
     commands.spawn(hover_out_observer);
     commands.spawn(hover_over_observer);
+    commands.spawn(click_observer);
 }

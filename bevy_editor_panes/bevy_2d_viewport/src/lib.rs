@@ -11,19 +11,19 @@ use bevy::{
 use bevy_editor_camera::{EditorCamera2d, EditorCamera2dPlugin};
 use bevy_editor_styles::Theme;
 use bevy_infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings};
-use bevy_pane_layout::{PaneContentNode, PaneRegistry};
+use bevy_pane_layout::prelude::*;
 
 /// The identifier for the 2D Viewport.
 /// This is present on any pane that is a 2D Viewport.
 #[derive(Component)]
 pub struct Bevy2dViewport {
-    camera: Entity,
+    camera_id: Entity,
 }
 
 impl Default for Bevy2dViewport {
     fn default() -> Self {
         Bevy2dViewport {
-            camera: Entity::PLACEHOLDER,
+            camera_id: Entity::PLACEHOLDER,
         }
     }
 }
@@ -42,23 +42,18 @@ impl Plugin for Viewport2dPanePlugin {
                 PostUpdate,
                 update_render_target_size.after(ui_layout_system),
             )
-            .add_observer(on_pane_creation)
             .add_observer(
                 |trigger: Trigger<OnRemove, Bevy2dViewport>,
                  mut commands: Commands,
                  query: Query<&Bevy2dViewport>| {
                     // Despawn the viewport camera
                     commands
-                        .entity(query.get(trigger.entity()).unwrap().camera)
+                        .entity(query.get(trigger.entity()).unwrap().camera_id)
                         .despawn_recursive();
                 },
             );
 
-        app.world_mut()
-            .get_resource_or_init::<PaneRegistry>()
-            .register("Viewport 2D", |mut commands, pane_root| {
-                commands.entity(pane_root).insert(Bevy2dViewport::default());
-            });
+        app.register_pane("Viewport 2D", on_pane_creation);
     }
 }
 
@@ -66,11 +61,12 @@ fn setup(mut commands: Commands, theme: Res<Theme>) {
     commands.spawn((
         InfiniteGrid,
         InfiniteGridSettings {
-            scale: 0.01,
+            scale: 100.,
             dot_fadeout_strength: 0.,
-            z_axis_color: Color::srgb(0.2, 8., 0.3),
-            major_line_color: theme.general.background_color.0,
-            minor_line_color: theme.pane.header_background_color.0,
+            x_axis_color: theme.viewport.x_axis_color,
+            z_axis_color: theme.viewport.y_axis_color,
+            major_line_color: theme.viewport.grid_major_line_color,
+            minor_line_color: theme.viewport.grid_minor_line_color,
             ..default()
         },
         Transform::from_rotation(Quat::from_rotation_arc(Vec3::Y, Vec3::Z)),
@@ -79,20 +75,11 @@ fn setup(mut commands: Commands, theme: Res<Theme>) {
 }
 
 fn on_pane_creation(
-    trigger: Trigger<OnAdd, Bevy2dViewport>,
+    structure: In<PaneStructure>,
     mut commands: Commands,
-    children_query: Query<&Children>,
-    mut query: Query<&mut Bevy2dViewport>,
-    content: Query<&PaneContentNode>,
     mut images: ResMut<Assets<Image>>,
     theme: Res<Theme>,
 ) {
-    let pane_root = trigger.entity();
-    let content_node = children_query
-        .iter_descendants(pane_root)
-        .find(|e| content.contains(*e))
-        .unwrap();
-
     let mut image = Image::default();
 
     image.texture_descriptor.usage |= TextureUsages::RENDER_ATTACHMENT;
@@ -102,10 +89,7 @@ fn on_pane_creation(
 
     let image_id = commands
         .spawn((
-            UiImage {
-                texture: image_handle.clone(),
-                ..Default::default()
-            },
+            ImageNode::new(image_handle.clone()),
             Node {
                 position_type: PositionType::Absolute,
                 top: Val::ZERO,
@@ -115,7 +99,7 @@ fn on_pane_creation(
                 ..default()
             },
         ))
-        .set_parent(content_node)
+        .set_parent(structure.content)
         .id();
 
     let camera_id = commands
@@ -148,7 +132,9 @@ fn on_pane_creation(
             },
         );
 
-    query.get_mut(pane_root).unwrap().camera = camera_id;
+    commands
+        .entity(structure.root)
+        .insert(Bevy2dViewport { camera_id });
 }
 
 fn update_render_target_size(
@@ -177,7 +163,7 @@ fn update_render_target_size(
         let node_position = global_transform.translation().xy();
         let rect = Rect::from_center_size(node_position, computed_node.size());
 
-        let (camera, mut editor_camera) = camera_query.get_mut(viewport.camera).unwrap();
+        let (camera, mut editor_camera) = camera_query.get_mut(viewport.camera_id).unwrap();
 
         editor_camera.viewport_override = Some(rect);
 

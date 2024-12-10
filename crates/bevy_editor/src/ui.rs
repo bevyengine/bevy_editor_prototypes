@@ -4,6 +4,7 @@ use bevy_editor_styles::Theme;
 use bevy_footer_bar::{FooterBarNode, FooterBarPlugin, FooterBarSet};
 use bevy_menu_bar::{MenuBarNode, MenuBarPlugin, MenuBarSet};
 use bevy_pane_layout::{PaneLayoutPlugin, PaneLayoutSet, RootPaneLayoutNode};
+use bevy_scene_tree::SceneTreePlugin;
 
 /// The Bevy Editor UI Plugin.
 pub struct EditorUIPlugin;
@@ -15,7 +16,12 @@ impl Plugin for EditorUIPlugin {
                 Startup,
                 (PaneLayoutSet, MenuBarSet, FooterBarSet).after(UISet),
             )
-            .add_plugins((PaneLayoutPlugin, MenuBarPlugin, FooterBarPlugin));
+            .add_plugins((
+                PaneLayoutPlugin,
+                MenuBarPlugin,
+                FooterBarPlugin,
+                SceneTreePlugin,
+            ));
     }
 }
 

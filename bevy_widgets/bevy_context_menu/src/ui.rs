@@ -54,7 +54,7 @@ pub(crate) fn spawn_option<'a>(
                 flex_grow: 1.,
                 ..default()
             },
-            theme.button.border_radius,
+            theme.context_menu.option_border_radius,
         ))
         .observe(
             |trigger: Trigger<Pointer<Over>>,
@@ -93,6 +93,9 @@ pub(crate) fn spawn_option<'a>(
                   mut commands: Commands,
                   parent_query: Query<&Parent>,
                   mut query: Query<&mut ContextMenu>| {
+                if trigger.event().button != PointerButton::Primary {
+                    return;
+                }
                 // Despawn the context menu when an option is selected
                 let root = parent_query
                     .iter_ancestors(trigger.entity())

@@ -95,14 +95,47 @@ fn fragment(in: VertexOutput) -> FragmentOutput {
 
     out.depth = clip_depth;
 
-    let scale = grid_settings.scale;
-    let coord = plane_coords * scale; // use the scale variable to set the distance between the lines
+    // Perspective scaling
+
+    let camera_distance_from_plane = abs(dot(view.world_position - plane_origin, plane_normal));
+
+    // The base 10 log of the camera distance
+    let log10_distance = log(max(grid_settings.scale, camera_distance_from_plane)) / log(10.);
+
+    // The scaling to be used when the camera projection has perspective
+    let perspective_scaling = pow(10., floor(log10_distance));
+
+
+    // Orthographic scaling
+
+    // The height of the view in world units
+    let view_area_height = 2. / view.projection[1][1];
+
+    // Who knows what it means?
+    let cool_magic_number = 300.;
+    let size = view_area_height / cool_magic_number;
+
+    // The base 10 log of the viewport size
+    let log10_size = log(max(1., size)) / log(10.);
+
+    // The scaling to be used when the camera projection is orthographic
+    let orthographic_scaling = pow(10., floor(log10_size)) ;
+
+
+    // Equal to 1 when the camera projection is orthographic. Otherwise 0
+    let is_orthographic = view.projection[3].w;
+
+    // Choose different scaling methods for perspective and orthographic projections
+    let scaling = mix(perspective_scaling, orthographic_scaling, is_orthographic);
+
+    let scale = grid_settings.scale * scaling;
+    let coord = plane_coords / scale; // use the scale variable to set the distance between the lines
     let derivative = fwidth(coord);
     let grid = abs(fract(coord - 0.5) - 0.5) / derivative;
     let lne = min(grid.x, grid.y);
 
-    let minimumz = min(derivative.y, 1.) / scale;
-    let minimumx = min(derivative.x, 1.) / scale;
+    let minimumz = min(derivative.y, 1.) * scale;
+    let minimumx = min(derivative.x, 1.) * scale;
 
     let derivative2 = fwidth(coord * 0.1);
     let grid2 = abs(fract((coord * 0.1) - 0.5) - 0.5) / derivative2;
@@ -112,13 +145,14 @@ fn fragment(in: VertexOutput) -> FragmentOutput {
     let base_grid_color = mix(grid_settings.major_line_col, grid_settings.minor_line_col, step(1., mg_line));
     var grid_color = vec4(base_grid_color.rgb, base_grid_color.a * grid_alpha);
 
-    let z_axis_cond = plane_coords.x > -1.0 * minimumx && plane_coords.x < 1.0 * minimumx;
-    let x_axis_cond = plane_coords.y > -1.0 * minimumz && plane_coords.y < 1.0 * minimumz;
+    let main_axes_half_width = 0.8;
+    let z_axis_cond = plane_coords.x > -main_axes_half_width * minimumx && plane_coords.x < main_axes_half_width * minimumx;
+    let x_axis_cond = plane_coords.y > -main_axes_half_width * minimumz && plane_coords.y < main_axes_half_width * minimumz;
 
     grid_color = mix(grid_color, vec4(grid_settings.z_axis_col, grid_color.a), f32(z_axis_cond));
     grid_color = mix(grid_color, vec4(grid_settings.x_axis_col, grid_color.a), f32(x_axis_cond));
 
-    let dist_fadeout = min(1., 1. - grid_settings.dist_fadeout_const * real_depth);
+    let dist_fadeout = min(1., 1. - grid_settings.dist_fadeout_const / max(1., camera_distance_from_plane / 10.) * real_depth);
     let dot_fadeout = abs(dot(grid_position.normal, normalize(view.world_position - frag_pos_3d)));
     let alpha_fadeout = mix(dist_fadeout, 1., dot_fadeout) * min(grid_settings.dot_fadeout_const * dot_fadeout, 1.);
 

@@ -14,7 +14,7 @@ fn setup_system(mut commands: Commands) {
     commands.spawn((
         InfiniteGrid,
         InfiniteGridSettings {
-            scale: 0.01,
+            scale: 100.,
             dot_fadeout_strength: 0.,
             z_axis_color: Color::srgb(0.2, 8., 0.3),
             ..default()

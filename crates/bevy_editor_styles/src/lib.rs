@@ -30,6 +30,8 @@ pub struct Theme {
     pub context_menu: ContextMenuStyles,
     /// The styles for viewports in the editor.
     pub viewport: ViewportStyles,
+    /// The styles for scroll boxes in the editor.
+    pub scroll_box: ScrollBoxStyles,
 }
 
 /// The general styles for the editor.
@@ -84,12 +86,34 @@ pub struct ContextMenuStyles {
     pub background_color: BackgroundColor,
     /// The hover color of the context menu.
     pub hover_color: BackgroundColor,
+    /// The border radius of the context menu options.
+    pub option_border_radius: BorderRadius,
 }
 
 /// The styles for viewports in the editor.
 pub struct ViewportStyles {
     /// The background color of the viewports.
     pub background_color: Color,
+    /// The color of the x-axis.
+    pub x_axis_color: Color,
+    /// The color of the y-axis.
+    pub y_axis_color: Color,
+    /// The color of the z-axis.
+    pub z_axis_color: Color,
+    /// The color of the major grid lines.
+    pub grid_major_line_color: Color,
+    /// The color of the minor grid lines.
+    pub grid_minor_line_color: Color,
+}
+
+/// The styles for the scroll boxes in the editor.
+pub struct ScrollBoxStyles {
+    /// The background color of the scroll box.
+    pub background_color: BackgroundColor,
+    /// The color of the scroll handle.
+    pub handle_color: Color,
+    /// The border radius of the scroll box.
+    pub border_radius: BorderRadius,
 }
 
 impl FromWorld for Theme {
@@ -123,9 +147,20 @@ impl FromWorld for Theme {
             context_menu: ContextMenuStyles {
                 background_color: BackgroundColor(Color::oklch(0.209, 0., 0.)),
                 hover_color: BackgroundColor(Color::oklch(0.3677, 0., 0.)),
+                option_border_radius: BorderRadius::all(Val::Px(5.)),
             },
             viewport: ViewportStyles {
                 background_color: Color::oklch(0.3677, 0.0, 0.0),
+                x_axis_color: Color::oklch(0.65, 0.24, 27.0),
+                y_axis_color: Color::oklch(0.87, 0.27, 144.0),
+                z_axis_color: Color::oklch(0.65, 0.19, 255.0),
+                grid_major_line_color: Color::oklch(0.45, 0.0, 0.0),
+                grid_minor_line_color: Color::oklch(0.4, 0.0, 0.0),
+            },
+            scroll_box: ScrollBoxStyles {
+                background_color: BackgroundColor(Color::oklch(0.4, 0.0, 0.0)),
+                handle_color: Color::oklch(0.325, 0.0, 0.0),
+                border_radius: BorderRadius::all(Val::Px(8.)),
             },
         }
     }

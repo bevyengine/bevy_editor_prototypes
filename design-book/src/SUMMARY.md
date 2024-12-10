@@ -2,6 +2,7 @@
 
 - [Vision](./vision.md)
 - [Roadmap](./roadmap.md)
+- [Glossary](./glossary.md)
 - [Design Constraints](./design-constraints.md)
 - [Human Interface Guidelines](./human-interface-guidelines.md)
   - [Design Paradigms](./design-paradigms.md)

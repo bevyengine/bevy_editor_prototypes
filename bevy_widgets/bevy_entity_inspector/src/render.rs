@@ -87,12 +87,14 @@ pub fn render_component_inspector(
     theme: Res<Theme>,
 ) {
     let Ok(inspected_entity) = q_inspected.get_single() else {
+        warn!("No inspected entity or many found");
         return;
     };
 
     for (inspector_entity, mut inspector) in q_inspector.iter_mut() {
         let Some(change_ticks) = inspected_entity.get_change_ticks_by_id(inspector.component_id)
         else {
+            warn!("No change ticks found for component: {:?}", inspector.component_id);
             continue;
         };
 
@@ -101,6 +103,7 @@ pub fn render_component_inspector(
             system_change_ticks.this_run(),
         ) && inspector.rendered
         {
+            info!("Component not changed for component: {:?}, skipping render", inspector.component_id);
             continue;
         }
 
@@ -109,14 +112,17 @@ pub fn render_component_inspector(
         let type_registry = app_registry.read();
 
         let Some(reg) = type_registry.get(inspector.type_id) else {
+            warn!("No type registry found for type: {:?}", inspector.type_id);
             continue;
         };
 
         let Some(reflect_from_ptr) = reg.data::<ReflectFromPtr>() else {
+            warn!("No ReflectFromPtr found for type: {:?}", inspector.type_id);
             continue;
         };
 
         let Ok(component_data) = inspected_entity.get_by_id(inspector.component_id) else {
+            warn!("No component data found for component: {:?}", inspector.component_id);
             continue;
         };
 
@@ -147,18 +153,27 @@ pub fn render_component_inspector(
             &render_context,
         );
 
+        // tree.add_child(
+        //     DiffTree::new()
+        //         .with_patch_fn(move |collapsing_header: &mut CollapsingHeader| {
+        //             collapsing_header.text = name.to_string();
+        //         })
+        //         .with_patch_fn(|text_layout: &mut TextLayout| {
+        //             text_layout.linebreak = LineBreak::AnyCharacter;
+        //         })
+        //         .with_patch_fn(|node: &mut Node| {
+        //             node.max_width = Val::Px(300.0);
+        //         })
+        //         .with_child(reflect_content),
+        // );
+
+        let id = inspector.component_id;
+
         tree.add_child(
             DiffTree::new()
-                .with_patch_fn(move |collapsing_header: &mut CollapsingHeader| {
-                    collapsing_header.text = name.to_string();
+                .with_patch_fn(move |text: &mut Text| {
+                    text.0 = format!("Component: {:?}", id);
                 })
-                .with_patch_fn(|text_layout: &mut TextLayout| {
-                    text_layout.linebreak = LineBreak::AnyCharacter;
-                })
-                .with_patch_fn(|node: &mut Node| {
-                    node.max_width = Val::Px(300.0);
-                })
-                .with_child(reflect_content),
         );
 
         let font_cloned = theme.text.font.clone();
@@ -235,7 +250,7 @@ pub fn on_change_component_field(
 pub fn render_entity_inspector(
     mut commands: Commands,
     q_inspected: Query<EntityRef, With<InspectedEntity>>,
-    q_inspector: Query<(Entity, Option<&Children>), With<EntityInspector>>,
+    mut q_inspector: Query<(Entity, Option<&Children>, &mut Node), (Without<InspectedEntity>, With<EntityInspector>)>,
     q_component_inspectors: Query<&ComponentInspector>,
     components: &Components,
 ) {
@@ -243,24 +258,29 @@ pub fn render_entity_inspector(
         return;
     };
 
-    for (inspector, children) in q_inspector.iter() {
+    for (inspector, children, mut node) in q_inspector.iter_mut() {
         let entity = inspected_entity.id();
 
-        let mut tree = DiffTree::new();
+        node.display = Display::Flex;
+        node.flex_direction = FlexDirection::Column;
+        node.overflow = Overflow::scroll();
+        node.height = Val::Percent(100.0);
 
-        tree.add_patch_fn(|node: &mut Node| {
-            node.display = Display::Flex;
-            node.flex_direction = FlexDirection::Column;
-            node.overflow = Overflow::scroll();
-            node.height = Val::Percent(100.0);
-        });
+        // let mut tree = DiffTree::new();
 
-        tree.add_patch_fn(|_: &mut Interaction| {});
+        // tree.add_patch_fn(|node: &mut Node| {
+        //     node.display = Display::Flex;
+        //     node.flex_direction = FlexDirection::Column;
+        //     node.overflow = Overflow::scroll();
+        //     node.height = Val::Percent(100.0);
+        // });
 
-        tree.add_child(DiffTree::new().with_patch_fn(move |text: &mut Text| {
-            text.0 = format!("Entity: {}", entity);
-        }));
-        commands.entity(inspector).diff_tree(tree);
+        // tree.add_patch_fn(|_: &mut Interaction| {});
+
+        // tree.add_child(DiffTree::new().with_patch_fn(move |text: &mut Text| {
+        //     text.0 = format!("Entity: {}", entity);
+        // }));
+        // commands.entity(inspector).diff_tree(tree);
 
         let mut compenent_id_set = inspected_entity
             .archetype()

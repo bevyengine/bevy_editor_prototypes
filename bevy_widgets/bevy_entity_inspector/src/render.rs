@@ -153,28 +153,28 @@ pub fn render_component_inspector(
             &render_context,
         );
 
-        // tree.add_child(
-        //     DiffTree::new()
-        //         .with_patch_fn(move |collapsing_header: &mut CollapsingHeader| {
-        //             collapsing_header.text = name.to_string();
-        //         })
-        //         .with_patch_fn(|text_layout: &mut TextLayout| {
-        //             text_layout.linebreak = LineBreak::AnyCharacter;
-        //         })
-        //         .with_patch_fn(|node: &mut Node| {
-        //             node.max_width = Val::Px(300.0);
-        //         })
-        //         .with_child(reflect_content),
-        // );
+        tree.add_child(
+            DiffTree::new()
+                .with_patch_fn(move |collapsing_header: &mut CollapsingHeader| {
+                    collapsing_header.text = name.to_string();
+                })
+                .with_patch_fn(|text_layout: &mut TextLayout| {
+                    text_layout.linebreak = LineBreak::AnyCharacter;
+                })
+                .with_patch_fn(|node: &mut Node| {
+                    node.max_width = Val::Px(300.0);
+                })
+                .with_child(reflect_content),
+        );
 
         let id = inspector.component_id;
 
-        tree.add_child(
-            DiffTree::new()
-                .with_patch_fn(move |text: &mut Text| {
-                    text.0 = format!("Component: {:?}", id);
-                })
-        );
+        // tree.add_child(
+        //     DiffTree::new()
+        //         .with_patch_fn(move |text: &mut Text| {
+        //             text.0 = format!("Component: {:?}", id);
+        //         })
+        // );
 
         let font_cloned = theme.text.font.clone();
         let color_cloned = theme.text.text_color;

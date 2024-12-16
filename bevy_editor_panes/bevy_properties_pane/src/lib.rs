@@ -1,7 +1,7 @@
 //! 3D Viewport for Bevy
 use bevy::prelude::*;
 use bevy_entity_inspector::{EntityInspector, EntityInspectorPlugin};
-use bevy_pane_layout::{PaneContentNode, PaneRegistry};
+use bevy_pane_layout::{prelude::{PaneAppExt, PaneStructure}, PaneContentNode};
 
 pub use bevy_entity_inspector::InspectedEntity;
 
@@ -23,38 +23,25 @@ impl Plugin for PropertiesPanePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(EntityInspectorPlugin);
 
-        app.add_observer(on_pane_creation);
-
-        app.world_mut()
-            .get_resource_or_init::<PaneRegistry>()
-            .register("Properties", |mut commands, pane_root| {
-                commands
-                    .entity(pane_root)
-                    .insert(BevyPropertiesPane::default());
-            });
+        app.register_pane("Properties", on_pane_creation);
     }
 }
 
 fn on_pane_creation(
-    trigger: Trigger<OnAdd, BevyPropertiesPane>,
-    mut commands: Commands,
-    children_query: Query<&Children>,
-    content: Query<&PaneContentNode>,
+    structure: In<PaneStructure>,
+    mut commands: Commands
 ) {
-    info!("Properties pane created");
+    println!("Properties pane created");
 
-    let pane_root = trigger.entity();
-    let content_node = children_query
-        .iter_descendants(pane_root)
-        .find(|e| content.contains(*e))
-        .unwrap();
+    let content_node = structure.content;
 
-    commands.entity(content_node).with_child((
+    commands.entity(content_node).insert((
         EntityInspector,
         Node {
-            width: Val::Percent(100.),
-            height: Val::Percent(100.),
+            width: Val::Auto,
+            flex_grow: 0.0,
+            overflow: Overflow::scroll_y(),
             ..default()
-        },
+        }
     ));
 }

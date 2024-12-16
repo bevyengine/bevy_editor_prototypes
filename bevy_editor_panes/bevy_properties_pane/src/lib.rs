@@ -35,11 +35,12 @@ fn on_pane_creation(
 
     let content_node = structure.content;
 
-    commands.entity(content_node).with_child((
+    commands.entity(content_node).insert((
         EntityInspector,
         Node {
-            width: Val::Percent(100.),
-            height: Val::Percent(100.),
+            width: Val::Auto,
+            flex_grow: 0.0,
+            overflow: Overflow::scroll_y(),
             ..default()
         }
     ));

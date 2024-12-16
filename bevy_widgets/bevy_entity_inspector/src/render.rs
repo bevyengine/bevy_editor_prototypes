@@ -33,6 +33,7 @@ pub struct RenderContext<'w, 's> {
 
 /// Component for managing the inspection of a specific component.
 #[derive(Component)]
+#[require(Node)]
 pub struct ComponentInspector {
     /// The ID of the component being inspected.
     pub component_id: ComponentId,
@@ -103,7 +104,7 @@ pub fn render_component_inspector(
             system_change_ticks.this_run(),
         ) && inspector.rendered
         {
-            info!("Component not changed for component: {:?}, skipping render", inspector.component_id);
+            // info!("Component not changed for component: {:?}, skipping render", inspector.component_id);
             continue;
         }
 
@@ -112,7 +113,7 @@ pub fn render_component_inspector(
         let type_registry = app_registry.read();
 
         let Some(reg) = type_registry.get(inspector.type_id) else {
-            warn!("No type registry found for type: {:?}", inspector.type_id);
+            // warn!("No type registry found for type: {:?}", inspector.type_id);
             continue;
         };
 
@@ -139,6 +140,9 @@ pub fn render_component_inspector(
             .split("::")
             .last()
             .unwrap_or_default();
+
+        // Remove the generic type from the name if it exists
+        let name = name.replace(">", "");
 
         let render_context = RenderContext {
             render_storage: &render_storage,
@@ -255,6 +259,11 @@ pub fn render_entity_inspector(
     components: &Components,
 ) {
     let Ok(inspected_entity) = q_inspected.get_single() else {
+        if q_inspector.is_empty() {
+            warn!("No inspected entity found");
+        } else {
+            warn!("Multiple inspected entities found");
+        }
         return;
     };
 

@@ -39,11 +39,6 @@ pub struct PaneLayoutPlugin;
 
 impl Plugin for PaneLayoutPlugin {
     fn build(&self, app: &mut App) {
-        // TODO Move these registrations to their respective crates.
-        app.register_pane("Properties", |_pane_structure: In<PaneStructure>| {
-            // Todo
-        });
-
         app.add_plugins(PaneRegistryPlugin)
             .init_resource::<DragState>()
             .add_systems(Startup, setup.in_set(PaneLayoutSet))

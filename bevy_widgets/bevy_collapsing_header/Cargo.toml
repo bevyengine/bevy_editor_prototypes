@@ -1,12 +1,11 @@
 [package]
-name = "bevy_properties_pane"
+name = "bevy_collapsing_header"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 bevy.workspace = true
-bevy_pane_layout.workspace = true
-bevy_entity_inspector.workspace = true
+bevy_incomplete_bsn.workspace = true
 bevy_editor_styles.workspace = true
 
 [lints]

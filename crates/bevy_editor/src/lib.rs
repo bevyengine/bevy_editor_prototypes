@@ -23,6 +23,7 @@ use bevy_editor_styles::StylesPlugin;
 use bevy_2d_viewport::Viewport2dPanePlugin;
 use bevy_3d_viewport::Viewport3dPanePlugin;
 use bevy_asset_browser::AssetBrowserPanePlugin;
+use bevy_properties_pane::PropertiesPanePlugin;
 
 use crate::load_gltf::LoadGltfPlugin;
 
@@ -53,6 +54,7 @@ impl Plugin for EditorPlugin {
                 StylesPlugin,
                 Viewport2dPanePlugin,
                 Viewport3dPanePlugin,
+                PropertiesPanePlugin,
                 ui::EditorUIPlugin,
                 AssetBrowserPanePlugin,
                 LoadGltfPlugin,
@@ -102,6 +104,7 @@ fn dummy_setup(
     commands.spawn((
         Mesh3d(meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(1.5)))),
         MeshMaterial3d(materials_3d.add(Color::WHITE)),
+        bevy_properties_pane::InspectedEntity
     ));
 
     commands.spawn((

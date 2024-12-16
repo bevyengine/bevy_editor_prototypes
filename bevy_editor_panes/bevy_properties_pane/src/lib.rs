@@ -1,19 +1,47 @@
-//! An interactive, reflection-based inspector for Bevy ECS data in running applications.
-//!
-//! Data can be viewed and modified in real-time, with changes being reflected in the application.
+//! 3D Viewport for Bevy
+use bevy::prelude::*;
+use bevy_entity_inspector::{EntityInspector, EntityInspectorPlugin};
+use bevy_pane_layout::{prelude::{PaneAppExt, PaneStructure}, PaneContentNode};
 
-/// an add function that adds two numbers
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+pub use bevy_entity_inspector::InspectedEntity;
+
+/// The identifier for the 3D Viewport.
+/// This is present on any pane that is a 3D Viewport.
+#[derive(Component)]
+pub struct BevyPropertiesPane;
+
+impl Default for BevyPropertiesPane {
+    fn default() -> Self {
+        BevyPropertiesPane
+    }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+/// Plugin for the 3D Viewport pane.
+pub struct PropertiesPanePlugin;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+impl Plugin for PropertiesPanePlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(EntityInspectorPlugin);
+
+        app.register_pane("Properties", on_pane_creation);
     }
+}
+
+fn on_pane_creation(
+    structure: In<PaneStructure>,
+    mut commands: Commands
+) {
+    println!("Properties pane created");
+
+    let content_node = structure.content;
+
+    commands.entity(content_node).insert((
+        EntityInspector,
+        Node {
+            width: Val::Auto,
+            flex_grow: 0.0,
+            overflow: Overflow::scroll_y(),
+            ..default()
+        }
+    ));
 }

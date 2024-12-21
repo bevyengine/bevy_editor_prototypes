@@ -1,7 +1,7 @@
 use bevy::prelude::warn;
 use bevy::reflect::{PartialReflect, ValueInfo};
 
-struct LoadValue<'a> {
+pub struct LoadValue<'a> {
     pub value_info: &'a ValueInfo,
     pub toml_value: &'a toml::Value,
     pub value: &'a mut dyn PartialReflect,
@@ -70,16 +70,17 @@ impl<'a> LoadValue<'a> {
 
 #[cfg(test)]
 mod tests {
+    use bevy::reflect::DynamicTyped as _;
+
     use super::*;
 
     #[tracing_test::traced_test]
     #[test]
     fn load_str() {
         let mut value = "".to_string();
-        let value_info = &ValueInfo::new::<String>();
         let toml_value = &toml::Value::String("Hello".to_string());
         LoadValue {
-            value_info,
+            value_info: value.reflect_type_info().as_value().unwrap(),
             toml_value,
             value: &mut value,
         }
@@ -91,10 +92,9 @@ mod tests {
     #[test]
     fn load_float_f64() {
         let mut value = 0.0;
-        let value_info = &ValueInfo::new::<f64>();
         let toml_value = &toml::Value::Float(3.14);
         LoadValue {
-            value_info,
+            value_info: value.reflect_type_info().as_value().unwrap(),
             toml_value,
             value: &mut value,
         }
@@ -106,10 +106,9 @@ mod tests {
     #[test]
     fn load_float_f32() {
         let mut value = 0.0_f32;
-        let value_info = &ValueInfo::new::<f32>();
         let toml_value = &toml::Value::Float(3.14);
         LoadValue {
-            value_info,
+            value_info: value.reflect_type_info().as_value().unwrap(),
             toml_value,
             value: &mut value,
         }
@@ -121,10 +120,9 @@ mod tests {
     #[test]
     fn load_bool() {
         let mut value = false;
-        let value_info = &ValueInfo::new::<bool>();
         let toml_value = &toml::Value::Boolean(true);
         LoadValue {
-            value_info,
+            value_info: value.reflect_type_info().as_value().unwrap(),
             toml_value,
             value: &mut value,
         }
@@ -136,10 +134,9 @@ mod tests {
     #[test]
     fn load_float_from_int_f64() {
         let mut value = 0.0;
-        let value_info = &ValueInfo::new::<f64>();
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info,
+            value_info: value.reflect_type_info().as_value().unwrap(),
             toml_value,
             value: &mut value,
         }
@@ -151,10 +148,9 @@ mod tests {
     #[test]
     fn load_float_from_int_f32() {
         let mut value = 0.0_f32;
-        let value_info = &ValueInfo::new::<f32>();
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info,
+            value_info: value.reflect_type_info().as_value().unwrap(),
             toml_value,
             value: &mut value,
         }
@@ -167,10 +163,9 @@ mod tests {
     #[test]
     fn load_int() {
         let mut value = 0;
-        let value_info = &ValueInfo::new::<i32>();
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info,
+            value_info: value.reflect_type_info().as_value().unwrap(),
             toml_value,
             value: &mut value,
         }
@@ -182,10 +177,9 @@ mod tests {
     #[test]
     fn load_u8() {
         let mut value = 0_u8;
-        let value_info = &ValueInfo::new::<u8>();
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info,
+            value_info: value.reflect_type_info().as_value().unwrap(),
             toml_value,
             value: &mut value,
         }
@@ -197,10 +191,9 @@ mod tests {
     #[test]
     fn load_u16() {
         let mut value = 0_u16;
-        let value_info = &ValueInfo::new::<u16>();
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info,
+            value_info: value.reflect_type_info().as_value().unwrap(),
             toml_value,
             value: &mut value,
         }
@@ -212,10 +205,9 @@ mod tests {
     #[test]
     fn load_u32() {
         let mut value = 0_u32;
-        let value_info = &ValueInfo::new::<u32>();
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info,
+            value_info: value.reflect_type_info().as_value().unwrap(),
             toml_value,
             value: &mut value,
         }
@@ -227,10 +219,9 @@ mod tests {
     #[test]
     fn load_u64() {
         let mut value = 0_u64;
-        let value_info = &ValueInfo::new::<u64>();
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info,
+            value_info: value.reflect_type_info().as_value().unwrap(),
             toml_value,
             value: &mut value,
         }
@@ -242,10 +233,9 @@ mod tests {
     #[test]
     fn load_i8() {
         let mut value = 0_i8;
-        let value_info = &ValueInfo::new::<i8>();
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info,
+            value_info: value.reflect_type_info().as_value().unwrap(),
             toml_value,
             value: &mut value,
         }
@@ -257,10 +247,9 @@ mod tests {
     #[test]
     fn load_i16() {
         let mut value = 0_i16;
-        let value_info = &ValueInfo::new::<i16>();
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info,
+            value_info: value.reflect_type_info().as_value().unwrap(),
             toml_value,
             value: &mut value,
         }
@@ -272,10 +261,9 @@ mod tests {
     #[test]
     fn load_i32() {
         let mut value = 0_i32;
-        let value_info = &ValueInfo::new::<i32>();
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info,
+            value_info: value.reflect_type_info().as_value().unwrap(),
             toml_value,
             value: &mut value,
         }
@@ -287,10 +275,9 @@ mod tests {
     #[test]
     fn load_i64() {
         let mut value = 0_i64;
-        let value_info = &ValueInfo::new::<i64>();
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info,
+            value_info: value.reflect_type_info().as_value().unwrap(),
             toml_value,
             value: &mut value,
         }

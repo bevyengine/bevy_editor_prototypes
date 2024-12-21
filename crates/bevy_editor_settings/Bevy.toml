@@ -31,7 +31,7 @@ age = 4
 settings = ["Three"]
 
 # top level tuple struct
-# adds the fields field to the tuple sturct. this is ONLY done for a top level tuple struct
+# adds the fields field to the tuple struct. this is ONLY done for a top level tuple struct
 [tuple_struct]
 fields = [2, "two"]
 

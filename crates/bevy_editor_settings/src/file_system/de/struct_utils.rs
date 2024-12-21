@@ -14,7 +14,7 @@ impl StructLikeInfo for StructInfo {
         Self::field(self, name)
     }
 
-    fn field_at(&self, index: usize) -> Option<&NamedField>  {
+    fn field_at(&self, index: usize) -> Option<&NamedField> {
         Self::field_at(self, index)
     }
 
@@ -32,7 +32,7 @@ impl StructLikeInfo for StructVariantInfo {
         Self::field(self, name)
     }
 
-    fn field_at(&self, index: usize) -> Option<&NamedField>  {
+    fn field_at(&self, index: usize) -> Option<&NamedField> {
         Self::field_at(self, index)
     }
 

@@ -3,8 +3,8 @@
 use bevy::prelude::*;
 
 mod file_system;
-pub mod modals;
 mod local_prefs;
+pub mod modals;
 
 /// Annotation for a type to show which type of settings it belongs to.
 #[derive(Debug, Clone, PartialEq, Eq, Reflect)]
@@ -110,7 +110,6 @@ mod tests {
         assert_eq!(settings.age, 25);
     }
 
-
     #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
     #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
     struct ListTesting {
@@ -136,9 +135,7 @@ mod tests {
             list: vec!["one".to_string(), "two".to_string()],
         });
 
-        app.insert_resource(ListTestingAppend {
-            list: vec![1, 2],
-        });
+        app.insert_resource(ListTestingAppend { list: vec![1, 2] });
 
         file_system::load_project_settings(app.world_mut());
 
@@ -150,7 +147,6 @@ mod tests {
 
         assert_eq!(settings.list, vec![1, 2, 3, 4]);
     }
-
 
     #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
     #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
@@ -200,7 +196,6 @@ mod tests {
             settings: vec![EnumTesting::One, EnumTesting::Two],
         });
 
-
         file_system::load_project_settings(app.world_mut());
 
         let settings = app.world().get_resource::<EnumTesting>().unwrap();
@@ -209,19 +204,24 @@ mod tests {
 
         let settings = app.world().get_resource::<EnumSettings>().unwrap();
 
-        assert_eq!(*settings, EnumSettings {
-            test1: EnumTestingField::Tuple("hello".to_string(), 42),
-            test2: EnumTestingField::Struct {
-                name: "four".to_string(),
-                age: 4,
-            },
-        });
+        assert_eq!(
+            *settings,
+            EnumSettings {
+                test1: EnumTestingField::Tuple("hello".to_string(), 42),
+                test2: EnumTestingField::Struct {
+                    name: "four".to_string(),
+                    age: 4,
+                },
+            }
+        );
 
         let settings = app.world().get_resource::<EnumSettingsList>().unwrap();
 
-        assert_eq!(settings.settings, vec![EnumTesting::One, EnumTesting::Two, EnumTesting::Three]);
+        assert_eq!(
+            settings.settings,
+            vec![EnumTesting::One, EnumTesting::Two, EnumTesting::Three]
+        );
     }
-
 
     #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
     #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
@@ -254,9 +254,11 @@ mod tests {
 
         let settings = app.world().get_resource::<StructWithTuple>().unwrap();
 
-        assert_eq!(*settings, StructWithTuple {
-            tuple: TupleStruct(3, "three".to_string()),
-        });
+        assert_eq!(
+            *settings,
+            StructWithTuple {
+                tuple: TupleStruct(3, "three".to_string()),
+            }
+        );
     }
-
 }

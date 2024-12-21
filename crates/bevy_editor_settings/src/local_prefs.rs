@@ -2,8 +2,6 @@ use bevy::{prelude::Resource, reflect::Reflect};
 
 use crate::{SettingsTags, SettingsType};
 
-
-
 #[derive(Debug, Clone, PartialEq, Eq, Reflect, Resource)]
 #[reflect(@SettingsType::Project, @SettingsTags(vec!["basic", "settings", "testing"]))]
 /// Settings for building the project

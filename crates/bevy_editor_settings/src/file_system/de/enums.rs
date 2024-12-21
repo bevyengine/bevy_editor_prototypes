@@ -123,8 +123,6 @@ mod tests {
         Variant4(u32, u32),
     }
 
-   
-
     #[tracing_test::traced_test]
     #[test]
     fn load_enum_unit() {
@@ -140,7 +138,6 @@ mod tests {
 
         assert_eq!(enum_test, TestEnum::Variant1);
     }
-
 
     fn enum_test_toml() -> toml::Value {
         let mut table = toml::value::Table::new();
@@ -175,7 +172,10 @@ mod tests {
 
     fn enum_test_tuple_toml() -> toml::Value {
         let mut table = toml::value::Table::new();
-        table.insert("Variant4".to_string(), toml::Value::Array(vec![toml::Value::Integer(1), toml::Value::Integer(2)]));
+        table.insert(
+            "Variant4".to_string(),
+            toml::Value::Array(vec![toml::Value::Integer(1), toml::Value::Integer(2)]),
+        );
         toml::Value::Table(table)
     }
 }

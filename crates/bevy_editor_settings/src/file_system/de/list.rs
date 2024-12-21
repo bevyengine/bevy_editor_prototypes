@@ -91,7 +91,13 @@ mod tests {
         list.list.push(1);
         list.list.push(2);
 
-        let attrs = list.reflect_type_info().as_struct().unwrap().field_at(0).unwrap().custom_attributes();
+        let attrs = list
+            .reflect_type_info()
+            .as_struct()
+            .unwrap()
+            .field_at(0)
+            .unwrap()
+            .custom_attributes();
 
         let toml_value = list_test_toml();
         LoadList {

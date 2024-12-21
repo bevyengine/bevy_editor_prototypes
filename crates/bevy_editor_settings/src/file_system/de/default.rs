@@ -1,5 +1,6 @@
 use bevy::reflect::{
-    ArrayInfo, DynamicArray, DynamicEnum, DynamicList, DynamicMap, DynamicSet, DynamicStruct, DynamicTuple, EnumInfo, ListInfo, MapInfo, PartialReflect, SetInfo, Type, TypeInfo, ValueInfo
+    ArrayInfo, DynamicArray, DynamicEnum, DynamicList, DynamicMap, DynamicSet, DynamicStruct,
+    DynamicTuple, EnumInfo, ListInfo, MapInfo, PartialReflect, SetInfo, Type, TypeInfo, ValueInfo,
 };
 
 use super::{struct_utils::StructLikeInfo, tuple_utils::TupleLikeInfo};

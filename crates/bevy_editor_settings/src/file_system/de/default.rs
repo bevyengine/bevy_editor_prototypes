@@ -1,5 +1,5 @@
 use bevy::reflect::{
-    ArrayInfo, DynamicArray, DynamicList, DynamicMap, DynamicSet, DynamicStruct, DynamicTuple, ListInfo, MapInfo, PartialReflect, SetInfo, Type, TypeInfo, ValueInfo
+    ArrayInfo, DynamicArray, DynamicEnum, DynamicList, DynamicMap, DynamicSet, DynamicStruct, DynamicTuple, EnumInfo, ListInfo, MapInfo, PartialReflect, SetInfo, Type, TypeInfo, ValueInfo
 };
 
 use super::{struct_utils::StructLikeInfo, tuple_utils::TupleLikeInfo};
@@ -28,8 +28,14 @@ pub fn default_data_type(type_info: &TypeInfo) -> Option<Box<dyn PartialReflect>
         TypeInfo::Set(type_info) => {
             default_set(type_info).map(|s| Box::new(s) as Box<dyn PartialReflect>)
         }
-        TypeInfo::Enum(_) => None,
+        TypeInfo::Enum(type_info) => {
+            default_enum(type_info).map(|e| Box::new(e) as Box<dyn PartialReflect>)
+        }
     }
+}
+
+pub fn default_enum(_type_info: &EnumInfo) -> Option<DynamicEnum> {
+    Some(DynamicEnum::default())
 }
 
 pub fn default_set(_type_info: &SetInfo) -> Option<DynamicSet> {

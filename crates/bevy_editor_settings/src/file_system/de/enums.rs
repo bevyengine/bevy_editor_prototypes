@@ -65,10 +65,11 @@ impl<'a> LoadEnum<'a> {
                             );
                             self.enm.apply(&dyn_enum);
                         }
-                        VariantInfo::Tuple(tuple_variant_info)
-                            if tuple_variant_info.field_len() == 1 && !value.is_array() => {
-                                // TODO: This is a hack to support single field tuple structs
-                            }
+                        // TODO: handle single field tuple structs differently
+                        // VariantInfo::Tuple(tuple_variant_info)
+                        //     if tuple_variant_info.field_len() == 1 && !value.is_array() => {
+                        //         // TODO: This is a hack to support single field tuple structs
+                        //     }
                         VariantInfo::Tuple(tuple_variant_info) => {
                             let Some(array) = value.as_array() else {
                                 warn!("Preferences: Expected Array");

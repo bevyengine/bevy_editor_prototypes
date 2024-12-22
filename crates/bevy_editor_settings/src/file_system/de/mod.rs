@@ -198,9 +198,9 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                         }
                         let mut ptr = world.get_resource_mut_by_id(res_id).unwrap();
                         let reflect_from_ptr = type_reg.data::<ReflectFromPtr>().unwrap();
-                        // SAFE: `value` is of type `Reflected`, which the `ReflectFromPtr` was created for
                         #[allow(unsafe_code)]
                         let ReflectMut::Struct(strct) =
+                            // SAFETY: `value` is of type `Reflected`, which the `ReflectFromPtr` was created for
                             unsafe { reflect_from_ptr.as_reflect_mut(ptr.as_mut()) }.reflect_mut()
                         else {
                             panic!("Expected Struct");
@@ -229,9 +229,9 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                         }
                         let mut ptr = world.get_resource_mut_by_id(res_id).unwrap();
                         let reflect_from_ptr = type_reg.data::<ReflectFromPtr>().unwrap();
-                        // SAFE: `value` is of type `Reflected`, which the `ReflectFromPtr` was created for
                         #[allow(unsafe_code)]
                         let ReflectMut::Enum(enm) =
+                            // SAFETY: `value` is of type `Reflected`, which the `ReflectFromPtr` was created for
                             unsafe { reflect_from_ptr.as_reflect_mut(ptr.as_mut()) }.reflect_mut()
                         else {
                             panic!("Expected Struct");
@@ -262,9 +262,9 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                         }
                         let mut ptr = world.get_resource_mut_by_id(res_id).unwrap();
                         let reflect_from_ptr = type_reg.data::<ReflectFromPtr>().unwrap();
-                        // SAFE: `value` is of type `Reflected`, which the `ReflectFromPtr` was created for
                         #[allow(unsafe_code)]
                         let ReflectMut::TupleStruct(tuple_struct) =
+                            // SAFETY: `value` is of type `Reflected`, which the `ReflectFromPtr` was created for
                             unsafe { reflect_from_ptr.as_reflect_mut(ptr.as_mut()) }.reflect_mut()
                         else {
                             panic!("Expected TupleStruct");

@@ -1,12 +1,12 @@
 use bevy::{
     prelude::*,
     reflect::{
-        DynamicEnum, DynamicStruct, DynamicTuple, DynamicVariant, Enum, EnumInfo, TypeInfo,
+        DynamicEnum, DynamicVariant, Enum, EnumInfo,
         VariantInfo,
     },
 };
 
-use super::{structs::LoadStruct, tuple::LoadTuple, tuple_struct::LoadTupleStruct, LoadStructure};
+use super::{structs::LoadStruct, tuple::LoadTuple};
 
 pub struct LoadEnum<'a> {
     pub enum_info: &'a EnumInfo,

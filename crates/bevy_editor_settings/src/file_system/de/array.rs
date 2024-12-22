@@ -42,7 +42,7 @@ impl<'a> LoadArray<'a> {
 
 #[cfg(test)]
 mod tests {
-    use bevy::reflect::{DynamicTyped as _, Reflect};
+    use bevy::reflect::DynamicTyped as _;
 
     use super::*;
 

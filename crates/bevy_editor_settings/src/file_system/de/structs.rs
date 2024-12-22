@@ -1,9 +1,6 @@
-use bevy::{
-    prelude::warn,
-    reflect::{ReflectMut, Struct, TypeInfo},
-};
+use bevy::reflect::Struct;
 
-use super::{struct_utils::StructLikeInfo, value::LoadValue, LoadStructure};
+use super::{struct_utils::StructLikeInfo, LoadStructure};
 
 pub struct LoadStruct<'a> {
     pub struct_info: &'a dyn StructLikeInfo,

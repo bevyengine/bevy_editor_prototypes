@@ -9,7 +9,7 @@ use crate::{GlobalSettingsPath, SettingsType};
 
 const SETTINGS_BASE_DIR: &str = "bevy_editor";
 
-pub fn global_settings_path() -> Option<std::path::PathBuf> {
+pub fn global_settings_path() -> Option<PathBuf> {
     let path = directories::BaseDirs::new()?;
     let config_dir = path.config_dir();
     let path = config_dir.join(SETTINGS_BASE_DIR);

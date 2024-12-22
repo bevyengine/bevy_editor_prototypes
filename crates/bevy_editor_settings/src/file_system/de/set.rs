@@ -1,7 +1,4 @@
-use bevy::{
-    prelude::warn,
-    reflect::{Set, SetInfo},
-};
+use bevy::reflect::{Set, SetInfo};
 
 use super::value::LoadValue;
 
@@ -30,7 +27,7 @@ impl<'a> LoadSet<'a> {
 
 #[cfg(test)]
 mod tests {
-    use bevy::reflect::{DynamicTyped as _, Struct, TypeInfo};
+    use bevy::reflect::{DynamicTyped as _, TypeInfo};
 
     use super::*;
 

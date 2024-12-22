@@ -3,9 +3,11 @@ use core::slice::Iter;
 
 /// A helper trait for accessing type information from struct-like types.
 pub(super) trait StructLikeInfo {
+    #[allow(dead_code)]
     fn field(&self, name: &str) -> Option<&NamedField>;
     fn field_at(&self, index: usize) -> Option<&NamedField>;
     fn field_len(&self) -> usize;
+    #[allow(dead_code)]
     fn iter_fields(&self) -> Iter<'_, NamedField>;
 }
 

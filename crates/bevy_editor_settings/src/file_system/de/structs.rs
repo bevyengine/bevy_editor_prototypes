@@ -53,8 +53,8 @@ mod tests {
             "string".to_string(),
             toml::Value::String("Hello".to_string()),
         );
-        table.insert("float".to_string(), toml::Value::Float(3.14));
-        table.insert("float32".to_string(), toml::Value::Float(3.14));
+        table.insert("float".to_string(), toml::Value::Float(std::f64::consts::PI));
+        table.insert("float32".to_string(), toml::Value::Float(std::f64::consts::PI));
         table
     }
 
@@ -75,8 +75,8 @@ mod tests {
             struct_info,
             Values {
                 string: "Hello".to_string(),
-                float: 3.14,
-                float32: 3.14,
+                float: std::f64::consts::PI,
+                float32: std::f32::consts::PI,
             }
         );
     }
@@ -111,88 +111,11 @@ mod tests {
             StructWithStruct {
                 values: Values {
                     string: "Hello".to_string(),
-                    float: 3.14,
-                    float32: 3.14,
+                    float: std::f64::consts::PI,
+                    float32: std::f32::consts::PI,
                 },
             }
         );
     }
 }
 
-// fn load_struct<S: StructLikeInfo>(
-//     strct: &mut dyn Struct,
-//     struct_info: &'static S,
-//     table: &toml::Table,
-// ) {
-//     let mut dynamic_struct = DynamicStruct::default();
-//     for i in 0..struct_info.field_len() {
-//         let field = struct_info.field_at(i).unwrap();
-//         let key = field.name();
-
-//         let Some(toml_value) = table.get(key) else {
-//             continue;
-//         };
-
-//         let field_mut = strct.field_at_mut(i).unwrap();
-//         let field_attrs = field.custom_attributes();
-//         match field.type_info().unwrap() {
-//             TypeInfo::Value(value_info) => {
-//                 let value = load_value_boxed(value_info, toml_value);
-//                 if let Some(value) = value {
-//                     field_mut.apply(value.as_ref());
-//                 }
-//                 // load_value(field_mut, value_info, value)
-//             }
-// TypeInfo::Struct(struct_info) => {
-//     if let Some(table) = toml_value.as_table() {
-//         let ReflectMut::Struct(strct) = field_mut.reflect_mut() else {
-//             warn!("Preferences: Expected Struct");
-//             continue;
-//         };
-//         load_struct(strct, struct_info, table);
-//     }
-// }
-// TypeInfo::List(list_info) => {
-//     if let Some(table) = toml_value.as_array() {
-//         let ReflectMut::List(list) = field_mut.reflect_mut() else {
-//             warn!("Preferences: Expected List");
-//             continue;
-//         };
-//         load_list(list, list_info, table, field_attrs);
-//     }
-// }
-// TypeInfo::Array(array_info) => {
-//     if let Some(table) = toml_value.as_array() {
-//         let ReflectMut::Array(array) = field_mut.reflect_mut() else {
-//             warn!("Preferences: Expected Array");
-//             continue;
-//         };
-//         load_array(array, array_info, table);
-//     }
-// }
-// TypeInfo::Enum(enum_info) => {
-//     let ReflectMut::Enum(enm) = field_mut.reflect_mut() else {
-//         warn!("Preferences: Expected Enum");
-//         continue;
-//     };
-
-//     load_enum(enm, enum_info, toml_value);
-// }
-// TypeInfo::TupleStruct(tuple_struct_info) => {
-//     let ReflectMut::TupleStruct(tuple_struct) = field_mut.reflect_mut() else {
-//         warn!("Preferences: Expected TupleStruct");
-//         continue;
-//     };
-//     if let Some(array_value) = toml_value.as_array() {
-//         load_tuple_struct(tuple_struct, tuple_struct_info, array_value);
-//     }
-// }
-//             _ => {
-//                 warn!(
-//                     "Preferences: Unsupported type: {:?}",
-//                     field_mut.get_represented_type_info()
-//                 );
-//             }
-//         }
-//     }
-// }

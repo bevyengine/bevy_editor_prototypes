@@ -11,7 +11,7 @@ pub struct LoadEnum<'a> {
     pub enm: &'a mut dyn Enum,
 }
 
-impl LoadEnum<'_>{
+impl LoadEnum<'_> {
     pub fn load_enum(self) {
         match self.toml_value {
             toml::Value::String(str_val) => {

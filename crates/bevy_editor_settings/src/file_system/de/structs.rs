@@ -53,8 +53,14 @@ mod tests {
             "string".to_string(),
             toml::Value::String("Hello".to_string()),
         );
-        table.insert("float".to_string(), toml::Value::Float(std::f64::consts::PI));
-        table.insert("float32".to_string(), toml::Value::Float(std::f64::consts::PI));
+        table.insert(
+            "float".to_string(),
+            toml::Value::Float(std::f64::consts::PI),
+        );
+        table.insert(
+            "float32".to_string(),
+            toml::Value::Float(std::f64::consts::PI),
+        );
         table
     }
 
@@ -118,4 +124,3 @@ mod tests {
         );
     }
 }
-

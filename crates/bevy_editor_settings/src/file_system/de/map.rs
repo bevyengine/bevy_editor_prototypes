@@ -16,7 +16,7 @@ impl LoadMap<'_> {
         if !self
             .map_info
             .key_info()
-            .map(|info| info.is::<String>())
+            .map(bevy::reflect::TypeInfo::is::<String>)
             .unwrap_or(false)
         {
             warn!("Preferences: Map key must be a String");

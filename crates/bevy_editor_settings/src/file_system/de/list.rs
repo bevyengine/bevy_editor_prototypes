@@ -28,9 +28,7 @@ impl LoadList<'_> {
         };
 
         if let MergeStrategy::Replace = merge_strategy {
-            while self.list.len() > 0 {
-                self.list.remove(self.list.len() - 1);
-            }
+            self.list.drain();
         }
 
         for toml_value in self.toml_array.iter() {

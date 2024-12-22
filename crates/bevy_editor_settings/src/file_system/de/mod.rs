@@ -14,11 +14,7 @@ mod value;
 use array::LoadArray;
 use bevy::{
     prelude::*,
-    reflect::{
-        attributes::CustomAttributes, Array, ArrayInfo, DynamicEnum, DynamicStruct, DynamicTuple,
-        DynamicVariant, Enum, EnumInfo, List, ListInfo, ReflectFromPtr, ReflectMut, StructInfo,
-        TupleStructInfo, TypeInfo, ValueInfo, VariantInfo,
-    },
+    reflect::{attributes::CustomAttributes, ReflectFromPtr, ReflectMut, TypeInfo},
 };
 use enums::LoadEnum;
 use heck::ToSnakeCase;
@@ -30,7 +26,7 @@ use tuple::LoadTuple;
 use tuple_struct::LoadTupleStruct;
 use value::LoadValue;
 
-use crate::{MergeStrategy, SettingsTags, SettingsType};
+use crate::SettingsType;
 
 /// Errors that can occur when loading a TOML file.
 #[derive(Debug, thiserror::Error)]
@@ -58,9 +54,9 @@ pub struct LoadStructure<'a> {
 impl<'a> LoadStructure<'a> {
     pub fn load(self) {
         match self.type_info {
-            TypeInfo::Value(value_info) => {
+            TypeInfo::Opaque(opaque_info) => {
                 LoadValue {
-                    value_info: value_info.ty(),
+                    value_info: opaque_info.ty(),
                     toml_value: self.table,
                     value: self.structure,
                 }

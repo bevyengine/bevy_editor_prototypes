@@ -1,13 +1,13 @@
 use bevy::reflect::{
-    ArrayInfo, DynamicArray, DynamicEnum, DynamicList, DynamicMap, DynamicSet, DynamicStruct,
-    DynamicTuple, EnumInfo, ListInfo, MapInfo, PartialReflect, SetInfo, Type, TypeInfo, ValueInfo,
+    ArrayInfo, DynamicEnum, DynamicList, DynamicMap, DynamicSet, DynamicStruct, DynamicTuple,
+    EnumInfo, ListInfo, MapInfo, PartialReflect, SetInfo, Type, TypeInfo,
 };
 
 use super::{struct_utils::StructLikeInfo, tuple_utils::TupleLikeInfo};
 
 pub fn default_data_type(type_info: &TypeInfo) -> Option<Box<dyn PartialReflect>> {
     match type_info {
-        TypeInfo::Value(value_info) => default_value(value_info.ty()),
+        TypeInfo::Opaque(opaque_info) => default_value(opaque_info.ty()),
         TypeInfo::Struct(struct_info) => {
             default_struct(struct_info).map(|s| Box::new(s) as Box<dyn PartialReflect>)
         }

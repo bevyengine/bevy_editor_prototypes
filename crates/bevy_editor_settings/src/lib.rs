@@ -3,8 +3,6 @@
 use bevy::prelude::*;
 
 mod file_system;
-mod local_prefs;
-pub mod modals;
 
 /// Annotation for a type to show which type of settings it belongs to.
 #[derive(Debug, Clone, PartialEq, Eq, Reflect)]
@@ -48,16 +46,6 @@ pub struct GlobalSettingsPath(pub std::path::PathBuf);
 /// A Bevy plugin for editor settings.
 /// This plugin loads the workspace settings, user settings, and project settings.
 pub struct EditorSettingsPlugin;
-
-#[derive(Debug, Clone, PartialEq, Eq, Resource, Reflect)]
-/// Represents the settings for the editor.
-/// This includes workspace settings, user settings, and project settings.
-pub struct Settings {
-    /// Settings for the workspace
-    pub workspace_settings: modals::workspace::WorkspaceSettings,
-    /// Settings for the user
-    pub user_settings: modals::user::UserSettings,
-}
 
 impl Plugin for EditorSettingsPlugin {
     fn build(&self, app: &mut App) {

@@ -65,7 +65,7 @@ impl<'a> LoadEnum<'a> {
                             );
                             self.enm.apply(&dyn_enum);
                         }
-                        // TODO: handle single field tuple structs differently
+                        // TODO: handle single field tuple structs differently this could just be a raw value instead of an array
                         // VariantInfo::Tuple(tuple_variant_info)
                         //     if tuple_variant_info.field_len() == 1 && !value.is_array() => {
                         //         // TODO: This is a hack to support single field tuple structs

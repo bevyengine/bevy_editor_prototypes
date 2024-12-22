@@ -80,7 +80,7 @@ mod tests {
         let mut value = "".to_string();
         let toml_value = &toml::Value::String("Hello".to_string());
         LoadValue {
-            value_info: value.reflect_type_info().as_value().unwrap().ty(),
+            value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
             toml_value,
             value: &mut value,
         }
@@ -94,7 +94,7 @@ mod tests {
         let mut value = 0.0;
         let toml_value = &toml::Value::Float(3.14);
         LoadValue {
-            value_info: value.reflect_type_info().as_value().unwrap().ty(),
+            value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
             toml_value,
             value: &mut value,
         }
@@ -108,7 +108,7 @@ mod tests {
         let mut value = 0.0_f32;
         let toml_value = &toml::Value::Float(3.14);
         LoadValue {
-            value_info: value.reflect_type_info().as_value().unwrap().ty(),
+            value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
             toml_value,
             value: &mut value,
         }
@@ -122,7 +122,7 @@ mod tests {
         let mut value = false;
         let toml_value = &toml::Value::Boolean(true);
         LoadValue {
-            value_info: value.reflect_type_info().as_value().unwrap().ty(),
+            value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
             toml_value,
             value: &mut value,
         }
@@ -136,7 +136,7 @@ mod tests {
         let mut value = 0.0;
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info: value.reflect_type_info().as_value().unwrap().ty(),
+            value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
             toml_value,
             value: &mut value,
         }
@@ -150,7 +150,7 @@ mod tests {
         let mut value = 0.0_f32;
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info: value.reflect_type_info().as_value().unwrap().ty(),
+            value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
             toml_value,
             value: &mut value,
         }
@@ -164,7 +164,7 @@ mod tests {
         let mut value = 0;
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info: value.reflect_type_info().as_value().unwrap().ty(),
+            value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
             toml_value,
             value: &mut value,
         }
@@ -178,7 +178,7 @@ mod tests {
         let mut value = 0_u8;
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info: value.reflect_type_info().as_value().unwrap().ty(),
+            value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
             toml_value,
             value: &mut value,
         }
@@ -192,7 +192,7 @@ mod tests {
         let mut value = 0_u16;
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info: value.reflect_type_info().as_value().unwrap().ty(),
+            value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
             toml_value,
             value: &mut value,
         }
@@ -206,7 +206,7 @@ mod tests {
         let mut value = 0_u32;
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info: value.reflect_type_info().as_value().unwrap().ty(),
+            value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
             toml_value,
             value: &mut value,
         }
@@ -220,7 +220,7 @@ mod tests {
         let mut value = 0_u64;
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info: value.reflect_type_info().as_value().unwrap().ty(),
+            value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
             toml_value,
             value: &mut value,
         }
@@ -234,7 +234,7 @@ mod tests {
         let mut value = 0_i8;
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info: value.reflect_type_info().as_value().unwrap().ty(),
+            value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
             toml_value,
             value: &mut value,
         }
@@ -248,7 +248,7 @@ mod tests {
         let mut value = 0_i16;
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info: value.reflect_type_info().as_value().unwrap().ty(),
+            value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
             toml_value,
             value: &mut value,
         }
@@ -262,7 +262,7 @@ mod tests {
         let mut value = 0_i32;
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info: value.reflect_type_info().as_value().unwrap().ty(),
+            value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
             toml_value,
             value: &mut value,
         }
@@ -276,7 +276,7 @@ mod tests {
         let mut value = 0_i64;
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
-            value_info: value.reflect_type_info().as_value().unwrap().ty(),
+            value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
             toml_value,
             value: &mut value,
         }

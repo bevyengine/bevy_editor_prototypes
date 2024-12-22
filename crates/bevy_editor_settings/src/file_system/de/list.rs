@@ -54,7 +54,7 @@ impl LoadList<'_> {
 
 #[cfg(test)]
 mod tests {
-    use bevy::reflect::{DynamicTyped as _, Reflect, Struct};
+    use bevy::reflect::{DynamicTyped as _, Reflect};
 
     use super::*;
 

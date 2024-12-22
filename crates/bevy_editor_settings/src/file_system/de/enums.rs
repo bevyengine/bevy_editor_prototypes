@@ -175,4 +175,20 @@ mod tests {
         );
         toml::Value::Table(table)
     }
+
+    #[tracing_test::traced_test]
+    #[test]
+    fn load_enum_tuple() {
+        let mut enum_test = TestEnum::default();
+
+        let toml_value = enum_test_tuple_toml();
+        LoadEnum {
+            enum_info: enum_test.reflect_type_info().as_enum().unwrap(),
+            toml_value: &toml_value,
+            enm: &mut enum_test,
+        }
+        .load_enum();
+
+        assert_eq!(enum_test, TestEnum::Variant4(1, 2));
+    }
 }

@@ -6,6 +6,8 @@ edition = "2021"
 
 [dependencies]
 bevy.workspace = true
+bevy_editor_styles.workspace = true
+bevy_context_menu.workspace = true
 
 [lints]
 workspace = true

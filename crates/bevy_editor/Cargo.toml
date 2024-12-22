@@ -5,9 +5,21 @@ edition = "2021"
 
 [dependencies]
 bevy.workspace = true
-bevy_pane_layout = { path = "../bevy_pane_layout" }
-bevy_menu_bar = { path = "../../bevy_widgets/bevy_menu_bar" }
+bevy_pane_layout.workspace = true
+bevy_menu_bar.workspace = true
+bevy_footer_bar.workspace = true
+bevy_context_menu.workspace = true
+bevy_editor_styles.workspace = true
 
+serde.workspace = true
+ron.workspace = true
+rfd.workspace = true
+
+# Panes
+bevy_3d_viewport.workspace = true
+bevy_2d_viewport.workspace = true
+bevy_scene_tree.workspace = true
+bevy_asset_browser.workspace = true
 
 [lints]
 workspace = true

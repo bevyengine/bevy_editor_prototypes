@@ -1,8 +1,15 @@
-# bevy_editor_prototypes
+# Bevy Editor Prototypes
 
-Low-friction experiments for the bevy_editor.
+> [!WARNING]
+> This project is a prototype for a shippable Bevy Editor and is still in heavy development and testing. 
+> Everything you see is very much a work-in-progress. Read about what we're building in the [Design Book](https://bevyengine.github.io/bevy_editor_prototypes/)! or [Figma document].
+> To run just type this ```cargo run``` or ```cargo run --example simple_editor``` command in the terminal of the ```bevy_editor_prototypes folder```
 
-Read about what we're building in the [Design Book](https://bevyengine.github.io/bevy_editor_prototypes/)!
+## Figma Designs
+
+While laying out the foundations for an editor prototype in this repository, we are also experimenting with various UI designs in a public [Figma document]. If you are interested in collaborating and sharing your own designs, head over to the document and request write permissions to join the effort.
+
+[Figma document]: https://www.figma.com/design/fkYfFPSBgnGkhbQd3HOMsL/Bevy-Editor?node-id=90-2
 
 ## License
 
@@ -29,8 +36,8 @@ See [CREDITS.md](CREDITS.md) for the details of the licenses of those files.
 
 ### Your contributions
 
-Unless you explicitly state otherwise,
+*Unless you explicitly state otherwise,
 any contribution intentionally submitted for inclusion in the work by you,
 as defined in the Apache-2.0 license,
 shall be dual licensed as above,
-without any additional terms or conditions.
+without any additional terms or conditions.*

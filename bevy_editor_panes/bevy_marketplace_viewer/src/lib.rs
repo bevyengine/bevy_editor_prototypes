@@ -10,7 +10,7 @@ use bevy::prelude::*;
 
 /// The Bevy Marketplace Viewer Plugin.
 pub struct MarketplaceViewerPlugin;
-#[allow(unused_variables)]
+
 impl Plugin for MarketplaceViewerPlugin {
     fn build(&self, _app: &mut App) {}
 }

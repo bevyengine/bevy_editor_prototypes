@@ -19,24 +19,21 @@ fn main() {
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands
-        .spawn(Camera2dBundle {
-            transform: Transform::from_xyz(0.0, 0.0, 10.0).looking_at(Vec3::ZERO, Vec3::Y),
-            ..Default::default()
-        })
-        .insert(EditorCamera2d {
+    commands.spawn((
+        Camera2d,
+        EditorCamera2d {
             pan_mouse_buttons: vec![MouseButton::Left, MouseButton::Middle, MouseButton::Right],
             bound: Rect {
                 min: Vec2::new(-1000.0, -1000.0),
                 max: Vec2::new(1000.0, 1000.0),
             },
-            zoom_range: 0.4..=10.0,
-            zoom: 0.4, // Set the initial zoom level.
+            scale_range: 0.4..=10.0,
             ..Default::default()
-        });
+        },
+    ));
 
-    commands.spawn(SpriteBundle {
-        texture: asset_server.load("bevy_bird.png"),
+    commands.spawn(Sprite {
+        image: asset_server.load("bevy_bird.png"),
         ..Default::default()
     });
 }

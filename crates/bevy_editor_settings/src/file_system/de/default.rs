@@ -96,9 +96,7 @@ pub fn default_struct<S: StructLikeInfo>(type_info: &S) -> Option<DynamicStruct>
     for i in 0..type_info.field_len() {
         let field_at = type_info.field_at(i).unwrap();
 
-        let Some(value) = default_data_type(field_at.type_info().unwrap()) else {
-            return None;
-        };
+        let value = default_data_type(field_at.type_info().unwrap())?;
 
         dyn_struct.insert_boxed(field_at.name(), value);
     }
@@ -112,10 +110,7 @@ pub fn default_tuple<S: TupleLikeInfo>(type_info: &S) -> Option<DynamicTuple> {
     for i in 0..type_info.field_len() {
         let field_at = type_info.field_at(i).unwrap();
 
-        let Some(value) = default_data_type(field_at.type_info().unwrap()) else {
-            return None;
-        };
-
+        let value = default_data_type(field_at.type_info().unwrap())?;
         tuple.insert_boxed(value);
     }
 

@@ -26,7 +26,7 @@ use tuple::LoadTuple;
 use tuple_struct::LoadTupleStruct;
 use value::LoadValue;
 
-use crate::SettingsType;
+use crate::{SettingKey, SettingsType};
 
 /// Errors that can occur when loading a TOML file.
 #[derive(Debug, thiserror::Error)]
@@ -191,6 +191,7 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
             match type_reg.type_info() {
                 TypeInfo::Struct(struct_info) => {
                     let s_type = struct_info.custom_attributes().get::<SettingsType>();
+                    let toml_key = struct_info.custom_attributes().get::<SettingKey>();
                     if let Some(s_type) = s_type {
                         if settings_type != *s_type {
                             continue;
@@ -205,7 +206,9 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                             panic!("Expected Struct");
                         };
 
-                        let name = strct.reflect_type_ident().unwrap().to_snake_case();
+                        let name = toml_key
+                            .map(|key| key.0.to_string())
+                            .unwrap_or_else(|| strct.reflect_type_ident().unwrap().to_snake_case());
 
                         if let Some(table) = table.get(&name).and_then(|v| v.as_table()) {
                             LoadStruct {
@@ -219,6 +222,7 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                 }
                 TypeInfo::Enum(enum_info) => {
                     let s_type = enum_info.custom_attributes().get::<SettingsType>();
+                    let toml_key = enum_info.custom_attributes().get::<SettingKey>();
                     if let Some(s_type) = s_type {
                         if settings_type != *s_type {
                             continue;
@@ -233,7 +237,9 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                             panic!("Expected Struct");
                         };
 
-                        let name = enm.reflect_type_ident().unwrap().to_snake_case();
+                        let name = toml_key
+                            .map(|key| key.0.to_string())
+                            .unwrap_or_else(|| enm.reflect_type_ident().unwrap().to_snake_case());
 
                         if let Some(table) = table.get(&name).and_then(|v| v.as_table()) {
                             if let Some(value) = table.get("variant") {
@@ -249,6 +255,7 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                 }
                 TypeInfo::TupleStruct(tuple_struct_info) => {
                     let s_type = tuple_struct_info.custom_attributes().get::<SettingsType>();
+                    let toml_key = tuple_struct_info.custom_attributes().get::<SettingKey>();
                     if let Some(s_type) = s_type {
                         if settings_type != *s_type {
                             continue;
@@ -263,7 +270,9 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                             panic!("Expected TupleStruct");
                         };
 
-                        let name = tuple_struct.reflect_type_ident().unwrap().to_snake_case();
+                        let name = toml_key.map(|key| key.0.to_string()).unwrap_or_else(|| {
+                            tuple_struct.reflect_type_ident().unwrap().to_snake_case()
+                        });
 
                         if let Some(table) = table.get(&name).and_then(|v| v.as_table()) {
                             if let Some(array_value) =

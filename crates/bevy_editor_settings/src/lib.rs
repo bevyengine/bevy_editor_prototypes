@@ -39,6 +39,10 @@ pub enum MergeStrategy {
 /// Annotation for a type to add tags to the settings. these tags can be used to filter settings in the editor.
 pub struct SettingsTags(pub Vec<&'static str>);
 
+#[derive(Debug, Clone, Reflect)]
+/// Annotation for a type to add what key the setting should be stored under. if not set the snake case of the type name will be used.
+pub struct SettingKey(pub &'static str);
+
 #[derive(Resource)]
 /// Store the path for the global preferences directory.
 pub struct GlobalSettingsPath(pub std::path::PathBuf);

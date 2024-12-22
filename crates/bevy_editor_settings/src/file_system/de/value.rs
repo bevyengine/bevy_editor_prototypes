@@ -92,28 +92,28 @@ mod tests {
     #[test]
     fn load_float_f64() {
         let mut value = 0.0;
-        let toml_value = &toml::Value::Float(3.14);
+        let toml_value = &toml::Value::Float(std::f64::consts::PI);
         LoadValue {
             value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
             toml_value,
             value: &mut value,
         }
         .load_value();
-        assert_eq!(value, 3.14);
+        assert_eq!(value, std::f64::consts::PI);
     }
 
     #[tracing_test::traced_test]
     #[test]
     fn load_float_f32() {
         let mut value = 0.0_f32;
-        let toml_value = &toml::Value::Float(3.14);
+        let toml_value = &toml::Value::Float(std::f64::consts::PI);
         LoadValue {
             value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
             toml_value,
             value: &mut value,
         }
         .load_value();
-        assert_eq!(value, 3.14);
+        assert_eq!(value, std::f32::consts::PI);
     }
 
     #[tracing_test::traced_test]
@@ -127,7 +127,7 @@ mod tests {
             value: &mut value,
         }
         .load_value();
-        assert_eq!(value, true);
+        assert!(value);
     }
 
     #[tracing_test::traced_test]

@@ -1,7 +1,4 @@
-use bevy::{
-    prelude::*,
-    reflect::{Tuple, TupleStruct},
-};
+use bevy::reflect::Tuple;
 
 use super::{tuple_utils::TupleLikeInfo, LoadStructure};
 

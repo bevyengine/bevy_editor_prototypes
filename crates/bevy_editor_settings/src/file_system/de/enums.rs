@@ -1,9 +1,6 @@
 use bevy::{
-    prelude::*,
-    reflect::{
-        DynamicEnum, DynamicVariant, Enum, EnumInfo,
-        VariantInfo,
-    },
+    prelude::warn,
+    reflect::{DynamicEnum, DynamicVariant, Enum, EnumInfo, VariantInfo},
 };
 
 use super::{structs::LoadStruct, tuple::LoadTuple};
@@ -109,7 +106,7 @@ impl<'a> LoadEnum<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bevy::reflect::DynamicTyped as _;
+    use bevy::reflect::{DynamicTyped as _, Reflect};
 
     #[derive(Debug, Clone, PartialEq, Reflect, Default)]
     enum TestEnum {

@@ -1,7 +1,4 @@
-use bevy::{
-    prelude::*,
-    reflect::TupleStruct,
-};
+use bevy::reflect::TupleStruct;
 
 use super::{tuple_utils::TupleLikeInfo, LoadStructure};
 
@@ -38,7 +35,7 @@ impl<'a> LoadTupleStruct<'a> {
 
 #[cfg(test)]
 mod tests {
-    use bevy::reflect::DynamicTyped as _;
+    use bevy::reflect::{DynamicTyped as _, Reflect};
 
     use super::*;
 

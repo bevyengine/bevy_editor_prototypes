@@ -11,7 +11,7 @@ pub struct LoadArray<'a> {
     pub toml_array: &'a toml::value::Array,
 }
 
-impl<'a> LoadArray<'a> {
+impl LoadArray<'_> {
     pub fn load_array(self) {
         if self.toml_array.len() != self.array_info.capacity() {
             warn!(

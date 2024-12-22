@@ -7,7 +7,7 @@ pub struct LoadValue<'a> {
     pub value: &'a mut dyn PartialReflect,
 }
 
-impl<'a> LoadValue<'a> {
+impl LoadValue<'_> {
     pub fn load_value(self) {
         let value_info = self.value_info;
         match self.toml_value {

@@ -8,7 +8,7 @@ pub struct LoadTupleStruct<'a> {
     pub tuple_struct: &'a mut dyn TupleStruct,
 }
 
-impl<'a> LoadTupleStruct<'a> {
+impl LoadTupleStruct<'_> {
     pub fn load_tuple_struct(self) {
         for i in 0..self.tuple_struct_info.field_len() {
             let Some(toml_value) = self.table.get(i) else {

@@ -14,7 +14,7 @@ pub struct LoadList<'a> {
     pub custom_attributes: Option<&'a CustomAttributes>,
 }
 
-impl<'a> LoadList<'a> {
+impl LoadList<'_> {
     pub fn load_list(self) {
         let merge_strategy = self
             .custom_attributes

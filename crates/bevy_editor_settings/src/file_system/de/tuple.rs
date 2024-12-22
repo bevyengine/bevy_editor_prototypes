@@ -8,7 +8,7 @@ pub struct LoadTuple<'a> {
     pub tuple: &'a mut dyn Tuple,
 }
 
-impl<'a> LoadTuple<'a> {
+impl LoadTuple<'_> {
     pub fn load_tuple(self) {
         for i in 0..self.tuple_info.field_len() {
             let Some(toml_value) = self.table.get(i) else {

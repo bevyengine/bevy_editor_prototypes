@@ -51,7 +51,7 @@ pub struct LoadStructure<'a> {
     pub custom_attributes: Option<&'a CustomAttributes>,
 }
 
-impl<'a> LoadStructure<'a> {
+impl LoadStructure<'_> {
     pub fn load(self) {
         match self.type_info {
             TypeInfo::Opaque(opaque_info) => {

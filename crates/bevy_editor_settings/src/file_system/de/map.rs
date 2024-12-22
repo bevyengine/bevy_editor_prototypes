@@ -11,7 +11,7 @@ pub struct LoadMap<'a> {
     pub table: &'a toml::value::Table,
 }
 
-impl<'a> LoadMap<'a> {
+impl LoadMap<'_> {
     pub fn load_map(self) {
         if !self
             .map_info

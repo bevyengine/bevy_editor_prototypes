@@ -8,7 +8,7 @@ pub struct LoadStruct<'a> {
     pub strct: &'a mut dyn Struct,
 }
 
-impl<'a> LoadStruct<'a> {
+impl LoadStruct<'_> {
     pub fn load_struct(self) {
         let struct_info = self.struct_info;
         let table = self.table;

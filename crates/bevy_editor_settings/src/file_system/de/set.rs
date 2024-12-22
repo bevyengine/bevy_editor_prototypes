@@ -8,7 +8,7 @@ pub struct LoadSet<'a> {
     pub toml_array: &'a toml::value::Array,
 }
 
-impl<'a> LoadSet<'a> {
+impl LoadSet<'_> {
     pub fn load_set(self) {
         for toml_value in self.toml_array.iter() {
             let mut value = super::default::default_value(&self.set_info.value_ty()).unwrap();

@@ -4,14 +4,15 @@ use super::{struct_utils::StructLikeInfo, LoadStructure, StructureLoader};
 
 pub struct LoadStruct<'a> {
     pub struct_info: &'a dyn StructLikeInfo,
-    pub table: &'a toml::Table,
     pub strct: &'a mut dyn Struct,
 }
 
-impl StructureLoader for LoadStruct<'_> {
-    fn load(self) {
+impl<'a> StructureLoader for LoadStruct<'a> {
+    type Input = &'a toml::Table;
+
+    fn load(self, input: Self::Input) {
         let struct_info = self.struct_info;
-        let table = self.table;
+        let table = input;
         let strct = self.strct;
         for i in 0..struct_info.field_len() {
             let field = struct_info.field_at(i).unwrap();
@@ -25,11 +26,10 @@ impl StructureLoader for LoadStruct<'_> {
             let field_attrs = field.custom_attributes();
             LoadStructure {
                 type_info: field_mut.get_represented_type_info().unwrap(),
-                table: toml_value,
                 structure: field_mut,
                 custom_attributes: Some(field_attrs),
             }
-            .load();
+            .load(toml_value);
         }
     }
 }
@@ -72,10 +72,9 @@ mod tests {
 
         LoadStruct {
             struct_info: struct_info.reflect_type_info().as_struct().unwrap(),
-            table: &table,
             strct: &mut struct_info,
         }
-        .load();
+        .load(&table);
 
         assert_eq!(
             struct_info,
@@ -107,10 +106,9 @@ mod tests {
 
         LoadStruct {
             struct_info: struct_info.reflect_type_info().as_struct().unwrap(),
-            table: &table,
             strct: &mut struct_info,
         }
-        .load();
+        .load(&table);
 
         assert_eq!(
             struct_info,

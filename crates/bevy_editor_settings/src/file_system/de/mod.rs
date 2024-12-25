@@ -45,71 +45,70 @@ pub fn load_toml_file(path: impl AsRef<std::path::Path>) -> Result<toml::Table, 
 }
 
 trait StructureLoader {
-    fn load(self);
+    type Input;
+
+    fn load(self, input: Self::Input);
 }
 
 pub struct LoadStructure<'a> {
     pub type_info: &'static TypeInfo,
-    pub table: &'a toml::Value,
     pub structure: &'a mut dyn PartialReflect,
     pub custom_attributes: Option<&'a CustomAttributes>,
 }
 
-impl StructureLoader for LoadStructure<'_> {
-    fn load(self) {
+impl<'a> StructureLoader for LoadStructure<'a> {
+    type Input = &'a toml::Value;
+
+    fn load(self, input: Self::Input) {
         match self.type_info {
             TypeInfo::Opaque(opaque_info) => {
                 LoadValue {
                     value_info: opaque_info.ty(),
-                    toml_value: self.table,
                     value: self.structure,
                 }
-                .load();
+                .load(input);
             }
             TypeInfo::Struct(struct_info) => {
-                if let Some(table) = self.table.as_table() {
+                if let Some(table) = input.as_table() {
                     let ReflectMut::Struct(strct) = self.structure.reflect_mut() else {
                         warn!("Preferences: Expected Struct");
                         return;
                     };
                     LoadStruct {
                         struct_info,
-                        table,
                         strct,
                     }
-                    .load();
+                    .load(table);
                 }
             }
             TypeInfo::TupleStruct(tuple_struct_info) => {
-                if let Some(array_value) = self.table.as_array() {
+                if let Some(array_value) = input.as_array() {
                     let ReflectMut::TupleStruct(tuple_struct) = self.structure.reflect_mut() else {
                         warn!("Preferences: Expected TupleStruct");
                         return;
                     };
                     LoadTupleStruct {
                         tuple_struct_info,
-                        table: array_value,
                         tuple_struct,
                     }
-                    .load();
+                    .load(array_value);
                 }
             }
             TypeInfo::Tuple(tuple_info) => {
-                if let Some(array_value) = self.table.as_array() {
+                if let Some(array_value) = input.as_array() {
                     let ReflectMut::Tuple(tuple) = self.structure.reflect_mut() else {
                         warn!("Preferences: Expected Tuple");
                         return;
                     };
                     LoadTuple {
                         tuple_info,
-                        table: array_value,
                         tuple,
                     }
-                    .load();
+                    .load(array_value);
                 }
             }
             TypeInfo::List(list_info) => {
-                if let Some(array_value) = self.table.as_array() {
+                if let Some(array_value) = input.as_array() {
                     let ReflectMut::List(list) = self.structure.reflect_mut() else {
                         warn!("Preferences: Expected List");
                         return;
@@ -117,14 +116,13 @@ impl StructureLoader for LoadStructure<'_> {
                     LoadList {
                         list_info,
                         list,
-                        toml_array: array_value,
                         custom_attributes: self.custom_attributes,
                     }
-                    .load();
+                    .load(array_value);
                 }
             }
             TypeInfo::Array(array_info) => {
-                if let Some(array_value) = self.table.as_array() {
+                if let Some(array_value) = input.as_array() {
                     let ReflectMut::Array(array) = self.structure.reflect_mut() else {
                         warn!("Preferences: Expected Array");
                         return;
@@ -132,37 +130,26 @@ impl StructureLoader for LoadStructure<'_> {
                     LoadArray {
                         array_info,
                         array,
-                        toml_array: array_value,
                     }
-                    .load();
+                    .load(array_value);
                 }
             }
             TypeInfo::Map(map_info) => {
-                if let Some(toml_map) = self.table.as_table() {
+                if let Some(toml_map) = input.as_table() {
                     let ReflectMut::Map(map) = self.structure.reflect_mut() else {
                         warn!("Preferences: Expected Map");
                         return;
                     };
-                    LoadMap {
-                        map_info,
-                        map,
-                        table: toml_map,
-                    }
-                    .load();
+                    LoadMap { map_info, map }.load(toml_map);
                 }
             }
             TypeInfo::Set(set_info) => {
-                if let Some(toml_array) = self.table.as_array() {
+                if let Some(toml_array) = input.as_array() {
                     let ReflectMut::Set(set) = self.structure.reflect_mut() else {
                         warn!("Preferences: Expected Set");
                         return;
                     };
-                    LoadSet {
-                        set_info,
-                        set,
-                        toml_array,
-                    }
-                    .load();
+                    LoadSet { set_info, set }.load(toml_array);
                 }
             }
             TypeInfo::Enum(enum_info) => {
@@ -171,12 +158,7 @@ impl StructureLoader for LoadStructure<'_> {
                     return;
                 };
 
-                LoadEnum {
-                    enum_info,
-                    enm,
-                    toml_value: self.table,
-                }
-                .load();
+                LoadEnum { enum_info, enm }.load(input);
             }
         }
     }
@@ -215,12 +197,7 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                             .unwrap_or_else(|| strct.reflect_type_ident().unwrap().to_snake_case());
 
                         if let Some(table) = table.get(&name).and_then(|v| v.as_table()) {
-                            LoadStruct {
-                                struct_info,
-                                table,
-                                strct,
-                            }
-                            .load();
+                            LoadStruct { struct_info, strct }.load(table);
                         }
                     }
                 }
@@ -247,12 +224,7 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
 
                         if let Some(table) = table.get(&name).and_then(|v| v.as_table()) {
                             if let Some(value) = table.get("variant") {
-                                LoadEnum {
-                                    enum_info,
-                                    enm,
-                                    toml_value: value,
-                                }
-                                .load();
+                                LoadEnum { enum_info, enm }.load(value);
                             }
                         }
                     }
@@ -284,10 +256,9 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                             {
                                 LoadTupleStruct {
                                     tuple_struct_info,
-                                    table: array_value,
                                     tuple_struct,
                                 }
-                                .load();
+                                .load(array_value);
                             }
                         }
                     }

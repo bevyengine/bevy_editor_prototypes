@@ -4,14 +4,15 @@ use super::{tuple_utils::TupleLikeInfo, LoadStructure, StructureLoader};
 
 pub struct LoadTuple<'a> {
     pub tuple_info: &'a dyn TupleLikeInfo,
-    pub table: &'a toml::value::Array,
     pub tuple: &'a mut dyn Tuple,
 }
 
-impl StructureLoader for LoadTuple<'_> {
-    fn load(self) {
+impl<'a> StructureLoader for LoadTuple<'a> {
+    type Input = &'a toml::value::Array;
+
+    fn load(self, input: Self::Input) {
         for i in 0..self.tuple_info.field_len() {
-            let Some(toml_value) = self.table.get(i) else {
+            let Some(toml_value) = input.get(i) else {
                 continue;
             };
 
@@ -20,11 +21,10 @@ impl StructureLoader for LoadTuple<'_> {
 
             LoadStructure {
                 type_info: field_mut.get_represented_type_info().unwrap(),
-                table: toml_value,
                 structure: field_mut,
                 custom_attributes: Some(field_attrs),
             }
-            .load();
+            .load(toml_value);
         }
     }
 }
@@ -47,10 +47,9 @@ mod tests {
         let toml_value = tuple_test_toml();
         LoadTuple {
             tuple_info: tuple.reflect_type_info().as_tuple().unwrap(),
-            table: toml_value.as_array().unwrap(),
             tuple: &mut tuple,
         }
-        .load();
+        .load(toml_value.as_array().unwrap());
         assert_eq!(tuple, (1, 2));
     }
 
@@ -66,10 +65,9 @@ mod tests {
         let toml_value = tuple_struct_struct_toml();
         LoadTuple {
             tuple_info: tuple.reflect_type_info().as_tuple().unwrap(),
-            table: toml_value.as_array().unwrap(),
             tuple: &mut tuple,
         }
-        .load();
+        .load(toml_value.as_array().unwrap());
 
         assert_eq!(tuple, ((1, 2), (1, 2)));
     }

@@ -5,14 +5,15 @@ use super::StructureLoader;
 
 pub struct LoadValue<'a> {
     pub value_info: &'a Type,
-    pub toml_value: &'a toml::Value,
     pub value: &'a mut dyn PartialReflect,
 }
 
-impl StructureLoader for LoadValue<'_> {
-    fn load(self) {
+impl<'a> StructureLoader for LoadValue<'a> {
+    type Input = &'a toml::Value;
+
+    fn load(self, input: Self::Input) {
         let value_info = self.value_info;
-        match self.toml_value {
+        match input {
             toml::Value::String(str_val) => {
                 if value_info.is::<String>() {
                     self.value.apply(str_val);
@@ -83,10 +84,9 @@ mod tests {
         let toml_value = &toml::Value::String("Hello".to_string());
         LoadValue {
             value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
-            toml_value,
             value: &mut value,
         }
-        .load();
+        .load(toml_value);
         assert_eq!(value, "Hello");
     }
 
@@ -97,10 +97,9 @@ mod tests {
         let toml_value = &toml::Value::Float(std::f64::consts::PI);
         LoadValue {
             value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
-            toml_value,
             value: &mut value,
         }
-        .load();
+        .load(toml_value);
         assert_eq!(value, std::f64::consts::PI);
     }
 
@@ -111,10 +110,9 @@ mod tests {
         let toml_value = &toml::Value::Float(std::f64::consts::PI);
         LoadValue {
             value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
-            toml_value,
             value: &mut value,
         }
-        .load();
+        .load(toml_value);
         assert_eq!(value, std::f32::consts::PI);
     }
 
@@ -125,10 +123,9 @@ mod tests {
         let toml_value = &toml::Value::Boolean(true);
         LoadValue {
             value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
-            toml_value,
             value: &mut value,
         }
-        .load();
+        .load(toml_value);
         assert!(value);
     }
 
@@ -139,10 +136,9 @@ mod tests {
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
             value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
-            toml_value,
             value: &mut value,
         }
-        .load();
+        .load(toml_value);
         assert_eq!(value, 42.0);
     }
 
@@ -153,10 +149,9 @@ mod tests {
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
             value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
-            toml_value,
             value: &mut value,
         }
-        .load();
+        .load(toml_value);
         assert_eq!(value, 42.0);
     }
 
@@ -167,10 +162,9 @@ mod tests {
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
             value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
-            toml_value,
             value: &mut value,
         }
-        .load();
+        .load(toml_value);
         assert_eq!(value, 42);
     }
 
@@ -181,10 +175,9 @@ mod tests {
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
             value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
-            toml_value,
             value: &mut value,
         }
-        .load();
+        .load(toml_value);
         assert_eq!(value, 42);
     }
 
@@ -195,10 +188,9 @@ mod tests {
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
             value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
-            toml_value,
             value: &mut value,
         }
-        .load();
+        .load(toml_value);
         assert_eq!(value, 42);
     }
 
@@ -209,10 +201,9 @@ mod tests {
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
             value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
-            toml_value,
             value: &mut value,
         }
-        .load();
+        .load(toml_value);
         assert_eq!(value, 42);
     }
 
@@ -223,10 +214,9 @@ mod tests {
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
             value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
-            toml_value,
             value: &mut value,
         }
-        .load();
+        .load(toml_value);
         assert_eq!(value, 42);
     }
 
@@ -237,10 +227,9 @@ mod tests {
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
             value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
-            toml_value,
             value: &mut value,
         }
-        .load();
+        .load(toml_value);
         assert_eq!(value, 42);
     }
 
@@ -251,10 +240,9 @@ mod tests {
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
             value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
-            toml_value,
             value: &mut value,
         }
-        .load();
+        .load(toml_value);
         assert_eq!(value, 42);
     }
 
@@ -265,10 +253,9 @@ mod tests {
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
             value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
-            toml_value,
             value: &mut value,
         }
-        .load();
+        .load(toml_value);
         assert_eq!(value, 42);
     }
 
@@ -279,10 +266,9 @@ mod tests {
         let toml_value = &toml::Value::Integer(42);
         LoadValue {
             value_info: value.reflect_type_info().as_opaque().unwrap().ty(),
-            toml_value,
             value: &mut value,
         }
-        .load();
+        .load(toml_value);
         assert_eq!(value, 42);
     }
 }

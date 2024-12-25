@@ -10,12 +10,13 @@ use super::{LoadStructure, StructureLoader};
 pub struct LoadList<'a> {
     pub list_info: &'a ListInfo,
     pub list: &'a mut dyn List,
-    pub toml_array: &'a toml::value::Array,
     pub custom_attributes: Option<&'a CustomAttributes>,
 }
 
-impl StructureLoader for LoadList<'_> {
-    fn load(self) {
+impl<'a> StructureLoader for LoadList<'a> {
+    type Input = &'a toml::value::Array;
+
+    fn load(self, input: Self::Input) {
         let merge_strategy = self
             .custom_attributes
             .and_then(|attrs| attrs.get::<MergeStrategy>())
@@ -31,7 +32,7 @@ impl StructureLoader for LoadList<'_> {
             self.list.drain();
         }
 
-        for toml_value in self.toml_array.iter() {
+        for toml_value in input.iter() {
             let Some(mut value) = super::default::default_data_type(item_info) else {
                 warn!("Unable to create default value for list item");
                 return;
@@ -39,11 +40,10 @@ impl StructureLoader for LoadList<'_> {
 
             LoadStructure {
                 type_info: item_info,
-                table: toml_value,
                 structure: value.as_mut(),
                 custom_attributes: None,
             }
-            .load();
+            .load(toml_value);
 
             self.list.push(value);
         }
@@ -65,10 +65,9 @@ mod tests {
         LoadList {
             list_info: list.reflect_type_info().as_list().unwrap(),
             list: &mut list,
-            toml_array: toml_value.as_array().unwrap(),
             custom_attributes: None,
         }
-        .load();
+        .load(toml_value.as_array().unwrap());
         assert_eq!(list, vec![1, 2]);
     }
 
@@ -101,10 +100,9 @@ mod tests {
         LoadList {
             list_info: list.list.reflect_type_info().as_list().unwrap(),
             list: &mut list.list,
-            toml_array: toml_value.as_array().unwrap(),
             custom_attributes: Some(attrs),
         }
-        .load();
+        .load(toml_value.as_array().unwrap());
         assert_eq!(list.list, vec![1, 2, 3, 4]);
     }
 }

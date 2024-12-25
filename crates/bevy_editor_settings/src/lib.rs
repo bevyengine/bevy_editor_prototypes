@@ -3,6 +3,7 @@
 use bevy::prelude::*;
 
 mod file_system;
+mod diff;
 
 /// Annotation for a type to show which type of settings it belongs to.
 #[derive(Debug, Clone, PartialEq, Eq, Reflect)]

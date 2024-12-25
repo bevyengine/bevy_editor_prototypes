@@ -44,6 +44,10 @@ pub fn load_toml_file(path: impl AsRef<std::path::Path>) -> Result<toml::Table, 
     Ok(toml::from_str(&file)?)
 }
 
+trait StructureLoader {
+    fn load(self);
+}
+
 pub struct LoadStructure<'a> {
     pub type_info: &'static TypeInfo,
     pub table: &'a toml::Value,
@@ -51,8 +55,8 @@ pub struct LoadStructure<'a> {
     pub custom_attributes: Option<&'a CustomAttributes>,
 }
 
-impl LoadStructure<'_> {
-    pub fn load(self) {
+impl StructureLoader for LoadStructure<'_> {
+    fn load(self) {
         match self.type_info {
             TypeInfo::Opaque(opaque_info) => {
                 LoadValue {
@@ -60,7 +64,7 @@ impl LoadStructure<'_> {
                     toml_value: self.table,
                     value: self.structure,
                 }
-                .load_value();
+                .load();
             }
             TypeInfo::Struct(struct_info) => {
                 if let Some(table) = self.table.as_table() {
@@ -73,7 +77,7 @@ impl LoadStructure<'_> {
                         table,
                         strct,
                     }
-                    .load_struct();
+                    .load();
                 }
             }
             TypeInfo::TupleStruct(tuple_struct_info) => {
@@ -87,7 +91,7 @@ impl LoadStructure<'_> {
                         table: array_value,
                         tuple_struct,
                     }
-                    .load_tuple_struct();
+                    .load();
                 }
             }
             TypeInfo::Tuple(tuple_info) => {
@@ -101,7 +105,7 @@ impl LoadStructure<'_> {
                         table: array_value,
                         tuple,
                     }
-                    .load_tuple();
+                    .load();
                 }
             }
             TypeInfo::List(list_info) => {
@@ -116,7 +120,7 @@ impl LoadStructure<'_> {
                         toml_array: array_value,
                         custom_attributes: self.custom_attributes,
                     }
-                    .load_list();
+                    .load();
                 }
             }
             TypeInfo::Array(array_info) => {
@@ -130,7 +134,7 @@ impl LoadStructure<'_> {
                         array,
                         toml_array: array_value,
                     }
-                    .load_array();
+                    .load();
                 }
             }
             TypeInfo::Map(map_info) => {
@@ -144,7 +148,7 @@ impl LoadStructure<'_> {
                         map,
                         table: toml_map,
                     }
-                    .load_map();
+                    .load();
                 }
             }
             TypeInfo::Set(set_info) => {
@@ -158,7 +162,7 @@ impl LoadStructure<'_> {
                         set,
                         toml_array,
                     }
-                    .load_set();
+                    .load();
                 }
             }
             TypeInfo::Enum(enum_info) => {
@@ -172,7 +176,7 @@ impl LoadStructure<'_> {
                     enm,
                     toml_value: self.table,
                 }
-                .load_enum();
+                .load();
             }
         }
     }
@@ -216,7 +220,7 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                                 table,
                                 strct,
                             }
-                            .load_struct();
+                            .load();
                         }
                     }
                 }
@@ -248,7 +252,7 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                                     enm,
                                     toml_value: value,
                                 }
-                                .load_enum();
+                                .load();
                             }
                         }
                     }
@@ -283,7 +287,7 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                                     table: array_value,
                                     tuple_struct,
                                 }
-                                .load_tuple_struct();
+                                .load();
                             }
                         }
                     }

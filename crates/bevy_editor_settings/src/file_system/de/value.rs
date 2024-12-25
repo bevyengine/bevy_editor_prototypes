@@ -1,14 +1,16 @@
 use bevy::prelude::warn;
 use bevy::reflect::{PartialReflect, Type};
 
+use super::StructureLoader;
+
 pub struct LoadValue<'a> {
     pub value_info: &'a Type,
     pub toml_value: &'a toml::Value,
     pub value: &'a mut dyn PartialReflect,
 }
 
-impl LoadValue<'_> {
-    pub fn load_value(self) {
+impl StructureLoader for LoadValue<'_> {
+    fn load(self) {
         let value_info = self.value_info;
         match self.toml_value {
             toml::Value::String(str_val) => {
@@ -84,7 +86,7 @@ mod tests {
             toml_value,
             value: &mut value,
         }
-        .load_value();
+        .load();
         assert_eq!(value, "Hello");
     }
 
@@ -98,7 +100,7 @@ mod tests {
             toml_value,
             value: &mut value,
         }
-        .load_value();
+        .load();
         assert_eq!(value, std::f64::consts::PI);
     }
 
@@ -112,7 +114,7 @@ mod tests {
             toml_value,
             value: &mut value,
         }
-        .load_value();
+        .load();
         assert_eq!(value, std::f32::consts::PI);
     }
 
@@ -126,7 +128,7 @@ mod tests {
             toml_value,
             value: &mut value,
         }
-        .load_value();
+        .load();
         assert!(value);
     }
 
@@ -140,7 +142,7 @@ mod tests {
             toml_value,
             value: &mut value,
         }
-        .load_value();
+        .load();
         assert_eq!(value, 42.0);
     }
 
@@ -154,7 +156,7 @@ mod tests {
             toml_value,
             value: &mut value,
         }
-        .load_value();
+        .load();
         assert_eq!(value, 42.0);
     }
 
@@ -168,7 +170,7 @@ mod tests {
             toml_value,
             value: &mut value,
         }
-        .load_value();
+        .load();
         assert_eq!(value, 42);
     }
 
@@ -182,7 +184,7 @@ mod tests {
             toml_value,
             value: &mut value,
         }
-        .load_value();
+        .load();
         assert_eq!(value, 42);
     }
 
@@ -196,7 +198,7 @@ mod tests {
             toml_value,
             value: &mut value,
         }
-        .load_value();
+        .load();
         assert_eq!(value, 42);
     }
 
@@ -210,7 +212,7 @@ mod tests {
             toml_value,
             value: &mut value,
         }
-        .load_value();
+        .load();
         assert_eq!(value, 42);
     }
 
@@ -224,7 +226,7 @@ mod tests {
             toml_value,
             value: &mut value,
         }
-        .load_value();
+        .load();
         assert_eq!(value, 42);
     }
 
@@ -238,7 +240,7 @@ mod tests {
             toml_value,
             value: &mut value,
         }
-        .load_value();
+        .load();
         assert_eq!(value, 42);
     }
 
@@ -252,7 +254,7 @@ mod tests {
             toml_value,
             value: &mut value,
         }
-        .load_value();
+        .load();
         assert_eq!(value, 42);
     }
 
@@ -266,7 +268,7 @@ mod tests {
             toml_value,
             value: &mut value,
         }
-        .load_value();
+        .load();
         assert_eq!(value, 42);
     }
 
@@ -280,7 +282,7 @@ mod tests {
             toml_value,
             value: &mut value,
         }
-        .load_value();
+        .load();
         assert_eq!(value, 42);
     }
 }

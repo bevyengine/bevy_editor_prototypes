@@ -3,7 +3,7 @@ use bevy::{
     reflect::{DynamicEnum, DynamicVariant, Enum, EnumInfo, VariantInfo},
 };
 
-use super::{structs::LoadStruct, tuple::LoadTuple};
+use super::{structs::LoadStruct, tuple::LoadTuple, StructureLoader};
 
 pub struct LoadEnum<'a> {
     pub enum_info: &'a EnumInfo,
@@ -11,8 +11,8 @@ pub struct LoadEnum<'a> {
     pub enm: &'a mut dyn Enum,
 }
 
-impl LoadEnum<'_> {
-    pub fn load_enum(self) {
+impl StructureLoader for LoadEnum<'_> {
+    fn load(self) {
         match self.toml_value {
             toml::Value::String(str_val) => {
                 if let Some(VariantInfo::Unit(variant)) = self.enum_info.variant(str_val) {
@@ -54,7 +54,7 @@ impl LoadEnum<'_> {
                                 table: map,
                                 strct: &mut dyn_struct,
                             }
-                            .load_struct();
+                            .load();
 
                             let dyn_enum = DynamicEnum::new(
                                 variant_info.name(),
@@ -85,7 +85,7 @@ impl LoadEnum<'_> {
                                 table: array,
                                 tuple: &mut dyn_tuple,
                             }
-                            .load_tuple();
+                            .load();
 
                             let dyn_enum = DynamicEnum::new(
                                 variant_info.name(),
@@ -131,7 +131,7 @@ mod tests {
             toml_value: &toml_value,
             enm: &mut enum_test,
         }
-        .load_enum();
+        .load();
 
         assert_eq!(enum_test, TestEnum::Variant1);
     }
@@ -156,7 +156,7 @@ mod tests {
             toml_value: &toml_value,
             enm: &mut enum_test,
         }
-        .load_enum();
+        .load();
 
         assert_eq!(
             enum_test,
@@ -187,7 +187,7 @@ mod tests {
             toml_value: &toml_value,
             enm: &mut enum_test,
         }
-        .load_enum();
+        .load();
 
         assert_eq!(enum_test, TestEnum::Variant4(1, 2));
     }

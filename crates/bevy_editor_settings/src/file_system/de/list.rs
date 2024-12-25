@@ -5,7 +5,7 @@ use bevy::{
 
 use crate::MergeStrategy;
 
-use super::LoadStructure;
+use super::{LoadStructure, StructureLoader};
 
 pub struct LoadList<'a> {
     pub list_info: &'a ListInfo,
@@ -14,8 +14,8 @@ pub struct LoadList<'a> {
     pub custom_attributes: Option<&'a CustomAttributes>,
 }
 
-impl LoadList<'_> {
-    pub fn load_list(self) {
+impl StructureLoader for LoadList<'_> {
+    fn load(self) {
         let merge_strategy = self
             .custom_attributes
             .and_then(|attrs| attrs.get::<MergeStrategy>())
@@ -68,7 +68,7 @@ mod tests {
             toml_array: toml_value.as_array().unwrap(),
             custom_attributes: None,
         }
-        .load_list();
+        .load();
         assert_eq!(list, vec![1, 2]);
     }
 
@@ -104,7 +104,7 @@ mod tests {
             toml_array: toml_value.as_array().unwrap(),
             custom_attributes: Some(attrs),
         }
-        .load_list();
+        .load();
         assert_eq!(list.list, vec![1, 2, 3, 4]);
     }
 }

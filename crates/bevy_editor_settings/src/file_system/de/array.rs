@@ -3,7 +3,7 @@ use bevy::{
     reflect::{Array, ArrayInfo},
 };
 
-use super::LoadStructure;
+use super::{LoadStructure, StructureLoader};
 
 pub struct LoadArray<'a> {
     pub array_info: &'a ArrayInfo,
@@ -11,8 +11,8 @@ pub struct LoadArray<'a> {
     pub toml_array: &'a toml::value::Array,
 }
 
-impl LoadArray<'_> {
-    pub fn load_array(self) {
+impl StructureLoader for LoadArray<'_> {
+    fn load(self) {
         if self.toml_array.len() != self.array_info.capacity() {
             warn!(
                 "Preferences: Expected Array length {}, got {}",
@@ -57,7 +57,7 @@ mod tests {
             toml_array: toml_value.as_array().unwrap(),
             array: &mut array,
         }
-        .load_array();
+        .load();
         assert_eq!(array, [1, 2]);
     }
 }

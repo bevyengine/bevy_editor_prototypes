@@ -3,7 +3,7 @@ use bevy::{
     reflect::{Map, MapInfo},
 };
 
-use super::LoadStructure;
+use super::{LoadStructure, StructureLoader};
 
 pub struct LoadMap<'a> {
     pub map: &'a mut dyn Map,
@@ -11,8 +11,8 @@ pub struct LoadMap<'a> {
     pub table: &'a toml::value::Table,
 }
 
-impl LoadMap<'_> {
-    pub fn load_map(self) {
+impl StructureLoader for  LoadMap<'_> {
+    fn load(self) {
         if !self
             .map_info
             .key_info()
@@ -66,7 +66,7 @@ mod tests {
             map: &mut map,
             table: &table,
         }
-        .load_map();
+        .load();
 
         assert_eq!(map.get("key"), Some(&1));
     }

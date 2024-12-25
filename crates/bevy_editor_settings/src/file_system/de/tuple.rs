@@ -1,6 +1,6 @@
 use bevy::reflect::Tuple;
 
-use super::{tuple_utils::TupleLikeInfo, LoadStructure};
+use super::{tuple_utils::TupleLikeInfo, LoadStructure, StructureLoader};
 
 pub struct LoadTuple<'a> {
     pub tuple_info: &'a dyn TupleLikeInfo,
@@ -8,8 +8,8 @@ pub struct LoadTuple<'a> {
     pub tuple: &'a mut dyn Tuple,
 }
 
-impl LoadTuple<'_> {
-    pub fn load_tuple(self) {
+impl StructureLoader for LoadTuple<'_> {
+    fn load(self) {
         for i in 0..self.tuple_info.field_len() {
             let Some(toml_value) = self.table.get(i) else {
                 continue;
@@ -41,7 +41,7 @@ mod tests {
 
     #[tracing_test::traced_test]
     #[test]
-    fn load_tuple() {
+    fn load() {
         let mut tuple = (0, 0);
 
         let toml_value = tuple_test_toml();
@@ -50,7 +50,7 @@ mod tests {
             table: toml_value.as_array().unwrap(),
             tuple: &mut tuple,
         }
-        .load_tuple();
+        .load();
         assert_eq!(tuple, (1, 2));
     }
 
@@ -60,7 +60,7 @@ mod tests {
 
     #[tracing_test::traced_test]
     #[test]
-    fn load_tuple_struct_struct() {
+    fn load_struct_struct() {
         let mut tuple = ((0, 0), (0, 0));
 
         let toml_value = tuple_struct_struct_toml();
@@ -69,7 +69,7 @@ mod tests {
             table: toml_value.as_array().unwrap(),
             tuple: &mut tuple,
         }
-        .load_tuple();
+        .load();
 
         assert_eq!(tuple, ((1, 2), (1, 2)));
     }

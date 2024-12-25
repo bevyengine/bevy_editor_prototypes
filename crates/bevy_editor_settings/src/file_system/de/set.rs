@@ -1,6 +1,6 @@
 use bevy::reflect::{Set, SetInfo};
 
-use super::value::LoadValue;
+use super::{value::LoadValue, StructureLoader};
 
 pub struct LoadSet<'a> {
     pub set: &'a mut dyn Set,
@@ -8,8 +8,8 @@ pub struct LoadSet<'a> {
     pub toml_array: &'a toml::value::Array,
 }
 
-impl LoadSet<'_> {
-    pub fn load_set(self) {
+impl StructureLoader for LoadSet<'_> {
+    fn load(self) {
         for toml_value in self.toml_array.iter() {
             let mut value = super::default::default_value(&self.set_info.value_ty()).unwrap();
 
@@ -18,7 +18,7 @@ impl LoadSet<'_> {
                 toml_value,
                 value: value.as_mut(),
             }
-            .load_value();
+            .load();
 
             self.set.insert_boxed(value);
         }
@@ -47,7 +47,7 @@ mod tests {
             toml_array: toml_value.as_array().unwrap(),
             set: &mut set,
         }
-        .load_set();
+        .load();
 
         assert_eq!(set.len(), 2);
         assert!(set.contains(&1));

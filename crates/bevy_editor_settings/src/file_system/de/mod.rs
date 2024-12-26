@@ -4,11 +4,9 @@ mod enums;
 mod list;
 mod map;
 mod set;
-mod struct_utils;
 mod structs;
 mod tuple;
 mod tuple_struct;
-mod tuple_utils;
 mod value;
 
 use array::LoadArray;

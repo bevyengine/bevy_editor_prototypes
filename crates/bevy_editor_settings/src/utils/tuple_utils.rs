@@ -1,6 +1,6 @@
 use bevy::reflect::{TupleInfo, TupleStructInfo, TupleVariantInfo, UnnamedField};
 
-pub(super) trait TupleLikeInfo {
+pub trait TupleLikeInfo {
     fn field_at(&self, index: usize) -> Option<&UnnamedField>;
     fn field_len(&self) -> usize;
 }

@@ -4,6 +4,7 @@ use bevy::prelude::*;
 
 mod file_system;
 mod diff;
+pub(crate) mod utils;
 
 /// Annotation for a type to show which type of settings it belongs to.
 #[derive(Debug, Clone, PartialEq, Eq, Reflect)]

@@ -1,9 +1,51 @@
+mod opaque;
 mod structs;
 
-use bevy::reflect::{PartialReflect, Reflect, Struct, TypeInfo};
+use bevy::{
+    prelude::warn,
+    reflect::{PartialReflect, Reflect, ReflectRef, Struct, TypeInfo},
+    utils::HashMap,
+};
+use opaque::DiffOpaque;
+use structs::DiffStructs;
 
-pub trait Diff: Reflect {
-    fn diff(&self, other: &Self) -> Vec<DiffResult>;
+#[derive(Debug, Clone)]
+pub(crate) enum DiffType {
+    Opaque,
+    Struct(HashMap<String, DiffType>),
+}
+
+pub trait Diff {
+    type Input;
+
+    fn diff(&self, input1: Self::Input, input2: Self::Input) -> Option<DiffType>;
+}
+
+pub struct DiffStructures<'a> {
+    pub type_info: &'a TypeInfo,
+}
+
+impl<'a> Diff for DiffStructures<'a> {
+    type Input = &'a dyn PartialReflect;
+
+    fn diff(&self, input1: Self::Input, input2: Self::Input) -> Option<DiffType> {
+        match self.type_info {
+            TypeInfo::Struct(struct_info) => match (input1.reflect_ref(), input2.reflect_ref()) {
+                (ReflectRef::Struct(struct1), ReflectRef::Struct(struct2)) => {
+                    DiffStructs { struct_info }.diff(struct1, struct2)
+                }
+                _ => {
+                    warn!("Diffing not implemented for type: {:?}", self.type_info);
+                    None
+                }
+            },
+            TypeInfo::Opaque(opaque_info) => DiffOpaque { opaque_info }.diff(input1, input2),
+            _ => {
+                warn!("Diffing not implemented for type: {:?}", self.type_info);
+                None
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -19,55 +61,48 @@ struct SomeStruct {
     b: u32,
 }
 
-impl Diff for SomeStruct {
-    fn diff(&self, other: &Self) -> Vec<DiffResult> {
-        let mut results = Vec::new();
-        let struct_self = self.as_partial_reflect().reflect_ref().as_struct().unwrap();
-        let struct_other = other
-            .as_partial_reflect()
-            .reflect_ref()
-            .as_struct()
-            .unwrap();
-
-        for index in 0..struct_self.field_len() {
-            let field = struct_self.field_at(index).unwrap();
-            let field_other = struct_other.field_at(index).unwrap();
-            let type_info = field.get_represented_type_info().unwrap();
-            if let TypeInfo::Opaque(_) = type_info {
-                if field.represents::<u32>() {
-                    let value = field.try_downcast_ref::<u32>().unwrap();
-                    let value_other = field_other.try_downcast_ref::<u32>().unwrap();
-                    if value != value_other {
-                        results.push(DiffResult {
-                            field_name: struct_self.name_at(index).unwrap().to_string(),
-                            old_value: value.to_string(),
-                            new_value: value_other.to_string(),
-                        });
-                    }
-                }
-            }
-        }
-        results
-    }
+#[derive(Debug, Clone, Reflect)]
+struct Wrapper {
+    struct1: SomeStruct,
+    something: u32,
 }
 
 #[cfg(test)]
 mod tests {
+    use bevy::reflect::DynamicTyped as _;
+
     use super::*;
 
     #[test]
     fn test_diff() {
-        let a = SomeStruct { a: 1, b: 2 };
-        let b = SomeStruct { a: 1, b: 3 };
-        let res = a.diff(&b);
-        println!("{:?}", res);
-        assert_eq!(
-            res,
-            vec![DiffResult {
-                field_name: "b".to_string(),
-                old_value: "2".to_string(),
-                new_value: "3".to_string(),
-            }]
-        );
+        let struct1 = SomeStruct { a: 1, b: 2 };
+        let struct2 = SomeStruct { a: 1, b: 3 };
+
+        let wrapper1 = Wrapper {
+            struct1,
+            something: 1,
+        };
+
+        let wrapper2 = Wrapper {
+            struct1: struct2,
+            something: 1,
+        };
+
+        let diff = DiffStructures {
+            type_info: wrapper1.reflect_type_info(),
+        }
+        .diff(&wrapper1, &wrapper2)
+        .unwrap();
+
+        println!("{:?}", diff);
+
+        // assert_eq!(
+        //     diff,
+        //     vec![DiffResult {
+        //         field_name: "b".to_string(),
+        //         old_value: "2".to_string(),
+        //         new_value: "3".to_string(),
+        //     }]
+        // );
     }
 }

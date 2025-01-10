@@ -25,7 +25,7 @@ pub struct Fragment {
 /// have either a unique name, or no specific name.
 pub type Template = Vec<Fragment>;
 
-/// An extention trait for building templates. Required because `Template` is
+/// An extension trait for building templates. Required because `Template` is
 /// just a type alias.
 pub trait BuildTemplate {
     /// Builds the template on a node. The fragments in the template become the

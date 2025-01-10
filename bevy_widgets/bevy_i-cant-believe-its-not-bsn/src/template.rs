@@ -254,7 +254,7 @@ fn insert_callback(mut world: DeferredWorld, entity_id: Entity, _component: Comp
     let Some(mut observer) = mem::take(&mut callback.observer) else {
         return;
     };
-    if let Some(parent_id) = world.get::<Parent>(entity_id).map(|parent| parent.get()) {
+    if let Some(parent_id) = world.get::<Parent>(entity_id).map(Parent::get) {
         observer.watch_entity(parent_id);
     }
     let mut commands = world.commands();
@@ -295,7 +295,7 @@ impl Fragment {
         // Clone the receipt for the targeted entity.
         let receipt = world
             .get::<Receipt>(entity_id)
-            .map(|receipt| receipt.to_owned())
+            .map(ToOwned::to_owned)
             .unwrap_or_default();
 
         // Build the bundle
@@ -340,7 +340,7 @@ pub trait TemplateEntityCommandsExt {
     fn build_children(&mut self, template: Template) -> &mut Self;
 }
 
-impl<'a> TemplateEntityCommandsExt for EntityCommands<'a> {
+impl TemplateEntityCommandsExt for EntityCommands<'_> {
     fn build<F>(&mut self, fragment: F) -> &mut Self
     where
         F: TryInto<Fragment>,
@@ -360,7 +360,7 @@ impl<'a> TemplateEntityCommandsExt for EntityCommands<'a> {
             // Access the receipt for the parent.
             let receipt = world
                 .get::<Receipt>(entity_id)
-                .map(|receipt| receipt.to_owned())
+                .map(ToOwned::to_owned)
                 .unwrap_or_default();
 
             // Build the children.

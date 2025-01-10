@@ -18,7 +18,7 @@ use bevy::ecs::{
 /// use bevy_ecs::prelude::*;
 /// use bevy_ecs::system::RunSystemOnce;
 /// use i_cant_believe_its_not_bsn::Maybe;
-
+///
 /// #[derive(Component)]
 /// struct A;
 ///

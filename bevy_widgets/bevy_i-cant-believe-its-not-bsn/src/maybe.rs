@@ -17,7 +17,7 @@ use bevy::ecs::{
 /// ```rust
 /// use bevy::ecs::prelude::*;
 /// use bevy::ecs::system::RunSystemOnce;
-/// use i_cant_believe_its_not_bsn::Maybe;
+/// use bevy_i_cant_believe_its_not_bsn::Maybe;
 ///
 /// #[derive(Component)]
 /// struct A;
@@ -35,7 +35,7 @@ use bevy::ecs::{
 ///             maybe_a: Maybe::new(A),
 ///         })
 ///         .id()
-/// });
+/// }).unwrap();
 /// let entity_ref = world.get_entity(entity_with_component).unwrap();
 /// assert!(entity_ref.contains::<A>());
 /// assert!(!entity_ref.contains::<Maybe<A>>());
@@ -46,7 +46,7 @@ use bevy::ecs::{
 ///             maybe_a: Maybe::NONE,
 ///         })
 ///         .id()
-/// });
+/// }).unwrap();
 /// let entity_ref = world.get_entity(entity_without_component).unwrap();
 /// assert!(!entity_ref.contains::<A>());
 /// assert!(!entity_ref.contains::<Maybe<A>>());

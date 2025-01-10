@@ -18,7 +18,7 @@ use bevy::hierarchy::BuildChildren;
 ///
 /// ```rust
 /// use bevy::ecs::prelude::*;
-/// use i_cant_believe_its_not_bsn::WithChild;
+/// use bevy_i_cant_believe_its_not_bsn::WithChild;
 ///
 /// #[derive(Component)]
 /// struct A;
@@ -106,7 +106,7 @@ impl<B: Bundle> Command for WithChildCommand<B> {
 ///
 /// ```rust
 /// use bevy::ecs::prelude::*;
-/// use i_cant_believe_its_not_bsn::WithChildren;
+/// use bevy_i_cant_believe_its_not_bsn::WithChildren;
 ///
 /// #[derive(Component)]
 /// struct Name(&'static str);
@@ -123,7 +123,7 @@ impl<B: Bundle> Command for WithChildCommand<B> {
 ///
 /// ```rust
 /// use bevy::ecs::prelude::*;
-/// use i_cant_believe_its_not_bsn::WithChildren;
+/// use bevy_i_cant_believe_its_not_bsn::WithChildren;
 ///
 /// #[derive(Component)]
 /// struct A;

@@ -197,7 +197,7 @@ where
 /// This is a helper for adding observers to a `template` macro.
 ///
 /// ```
-/// # use i_cant_believe_its_not_bsn::*;
+/// # use bevy_i_cant_believe_its_not_bsn::*;
 /// # use bevy::prelude::*;
 /// template!{
 ///     Name::new("MyEntity") => [
@@ -387,7 +387,7 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
 /// Here's an example of what it looks like:
 ///
 /// ```
-/// # use i_cant_believe_its_not_bsn::*;
+/// # use bevy_i_cant_believe_its_not_bsn::*;
 /// # use bevy::prelude::*;
 /// # let dark_mode = false;
 /// # #[derive(Component)]
@@ -434,7 +434,7 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
 /// runtime.
 ///
 /// ```
-/// # use i_cant_believe_its_not_bsn::*;
+/// # use bevy_i_cant_believe_its_not_bsn::*;
 /// # use bevy::prelude::*;
 /// fn template(dynamic_name: &str) -> Template {
 ///     template! {
@@ -460,7 +460,7 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
 /// are some examples of valid fragments with different bundles.
 ///
 /// ```
-/// # use i_cant_believe_its_not_bsn::*;
+/// # use bevy_i_cant_believe_its_not_bsn::*;
 /// # use bevy::prelude::*;
 /// # #[derive(Component)]
 /// # struct ComponentA;
@@ -519,7 +519,7 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
 /// at the splice point.
 ///
 /// ```
-/// # use i_cant_believe_its_not_bsn::*;
+/// # use bevy_i_cant_believe_its_not_bsn::*;
 /// # use bevy::prelude::*;
 /// # #[derive(Component)]
 /// # struct MyComponent;
@@ -561,7 +561,7 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
 /// functions which create `Template` values.
 ///
 /// ```
-/// # use i_cant_believe_its_not_bsn::*;
+/// # use bevy_i_cant_believe_its_not_bsn::*;
 /// # use bevy::prelude::*;
 /// fn template(cond: bool) -> Template {
 ///     template! [
@@ -604,7 +604,7 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
 /// re-ordered, you should try to use some sort of stable name.
 ///
 /// ```
-/// # use i_cant_believe_its_not_bsn::*;
+/// # use bevy_i_cant_believe_its_not_bsn::*;
 /// # use bevy::prelude::*;
 /// # struct Item { id: usize, value: usize };
 /// # #[derive(Component)]
@@ -705,7 +705,7 @@ macro_rules! push_fragment {
 /// # Example
 ///
 /// ```
-/// # use i_cant_believe_its_not_bsn::*;
+/// # use bevy_i_cant_believe_its_not_bsn::*;
 /// # use bevy::prelude::*;
 /// let empty_bundle = b!();
 /// let single_bundle = b!(Transform::default());

@@ -17,7 +17,7 @@ use bevy::hierarchy::BuildChildren;
 /// Under the hood, this is done using component lifecycle hooks.
 ///
 /// ```rust
-/// use bevy_ecs::prelude::*;
+/// use bevy::ecs::prelude::*;
 /// use i_cant_believe_its_not_bsn::WithChild;
 ///
 /// #[derive(Component)]
@@ -105,7 +105,7 @@ impl<B: Bundle> Command for WithChildCommand<B> {
 /// Working with vectors, arrays and other collections is straightforward:
 ///
 /// ```rust
-/// use bevy_ecs::prelude::*;
+/// use bevy::ecs::prelude::*;
 /// use i_cant_believe_its_not_bsn::WithChildren;
 ///
 /// #[derive(Component)]
@@ -122,7 +122,7 @@ impl<B: Bundle> Command for WithChildCommand<B> {
 /// However, generator-style iterators can also be used to dynamically vary the number and property of children:
 ///
 /// ```rust
-/// use bevy_ecs::prelude::*;
+/// use bevy::ecs::prelude::*;
 /// use i_cant_believe_its_not_bsn::WithChildren;
 ///
 /// #[derive(Component)]
@@ -201,8 +201,8 @@ impl<B: Bundle, I: IntoIterator<Item = B> + Send + Sync + 'static> Command
 
 #[cfg(test)]
 mod tests {
-    use bevy_ecs::system::RunSystemOnce;
-    use bevy_hierarchy::Children;
+    use bevy::ecs::system::RunSystemOnce;
+    use bevy::hierarchy::Children;
 
     use super::*;
 

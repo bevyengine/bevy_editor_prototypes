@@ -25,6 +25,8 @@ pub struct Fragment {
 /// have either a unique name, or no specific name.
 pub type Template = Vec<Fragment>;
 
+/// An extention trait for building templates. Required because `Template` is
+/// just a type alias.
 pub trait BuildTemplate {
     /// Builds the template on a node. The fragments in the template become the
     /// children of the node.
@@ -95,8 +97,11 @@ impl BuildTemplate for Template {
     }
 }
 
+/// An error returned when converting a template into a fragment.
 pub enum TemplateIntoFragmentError {
+    /// The template was empty.
     Empty,
+    /// The template contained more than one fragment.
     MultipleFragments(usize),
 }
 
@@ -125,8 +130,8 @@ impl Default for Fragment {
 // -----------------------------------------------------------------------------
 // Dynamically typed bundles
 
-/// Bundles are not dyn-compatable, which means they cannot be boxed. This
-/// trait provides a dyn-compatable alternative.
+/// Bundles are not dyn-compatible, which means they cannot be boxed. This
+/// trait provides a dyn-compatible alternative.
 pub trait ErasedBundle {
     /// Inserts a bundle on the specified entity, and removes components present
     /// in the provided hash set which are no-longer needed.
@@ -214,6 +219,7 @@ where
     Callback::new(system)
 }
 
+/// Wrapper around an observer that makes it observe the parent.
 #[derive(Component)]
 #[component(on_insert = insert_callback)]
 #[component(on_remove = remove_callback)]
@@ -222,6 +228,7 @@ pub struct Callback {
 }
 
 impl Callback {
+    /// Creates a new callback.
     pub fn new<E, B, M, I>(system: I) -> Callback
     where
         E: Event,

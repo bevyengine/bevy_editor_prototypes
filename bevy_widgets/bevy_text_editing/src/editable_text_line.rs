@@ -166,6 +166,9 @@ impl EditableTextLine {
     /// # Examples
     ///
     /// ```
+    /// use bevy_text_editing::EditableTextLine;
+    /// use bevy_text_editing::CharPosition;
+    ///
     /// let text_line = EditableTextLine::new("Hello, world!");
     /// let range = (CharPosition(0), CharPosition(5));
     /// assert_eq!(text_line.get_text_range(range), Some("Hello".to_string()));

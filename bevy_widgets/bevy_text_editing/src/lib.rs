@@ -3,14 +3,14 @@
 //! This library provides a way to edit text using the keyboard and mouse.
 //! It is designed to be used with Bevy's UI system.
 
-mod char_poistion;
+mod char_position;
 pub mod child_traversal;
 pub(crate) mod cursor;
 pub mod editable_text_line;
 pub mod text_change;
 
 use bevy::prelude::*;
-pub use char_poistion::*;
+pub use char_position::*;
 use child_traversal::CachedFirsChild;
 pub use editable_text_line::*;
 use text_change::TextChange;

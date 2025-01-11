@@ -4,7 +4,7 @@ use bevy::prelude::*;
 /// Separated from `usize` to make it clear that it is a character position, not a byte position.
 /// And prevents accidental usage as a byte position in string[..`byte_position`]
 #[derive(Reflect, Default, Clone, Copy, Debug)]
-pub struct CharPosition(pub(crate) usize);
+pub struct CharPosition(pub usize);
 
 impl std::ops::Add<CharPosition> for CharPosition {
     type Output = Self;

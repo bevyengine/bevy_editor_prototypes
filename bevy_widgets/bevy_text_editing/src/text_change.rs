@@ -20,7 +20,7 @@ pub struct TextChange {
 }
 
 impl TextChange {
-    /// Creates a new TextChange instance.
+    /// Creates a new `TextChange` instance.
     ///
     /// # Arguments
     /// * `range` - The range of characters to be replaced.
@@ -32,7 +32,7 @@ impl TextChange {
         }
     }
 
-    /// Creates a TextChange that removes text within the specified range.
+    /// Creates a `TextChange` that removes text within the specified range.
     ///
     /// # Arguments
     /// * `range` - The range of characters to be removed.
@@ -43,7 +43,7 @@ impl TextChange {
         }
     }
 
-    /// Creates a TextChange that inserts new text at a specific position.
+    /// Creates a `TextChange` that inserts new text at a specific position.
     ///
     /// # Arguments
     /// * `pos` - The position at which to insert the new text.
@@ -55,7 +55,7 @@ impl TextChange {
         }
     }
 
-    /// Creates a TextChange that does nothing
+    /// Creates a `TextChange` that does nothing
     pub fn nop_change() -> Self {
         Self::new((CharPosition(0), CharPosition(0)), "")
     }

@@ -18,7 +18,7 @@ impl Plugin for TextEventMirrorPlugin {
 #[require(Node, FirstChildTraversal)]
 pub struct TextEventMirror;
 
-/// Mirror propagating TextChanged event into SetText down to the text field.
+/// Mirror propagating `TextChanged` event into `SetText` down to the text field.
 /// Allow to easy create controlled text widgets with filters on top of this text widget.
 fn on_text_changed(
     mut trigger: Trigger<TextChanged>,

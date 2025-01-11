@@ -18,7 +18,7 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Camera2d::default());
+    commands.spawn(Camera2d);
 
     let text_msg_entity = commands
         .spawn((
@@ -82,9 +82,9 @@ impl Validable for CharacterName {
     }
 }
 
-impl ToString for CharacterName {
-    fn to_string(&self) -> String {
-        self.0.clone()
+impl std::fmt::Display for CharacterName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
@@ -104,7 +104,7 @@ fn on_validation_changed(
     };
 
     match &trigger.0 {
-        ValidationState::Valid => {
+        ValidationState::Valid | ValidationState::Unchecked => {
             commands
                 .entity(character_validator.msg_text)
                 .insert(Text::new(""));
@@ -113,11 +113,6 @@ fn on_validation_changed(
             commands
                 .entity(character_validator.msg_text)
                 .insert(Text::new(msg));
-        }
-        ValidationState::Unchecked => {
-            commands
-                .entity(character_validator.msg_text)
-                .insert(Text::new(""));
         }
     }
 }

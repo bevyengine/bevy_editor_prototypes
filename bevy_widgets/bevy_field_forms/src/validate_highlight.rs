@@ -56,7 +56,7 @@ fn on_validation_changed(
     };
 
     match &trigger.0 {
-        ValidationState::Valid => {
+        ValidationState::Valid | ValidationState::Unchecked => {
             if focus.is_some() {
                 commands
                     .entity(entity)
@@ -75,21 +75,6 @@ fn on_validation_changed(
             commands
                 .entity(entity)
                 .insert(BorderColor(highlight.invalid_color));
-        }
-        ValidationState::Unchecked => {
-            if focus.is_some() {
-                commands
-                    .entity(entity)
-                    .insert(BorderColor(highlight.focused_color));
-            } else if *interaction == Interaction::Hovered {
-                commands
-                    .entity(entity)
-                    .insert(BorderColor(highlight.hovered_color));
-            } else {
-                commands
-                    .entity(entity)
-                    .insert(BorderColor(highlight.normal_color));
-            }
         }
     }
 

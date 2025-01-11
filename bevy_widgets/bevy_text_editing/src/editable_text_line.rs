@@ -224,7 +224,7 @@ pub struct EditableTextInner {
     text_shift: f32,
 
     /// One frame cursor overflow check skip
-    /// We need this, because we need to wait ComputedNode to be computed after cursor was spawned
+    /// We need this, because we need to wait `ComputedNode` to be computed after cursor was spawned
     skip_cursor_overflow_check: bool,
 }
 

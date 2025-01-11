@@ -1,4 +1,4 @@
-//! This example shows how to create editable label with bevy_text_editing
+//! This example shows how to create editable label with `bevy_text_editing`
 
 use bevy::prelude::*;
 use bevy_text_editing::editable_text_line::*;
@@ -12,7 +12,7 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Camera2d::default());
+    commands.spawn(Camera2d);
 
     commands
         .spawn(Node {

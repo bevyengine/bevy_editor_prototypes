@@ -128,7 +128,7 @@ fn write_undo_text(
         let mut t = "Registered changes\n".to_string();
 
         for change in change_chain.changes.iter() {
-            t = format!("{}{}\n", t, change.debug_text())
+            t = format!("{}{}\n", t, change.debug_text());
         }
 
         text.0 = t;

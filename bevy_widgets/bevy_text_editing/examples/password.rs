@@ -24,7 +24,7 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn(Camera2d::default());
+    commands.spawn(Camera2d);
 
     let show_password_id = commands.spawn(Text::new("")).id();
 

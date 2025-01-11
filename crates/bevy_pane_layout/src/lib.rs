@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use bevy_editor_styles::Theme;
 
 use crate::{
-    registry::{PaneAppExt, PaneRegistryPlugin, PaneStructure},
+    registry::PaneRegistryPlugin,
     ui::{spawn_divider, spawn_pane, spawn_resize_handle},
 };
 

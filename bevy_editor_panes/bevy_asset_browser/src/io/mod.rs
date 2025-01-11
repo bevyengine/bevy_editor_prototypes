@@ -54,7 +54,7 @@ pub fn create_new_script(mut parent: PathBuf) -> std::io::Result<String> {
 
 /// Open the folder in the file manager that the target os uses
 pub fn open_in_file_manager(path: PathBuf) -> std::io::Result<()> {
-    /// TODO: test for windows and mac (works on linux)
+    // TODO: test for windows and mac (works on linux)
     #[cfg(target_os = "windows")]
     std::process::Command::new("explorer")
         .arg(path.as_os_str().to_str().unwrap())

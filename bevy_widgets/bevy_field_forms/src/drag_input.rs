@@ -83,15 +83,15 @@ fn on_drag<T: Draggable>(
     drag_input.drag_accumulate += delta * drag_input.drag_ratio;
 
     let from_accumulated: T = T::from_f32(drag_input.drag_accumulate.abs());
-    let accumulted_decrese: f32 = from_accumulated.into_f32();
-    if accumulted_decrese != 0.0 {
+    let accumulated_decrease: f32 = from_accumulated.into_f32();
+    if accumulated_decrease != 0.0 {
         let new_val: T;
         if drag_input.drag_accumulate > 0.0 {
             new_val = input_field.value.safe_add(from_accumulated);
-            drag_input.drag_accumulate -= accumulted_decrese;
+            drag_input.drag_accumulate -= accumulated_decrease;
         } else {
             new_val = input_field.value.safe_sub(from_accumulated);
-            drag_input.drag_accumulate += accumulted_decrese;
+            drag_input.drag_accumulate += accumulated_decrease;
         }
 
         commands.trigger_targets(ValueChanged(new_val), entity);

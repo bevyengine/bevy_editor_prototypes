@@ -16,6 +16,7 @@ ron.workspace = true
 rfd.workspace = true
 
 # Panes
+bevy_editor_core.workspace = true
 bevy_3d_viewport.workspace = true
 bevy_2d_viewport.workspace = true
 bevy_scene_tree.workspace = true

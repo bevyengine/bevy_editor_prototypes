@@ -93,7 +93,7 @@ pub trait PaneAppExt {
         &mut self,
         name: impl Into<String>,
         system: impl IntoSystem<In<PaneStructure>, (), M>,
-    );
+    ) -> &mut Self;
 }
 
 impl PaneAppExt for App {
@@ -101,9 +101,11 @@ impl PaneAppExt for App {
         &mut self,
         name: impl Into<String>,
         system: impl IntoSystem<In<PaneStructure>, (), M>,
-    ) {
+    ) -> &mut Self {
         self.world_mut()
             .get_resource_or_init::<PaneRegistry>()
             .register(name, system);
+
+        self
     }
 }

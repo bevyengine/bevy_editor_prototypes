@@ -101,7 +101,7 @@ fn dummy_setup(
 
     commands.spawn((
         Mesh3d(meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(1.5)))),
-        MeshMaterial3d(materials_3d.add(Color::WHITE))
+        MeshMaterial3d(materials_3d.add(Color::WHITE)),
     ));
 
     commands.spawn((

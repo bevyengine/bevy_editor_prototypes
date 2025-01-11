@@ -1,0 +1,40 @@
+
+# basic struct
+[basic_settings]
+name = "bevy_editor_settings"
+
+
+# list with replace
+[list_testing]
+list = ["three", "four"]
+
+# list with append
+[list_testing_append]
+list = [3, 4]
+
+# top level enum
+[enum_testing]
+variant = "Two"
+
+# enum in a struct
+# and enum tuple
+[enum_settings]
+test1 = {Tuple = ["hello", 42]}
+
+#  a struct enum on a struct
+[enum_settings.test2.Struct]
+name = "four"
+age = 4
+
+# a struct with a list of enums
+[enum_settings_list]
+settings = ["Three"]
+
+# top level tuple struct
+# adds the fields field to the tuple struct. this is ONLY done for a top level tuple struct
+[tuple_struct]
+fields = [2, "two"]
+
+# tuple struct in a struct
+[struct_with_tuple]
+tuple = [3, "three"]

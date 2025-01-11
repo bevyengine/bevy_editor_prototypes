@@ -56,7 +56,7 @@ fn update_scene_tree(
 
         commands.entity(scene_tree).build_children(tree_rows);
     }
-}       
+}
 
 fn scene_tree_row_for_entity(
     entity: Entity,

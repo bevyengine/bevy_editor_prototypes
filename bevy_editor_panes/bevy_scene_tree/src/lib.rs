@@ -2,7 +2,7 @@
 
 use bevy::{app::Plugin, color::palettes::tailwind, prelude::*};
 use bevy_editor_core::SelectedEntity;
-use bevy_i_cant_believe_its_not_bsn::*;
+use bevy_i_cant_believe_its_not_bsn::{on, template, Template, TemplateEntityCommandsExt};
 use bevy_pane_layout::prelude::{PaneAppExt, PaneStructure};
 
 /// Plugin for the editor scene tree pane.

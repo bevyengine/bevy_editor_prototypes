@@ -20,6 +20,7 @@ bevy_editor_core.workspace = true
 bevy_3d_viewport.workspace = true
 bevy_2d_viewport.workspace = true
 bevy_scene_tree.workspace = true
+bevy_properties_pane.workspace = true
 bevy_asset_browser.workspace = true
 
 [lints]

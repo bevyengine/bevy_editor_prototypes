@@ -85,10 +85,7 @@ fn scene_tree_row_for_entity(
             on(set_selected_entity_on_click);
             (
                 Text(name.into()),
-                TextFont {
-                    font_size: 11.0,
-                    ..Default::default()
-                },
+                TextFont::from_font_size(11.0),
                 PickingBehavior::IGNORE,
             );
         ];

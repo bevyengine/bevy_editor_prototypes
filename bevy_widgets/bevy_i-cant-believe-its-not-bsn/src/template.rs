@@ -197,7 +197,7 @@ where
 /// This is a helper for adding observers to a `template` macro.
 ///
 /// ```
-/// # use bevy_i_cant_believe_its_not_bsn::*;
+/// # use bevy_i_cant_believe_its_not_bsn::{template, on};
 /// # use bevy::prelude::*;
 /// template!{
 ///     Name::new("MyEntity") => [
@@ -258,7 +258,9 @@ fn insert_callback(mut world: DeferredWorld, entity_id: Entity, _component: Comp
         observer.watch_entity(parent_id);
     }
     let mut commands = world.commands();
-    commands.entity(entity_id).insert(observer);
+    let mut entity_commands = commands.entity(entity_id);
+    entity_commands.remove::<Observer>();
+    entity_commands.insert(observer);
 }
 
 fn remove_callback(mut world: DeferredWorld, entity_id: Entity, _component: ComponentId) {
@@ -387,7 +389,7 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
 /// Here's an example of what it looks like:
 ///
 /// ```
-/// # use bevy_i_cant_believe_its_not_bsn::*;
+/// # use bevy_i_cant_believe_its_not_bsn::{template, Template};
 /// # use bevy::prelude::*;
 /// # let dark_mode = false;
 /// # #[derive(Component)]
@@ -434,7 +436,7 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
 /// runtime.
 ///
 /// ```
-/// # use bevy_i_cant_believe_its_not_bsn::*;
+/// # use bevy_i_cant_believe_its_not_bsn::{template, Template};
 /// # use bevy::prelude::*;
 /// fn template(dynamic_name: &str) -> Template {
 ///     template! {
@@ -460,7 +462,7 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
 /// are some examples of valid fragments with different bundles.
 ///
 /// ```
-/// # use bevy_i_cant_believe_its_not_bsn::*;
+/// # use bevy_i_cant_believe_its_not_bsn::{template, b};
 /// # use bevy::prelude::*;
 /// # #[derive(Component)]
 /// # struct ComponentA;
@@ -519,7 +521,7 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
 /// at the splice point.
 ///
 /// ```
-/// # use bevy_i_cant_believe_its_not_bsn::*;
+/// # use bevy_i_cant_believe_its_not_bsn::{template, Template};
 /// # use bevy::prelude::*;
 /// # #[derive(Component)]
 /// # struct MyComponent;
@@ -561,7 +563,7 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
 /// functions which create `Template` values.
 ///
 /// ```
-/// # use bevy_i_cant_believe_its_not_bsn::*;
+/// # use bevy_i_cant_believe_its_not_bsn::{template, Template};
 /// # use bevy::prelude::*;
 /// fn template(cond: bool) -> Template {
 ///     template! [
@@ -604,7 +606,7 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
 /// re-ordered, you should try to use some sort of stable name.
 ///
 /// ```
-/// # use bevy_i_cant_believe_its_not_bsn::*;
+/// # use bevy_i_cant_believe_its_not_bsn::{Template, template};
 /// # use bevy::prelude::*;
 /// # struct Item { id: usize, value: usize };
 /// # #[derive(Component)]
@@ -640,7 +642,7 @@ macro_rules! template {
     ($($body:tt)*) => {{
         #[allow(unused_mut)]
         let mut fragments = Vec::new();
-        push_item!(fragments; $($body)*);
+        bevy_i_cant_believe_its_not_bsn::push_item!(fragments; $($body)*);
         fragments
     }};
 }
@@ -658,16 +660,16 @@ macro_rules! push_item {
 
     // Anonymous bundle expression.
     ($fragments:ident; $bundle:expr $( => [ $( $children:tt )+ ] )? ; $( $($sib:tt)+ )?) => {
-        push_fragment!($fragments; { None } $bundle $( => [ $( $children )* ] )* ; $( $( $sib )* )* )
+        bevy_i_cant_believe_its_not_bsn::push_fragment!($fragments; { None } $bundle $( => [ $( $children )* ] )* ; $( $( $sib )* )* )
     };
     // Bundle expression with fixed name.
     ($fragments:ident; $name:ident: $bundle:expr $( => [ $( $children:tt )+ ] )? ; $( $($sib:tt)+ )?) => {
         // Stringify the name and throw it in a code-block.
-        push_fragment!($fragments; { Some(stringify!($name).to_string()) } $bundle $( => [ $( $children )* ] )* ; $( $( $sib )* )* )
+        bevy_i_cant_believe_its_not_bsn::push_fragment!($fragments; { Some(stringify!($name).to_string()) } $bundle $( => [ $( $children )* ] )* ; $( $( $sib )* )* )
     };
     // Bundle expression with dynamic name.
     ($fragments:ident; $name:block: $bundle:expr $( => [ $( $children:tt )+ ] )? ; $( $($sib:tt)+ )?) => {
-        push_fragment!($fragments; { Some($name.to_string()) } $bundle $( => [ $( $children )* ] )* ; $( $( $sib )* )* )
+        bevy_i_cant_believe_its_not_bsn::push_fragment!($fragments; { Some($name.to_string()) } $bundle $( => [ $( $children )* ] )* ; $( $( $sib )* )* )
     };
 
     // Splices
@@ -675,7 +677,7 @@ macro_rules! push_item {
     // A code-block returning an iterator of fragments.
     ($fragments:ident; @ $block:block ; $( $($sib:tt)+ )? ) => {
         $fragments.extend({ $block }); // Extend the fragments with the value of the block.
-        $(push_item!($fragments; $($sib)*))* // Continue pushing siblings onto the current list.
+        $(bevy_i_cant_believe_its_not_bsn::push_item!($fragments; $($sib)*))* // Continue pushing siblings onto the current list.
     };
 }
 
@@ -685,18 +687,18 @@ macro_rules! push_item {
 #[macro_export]
 macro_rules! push_fragment {
     ($fragments:ident; $name:block $bundle:expr $( => [ $( $children:tt )+ ] )? ; $( $($sib:tt)+ )?) => {
-        let fragment = Fragment {
+        let fragment = bevy_i_cant_believe_its_not_bsn::Fragment {
             name: $name,
-            bundle: BoxedBundle::from($bundle),
+            bundle: bevy_i_cant_believe_its_not_bsn::BoxedBundle::from($bundle),
             children: {
                 #[allow(unused_mut)]
                 let mut fragments = Vec::new();
-                $(push_item!(fragments; $($children)*);)* // Push the first child onto a new list of children.
+                $(bevy_i_cant_believe_its_not_bsn::push_item!(fragments; $($children)*);)* // Push the first child onto a new list of children.
                 fragments
             },
         };
         $fragments.push(fragment);
-        $(push_item!($fragments; $($sib)*))* // Continue pushing siblings onto the current list.
+        $(bevy_i_cant_believe_its_not_bsn::push_item!($fragments; $($sib)*))* // Continue pushing siblings onto the current list.
     };
 }
 
@@ -705,7 +707,7 @@ macro_rules! push_fragment {
 /// # Example
 ///
 /// ```
-/// # use bevy_i_cant_believe_its_not_bsn::*;
+/// # use bevy_i_cant_believe_its_not_bsn::b;
 /// # use bevy::prelude::*;
 /// let empty_bundle = b!();
 /// let single_bundle = b!(Transform::default());
@@ -714,6 +716,6 @@ macro_rules! push_fragment {
 #[macro_export]
 macro_rules! b {
     ($( $item:expr ),* ) => {
-        BoxedBundle::from( ( $( $item ),* ) )
+        bevy_i_cant_believe_its_not_bsn::BoxedBundle::from( ( $( $item ),* ) )
     };
 }

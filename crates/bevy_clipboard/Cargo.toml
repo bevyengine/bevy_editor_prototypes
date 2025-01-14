@@ -1,0 +1,11 @@
+[package]
+name = "bevy_clipboard"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+arboard = "3.4.1"
+bevy.workspace = true
+
+[lints]
+workspace = true

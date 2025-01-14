@@ -2,7 +2,7 @@
 //!
 //! Data can be viewed and modified in real-time, with changes being reflected in the application.
 
-use bevy::{color::palettes::tailwind, prelude::*};
+use bevy::{color::palettes::tailwind, prelude::*, reflect::*};
 use bevy_editor_core::SelectedEntity;
 use bevy_i_cant_believe_its_not_bsn::{template, Template, TemplateEntityCommandsExt};
 use bevy_pane_layout::prelude::{PaneAppExt, PaneStructure};
@@ -59,15 +59,109 @@ fn properties_pane(selected_entity: &SelectedEntity, world: &World) -> Template 
 }
 
 fn component_list(entity: Entity, world: &World) -> Template {
+    let type_registry = world.resource::<AppTypeRegistry>().read();
     world
         .inspect_entity(entity)
-        .flat_map(|component| {
-            let (_, name) = component.name().rsplit_once("::").unwrap();
+        .flat_map(|component_info| {
+            let (_, name) = component_info.name().rsplit_once("::").unwrap();
+            let type_info = component_info
+                .type_id()
+                .and_then(|type_id| type_registry.get_type_info(type_id));
 
-            template! {(
-                Text(name.into()),
-                TextFont::from_font_size(12.0),
-            );}
+            template! {
+                Node {
+                    flex_direction: FlexDirection::Column,
+                    ..Default::default()
+                } => [
+                    (
+                        Text(name.into()),
+                        TextFont::from_font_size(12.0),
+                    );
+                    @{ component(type_info) };
+                ];
+            }
         })
         .collect()
+}
+
+fn component(type_info: Option<&TypeInfo>) -> Template {
+    match type_info {
+        Some(type_info) => reflected_component(type_info),
+        None => template! {(
+            Text("Reflect not implemented".into()),
+            TextFont::from_font_size(10.0),
+            TextColor(tailwind::NEUTRAL_300.into()),
+        );},
+    }
+}
+
+fn reflected_component(type_info: &TypeInfo) -> Template {
+    match type_info {
+        TypeInfo::Struct(struct_info) => reflected_struct(struct_info),
+        TypeInfo::TupleStruct(tuple_struct_info) => reflected_tuple_struct(tuple_struct_info),
+        TypeInfo::Tuple(_tuple_info) => todo!(),
+        TypeInfo::List(_list_info) => todo!(),
+        TypeInfo::Array(_array_info) => todo!(),
+        TypeInfo::Map(_map_info) => todo!(),
+        TypeInfo::Set(_set_info) => todo!(),
+        TypeInfo::Enum(enum_info) => reflected_enum(enum_info),
+        TypeInfo::Opaque(_opaque_info) => todo!(),
+    }
+}
+
+fn reflected_struct(struct_info: &StructInfo) -> Template {
+    let fields = struct_info
+        .iter()
+        .flat_map(|field| {
+            template! {(
+                Text(field.name().into()),
+                TextFont::from_font_size(10.0),
+            );}
+        })
+        .collect::<Template>();
+
+    template! {
+        Node {
+            flex_direction: FlexDirection::Column,
+            ..Default::default()
+        } => [ @{ fields }; ];
+    }
+}
+
+fn reflected_tuple_struct(tuple_struct_info: &TupleStructInfo) -> Template {
+    let fields = tuple_struct_info
+        .iter()
+        .flat_map(|_field| {
+            template! {(
+                Text("TODO".into()),
+                TextFont::from_font_size(10.0),
+            );}
+        })
+        .collect::<Template>();
+
+    template! {
+        Node {
+            flex_direction: FlexDirection::Column,
+            ..Default::default()
+        } => [ @{ fields }; ];
+    }
+}
+
+fn reflected_enum(enum_info: &EnumInfo) -> Template {
+    let variants = enum_info
+        .iter()
+        .flat_map(|variant| {
+            template! {(
+                Text(variant.name().into()),
+                TextFont::from_font_size(10.0),
+            );}
+        })
+        .collect::<Template>();
+
+    template! {
+        Node {
+            flex_direction: FlexDirection::Column,
+            ..Default::default()
+        } => [ @{ variants }; ];
+    }
 }

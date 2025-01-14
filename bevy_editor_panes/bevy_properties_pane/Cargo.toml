@@ -5,8 +5,10 @@ edition = "2021"
 
 [dependencies]
 bevy.workspace = true
+bevy_editor_core.workspace = true
 bevy_pane_layout.workspace = true
 bevy_editor_styles.workspace = true
+bevy_i-cant-believe-its-not-bsn.workspace = true
 
 [lints]
 workspace = true

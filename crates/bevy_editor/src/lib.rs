@@ -17,6 +17,7 @@ use bevy::prelude::*;
 pub use bevy;
 
 use bevy_context_menu::ContextMenuPlugin;
+use bevy_editor_core::EditorCorePlugin;
 use bevy_editor_styles::StylesPlugin;
 
 // Panes
@@ -49,6 +50,7 @@ impl Plugin for EditorPlugin {
 
         bevy_app
             .add_plugins((
+                EditorCorePlugin,
                 ContextMenuPlugin,
                 StylesPlugin,
                 Viewport2dPanePlugin,

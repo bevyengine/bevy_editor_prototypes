@@ -25,7 +25,7 @@ pub fn on_pane_creation(
     directory_content: Res<DirectoryContent>,
 ) {
     let asset_browser = commands
-        .entity(structure.content)
+        .entity(structure.root)
         .insert(Node {
             width: Val::Percent(100.0),
             height: Val::Percent(100.0),

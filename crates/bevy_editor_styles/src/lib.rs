@@ -66,6 +66,8 @@ pub struct TextStyles {
 
 /// The styles for panes in the editor.
 pub struct PaneStyles {
+    /// The background color of an active header tab button for a pane.
+    pub header_tab_background_color: BackgroundColor,
     /// The background color of the header of the pane.
     pub header_background_color: BackgroundColor,
     /// The background color of the content area of the pane.
@@ -122,7 +124,7 @@ impl FromWorld for Theme {
         Theme {
             general: GeneralStyles {
                 border_radius: BorderRadius::all(Val::Px(8.)),
-                background_color: BackgroundColor(Color::oklch(0.209, 0.0, 0.0)),
+                background_color: BackgroundColor(Color::srgb(0.09, 0.09, 0.09)),
             },
             button: ButtonStyles {
                 border_radius: BorderRadius::all(Val::Px(3.)),
@@ -137,8 +139,9 @@ impl FromWorld for Theme {
                     .load("embedded://bevy_editor_styles/assets/fonts/Inter-Regular.ttf"),
             },
             pane: PaneStyles {
-                header_background_color: BackgroundColor(Color::oklch(0.3407, 0.0, 0.0)),
-                area_background_color: BackgroundColor(Color::oklch(0.3677, 0.0, 0.0)),
+                header_tab_background_color: BackgroundColor(Color::srgb(0.31, 0.31, 0.31)),
+                header_background_color: BackgroundColor(Color::srgb(0.180, 0.180, 0.180)),
+                area_background_color: BackgroundColor(Color::srgb(0.1294, 0.1294, 0.1294)),
                 header_border_radius: BorderRadius::top(Val::Px(8.)),
             },
             menu: MenuStyles {

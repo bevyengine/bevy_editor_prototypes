@@ -1,6 +1,7 @@
 //! Resizable, divider-able panes for Bevy.
 
 mod handlers;
+pub mod pane;
 mod pane_drop_area;
 pub mod registry;
 mod ui;
@@ -18,20 +19,21 @@ mod ui;
 /// - Panes cannot have min/max sizes, they must be able to be resized to any size.
 ///   - If a pane can not be sensibly resized, it can overflow under the other panes.
 /// - Panes must not interfere with each other, only temporary/absolute positioned elements are allowed to overlap panes.
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashSet};
 use bevy_editor_styles::Theme;
 
-use crate::{
-    registry::{PaneAppExt, PaneRegistryPlugin, PaneStructure},
-    ui::{spawn_divider, spawn_pane, spawn_resize_handle},
-};
+use crate::registry::PaneRegistryPlugin;
 
 /// Crate prelude.
 pub mod prelude {
-    pub use crate::{
-        registry::{PaneAppExt, PaneStructure},
-        PaneAreaNode, PaneContentNode, PaneHeaderNode,
+    pub use crate::pane::Pane;
+    pub use crate::registry::PaneAppExt;
+    pub use crate::ui::divider::{spawn_root_divider, DividerCommands, DividerCommandsQuery};
+    pub use crate::ui::pane::PaneStructure;
+    pub use crate::ui::pane_group::{
+        PaneGroupAreaNode, PaneGroupCommands, PaneGroupContentNode, PaneGroupHeaderNode,
     };
+    pub use crate::{Divider, RootPaneLayoutNode};
 }
 
 /// The Bevy Pane Layout Plugin.
@@ -39,23 +41,58 @@ pub struct PaneLayoutPlugin;
 
 impl Plugin for PaneLayoutPlugin {
     fn build(&self, app: &mut App) {
-        // TODO Move these registrations to their respective crates.
-        app.register_pane("Properties", |_pane_structure: In<PaneStructure>| {
-            // Todo
-        });
-
         app.add_plugins(PaneRegistryPlugin)
             .init_resource::<DragState>()
-            .add_systems(Startup, setup.in_set(PaneLayoutSet))
+            .add_systems(Startup, setup_background.in_set(PaneLayoutSet))
             .add_systems(
                 Update,
-                (cleanup_divider_single_child, apply_size)
-                    .chain()
-                    .in_set(PaneLayoutSet),
+                (normalize_size, apply_size).chain().in_set(PaneLayoutSet),
             );
     }
 }
 
+/// Makes sure the sizes for each divider's contents adds up to 1
+fn normalize_size(
+    mut size_query: Query<(Mut<Size>, &Parent)>,
+    divider_query: Query<(Entity, &Divider, Ref<Children>)>,
+) {
+    let mut changed_dividers = HashSet::new();
+
+    for (size, parent) in size_query.iter() {
+        if size.is_changed() {
+            changed_dividers.insert(parent.get());
+        }
+    }
+
+    for (entity, _, children) in divider_query.iter() {
+        if children.is_changed() {
+            changed_dividers.insert(entity);
+        }
+    }
+
+    for entity in changed_dividers.iter() {
+        let Ok((.., div_children)) = divider_query.get(*entity) else {
+            continue;
+        };
+
+        let mut total_size = 0.0;
+        for child in div_children.iter() {
+            if let Ok((size, _)) = size_query.get(*child) {
+                total_size += size.0;
+            }
+        }
+
+        if total_size != 1.0 {
+            for child in div_children.iter() {
+                if let Ok((mut size, _)) = size_query.get_mut(*child) {
+                    size.0 /= total_size;
+                }
+            }
+        }
+    }
+}
+
+/// Updates the Node's size to match the Size component
 fn apply_size(
     mut query: Query<(Entity, &Size, &mut Node), Changed<Size>>,
     divider_query: Query<&Divider>,
@@ -97,7 +134,7 @@ pub struct PaneLayoutSet;
 
 // TODO There is no way to save or load layouts at this moment.
 // The setup system currently just creates a default layout at startup.
-fn setup(
+fn setup_background(
     mut commands: Commands,
     theme: Res<Theme>,
     panes_root: Single<Entity, With<RootPaneLayoutNode>>,
@@ -105,73 +142,65 @@ fn setup(
     commands.entity(*panes_root).insert((
         Node {
             padding: UiRect::all(Val::Px(1.)),
-            flex_grow: 1.,
             width: Val::Percent(100.),
-
+            height: Val::Px(0.0),
+            flex_grow: 1.0,
             ..default()
         },
         theme.general.background_color,
     ));
-
-    let divider = spawn_divider(&mut commands, Divider::Horizontal, 1.)
-        .set_parent(*panes_root)
-        .id();
-
-    let sub_divider = spawn_divider(&mut commands, Divider::Vertical, 0.2)
-        .set_parent(divider)
-        .id();
-
-    spawn_pane(&mut commands, &theme, 0.4, "Scene Tree").set_parent(sub_divider);
-    spawn_resize_handle(&mut commands, Divider::Vertical).set_parent(sub_divider);
-    spawn_pane(&mut commands, &theme, 0.6, "Properties").set_parent(sub_divider);
-
-    spawn_resize_handle(&mut commands, Divider::Horizontal).set_parent(divider);
-
-    let asset_browser_divider = spawn_divider(&mut commands, Divider::Vertical, 0.8)
-        .set_parent(divider)
-        .id();
-
-    spawn_pane(&mut commands, &theme, 0.70, "Viewport 3D").set_parent(asset_browser_divider);
-    spawn_resize_handle(&mut commands, Divider::Vertical).set_parent(asset_browser_divider);
-    spawn_pane(&mut commands, &theme, 0.30, "Asset Browser").set_parent(asset_browser_divider);
 }
 
+// TODO: Reimplement
 /// Removes a divider from the hierarchy when it has only one child left, replacing itself with that child.
-fn cleanup_divider_single_child(
-    mut commands: Commands,
-    mut query: Query<(Entity, &Children, &Parent), (Changed<Children>, With<Divider>)>,
-    mut size_query: Query<&mut Size>,
-    children_query: Query<&Children>,
-    resize_handle_query: Query<(), With<ResizeHandle>>,
-) {
-    for (entity, children, parent) in &mut query {
-        let mut iter = children
-            .iter()
-            .filter(|child| !resize_handle_query.contains(**child));
-        let child = *iter.next().unwrap();
-        if iter.next().is_some() {
-            continue;
-        }
+// fn cleanup_divider_single_child(
+//     mut commands: Commands,
+//     mut query: Query<(Entity, &Divider, &Parent), Changed<Children>>,
+//     mut size_query: Query<&mut Size>,
+//     children_query: Query<&Children>,
+//     resize_handle_query: Query<(), With<ResizeHandle>>,
+// ) {
+//     for (entity, children, parent) in &mut query {
+//         let mut iter = children
+//             .iter()
+//             .filter(|child| !resize_handle_query.contains(**child));
+//         let child = *iter.next().unwrap();
+//         if iter.next().is_some() {
+//             continue;
+//         }
 
-        let size = size_query.get(entity).unwrap().0;
-        size_query.get_mut(child).unwrap().0 = size;
+//         let size = size_query.get(entity).unwrap().0;
+//         size_query.get_mut(child).unwrap().0 = size;
 
-        // Find the index of this divider among its siblings
-        let siblings = children_query.get(parent.get()).unwrap();
-        let index = siblings.iter().position(|s| *s == entity).unwrap();
+//         // Find the index of this divider among its siblings
+//         let siblings = children_query.get(parent.get()).unwrap();
+//         let index = siblings.iter().position(|s| *s == entity).unwrap();
 
-        commands
-            .entity(parent.get())
-            .insert_children(index, &[child]);
-        commands.entity(entity).despawn_recursive();
-    }
-}
+//         commands
+//             .entity(parent.get())
+//             .insert_children(index, &[child]);
+//         commands.entity(entity).despawn_recursive();
+//     }
+// }
 
+// I would prefer the divider component be private, but it is currently used by the spawn_root_divider function.
 /// A node that divides an area into multiple areas along an axis.
 #[derive(Component, Clone, Copy, PartialEq, Eq)]
-enum Divider {
+pub enum Divider {
+    /// A divider that stacks its contents horizontally
     Horizontal,
+    /// A divider that stacks its contents vertically
     Vertical,
+}
+
+impl Divider {
+    /// Gets the reversed direction of the divider
+    pub fn flipped(&self) -> Self {
+        match self {
+            Divider::Horizontal => Divider::Vertical,
+            Divider::Vertical => Divider::Horizontal,
+        }
+    }
 }
 
 #[derive(Component)]
@@ -184,21 +213,3 @@ struct Size(f32);
 /// Root node to capture all editor UI elements, nothing but the layout system should modify this.
 #[derive(Component)]
 pub struct RootPaneLayoutNode;
-
-/// Root node for each pane, holds all event nodes for layout and the basic structure for all Panes.
-#[derive(Component)]
-struct PaneRootNode {
-    name: String,
-}
-
-/// Node to denote the area of the Pane.
-#[derive(Component)]
-pub struct PaneAreaNode;
-
-/// Node to add widgets into the header of a Pane.
-#[derive(Component)]
-pub struct PaneHeaderNode;
-
-/// Node to denote the content space of the Pane.
-#[derive(Component)]
-pub struct PaneContentNode;

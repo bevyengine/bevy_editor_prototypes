@@ -11,28 +11,28 @@ use bevy::{
 use bevy_editor_camera::{EditorCamera2d, EditorCamera2dPlugin};
 use bevy_editor_styles::Theme;
 use bevy_infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings};
-use bevy_pane_layout::prelude::*;
+use bevy_pane_layout::{pane::Pane, prelude::*};
 
 /// The identifier for the 2D Viewport.
 /// This is present on any pane that is a 2D Viewport.
 #[derive(Component)]
-pub struct Bevy2dViewport {
+pub struct Bevy2dViewportPane {
     camera_id: Entity,
 }
 
-impl Default for Bevy2dViewport {
+impl Default for Bevy2dViewportPane {
     fn default() -> Self {
-        Bevy2dViewport {
+        Bevy2dViewportPane {
             camera_id: Entity::PLACEHOLDER,
         }
     }
 }
 
-/// Plugin for the 2D Viewport pane.
-pub struct Viewport2dPanePlugin;
+impl Pane for Bevy2dViewportPane {
+    const NAME: &str = "Viewport 2D";
+    const ID: &str = "viewport_2d";
 
-impl Plugin for Viewport2dPanePlugin {
-    fn build(&self, app: &mut App) {
+    fn build(app: &mut App) {
         if !app.is_plugin_added::<InfiniteGridPlugin>() {
             app.add_plugins(InfiniteGridPlugin);
         }
@@ -43,17 +43,19 @@ impl Plugin for Viewport2dPanePlugin {
                 update_render_target_size.after(ui_layout_system),
             )
             .add_observer(
-                |trigger: Trigger<OnRemove, Bevy2dViewport>,
+                |trigger: Trigger<OnRemove, Bevy2dViewportPane>,
                  mut commands: Commands,
-                 query: Query<&Bevy2dViewport>| {
+                 query: Query<&Bevy2dViewportPane>| {
                     // Despawn the viewport camera
                     commands
                         .entity(query.get(trigger.entity()).unwrap().camera_id)
                         .despawn_recursive();
                 },
             );
+    }
 
-        app.register_pane("Viewport 2D", on_pane_creation);
+    fn creation_system() -> impl System<In = In<PaneStructure>, Out = ()> {
+        IntoSystem::into_system(on_pane_creation)
     }
 }
 
@@ -99,7 +101,7 @@ fn on_pane_creation(
                 ..default()
             },
         ))
-        .set_parent(structure.content)
+        .set_parent(structure.root)
         .id();
 
     let camera_id = commands
@@ -134,27 +136,20 @@ fn on_pane_creation(
 
     commands
         .entity(structure.root)
-        .insert(Bevy2dViewport { camera_id });
+        .insert(Bevy2dViewportPane { camera_id });
 }
 
 fn update_render_target_size(
-    query: Query<(Entity, &Bevy2dViewport)>,
+    query: Query<(Entity, &Bevy2dViewportPane)>,
     mut camera_query: Query<(&Camera, &mut EditorCamera2d)>,
-    content: Query<&PaneContentNode>,
-    children_query: Query<&Children>,
     pos_query: Query<
         (&ComputedNode, &GlobalTransform),
         Or<(Changed<ComputedNode>, Changed<GlobalTransform>)>,
     >,
     mut images: ResMut<Assets<Image>>,
 ) {
-    for (pane_root, viewport) in &query {
-        let content_node_id = children_query
-            .iter_descendants(pane_root)
-            .find(|e| content.contains(*e))
-            .unwrap();
-
-        let Ok((computed_node, global_transform)) = pos_query.get(content_node_id) else {
+    for (pane_root_id, viewport) in &query {
+        let Ok((computed_node, global_transform)) = pos_query.get(pane_root_id) else {
             continue;
         };
         // TODO Convert to physical pixels

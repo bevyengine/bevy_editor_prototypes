@@ -11,7 +11,7 @@ use bevy::{
     },
     prelude::*,
 };
-use bevy_pane_layout::prelude::*;
+use bevy_pane_layout::{pane::Pane, prelude::*};
 use bevy_scroll_box::ScrollBoxPlugin;
 use ui::top_bar::location_as_changed;
 
@@ -19,15 +19,17 @@ mod io;
 mod ui;
 
 /// The bevy asset browser plugin
-pub struct AssetBrowserPanePlugin;
+#[derive(Component)]
+pub struct AssetBrowserPane;
 
-impl Plugin for AssetBrowserPanePlugin {
-    fn build(&self, app: &mut App) {
+impl Pane for AssetBrowserPane {
+    const NAME: &str = "Asset Browser";
+    const ID: &str = "asset_browser";
+
+    fn build(app: &mut App) {
         embedded_asset!(app, "assets/directory_icon.png");
         embedded_asset!(app, "assets/source_icon.png");
         embedded_asset!(app, "assets/file_icon.png");
-
-        app.register_pane("Asset Browser", ui::on_pane_creation);
 
         // Fetch the AssetPlugin file path, this is used to create assets at the correct location
         let default_source_absolute_file_path = {
@@ -68,6 +70,10 @@ impl Plugin for AssetBrowserPanePlugin {
                 )
                     .run_if(location_as_changed),
             );
+    }
+
+    fn creation_system() -> impl System<In = In<PaneStructure>, Out = ()> {
+        IntoSystem::into_system(ui::on_pane_creation)
     }
 }
 

@@ -20,9 +20,12 @@ use bevy_context_menu::ContextMenuPlugin;
 use bevy_editor_styles::StylesPlugin;
 
 // Panes
-use bevy_2d_viewport::Viewport2dPanePlugin;
-use bevy_3d_viewport::Viewport3dPanePlugin;
-use bevy_asset_browser::AssetBrowserPanePlugin;
+use bevy_2d_viewport::Bevy2dViewportPane;
+use bevy_3d_viewport::Bevy3dViewportPane;
+use bevy_asset_browser::AssetBrowserPane;
+use bevy_pane_layout::prelude::PaneAppExt;
+use bevy_properties_pane::PropertiesPane;
+use bevy_scene_tree::SceneTreePane;
 
 use crate::load_gltf::LoadGltfPlugin;
 
@@ -48,13 +51,17 @@ impl Plugin for EditorPlugin {
         project::update_project_info();
 
         bevy_app
+            .register_pane::<Bevy3dViewportPane>()
+            .register_pane::<Bevy2dViewportPane>()
+            .register_pane::<AssetBrowserPane>()
+            .register_pane::<PropertiesPane>()
+            .register_pane::<SceneTreePane>();
+
+        bevy_app
             .add_plugins((
                 ContextMenuPlugin,
                 StylesPlugin,
-                Viewport2dPanePlugin,
-                Viewport3dPanePlugin,
                 ui::EditorUIPlugin,
-                AssetBrowserPanePlugin,
                 LoadGltfPlugin,
             ))
             .add_systems(Startup, dummy_setup);
@@ -64,16 +71,11 @@ impl Plugin for EditorPlugin {
 /// Your game application
 /// This appllication allow your game to run, and the editor to be attached to it
 #[derive(Default)]
-pub struct App;
+pub struct App(pub BevyApp);
 
 impl App {
     /// create new instance of [`App`]
     pub fn new() -> Self {
-        Self
-    }
-
-    /// Run the application
-    pub fn run(&self) -> AppExit {
         let args = std::env::args().collect::<Vec<String>>();
         let editor_mode = !args.iter().any(|arg| arg == "-game");
 
@@ -83,7 +85,12 @@ impl App {
             bevy_app.add_plugins(EditorPlugin);
         }
 
-        bevy_app.run()
+        Self(bevy_app)
+    }
+
+    /// Run the application
+    pub fn run(&mut self) -> AppExit {
+        self.0.run()
     }
 }
 

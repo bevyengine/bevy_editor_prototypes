@@ -1,7 +1,6 @@
 //! An interactive, collapsible tree view for hierarchical ECS data in Bevy.
 
 use bevy::{
-    app::Plugin,
     color::palettes::tailwind,
     core::Name,
     ecs::{
@@ -13,16 +12,18 @@ use bevy::{
 };
 use bevy_editor_core::SelectedEntity;
 use bevy_i_cant_believe_its_not_bsn::WithChild;
-use bevy_pane_layout::prelude::{PaneAppExt, PaneStructure};
+use bevy_pane_layout::{pane::Pane, prelude::PaneStructure};
 use std::ops::Deref;
 
 /// Plugin for the editor scene tree pane.
-pub struct SceneTreePlugin;
+#[derive(Component)]
+pub struct SceneTreePane;
 
-impl Plugin for SceneTreePlugin {
-    fn build(&self, app: &mut App) {
-        app.register_pane("Scene Tree", setup_pane);
+impl Pane for SceneTreePane {
+    const NAME: &str = "Scene Tree";
+    const ID: &str = "scene_tree";
 
+    fn build(app: &mut App) {
         app.add_systems(
             PostUpdate,
             (
@@ -31,13 +32,18 @@ impl Plugin for SceneTreePlugin {
                 update_scene_tree_rows,
             )
                 .chain(),
-        );
+        )
+        .init_resource::<SelectedEntity>();
+    }
+
+    fn creation_system() -> impl System<In = In<PaneStructure>, Out = ()> {
+        IntoSystem::into_system(setup_pane)
     }
 }
 
 fn setup_pane(pane: In<PaneStructure>, mut commands: Commands) {
     commands
-        .entity(pane.content)
+        .entity(pane.root)
         .insert((
             SceneTreeRoot,
             Node {

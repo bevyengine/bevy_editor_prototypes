@@ -3,11 +3,19 @@ name = "bevy_pane_layout"
 version = "0.1.0"
 edition = "2021"
 
-
 [dependencies]
 bevy.workspace = true
 bevy_editor_styles.workspace = true
 bevy_context_menu.workspace = true
+
+[dependencies.derive_more]
+version = "1"
+features = [
+    "error",
+    "from",
+    "display",
+]
+default-features = false
 
 [lints]
 workspace = true

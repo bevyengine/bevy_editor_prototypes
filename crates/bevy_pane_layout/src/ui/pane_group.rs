@@ -106,11 +106,10 @@ impl<'a> PaneGroupCommands<'a> {
 
     /// Removes and despawns a pane in this group.
     pub fn remove_pane(&mut self, pane: Entity) -> &'a mut PaneGroupCommands {
-        let index = self.panes.iter().position(|val| val.root == pane).unwrap(); // Comment: Unwrap or return error?
+        let index = self.panes.iter().position(|val| val.root == pane).unwrap();
         self.remove_pane_at(index)
     }
 
-    // Comment: I think moving the remove logic into a command could potentially simplify/improve this struct
     /// Removes and despawns the pane in this group at the given index.
     pub fn remove_pane_at(&mut self, index: usize) -> &'a mut PaneGroupCommands {
         let pane = self.panes.remove(index);

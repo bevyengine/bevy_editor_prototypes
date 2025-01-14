@@ -13,8 +13,6 @@ pub(crate) fn remove_pane(
     pane_query: Query<&PaneNode>,
     mut pane_group_query: PaneGroupCommandsQuery,
 ) {
-    info!("Remove Pane");
-
     // Grab the pane information
     let target_pane = pane_query.get(target_pane_id.0).unwrap();
 
@@ -28,8 +26,6 @@ pub(crate) fn remove_pane_group(
     mut divider_query: DividerCommandsQuery,
     parent_query: Query<&Parent, With<PaneGroup>>,
 ) {
-    info!("Remove Pane Group");
-
     // Grab the divider commands for the divider containing this group
     let target_parent = parent_query.get(target_group_id.0).unwrap();
     let mut divider = divider_query.get(target_parent.get()).unwrap();

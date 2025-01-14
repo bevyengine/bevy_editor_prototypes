@@ -70,8 +70,6 @@ fn initial_layout(
     theme: Res<Theme>,
     panes_root: Single<Entity, With<RootPaneLayoutNode>>,
 ) {
-    println!("Creating initial layout.");
-
     let mut root_divider =
         spawn_root_divider(&mut commands, Divider::Horizontal, Some(*panes_root), 1.);
 

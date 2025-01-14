@@ -69,7 +69,7 @@ impl<'a> DividerCommands<'a> {
 
     /// Removes and despawns the given content entity.
     pub fn remove(&mut self, entity: Entity) {
-        let i = self.contents.iter().position(|val| *val == entity).unwrap(); // Comment: Should I return an error instead of unwrapping
+        let i = self.contents.iter().position(|val| *val == entity).unwrap();
         self.remove_at(i)
     }
 

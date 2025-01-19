@@ -27,8 +27,11 @@ unsafe_op_in_unsafe_fn = "warn"
 unused_qualifications = "warn"
 
 [workspace.dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "89d094e50f10fc56ec3c4b046c830c650f9f09d5", features = ["wayland"] }
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "89d094e50f10fc56ec3c4b046c830c650f9f09d5", features = [
+    "wayland",
+] }
 bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "89d094e50f10fc56ec3c4b046c830c650f9f09d5" }
+bevy_macro_utils = { git = "https://github.com/bevyengine/bevy.git", rev = "89d094e50f10fc56ec3c4b046c830c650f9f09d5" }
 thiserror = "1"
 serde = { version = "1", features = ["derive"] }
 tracing-test = "0.2.5"
@@ -36,6 +39,7 @@ tracing = "0.1.40"
 atomicow = "1.0.0"
 rfd = "0.15"
 ron = "0.8.1"
+variadics_please = "1.0"
 
 # local crates
 
@@ -65,6 +69,7 @@ bevy_focus = { path = "bevy_widgets/bevy_focus" }
 # general crates
 bevy_editor_core = { path = "crates/bevy_editor_core" }
 bevy_asset_preview = { path = "crates/bevy_asset_preview" }
+bevy_bsn = { path = "crates/bevy_bsn" }
 bevy_editor = { path = "crates/bevy_editor" }
 bevy_editor_camera = { path = "crates/bevy_editor_camera" }
 bevy_editor_launcher = { path = "crates/bevy_editor_launcher" }

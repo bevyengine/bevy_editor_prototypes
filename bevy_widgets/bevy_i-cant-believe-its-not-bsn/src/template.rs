@@ -180,6 +180,15 @@ pub struct BoxedBundle {
     inner: Box<dyn ErasedBundle + Send + 'static>,
 }
 
+impl BoxedBundle {
+    /// Creates a new boxed bundle.
+    pub fn new(bundle: impl ErasedBundle + Send + Sync + 'static) -> BoxedBundle {
+        BoxedBundle {
+            inner: Box::new(bundle),
+        }
+    }
+}
+
 impl<B> From<B> for BoxedBundle
 where
     B: Bundle,

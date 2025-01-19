@@ -16,3 +16,7 @@ bevy_i-cant-believe-its-not-bsn.workspace = true
 
 [lints]
 workspace = true
+
+[[example]]
+name = "bsn_icbinbsn_hot"
+required-features = ["bevy/file_watcher"]

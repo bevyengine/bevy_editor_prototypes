@@ -87,7 +87,7 @@ impl Parse for BsnAstEntity {
 pub enum BsnAstPatch {
     /// Patch for a struct or enum
     Patch(Path, Vec<(Member, BsnAstProp)>),
-    /// A tuple of patches seperated by `,`
+    /// A tuple of patches separated by `,`
     Tuple(Punctuated<BsnAstPatch, Token![,]>),
     /// An expression, surrounded by braces in the BSN
     Expr(Expr),

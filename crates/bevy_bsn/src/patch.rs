@@ -108,7 +108,7 @@ pub trait ConstructContextPatchExt {
         <<P as Patch>::Construct as Construct>::Props: Default;
 }
 
-impl<'a> ConstructContextPatchExt for ConstructContext<'a> {
+impl ConstructContextPatchExt for ConstructContext<'_> {
     fn construct_from_patch<P: Patch>(
         &mut self,
         patch: &mut P,

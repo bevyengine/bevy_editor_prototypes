@@ -166,7 +166,7 @@ pub trait ConstructContextSceneExt {
     fn spawn_scene(&mut self, scene: impl Scene) -> Result<&mut Self, ConstructError>;
 }
 
-impl<'a> ConstructContextSceneExt for ConstructContext<'a> {
+impl ConstructContextSceneExt for ConstructContext<'_> {
     fn construct_scene(&mut self, scene: impl Scene) -> Result<&mut Self, ConstructError> {
         scene.construct(self)?;
         Ok(self)
@@ -200,7 +200,7 @@ pub trait EntityCommandsSceneExt {
     fn construct_scene(&mut self, scene: impl Scene + Send + 'static) -> EntityCommands;
 }
 
-impl<'w> EntityCommandsSceneExt for EntityCommands<'w> {
+impl EntityCommandsSceneExt for EntityCommands<'_> {
     // type Out = EntityCommands;
     fn construct_scene(&mut self, scene: impl Scene + Send + 'static) -> EntityCommands {
         self.queue(ConstructSceneCommand(scene));
@@ -214,7 +214,7 @@ pub trait SpawnSceneExt {
     fn spawn_scene(&mut self, scene: impl Scene + Send + 'static) -> EntityCommands;
 }
 
-impl<'w> SpawnSceneExt for Commands<'w, '_> {
+impl SpawnSceneExt for Commands<'_, '_> {
     /// Spawn the given [`Scene`].
     fn spawn_scene(&mut self, scene: impl Scene + Send + 'static) -> EntityCommands {
         let mut entity = self.spawn_empty();
@@ -223,7 +223,7 @@ impl<'w> SpawnSceneExt for Commands<'w, '_> {
     }
 }
 
-impl<'w> SpawnSceneExt for ChildBuilder<'w> {
+impl SpawnSceneExt for ChildBuilder<'_> {
     fn spawn_scene(&mut self, scene: impl Scene + Send + 'static) -> EntityCommands {
         let mut entity = self.spawn_empty();
         entity.queue(ConstructSceneCommand(scene));

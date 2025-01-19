@@ -134,7 +134,7 @@ pub trait ConstructEntityCommandsExt {
         <T as Construct>::Props: Send;
 }
 
-impl<'w> ConstructEntityCommandsExt for EntityCommands<'w> {
+impl ConstructEntityCommandsExt for EntityCommands<'_> {
     fn construct<T: Construct + Bundle>(&mut self, props: impl Into<T::Props>) -> EntityCommands
     where
         <T as Construct>::Props: Send,

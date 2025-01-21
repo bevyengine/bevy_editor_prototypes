@@ -390,7 +390,7 @@ impl EditorCam {
             }
             Projection::Orthographic(ortho) => DVec2::new(-ortho.scale as f64, ortho.scale as f64),
             Projection::Custom(_) => {
-                bevy::log::warn_once!("Dolly zoom does not support Projection::Custom");
+                bevy::log::warn_once!("EditorCam does not support Projection::Custom");
                 return;
             }
         };
@@ -452,7 +452,7 @@ impl EditorCam {
                     * DVec3::new(1.0, 1.0, 0.0)
             }
             Projection::Custom(_) => {
-                bevy::log::warn_once!("Dolly zoom does not support Projection::Custom");
+                bevy::log::warn_once!("EditorCam does not support Projection::Custom");
                 return;
             }
         };

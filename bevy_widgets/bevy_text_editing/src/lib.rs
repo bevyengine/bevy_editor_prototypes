@@ -42,7 +42,7 @@ pub struct TextChanged {
 }
 
 impl Event for TextChanged {
-    type Traversal = &'static Parent;
+    type Traversal = &'static ChildOf;
 
     const AUTO_PROPAGATE: bool = true;
 }

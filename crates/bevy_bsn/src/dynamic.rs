@@ -3,7 +3,7 @@ use core::any::TypeId;
 use bevy::{
     asset::Asset,
     log::{error, warn},
-    prelude::{AppTypeRegistry, BuildChildren, Component, Mut, ReflectComponent},
+    prelude::{AppTypeRegistry, Component, Mut, ReflectComponent},
     reflect::{PartialReflect, Reflect, TypePath},
     utils::TypeIdMap,
 };

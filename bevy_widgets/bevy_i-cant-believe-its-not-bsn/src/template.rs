@@ -4,7 +4,6 @@ use std::mem;
 use bevy::ecs::{
     component::ComponentId, prelude::*, system::IntoObserverSystem, world::DeferredWorld,
 };
-use bevy::hierarchy::prelude::*;
 
 // -----------------------------------------------------------------------------
 // Templates and fragments
@@ -76,13 +75,14 @@ impl BuildTemplate for Template {
         // first (before deparenting) so that hooks still see the parent when
         // they run.
         for orphan_id in current_anchors.into_values() {
-            world.entity_mut(orphan_id).despawn_recursive();
+            world.entity_mut(orphan_id).despawn();
         }
 
         // Position the entities as children.
         let mut entity = world.entity_mut(entity_id);
         let child_entities: Vec<_> = fragments.iter().map(|(_, _, entity)| *entity).collect();
-        entity.replace_children(&child_entities);
+        entity.remove::<Children>();
+        entity.add_children(&child_entities);
 
         // Build the children and produce the receipts. It's important that this
         // happens *after* the entities are positioned as children to make hooks
@@ -263,7 +263,7 @@ fn insert_callback(mut world: DeferredWorld, entity_id: Entity, _component: Comp
     let Some(mut observer) = mem::take(&mut callback.observer) else {
         return;
     };
-    if let Some(parent_id) = world.get::<Parent>(entity_id).map(Parent::get) {
+    if let Some(parent_id) = world.get::<ChildOf>(entity_id).map(ChildOf::get) {
         observer.watch_entity(parent_id);
     }
     let mut commands = world.commands();
@@ -358,8 +358,8 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
     {
         if let Ok(fragment) = fragment.try_into() {
             // Build the fragment
-            self.queue(|entity: Entity, world: &mut World| {
-                fragment.build(entity, world);
+            self.queue(|entity: EntityWorldMut| {
+                fragment.build(entity.id(), entity.into_world_mut());
             })
         } else {
             self
@@ -367,7 +367,9 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
     }
 
     fn build_children(&mut self, children: Template) -> &mut Self {
-        self.queue(|entity_id: Entity, world: &mut World| {
+        self.queue(|entity: EntityWorldMut| {
+            let (entity_id, world) = (entity.id(), entity.into_world_mut());
+
             // Access the receipt for the parent.
             let receipt = world
                 .get::<Receipt>(entity_id)
@@ -640,7 +642,7 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
 ///   <splice> = "@" <$block>                  -- where block returns `T: IntoIterator<Item = Fragment>`.
 /// <fragment> = <name>? <$expr> <children>?   -- where expression returns `B: Into<BoxedBundle>`.
 ///     <name> = ( <$ident> | <$block> ) ":"   -- where block returns `D: Display`.
-/// <children> = "=> [" <template> "]"           
+/// <children> = "=> [" <template> "]"
 ///   <$ident> = an opaque rust identifier
 ///    <$expr> = a rust expression of a given type
 ///   <$block> = a rust codeblock of a given type

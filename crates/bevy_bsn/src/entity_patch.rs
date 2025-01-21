@@ -1,5 +1,5 @@
 use bevy::prelude::{
-    BuildChildren, ChildBuild, ChildBuilder, Commands, Entity, EntityCommand, EntityCommands, World,
+    ChildSpawnerCommands, Commands, EntityCommand, EntityCommands, EntityWorldMut,
 };
 use variadics_please::all_tuples;
 
@@ -186,8 +186,8 @@ impl<S> EntityCommand for ConstructSceneCommand<S>
 where
     S: Scene + Send + 'static,
 {
-    fn apply(self, id: Entity, world: &mut World) {
-        let mut context = ConstructContext { id, world };
+    fn apply(self, entity: EntityWorldMut) {
+        let mut context = ConstructContext::new(entity.id(), entity.into_world_mut());
         self.0
             .construct(&mut context)
             .expect("failed to spawn_scene in ConstructSceneCommand");
@@ -223,7 +223,7 @@ impl SpawnSceneExt for Commands<'_, '_> {
     }
 }
 
-impl SpawnSceneExt for ChildBuilder<'_> {
+impl SpawnSceneExt for ChildSpawnerCommands<'_> {
     fn spawn_scene(&mut self, scene: impl Scene + Send + 'static) -> EntityCommands {
         let mut entity = self.spawn_empty();
         entity.queue(ConstructSceneCommand(scene));

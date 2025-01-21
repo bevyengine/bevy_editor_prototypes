@@ -48,7 +48,7 @@ fn setup(mut commands: Commands) {
         });
 }
 
-fn spawn_numeric_field<T: Validable + Draggable>(cmd: &mut ChildBuilder, label: &str) {
+fn spawn_numeric_field<T: Validable + Draggable>(cmd: &mut ChildSpawnerCommands, label: &str) {
     cmd.spawn((
         Text::new(format!("{}:", label)),
         Node {

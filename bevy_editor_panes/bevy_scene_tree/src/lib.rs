@@ -86,7 +86,7 @@ fn scene_tree_row_for_entity(
             (
                 Text(name.into()),
                 TextFont::from_font_size(11.0),
-                PickingBehavior::IGNORE,
+                Pickable::IGNORE,
             );
         ];
     }

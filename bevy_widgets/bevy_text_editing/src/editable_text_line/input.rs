@@ -15,7 +15,7 @@ pub fn on_click(
     q_texts: Query<(&ComputedNode, &GlobalTransform)>,
     key_states: Res<ButtonInput<KeyCode>>,
 ) {
-    let entity = click.entity();
+    let entity = click.target();
     let Ok((mut text_line, mut inner)) = q_editable_texts.get_mut(entity) else {
         return;
     };
@@ -279,7 +279,7 @@ pub fn on_focus_lost(
     mut commands: Commands,
     mut q_editable_texts: Query<&mut EditableTextLine>,
 ) {
-    let entity = trigger.entity();
+    let entity = trigger.target();
     let Ok(mut text_field) = q_editable_texts.get_mut(entity) else {
         return;
     };
@@ -297,7 +297,7 @@ pub fn on_set_cursor_position(
     mut commands: Commands,
     mut q_editable_texts: Query<&mut EditableTextLine>,
 ) {
-    let entity = trigger.entity();
+    let entity = trigger.target();
     let Ok(mut text_field) = q_editable_texts.get_mut(entity) else {
         return;
     };

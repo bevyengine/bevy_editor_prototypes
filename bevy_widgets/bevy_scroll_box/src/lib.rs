@@ -102,8 +102,8 @@ pub fn spawn_scroll_box<'a>(
                 },
                 ..default()
             },
+            ChildOf(scrollbox),
         ))
-        .set_parent(scrollbox)
         .id();
 
     if let Some(populate_content) = populate_content {
@@ -111,11 +111,12 @@ pub fn spawn_scroll_box<'a>(
     }
 
     if direction.y == OverflowAxis::Scroll {
-        spawn_scroll_bar(commands, theme, ScrollBarHandleDirection::Vertical).set_parent(scrollbox);
+        spawn_scroll_bar(commands, theme, ScrollBarHandleDirection::Vertical)
+            .insert(ChildOf(scrollbox));
     }
     if direction.x == OverflowAxis::Scroll {
         spawn_scroll_bar(commands, theme, ScrollBarHandleDirection::Horizontal)
-            .set_parent(scrollbox);
+            .insert(ChildOf(scrollbox));
     }
 
     commands.entity(scrollbox)
@@ -167,16 +168,16 @@ fn spawn_scroll_bar<'a>(
             ScrollBarHandle(direction),
             BackgroundColor(theme.scroll_box.handle_color),
             theme.scroll_box.border_radius,
+            ChildOf(scrollbar),
         ))
-        .set_parent(scrollbar)
         .observe(
             |trigger: Trigger<Pointer<Drag>>,
              query_handle: Query<&ScrollBarHandle>,
-             query_parent: Query<&Parent>,
+             query_parent: Query<&ChildOf>,
              mut query_scrollbox: Query<(&mut ScrollBox, &RelativeCursorPosition, &Children)>,
              query_computed_node: Query<&ComputedNode>,
              mut query_node: Query<&mut Node>| {
-                let handle_entity = trigger.entity();
+                let handle_entity = trigger.target();
                 let handle = query_handle.get(handle_entity).unwrap();
                 let scrollbox_entity = {
                     let scrollbar_parent = query_parent.get(handle_entity).unwrap();

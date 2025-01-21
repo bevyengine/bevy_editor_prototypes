@@ -1,11 +1,10 @@
 use core::marker::PhantomData;
 
 use bevy::ecs::{
-    component::{ComponentHooks, ComponentId, StorageType},
+    component::{ComponentHooks, ComponentId, Immutable, StorageType},
     prelude::*,
-    world::{Command, DeferredWorld},
+    world::DeferredWorld,
 };
-use bevy::hierarchy::BuildChildren;
 
 /// A component that, when added to an entity, will add a child entity with the given bundle.
 ///
@@ -41,6 +40,8 @@ pub struct WithChild<B: Bundle>(pub B);
 impl<B: Bundle> Component for WithChild<B> {
     /// This is a sparse set component as it's only ever added and removed, never iterated over.
     const STORAGE_TYPE: StorageType = StorageType::SparseSet;
+
+    type Mutability = Immutable;
 
     fn register_component_hooks(hooks: &mut ComponentHooks) {
         hooks.on_add(with_child_hook::<B>);
@@ -147,6 +148,8 @@ impl<B: Bundle, I: IntoIterator<Item = B> + Send + Sync + 'static> Component
     /// This is a sparse set component as it's only ever added and removed, never iterated over.
     const STORAGE_TYPE: StorageType = StorageType::SparseSet;
 
+    type Mutability = Immutable;
+
     fn register_component_hooks(hooks: &mut ComponentHooks) {
         hooks.on_add(with_children_hook::<B, I>);
     }
@@ -202,7 +205,6 @@ impl<B: Bundle, I: IntoIterator<Item = B> + Send + Sync + 'static> Command
 #[cfg(test)]
 mod tests {
     use bevy::ecs::system::RunSystemOnce;
-    use bevy::hierarchy::Children;
 
     use super::*;
 

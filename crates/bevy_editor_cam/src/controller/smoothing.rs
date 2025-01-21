@@ -6,8 +6,8 @@ use std::{
     time::Duration,
 };
 
+use bevy::platform_support::time::Instant;
 use bevy::reflect::prelude::*;
-use bevy::utils::Instant;
 use bevy_derive::{Deref, DerefMut};
 
 /// How smooth should inputs be? Over what tine window should they be averaged.

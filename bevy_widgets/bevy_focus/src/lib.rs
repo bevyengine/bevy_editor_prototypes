@@ -77,14 +77,14 @@ fn set_focus(
     q_focused: Query<Entity, With<Focus>>,
 ) {
     for entity in q_focused.iter() {
-        if entity == trigger.entity() {
+        if entity == trigger.target() {
             continue;
         }
         commands.entity(entity).remove::<Focus>();
         commands.trigger_targets(LostFocus, entity);
     }
-    commands.entity(trigger.entity()).insert(Focus);
-    commands.trigger_targets(GotFocus(None), trigger.entity());
+    commands.entity(trigger.target()).insert(Focus);
+    commands.trigger_targets(GotFocus(None), trigger.target());
 }
 
 fn clear_focus(
@@ -107,7 +107,7 @@ fn mouse_click(
     if click.event().button != PointerButton::Primary {
         return;
     }
-    let entity = click.entity();
+    let entity = click.target();
     if q_focusable.contains(entity) {
         commands.insert_resource(NeedClearFocus(false));
 

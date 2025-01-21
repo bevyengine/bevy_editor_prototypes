@@ -1,9 +1,9 @@
 use alloc::borrow::Cow;
 
 use bevy::{
-    ecs::component::{ComponentHooks, StorageType},
+    ecs::component::{ComponentHooks, Immutable, StorageType},
     prelude::*,
-    text::FontSmoothing,
+    text::{FontSmoothing, LineHeight},
 };
 
 use crate::*;
@@ -137,6 +137,8 @@ pub struct ConstructTextFont {
     pub font_size: f32,
     /// Font smoothing
     pub font_smoothing: FontSmoothing,
+    /// Line height
+    pub line_height: LineHeight,
 }
 
 #[allow(missing_docs)]
@@ -145,19 +147,17 @@ pub struct ConstructTextFontProps {
     pub font: ConstructProp<ConstructHandle<Font>>,
     pub font_size: f32,
     pub font_smoothing: FontSmoothing,
+    pub line_height: LineHeight,
 }
 
 impl Default for ConstructTextFontProps {
     fn default() -> Self {
-        let TextFont {
-            font,
-            font_size,
-            font_smoothing,
-        } = TextFont::default();
+        let default = TextFont::default();
         Self {
-            font: ConstructProp::Value(font.into()),
-            font_size,
-            font_smoothing,
+            font: ConstructProp::Value(default.font.into()),
+            font_size: default.font_size,
+            font_smoothing: default.font_smoothing,
+            line_height: default.line_height,
         }
     }
 }
@@ -172,12 +172,15 @@ impl Construct for ConstructTextFont {
             font: props.font.construct(context)?,
             font_size: props.font_size,
             font_smoothing: props.font_smoothing,
+            line_height: props.line_height,
         })
     }
 }
 
 impl Component for ConstructTextFont {
     const STORAGE_TYPE: StorageType = StorageType::SparseSet;
+
+    type Mutability = Immutable;
 
     fn register_component_hooks(hooks: &mut ComponentHooks) {
         hooks.on_insert(|mut world, entity, _component_id| {
@@ -186,6 +189,7 @@ impl Component for ConstructTextFont {
                 font: constructable.font.into(),
                 font_size: constructable.font_size,
                 font_smoothing: constructable.font_smoothing,
+                line_height: constructable.line_height,
             });
         });
         hooks.on_remove(|mut world, entity, _component_id| {

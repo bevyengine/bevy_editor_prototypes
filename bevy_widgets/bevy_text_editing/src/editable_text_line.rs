@@ -388,7 +388,7 @@ fn set_text_trigger(
     mut commands: Commands,
     mut q_texts: Query<&mut EditableTextLine>,
 ) {
-    let entity = trigger.entity();
+    let entity = trigger.target();
     let Ok(mut line) = q_texts.get_mut(entity) else {
         return;
     };

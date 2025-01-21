@@ -50,7 +50,7 @@ fn on_validation_changed(
     mut commands: Commands,
     mut q_highlights: Query<(&mut SimpleBorderHighlight, &Interaction, Option<&Focus>)>,
 ) {
-    let entity = trigger.entity();
+    let entity = trigger.target();
     let Ok((mut highlight, interaction, focus)) = q_highlights.get_mut(entity) else {
         return;
     };
@@ -86,7 +86,7 @@ fn on_focus_added(
     mut commands: Commands,
     q_highlights: Query<&SimpleBorderHighlight>,
 ) {
-    let entity = trigger.entity();
+    let entity = trigger.target();
     let Ok(highlight) = q_highlights.get(entity) else {
         return;
     };
@@ -104,7 +104,7 @@ fn on_focus_lost(
     mut commands: Commands,
     q_highlights: Query<&SimpleBorderHighlight>,
 ) {
-    let entity = trigger.entity();
+    let entity = trigger.target();
     let Ok(highlight) = q_highlights.get(entity) else {
         return;
     };

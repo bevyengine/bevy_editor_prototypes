@@ -1,9 +1,9 @@
 use core::marker::PhantomData;
 
 use bevy::ecs::{
-    component::{ComponentHooks, ComponentId, StorageType},
+    component::{ComponentHooks, ComponentId, Immutable, StorageType},
     prelude::*,
-    world::{Command, DeferredWorld},
+    world::DeferredWorld,
 };
 
 /// A component that when added to an entity, will be removed from the entity and replaced with its contents if [`Some`].
@@ -57,6 +57,8 @@ pub struct Maybe<B: Bundle>(pub Option<B>);
 impl<B: Bundle> Component for Maybe<B> {
     /// This is a sparse set component as it's only ever added and removed, never iterated over.
     const STORAGE_TYPE: StorageType = StorageType::SparseSet;
+
+    type Mutability = Immutable;
 
     fn register_component_hooks(hooks: &mut ComponentHooks) {
         hooks.on_add(maybe_hook::<B>);

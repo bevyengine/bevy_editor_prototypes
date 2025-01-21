@@ -35,7 +35,7 @@ pub fn on_pane_creation(
         })
         .id();
 
-    top_bar::spawn_top_bar(&mut commands, &theme, &location).set_parent(asset_browser);
+    top_bar::spawn_top_bar(&mut commands, &theme, &location).insert(ChildOf(asset_browser));
     directory_content::spawn_directory_content(
         &mut commands,
         &directory_content,
@@ -43,7 +43,7 @@ pub fn on_pane_creation(
         &asset_server,
         &location,
     )
-    .set_parent(asset_browser);
+    .insert(ChildOf(asset_browser));
 
     commands.entity(structure.root).insert(AssetBrowserNode);
 }

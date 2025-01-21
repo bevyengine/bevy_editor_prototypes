@@ -147,7 +147,7 @@ fn camera_zoom(
     mut query: Query<(
         &mut EditorCamera2d,
         &Camera,
-        &mut OrthographicProjection,
+        &mut Projection,
         &mut Transform,
     )>,
 ) {
@@ -165,6 +165,10 @@ fn camera_zoom(
             continue;
         }
 
+        let Projection::Orthographic(ref mut projection) = projection.as_mut() else {
+            panic!("EditorCamera2d requires an Orthographic projection");
+        };
+
         let viewport_size = camera.logical_viewport_size().unwrap_or(window.size());
 
         let viewport_rect = e_camera
@@ -175,7 +179,7 @@ fn camera_zoom(
         projection.scale *= 1. - mouse_wheel.delta.y * e_camera.zoom_sensitivity;
 
         constrain_proj_scale(
-            &mut projection,
+            projection,
             e_camera.bound.size(),
             &e_camera.scale_range,
             viewport_size,
@@ -222,12 +226,7 @@ fn camera_zoom(
 fn camera_pan(
     primary_window: Query<&Window, With<PrimaryWindow>>,
     mouse_buttons: Res<ButtonInput<MouseButton>>,
-    mut query: Query<(
-        &EditorCamera2d,
-        &Camera,
-        &OrthographicProjection,
-        &mut Transform,
-    )>,
+    mut query: Query<(&EditorCamera2d, &Camera, &Projection, &mut Transform)>,
     mut prev_mouse_pos: Local<Option<Vec2>>,
 ) {
     // See https://github.com/johanhelsing/bevy_pancam/blob/main/src/lib.rs#L279
@@ -250,6 +249,10 @@ fn camera_pan(
         if !e_camera.enabled {
             continue;
         }
+
+        let Projection::Orthographic(projection) = projection else {
+            panic!("EditorCamera2d requires an Orthographic projection");
+        };
 
         let projection_area_size = projection.area.size();
         let mouse_delta = if !e_camera

@@ -32,7 +32,7 @@ pub(crate) fn spawn_top_bar<'a>(
             theme.pane.header_background_color,
         ))
         .id();
-    spawn_location_path_ui(commands, theme, location).set_parent(top_bar);
+    spawn_location_path_ui(commands, theme, location).insert(ChildOf(top_bar));
 
     commands.entity(top_bar)
 }
@@ -52,12 +52,12 @@ pub fn refresh_ui(
         // Clear location path UI
         if let Some(childrens) = top_bar_childrens {
             for child in childrens.iter() {
-                commands.entity(*child).despawn_recursive();
+                commands.entity(*child).despawn();
             }
-            commands.entity(top_bar_entity).clear_children();
+            commands.entity(top_bar_entity).remove::<Children>();
         }
         // Regenerate location path UI
-        spawn_location_path_ui(&mut commands, &theme, &location).set_parent(top_bar_entity);
+        spawn_location_path_ui(&mut commands, &theme, &location).insert(ChildOf(top_bar_entity));
     }
 }
 
@@ -81,12 +81,12 @@ pub fn spawn_location_path_ui<'a>(
         theme.as_ref(),
         LocationSegmentType::Root,
     )
-    .set_parent(location_path);
+    .insert(ChildOf(location_path));
 
     if location.source_id.is_some() {
         commands
             .spawn(path_separator_ui(theme.as_ref()))
-            .set_parent(location_path);
+            .insert(ChildOf(location_path));
         let source_id = location.source_id.as_ref().unwrap();
         spawn_path_segment_ui(
             commands,
@@ -94,18 +94,18 @@ pub fn spawn_location_path_ui<'a>(
             theme.as_ref(),
             LocationSegmentType::Source,
         )
-        .set_parent(location_path);
+        .insert(ChildOf(location_path));
         location.path.iter().for_each(|directory_name| {
             commands
                 .spawn(path_separator_ui(theme.as_ref()))
-                .set_parent(location_path);
+                .insert(ChildOf(location_path));
             spawn_path_segment_ui(
                 commands,
                 directory_name.to_str().unwrap().to_string(),
                 theme.as_ref(),
                 LocationSegmentType::Directory,
             )
-            .set_parent(location_path);
+            .insert(ChildOf(location_path));
         });
     }
     commands.entity(location_path)
@@ -144,12 +144,12 @@ fn spawn_path_segment_ui<'a>(
             ));
         })
         .observe(
-            move |trigger: Trigger<Pointer<Up>>,
+            move |trigger: Trigger<Pointer<Released>>,
                   mut commands: Commands,
                   mut location: ResMut<AssetBrowserLocation>,
                   query_children: Query<&Children>,
-                  query_segment_info: Query<(&Parent, &LocationSegmentType)>| {
-                let segment = trigger.entity();
+                  query_segment_info: Query<(&ChildOf, &LocationSegmentType)>| {
+                let segment = trigger.target();
                 let (parent, segment_type) = query_segment_info.get(segment).unwrap();
                 match segment_type {
                     LocationSegmentType::Root => {

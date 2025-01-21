@@ -11,7 +11,7 @@ pub fn derive_construct(item: TokenStream) -> TokenStream {
 }
 
 fn derive_internal(ast: DeriveInput) -> TokenStream {
-    let manifest = BevyManifest::default();
+    let manifest = BevyManifest::shared();
     let bevy_reflect = manifest.get_path("bevy_reflect");
     let bevy_bsn = Path::from(format_ident!("bevy_bsn"));
 

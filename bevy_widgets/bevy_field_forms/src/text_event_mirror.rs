@@ -25,7 +25,7 @@ fn on_text_changed(
     mut commands: Commands,
     q_mirrors: Query<Entity, With<TextEventMirror>>,
 ) {
-    let entity = trigger.entity();
+    let entity = trigger.target();
     let Ok(_) = q_mirrors.get(entity) else {
         return;
     };

@@ -48,15 +48,16 @@ fn poll_create_project_task(
                 commands.entity(task_entity).despawn();
                 let (project_list_entity, children) = query.iter().next().unwrap();
                 let plus_button_entity = children.last().unwrap();
+
+                commands.entity(*plus_button_entity).remove::<ChildOf>();
                 commands
                     .entity(project_list_entity)
-                    .remove_children(&[*plus_button_entity])
                     .with_children(|builder| {
                         ui::spawn_project_node(builder, &theme, &asset_server, &project_info);
                     });
                 commands
                     .entity(*plus_button_entity)
-                    .set_parent(project_list_entity);
+                    .insert(ChildOf(project_list_entity));
             }
             Err(error) => {
                 error!("Failed to create new project: {:?}", error);

@@ -124,7 +124,7 @@ fn on_text_changed<T: Validable>(
     mut commands: Commands,
     mut q_validated_input_fields: Query<&mut InputField<T>>,
 ) {
-    let entity = trigger.entity();
+    let entity = trigger.target();
     let Ok(mut field) = q_validated_input_fields.get_mut(entity) else {
         return;
     };

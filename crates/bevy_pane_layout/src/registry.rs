@@ -75,7 +75,7 @@ pub(crate) fn on_pane_creation(
                     world.register_boxed_system(pane.creation_callback.take().unwrap())
                 });
 
-                world.run_system_with_input(*id, structure).unwrap();
+                world.run_system_with(*id, structure).unwrap();
             } else {
                 warn!(
                     "No pane found in the registry with name: '{}'",

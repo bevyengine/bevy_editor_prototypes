@@ -44,7 +44,7 @@ pub(crate) fn spawn_directory_content<'a>(
             );
         }),
     )
-    .set_parent(root);
+    .insert(ChildOf(root));
     commands.entity(root)
 }
 
@@ -107,9 +107,9 @@ pub(crate) fn refresh_ui(
 fn despawn_content_entries(commands: &mut Commands, container: Entity, entries: Option<&Children>) {
     if let Some(entries) = entries {
         for entry in entries {
-            commands.entity(*entry).despawn_recursive();
+            commands.entity(*entry).despawn();
         }
-        commands.entity(container).clear_children();
+        commands.entity(container).remove::<Children>();
     }
 }
 
@@ -125,15 +125,15 @@ fn populate_directory_content(
     for entry in &directory_content.0 {
         match entry {
             Entry::Source(id) => {
-                spawn_source_node(commands, id, asset_server, theme).set_parent(parent_entity);
+                spawn_source_node(commands, id, asset_server, theme).insert(ChildOf(parent_entity));
             }
             Entry::Folder(name) => {
                 spawn_folder_node(commands, name.clone(), asset_server, location, theme)
-                    .set_parent(parent_entity);
+                    .insert(ChildOf(parent_entity));
             }
             Entry::File(name) => {
                 spawn_file_node(commands, name.clone(), asset_server, location, theme)
-                    .set_parent(parent_entity);
+                    .insert(ChildOf(parent_entity));
             }
         }
     }

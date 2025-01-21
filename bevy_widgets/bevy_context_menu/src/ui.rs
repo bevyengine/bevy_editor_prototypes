@@ -21,20 +21,20 @@ pub(crate) fn spawn_context_menu<'a>(
                 width: Val::Px(300.),
                 ..default()
             },
-            BoxShadow {
+            BoxShadow::from(ShadowStyle {
                 blur_radius: Val::Px(3.),
                 x_offset: Val::ZERO,
                 y_offset: Val::ZERO,
                 color: Color::BLACK.with_alpha(0.8),
                 ..Default::default()
-            },
+            }),
             theme.context_menu.background_color,
             theme.general.border_radius,
         ))
         .id();
 
     for (i, option) in menu.options.iter().enumerate() {
-        spawn_option(commands, theme, &option.label, i, target).set_parent(root);
+        spawn_option(commands, theme, &option.label, i, target).insert(ChildOf(root));
     }
 
     commands.entity(root)
@@ -60,12 +60,12 @@ pub(crate) fn spawn_option<'a>(
             |trigger: Trigger<Pointer<Over>>,
              theme: Res<Theme>,
              mut query: Query<&mut BackgroundColor>| {
-                *query.get_mut(trigger.entity()).unwrap() = theme.context_menu.hover_color;
+                *query.get_mut(trigger.target()).unwrap() = theme.context_menu.hover_color;
             },
         )
         .observe(
             |trigger: Trigger<Pointer<Out>>, mut query: Query<&mut BackgroundColor>| {
-                query.get_mut(trigger.entity()).unwrap().0 = Color::NONE;
+                query.get_mut(trigger.target()).unwrap().0 = Color::NONE;
             },
         )
         .observe(
@@ -89,19 +89,19 @@ pub(crate) fn spawn_option<'a>(
             },
         )
         .observe(
-            move |trigger: Trigger<Pointer<Up>>,
+            move |trigger: Trigger<Pointer<Released>>,
                   mut commands: Commands,
-                  parent_query: Query<&Parent>,
+                  child_of_query: Query<&ChildOf>,
                   mut query: Query<&mut ContextMenu>| {
                 if trigger.event().button != PointerButton::Primary {
                     return;
                 }
                 // Despawn the context menu when an option is selected
-                let root = parent_query
-                    .iter_ancestors(trigger.entity())
+                let root = child_of_query
+                    .iter_ancestors(trigger.target())
                     .last()
                     .unwrap();
-                commands.entity(root).despawn_recursive();
+                commands.entity(root).despawn();
 
                 // Run the option callback
                 let callback = &mut query.get_mut(target).unwrap().options[index].f;
@@ -110,17 +110,16 @@ pub(crate) fn spawn_option<'a>(
         )
         .id();
 
-    commands
-        .spawn((
-            Text::new(label),
-            TextFont {
-                font: theme.text.font.clone(),
-                font_size: 12.,
-                ..default()
-            },
-            PickingBehavior::IGNORE,
-        ))
-        .set_parent(root);
+    commands.spawn((
+        Text::new(label),
+        TextFont {
+            font: theme.text.font.clone(),
+            font_size: 12.,
+            ..default()
+        },
+        Pickable::IGNORE,
+        ChildOf(root),
+    ));
 
     commands.entity(root)
 }

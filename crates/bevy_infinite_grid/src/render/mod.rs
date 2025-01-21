@@ -403,20 +403,14 @@ fn queue_infinite_grids(
     infinite_grids: Query<&ExtractedInfiniteGrid>,
     mut transparent3d_render_phases: ResMut<ViewSortedRenderPhases<Transparent3d>>,
     mut transparent2d_render_phases: ResMut<ViewSortedRenderPhases<Transparent2d>>,
-    mut views: Query<(Entity, &RenderVisibleEntities, &ExtractedView, &Msaa)>,
+    mut views: Query<(&RenderVisibleEntities, &ExtractedView, &Msaa)>,
 ) {
-    let draw_function_id = transparent3d_draw_functions
-        .read()
-        .get_id::<DrawInfiniteGrid>()
-        .unwrap();
-    let draw_function_id_2d = transparent2d_draw_functions
-        .read()
-        .get_id::<DrawInfiniteGrid>()
-        .unwrap();
+    let draw_function_id = transparent3d_draw_functions.read().id::<DrawInfiniteGrid>();
+    let draw_function_id_2d = transparent2d_draw_functions.read().id::<DrawInfiniteGrid>();
 
-    for (view_entity, entities, view, msaa) in views.iter_mut() {
-        let mut phase3d = transparent3d_render_phases.get_mut(&view_entity);
-        let mut phase2d = transparent2d_render_phases.get_mut(&view_entity);
+    for (entities, view, msaa) in views.iter_mut() {
+        let mut phase3d = transparent3d_render_phases.get_mut(&view.retained_view_entity);
+        let mut phase2d = transparent2d_render_phases.get_mut(&view.retained_view_entity);
 
         if phase3d.is_none() && phase2d.is_none() {
             continue;
@@ -439,8 +433,9 @@ fn queue_infinite_grids(
                     entity: (entity, main_entity),
                     draw_function: draw_function_id_2d,
                     batch_range: 0..1,
-                    extra_index: PhaseItemExtraIndex::NONE,
+                    extra_index: PhaseItemExtraIndex::None,
                     sort_key: FloatOrd(f32::NEG_INFINITY),
+                    indexed: true,
                 });
             }
             if !infinite_grids
@@ -457,7 +452,8 @@ fn queue_infinite_grids(
                     draw_function: draw_function_id,
                     distance: f32::NEG_INFINITY,
                     batch_range: 0..1,
-                    extra_index: PhaseItemExtraIndex::NONE,
+                    extra_index: PhaseItemExtraIndex::None,
+                    indexed: true,
                 });
             }
         }

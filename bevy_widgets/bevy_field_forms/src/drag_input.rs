@@ -73,7 +73,7 @@ fn on_drag<T: Draggable>(
     mut commands: Commands,
     mut q_drag_inputs: Query<(&mut DragInput<T>, &mut InputField<T>)>,
 ) {
-    let entity = trigger.entity();
+    let entity = trigger.target();
 
     let Ok((mut drag_input, mut input_field)) = q_drag_inputs.get_mut(entity) else {
         return;

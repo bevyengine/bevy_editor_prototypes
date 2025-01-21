@@ -27,8 +27,8 @@ pub struct FirstChildTraversal;
 #[derive(Component, Debug)]
 pub struct CachedFirsChild(pub Entity);
 
-impl Traversal for &'static CachedFirsChild {
-    fn traverse(item: Self::Item<'_>) -> Option<Entity> {
+impl<D> Traversal<D> for &'static CachedFirsChild {
+    fn traverse(item: Self::Item<'_>, _: &D) -> Option<Entity> {
         Some(item.0)
     }
 }

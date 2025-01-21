@@ -70,7 +70,7 @@ fn update_password(
     mut commands: Commands,
     mut q_passwords: Query<&mut Password>,
 ) {
-    let entity = trigger.entity();
+    let entity = trigger.target();
     let Ok(mut password) = q_passwords.get_mut(entity) else {
         return;
     };

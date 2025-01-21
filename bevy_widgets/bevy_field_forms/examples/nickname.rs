@@ -98,7 +98,7 @@ fn on_validation_changed(
     mut commands: Commands,
     q_character_validator: Query<&CharacterValidator>,
 ) {
-    let entity = trigger.entity();
+    let entity = trigger.target();
     let Ok(character_validator) = q_character_validator.get(entity) else {
         return;
     };

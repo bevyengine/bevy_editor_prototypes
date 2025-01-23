@@ -3,7 +3,7 @@
 > [!WARNING]
 > This project is a prototype for a shippable Bevy Editor and is still in heavy development and testing. 
 > Everything you see is very much a work-in-progress. Read about what we're building in the [Design Book](https://bevyengine.github.io/bevy_editor_prototypes/)! or [Figma document].
-> To run just type this ```cargo run``` or ```cargo run --example``` command in the terminal of the bevy_editor_prototypes folder
+> To run just type the ```cargo run``` or ```cargo run --example``` command in the terminal of the `bevy_editor_prototypes` folder
 
 ## Figma Designs
 

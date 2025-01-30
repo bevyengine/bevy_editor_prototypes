@@ -1,6 +1,6 @@
 //! This example demonstrates how to use the `ValidatedInputFieldPlugin` to create a validated input field for a character name.
 
-use bevy::{prelude::*, utils::HashSet};
+use bevy::{platform_support::collections::HashSet, prelude::*};
 use bevy_field_forms::{
     input_field::{InputField, InputFieldPlugin, Validable, ValidationChanged, ValidationState},
     validate_highlight::SimpleBorderHighlight,

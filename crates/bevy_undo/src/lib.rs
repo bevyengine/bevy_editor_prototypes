@@ -27,7 +27,7 @@
 //! use bevy::prelude::*;
 //! use bevy_undo::*;
 //! use std::sync::Arc;
-//! use bevy::utils::hashbrown::HashMap;
+//! use bevy::platform_support::collections::HashMap;
 //!
 //! fn main() {
 //!     App::new()
@@ -1094,7 +1094,7 @@ pub struct AutoUndoStorage<T: Component> {
 impl<T: Component> Default for AutoUndoStorage<T> {
     fn default() -> Self {
         Self {
-            storage: HashMap::new(),
+            storage: HashMap::default(),
         }
     }
 }

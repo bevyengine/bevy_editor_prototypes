@@ -183,17 +183,20 @@ impl Component for ConstructTextFont {
     type Mutability = Immutable;
 
     fn register_component_hooks(hooks: &mut ComponentHooks) {
-        hooks.on_insert(|mut world, entity, _component_id| {
-            let constructable = world.get::<ConstructTextFont>(entity).unwrap().clone();
-            world.commands().entity(entity).insert(TextFont {
+        hooks.on_insert(|mut world, context| {
+            let constructable = world
+                .get::<ConstructTextFont>(context.entity)
+                .unwrap()
+                .clone();
+            world.commands().entity(context.entity).insert(TextFont {
                 font: constructable.font.into(),
                 font_size: constructable.font_size,
                 font_smoothing: constructable.font_smoothing,
                 line_height: constructable.line_height,
             });
         });
-        hooks.on_remove(|mut world, entity, _component_id| {
-            if let Some(mut entity) = world.commands().get_entity(entity) {
+        hooks.on_remove(|mut world, context| {
+            if let Some(mut entity) = world.commands().get_entity(context.entity) {
                 entity.remove::<TextFont>();
             }
         });

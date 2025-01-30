@@ -1,7 +1,7 @@
 use core::marker::PhantomData;
 
 use bevy::ecs::{
-    component::{ComponentHooks, ComponentId, Immutable, StorageType},
+    component::{ComponentHooks, HookContext, Immutable, StorageType},
     prelude::*,
     world::DeferredWorld,
 };
@@ -90,10 +90,10 @@ impl<B: Bundle> Default for Maybe<B> {
 /// A hook that runs whenever [`Maybe`] is added to an entity.
 ///
 /// Generates a [`MaybeCommand`].
-fn maybe_hook<B: Bundle>(mut world: DeferredWorld<'_>, entity: Entity, _component_id: ComponentId) {
+fn maybe_hook<B: Bundle>(mut world: DeferredWorld<'_>, context: HookContext) {
     // Component hooks can't perform structural changes, so we need to rely on commands.
     world.commands().queue(MaybeCommand {
-        entity,
+        entity: context.entity,
         _phantom: PhantomData::<B>,
     });
 }

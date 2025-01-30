@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::mem;
 
+use bevy::ecs::component::HookContext;
 use bevy::ecs::{
     component::ComponentId, prelude::*, system::IntoObserverSystem, world::DeferredWorld,
 };
@@ -258,23 +259,23 @@ impl From<Observer> for Callback {
     }
 }
 
-fn insert_callback(mut world: DeferredWorld, entity_id: Entity, _component: ComponentId) {
-    let mut callback = world.get_mut::<Callback>(entity_id).unwrap();
+fn insert_callback(mut world: DeferredWorld, context: HookContext) {
+    let mut callback = world.get_mut::<Callback>(context.entity).unwrap();
     let Some(mut observer) = mem::take(&mut callback.observer) else {
         return;
     };
-    if let Some(parent_id) = world.get::<ChildOf>(entity_id).map(ChildOf::get) {
+    if let Some(parent_id) = world.get::<ChildOf>(context.entity).map(ChildOf::get) {
         observer.watch_entity(parent_id);
     }
     let mut commands = world.commands();
-    let mut entity_commands = commands.entity(entity_id);
+    let mut entity_commands = commands.entity(context.entity);
     entity_commands.remove::<Observer>();
     entity_commands.insert(observer);
 }
 
-fn remove_callback(mut world: DeferredWorld, entity_id: Entity, _component: ComponentId) {
+fn remove_callback(mut world: DeferredWorld, context: HookContext) {
     let mut commands = world.commands();
-    commands.entity(entity_id).remove::<Observer>();
+    commands.entity(context.entity).remove::<Observer>();
 }
 
 // -----------------------------------------------------------------------------

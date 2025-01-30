@@ -27,7 +27,7 @@
 //! use bevy::prelude::*;
 //! use bevy_undo::*;
 //! use std::sync::Arc;
-//! use bevy::utils::hashbrown::HashMap;
+//! use bevy::platform_support::collections::HashMap;
 //!
 //! fn main() {
 //!     App::new()
@@ -134,7 +134,7 @@
 #![allow(clippy::type_complexity)]
 use std::sync::Arc;
 
-use bevy::{prelude::*, utils::hashbrown::HashMap};
+use bevy::{platform_support::collections::HashMap, prelude::*};
 
 const MAX_REFLECT_RECURSION: i32 = 10;
 const AUTO_UNDO_LATENCY: i32 = 2;
@@ -1094,7 +1094,7 @@ pub struct AutoUndoStorage<T: Component> {
 impl<T: Component> Default for AutoUndoStorage<T> {
     fn default() -> Self {
         Self {
-            storage: HashMap::new(),
+            storage: HashMap::default(),
         }
     }
 }

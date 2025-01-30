@@ -16,7 +16,6 @@ use bevy::prelude::*;
 // Re-export Bevy for project use
 pub use bevy;
 
-use bevy::render::view::RenderLayers;
 use bevy_context_menu::ContextMenuPlugin;
 use bevy_editor_core::EditorCorePlugin;
 use bevy_editor_styles::StylesPlugin;
@@ -105,12 +104,6 @@ fn dummy_setup(
     commands.spawn((
         Mesh3d(meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(1.5)))),
         MeshMaterial3d(materials_3d.add(Color::WHITE)),
-        //RenderLayers::layer(1),
-    ));
-    commands.spawn((
-        Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
-        MeshMaterial3d(materials_3d.add(Color::srgb_u8(124, 144, 255))),
-        Transform::from_xyz(0.0, 0.5, 0.0),
     ));
 
     commands.spawn((

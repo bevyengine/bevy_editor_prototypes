@@ -5,10 +5,10 @@ use bevy::input::{
     prelude::*,
 };
 use bevy::math::{prelude::*, DVec2, DVec3};
+use bevy::platform_support::collections::HashMap;
 use bevy::reflect::prelude::*;
 use bevy::render::{camera::CameraProjection, prelude::*};
 use bevy::transform::prelude::*;
-use bevy::utils::hashbrown::HashMap;
 use bevy::window::PrimaryWindow;
 use bevy::{app::prelude::*, picking::pointer::PointerInput};
 use bevy::{ecs::prelude::*, picking::pointer::PointerAction};

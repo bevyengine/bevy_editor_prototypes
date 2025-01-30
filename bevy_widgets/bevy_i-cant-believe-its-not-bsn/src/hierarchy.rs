@@ -1,7 +1,7 @@
 use core::marker::PhantomData;
 
 use bevy::ecs::{
-    component::{ComponentHooks, ComponentId, Immutable, StorageType},
+    component::{ComponentHooks, ComponentId, HookContext, Immutable, StorageType},
     prelude::*,
     world::DeferredWorld,
 };
@@ -51,14 +51,10 @@ impl<B: Bundle> Component for WithChild<B> {
 /// A hook that runs whenever [`WithChild`] is added to an entity.
 ///
 /// Generates a [`WithChildCommand`].
-fn with_child_hook<B: Bundle>(
-    mut world: DeferredWorld<'_>,
-    entity: Entity,
-    _component_id: ComponentId,
-) {
+fn with_child_hook<B: Bundle>(mut world: DeferredWorld<'_>, context: HookContext) {
     // Component hooks can't perform structural changes, so we need to rely on commands.
     world.commands().queue(WithChildCommand {
-        parent_entity: entity,
+        parent_entity: context.entity,
         _phantom: PhantomData::<B>,
     });
 }
@@ -160,12 +156,11 @@ impl<B: Bundle, I: IntoIterator<Item = B> + Send + Sync + 'static> Component
 /// Generates a [`WithChildrenCommand`].
 fn with_children_hook<B: Bundle, I: IntoIterator<Item = B> + Send + Sync + 'static>(
     mut world: DeferredWorld<'_>,
-    entity: Entity,
-    _component_id: ComponentId,
+    context: HookContext,
 ) {
     // Component hooks can't perform structural changes, so we need to rely on commands.
     world.commands().queue(WithChildrenCommand {
-        parent_entity: entity,
+        parent_entity: context.entity,
         _phantom: PhantomData::<(B, I)>,
     });
 }

@@ -2,8 +2,8 @@
 
 use bevy::{
     ecs::system::{BoxedSystem, SystemId},
+    platform_support::collections::HashMap,
     prelude::*,
-    utils::HashMap,
 };
 
 use crate::{PaneLayoutSet, PaneRootNode};

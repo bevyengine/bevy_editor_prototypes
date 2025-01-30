@@ -8,11 +8,11 @@ use std::time::Duration;
 use bevy::app::prelude::*;
 use bevy::ecs::prelude::*;
 use bevy::math::prelude::*;
+use bevy::platform_support::collections::HashMap;
 use bevy::platform_support::time::Instant;
 use bevy::reflect::prelude::*;
 use bevy::render::{camera::ScalingMode, prelude::*};
 use bevy::transform::prelude::*;
-use bevy::utils::HashMap;
 use bevy::window::RequestRedraw;
 
 use crate::prelude::{motion::CurrentMotion, EditorCam, EnabledMotion};

@@ -403,12 +403,12 @@ fn queue_infinite_grids(
     infinite_grids: Query<&ExtractedInfiniteGrid>,
     mut transparent3d_render_phases: ResMut<ViewSortedRenderPhases<Transparent3d>>,
     mut transparent2d_render_phases: ResMut<ViewSortedRenderPhases<Transparent2d>>,
-    mut views: Query<(&RenderVisibleEntities, &ExtractedView, &Msaa)>,
+    views: Query<(&RenderVisibleEntities, &ExtractedView, &Msaa)>,
 ) {
     let draw_function_id = transparent3d_draw_functions.read().id::<DrawInfiniteGrid>();
     let draw_function_id_2d = transparent2d_draw_functions.read().id::<DrawInfiniteGrid>();
 
-    for (entities, view, msaa) in views.iter_mut() {
+    for (visible_entities, view, msaa) in &views {
         let mut phase3d = transparent3d_render_phases.get_mut(&view.retained_view_entity);
         let mut phase2d = transparent2d_render_phases.get_mut(&view.retained_view_entity);
 
@@ -426,7 +426,7 @@ fn queue_infinite_grids(
             },
         );
 
-        for &(entity, main_entity) in entities.iter::<With<InfiniteGridSettings>>() {
+        for &(entity, main_entity) in visible_entities.iter::<InfiniteGridSettings>() {
             if let Some(phase2d) = &mut phase2d {
                 phase2d.items.push(Transparent2d {
                     pipeline: pipeline_id,

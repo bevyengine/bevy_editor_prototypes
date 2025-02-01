@@ -46,7 +46,7 @@ impl PaneRegistry {
         } else {
             self.panes.insert(
                 T::ID.into(),
-                PaneCreationHandle::new(Box::new(T::creation_system())),
+                PaneCreationHandle::new(Box::new(IntoSystem::into_system(T::on_create))),
             );
             Ok(())
         }

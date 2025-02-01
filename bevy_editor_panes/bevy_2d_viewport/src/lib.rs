@@ -1,5 +1,9 @@
 //! 2d Viewport for Bevy
 use bevy::{
+    ecs::system::{
+        lifetimeless::{SCommands, SRes, SResMut},
+        StaticSystemParam,
+    },
     prelude::*,
     render::{
         camera::RenderTarget,
@@ -54,8 +58,64 @@ impl Pane for Bevy2dViewportPane {
             );
     }
 
-    fn creation_system() -> impl System<In = In<PaneStructure>, Out = ()> {
-        IntoSystem::into_system(on_pane_creation)
+    type Param = (SCommands, SResMut<Assets<Image>>, SRes<Theme>);
+    fn on_create(structure: In<PaneStructure>, param: StaticSystemParam<Self::Param>) {
+        let (mut commands, mut images, theme) = param.into_inner();
+        let mut image = Image::default();
+
+        image.texture_descriptor.usage |= TextureUsages::RENDER_ATTACHMENT;
+        image.texture_descriptor.format = TextureFormat::Bgra8UnormSrgb;
+
+        let image_handle = images.add(image);
+
+        let image_id = commands
+            .spawn((
+                ImageNode::new(image_handle.clone()),
+                Node {
+                    position_type: PositionType::Absolute,
+                    top: Val::ZERO,
+                    bottom: Val::ZERO,
+                    left: Val::ZERO,
+                    right: Val::ZERO,
+                    ..default()
+                },
+            ))
+            .set_parent(structure.root)
+            .id();
+
+        let camera_id = commands
+            .spawn((
+                Camera2d,
+                EditorCamera2d {
+                    enabled: false,
+                    ..default()
+                },
+                Camera {
+                    target: RenderTarget::Image(image_handle),
+                    clear_color: ClearColorConfig::Custom(theme.viewport.background_color),
+                    ..default()
+                },
+                RenderLayers::from_layers(&[0, 2]),
+            ))
+            .id();
+
+        commands
+            .entity(image_id)
+            .observe(
+                move |_trigger: Trigger<Pointer<Move>>, mut query: Query<&mut EditorCamera2d>| {
+                    let mut editor_camera = query.get_mut(camera_id).unwrap();
+                    editor_camera.enabled = true;
+                },
+            )
+            .observe(
+                move |_trigger: Trigger<Pointer<Out>>, mut query: Query<&mut EditorCamera2d>| {
+                    query.get_mut(camera_id).unwrap().enabled = false;
+                },
+            );
+
+        commands
+            .entity(structure.root)
+            .insert(Bevy2dViewportPane { camera_id });
     }
 }
 
@@ -74,69 +134,6 @@ fn setup(mut commands: Commands, theme: Res<Theme>) {
         Transform::from_rotation(Quat::from_rotation_arc(Vec3::Y, Vec3::Z)),
         RenderLayers::layer(2),
     ));
-}
-
-fn on_pane_creation(
-    structure: In<PaneStructure>,
-    mut commands: Commands,
-    mut images: ResMut<Assets<Image>>,
-    theme: Res<Theme>,
-) {
-    let mut image = Image::default();
-
-    image.texture_descriptor.usage |= TextureUsages::RENDER_ATTACHMENT;
-    image.texture_descriptor.format = TextureFormat::Bgra8UnormSrgb;
-
-    let image_handle = images.add(image);
-
-    let image_id = commands
-        .spawn((
-            ImageNode::new(image_handle.clone()),
-            Node {
-                position_type: PositionType::Absolute,
-                top: Val::ZERO,
-                bottom: Val::ZERO,
-                left: Val::ZERO,
-                right: Val::ZERO,
-                ..default()
-            },
-        ))
-        .set_parent(structure.root)
-        .id();
-
-    let camera_id = commands
-        .spawn((
-            Camera2d,
-            EditorCamera2d {
-                enabled: false,
-                ..default()
-            },
-            Camera {
-                target: RenderTarget::Image(image_handle),
-                clear_color: ClearColorConfig::Custom(theme.viewport.background_color),
-                ..default()
-            },
-            RenderLayers::from_layers(&[0, 2]),
-        ))
-        .id();
-
-    commands
-        .entity(image_id)
-        .observe(
-            move |_trigger: Trigger<Pointer<Move>>, mut query: Query<&mut EditorCamera2d>| {
-                let mut editor_camera = query.get_mut(camera_id).unwrap();
-                editor_camera.enabled = true;
-            },
-        )
-        .observe(
-            move |_trigger: Trigger<Pointer<Out>>, mut query: Query<&mut EditorCamera2d>| {
-                query.get_mut(camera_id).unwrap().enabled = false;
-            },
-        );
-
-    commands
-        .entity(structure.root)
-        .insert(Bevy2dViewportPane { camera_id });
 }
 
 fn update_render_target_size(

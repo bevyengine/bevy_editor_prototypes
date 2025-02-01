@@ -2,7 +2,7 @@
 //!
 //! Data can be viewed and modified in real-time, with changes being reflected in the application.
 
-use bevy::prelude::*;
+use bevy::{ecs::system::StaticSystemParam, prelude::*};
 use bevy_pane_layout::prelude::*;
 
 /// Pane for displaying the properties of the selected object.
@@ -17,10 +17,9 @@ impl Pane for PropertiesPane {
         // todo
     }
 
-    fn creation_system() -> impl System<In = In<PaneStructure>, Out = ()> {
-        IntoSystem::into_system(|_structure: In<PaneStructure>| {
-            //todo
-        })
+    type Param = ();
+    fn on_create(_structure: In<PaneStructure>, _param: StaticSystemParam<Self::Param>) {
+        // todo
     }
 }
 

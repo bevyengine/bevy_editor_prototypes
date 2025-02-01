@@ -2,12 +2,18 @@
 
 use std::marker::PhantomData;
 
-use bevy::prelude::*;
+use bevy::{
+    ecs::system::{StaticSystemParam, SystemParam},
+    prelude::*,
+};
 
 use crate::prelude::PaneStructure;
 
 /// Trait for pane definitions
 pub trait Pane: Component {
+    /// The parameter(s) used in the creation function.
+    type Param: SystemParam + 'static;
+
     /// The default name displayed in the pane's header
     const NAME: &str;
 
@@ -18,7 +24,7 @@ pub trait Pane: Component {
     fn build(app: &mut App);
 
     /// A system that should be run when the Pane is added. Should create the pane's content.
-    fn creation_system() -> impl System<In = In<PaneStructure>, Out = ()>;
+    fn on_create(pane: In<PaneStructure>, param: StaticSystemParam<Self::Param>);
 }
 
 #[derive(Default)]

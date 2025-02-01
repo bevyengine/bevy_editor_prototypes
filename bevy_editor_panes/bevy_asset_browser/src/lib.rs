@@ -9,8 +9,13 @@ use bevy::{
         io::{file::FileAssetReader, AssetSourceId},
         AssetPlugin,
     },
+    ecs::system::{
+        lifetimeless::{SCommands, SRes},
+        StaticSystemParam,
+    },
     prelude::*,
 };
+use bevy_editor_styles::Theme;
 use bevy_pane_layout::{pane::Pane, prelude::*};
 use bevy_scroll_box::ScrollBoxPlugin;
 use ui::top_bar::location_as_changed;
@@ -72,8 +77,23 @@ impl Pane for AssetBrowserPane {
             );
     }
 
-    fn creation_system() -> impl System<In = In<PaneStructure>, Out = ()> {
-        IntoSystem::into_system(ui::on_pane_creation)
+    type Param = (
+        SCommands,
+        SRes<Theme>,
+        SRes<AssetBrowserLocation>,
+        SRes<AssetServer>,
+        SRes<DirectoryContent>,
+    );
+    fn on_create(structure: In<PaneStructure>, param: StaticSystemParam<Self::Param>) {
+        let (commands, theme, location, asset_server, directory_content) = param.into_inner();
+        ui::on_pane_creation(
+            structure,
+            commands,
+            theme,
+            location,
+            asset_server,
+            directory_content,
+        );
     }
 }
 

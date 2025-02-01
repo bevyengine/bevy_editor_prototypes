@@ -6,6 +6,7 @@ use bevy::{
     ecs::{
         component::{ComponentHooks, StorageType},
         entity::Entities,
+        system::{lifetimeless::SCommands, StaticSystemParam},
     },
     picking::focus::PickingInteraction,
     prelude::*,
@@ -35,32 +36,31 @@ impl Pane for SceneTreePane {
         )
         .init_resource::<SelectedEntity>();
     }
+    type Param = SCommands;
+    fn on_create(structure: In<PaneStructure>, param: StaticSystemParam<Self::Param>) {
+        let mut commands = param.into_inner();
 
-    fn creation_system() -> impl System<In = In<PaneStructure>, Out = ()> {
-        IntoSystem::into_system(setup_pane)
+        commands
+            .entity(structure.root)
+            .insert((
+                SceneTreeRoot,
+                Node {
+                    flex_direction: FlexDirection::Column,
+                    flex_grow: 1.0,
+                    column_gap: Val::Px(2.0),
+                    padding: UiRect::all(Val::Px(8.0)),
+                    ..Default::default()
+                },
+                BackgroundColor(tailwind::NEUTRAL_600.into()),
+            ))
+            .observe(
+                |mut trigger: Trigger<Pointer<Click>>,
+                 mut selected_entity: ResMut<SelectedEntity>| {
+                    selected_entity.0 = None;
+                    trigger.propagate(false);
+                },
+            );
     }
-}
-
-fn setup_pane(pane: In<PaneStructure>, mut commands: Commands) {
-    commands
-        .entity(pane.root)
-        .insert((
-            SceneTreeRoot,
-            Node {
-                flex_direction: FlexDirection::Column,
-                flex_grow: 1.0,
-                column_gap: Val::Px(2.0),
-                padding: UiRect::all(Val::Px(8.0)),
-                ..Default::default()
-            },
-            BackgroundColor(tailwind::NEUTRAL_600.into()),
-        ))
-        .observe(
-            |mut trigger: Trigger<Pointer<Click>>, mut selected_entity: ResMut<SelectedEntity>| {
-                selected_entity.0 = None;
-                trigger.propagate(false);
-            },
-        );
 }
 
 fn reset_selected_entity_if_entity_despawned(

@@ -1,5 +1,9 @@
 //! 3D Viewport for Bevy
 use bevy::{
+    ecs::system::{
+        lifetimeless::{SCommands, SRes, SResMut},
+        StaticSystemParam,
+    },
     picking::{
         pointer::{Location, PointerId, PointerInput, PointerLocation},
         PickSet,
@@ -63,18 +67,10 @@ impl Pane for Bevy3dViewportPane {
             );
     }
 
-    fn creation_system() -> impl System<In = In<PaneStructure>, Out = ()> {
-        IntoSystem::into_system(Bevy3dViewportPane::on_pane_creation)
-    }
-}
+    type Param = (SCommands, SResMut<Assets<Image>>, SRes<Theme>);
+    fn on_create(structure: In<PaneStructure>, param: StaticSystemParam<Self::Param>) {
+        let (mut commands, mut images, theme) = param.into_inner();
 
-impl Bevy3dViewportPane {
-    fn on_pane_creation(
-        structure: In<PaneStructure>,
-        mut commands: Commands,
-        mut images: ResMut<Assets<Image>>,
-        theme: Res<Theme>,
-    ) {
         let mut image = Image::default();
 
         image.texture_descriptor.usage |= TextureUsages::RENDER_ATTACHMENT;

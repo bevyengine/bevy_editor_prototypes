@@ -85,7 +85,6 @@ pub(crate) fn spawn_pane_node<T: Pane>(
 ) -> PaneStructure {
     let pane_entity = commands.spawn_empty().id();
 
-    // Comment: Better to query for elements or just move the entity handles into observer functions?
     let pane_header = commands
         .spawn((
             Name::new(format!("{} Header", T::NAME)),

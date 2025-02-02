@@ -1,19 +1,22 @@
 use core::any::TypeId;
+use std::any::Any;
 
 use bevy::{
-    asset::Asset,
-    log::{error, warn},
+    platform_support::collections::hash_map::Entry,
     prelude::{AppTypeRegistry, Component, Mut, ReflectComponent},
-    reflect::{PartialReflect, Reflect, TypePath},
+    reflect::{PartialReflect, TypeRegistry},
     utils::TypeIdMap,
 };
 use variadics_please::all_tuples;
 
-use crate::{Construct, ConstructContext, ConstructError, ConstructPatch, ReflectConstruct};
+use crate::{
+    Construct, ConstructContext, ConstructError, ConstructPatch, ConstructPatchExt,
+    ReflectConstruct,
+};
 
 /// Dynamic patch
 pub trait DynamicPatch: Send + Sync + 'static {
-    /// Adds this patch "on top" of the dynamic scene by updating the dynamic props.
+    /// Layer this patch onto a [`DynamicScene`].
     fn dynamic_patch(&mut self, scene: &mut DynamicScene);
 }
 
@@ -41,43 +44,101 @@ all_tuples!(
 
 impl<C, F> DynamicPatch for ConstructPatch<C, F>
 where
-    C: Construct + Component + PartialReflect,
-    C::Props: Reflect,
+    C: Construct + Component,
     F: Fn(&mut C::Props) + Clone + Sync + Send + 'static,
 {
     fn dynamic_patch(&mut self, scene: &mut DynamicScene) {
-        let patches = scene.component_props.entry(TypeId::of::<C>()).or_default();
-
-        let func = self.func.clone();
-
-        patches.push(Box::new(move |props: &mut dyn Reflect| {
-            (func)(props.downcast_mut::<C::Props>().unwrap());
-        }));
+        scene.patch_typed::<C, F>(self.func.clone());
     }
 }
 
-/// Trait implemented for functions that can patch [`Reflect`] props.
-pub trait ReflectPatch: Sync + Send {
-    /// Patch the given props.
-    fn patch(&self, props: &mut dyn Reflect);
+/// Exists to allow either typed or reflect based patches in [`DynamicScene`].
+trait DynamicComponentPatch: Send + Sync + 'static {
+    fn patch_any(
+        &self,
+        type_id: TypeId,
+        props: &mut dyn Any,
+        registry: &TypeRegistry,
+    ) -> Result<(), ConstructError>;
 }
 
-impl<F> ReflectPatch for F
+impl<C, F> DynamicComponentPatch for ConstructPatch<C, F>
 where
-    F: Fn(&mut dyn Reflect) + Sync + Send,
+    C: Construct + Component,
+    F: Fn(&mut C::Props) + Send + Sync + 'static,
 {
-    fn patch(&self, props: &mut dyn Reflect) {
+    fn patch_any(
+        &self,
+        _: TypeId,
+        props: &mut dyn Any,
+        _: &TypeRegistry,
+    ) -> Result<(), ConstructError> {
+        let props = props
+            .downcast_mut::<C::Props>()
+            .ok_or(ConstructError::InvalidProps {
+                message: "failed to downcast props".into(),
+            })?;
+        (self.func)(props);
+        Ok(())
+    }
+}
+
+impl<F> DynamicComponentPatch for F
+where
+    F: Fn(&mut dyn PartialReflect) + Send + Sync + 'static,
+{
+    fn patch_any(
+        &self,
+        type_id: TypeId,
+        props: &mut dyn Any,
+        registry: &TypeRegistry,
+    ) -> Result<(), ConstructError> {
+        let t = registry
+            .get(type_id)
+            .ok_or(ConstructError::Custom("missing type in registry"))?;
+        let reflect_construct = t.data::<ReflectConstruct>().ok_or(ConstructError::Custom(
+            "No registered ReflectConstruct for component",
+        ))?;
+
+        let props =
+            reflect_construct
+                .downcast_props_mut(props)
+                .ok_or(ConstructError::InvalidProps {
+                    message: "failed to downcast props".into(),
+                })?;
+
         (self)(props);
+
+        Ok(())
+    }
+}
+
+/// Holds component patches and a dynamic construct function.
+pub struct ComponentProps {
+    type_id: TypeId,
+    patches: Vec<Box<dyn DynamicComponentPatch>>,
+    construct: DynamicConstructFn,
+}
+
+impl ComponentProps {
+    /// Constructs the component using the patches and inserts it onto the context entity.
+    pub fn construct(&self, context: &mut ConstructContext) -> Result<(), ConstructError> {
+        match &self.construct {
+            DynamicConstructFn::Typed(construct) => construct(context, self.type_id, &self.patches),
+            DynamicConstructFn::Reflected => {
+                construct_reflected_component(context, self.type_id, &self.patches)
+            }
+        }
     }
 }
 
 /// A dynamic scene containing dynamic patches and children.
-#[derive(Default, Asset, TypePath)]
+#[derive(Default)]
 pub struct DynamicScene {
     /// Maps component type ids to patches to be applied on the props before construction.
-    pub component_props: TypeIdMap<Vec<Box<dyn ReflectPatch>>>,
+    component_props: TypeIdMap<ComponentProps>,
     /// Children of the scene.
-    pub children: Vec<DynamicScene>,
+    children: Vec<DynamicScene>,
 }
 
 impl DynamicScene {
@@ -95,59 +156,9 @@ impl DynamicScene {
         &self,
         context: &mut ConstructContext,
     ) -> Result<(), ConstructError> {
-        // Construct components
-        for (type_id, patches) in self.component_props.iter() {
-            context
-                .world
-                .resource_scope(|world, app_registry: Mut<AppTypeRegistry>| {
-                    let registry = app_registry.read();
-                    let t = registry
-                        .get(*type_id)
-                        .expect("failed to get type from registry");
-                    let Some(reflect_construct) = t.data::<ReflectConstruct>() else {
-                        warn!(
-                            "No registered ReflectConstruct for component: {:?}. Skipping construction. Consider adding #[reflect(Construct)].",
-                            t.type_info().type_path()
-                        );
-                        return;
-                    };
-                    let Some(reflect_component) = t.data::<ReflectComponent>() else {
-                        warn!(
-                            "No registered ReflectComponent for component: {:?}. Skipping construction. Consider adding #[reflect(Component)].",
-                            t.type_info().type_path()
-                        );
-                        return;
-                    };
-
-                    // Prepare props
-                    let mut props = reflect_construct.default_props();
-                    for patch in patches.iter() {
-                        patch.patch(props.as_mut());
-                    }
-
-                    // Construct component
-                    match reflect_construct.construct(
-                        &mut ConstructContext {
-                            id: context.id,
-                            world,
-                        },
-                        props,
-                    ) {
-                        Ok(component) => {
-                            // Insert component on entity
-                            let mut entity = world.entity_mut(context.id);
-                            reflect_component.insert(&mut entity, component.as_ref(), &registry);
-                        }
-                        Err(e) => {
-                            error!(
-                                "failed to construct component '{:?}': {}",
-                                t.type_info().type_path(), e
-                            );
-                        }
-                    }
-                });
+        for (_, component_props) in self.component_props.iter() {
+            component_props.construct(context)?;
         }
-
         Ok(())
     }
 
@@ -170,4 +181,122 @@ impl DynamicScene {
     pub fn push_child(&mut self, child: DynamicScene) {
         self.children.push(child);
     }
+
+    /// Adds a typed component patch to the dynamic scene.
+    pub fn patch_typed<C, F>(&mut self, patch: F)
+    where
+        C: Construct + Component,
+        F: Fn(&mut C::Props) + Sync + Send + 'static,
+    {
+        let construct = DynamicConstructFn::Typed(|context, type_id, patches| {
+            construct_typed_component::<C>(context, type_id, patches)
+        });
+
+        match self.component_props.entry(TypeId::of::<C>()) {
+            Entry::Vacant(entry) => {
+                entry.insert(ComponentProps {
+                    type_id: TypeId::of::<C>(),
+                    patches: vec![Box::new(C::patch(patch))],
+                    construct,
+                });
+            }
+            Entry::Occupied(mut entry) => {
+                let entry = entry.get_mut();
+                if matches!(entry.construct, DynamicConstructFn::Reflected) {
+                    entry.construct = construct;
+                }
+                entry.patches.push(Box::new(C::patch(patch)));
+            }
+        }
+    }
+
+    /// Adds a reflected component patch to the dynamic scene.
+    pub fn patch_reflected<F>(&mut self, type_id: TypeId, patch: F)
+    where
+        F: Fn(&mut dyn PartialReflect) + Send + Sync + 'static,
+    {
+        match self.component_props.entry(type_id) {
+            Entry::Vacant(entry) => {
+                entry.insert(ComponentProps {
+                    type_id,
+                    patches: vec![Box::new(patch)],
+                    construct: DynamicConstructFn::Reflected,
+                });
+            }
+            Entry::Occupied(mut entry) => {
+                entry.get_mut().patches.push(Box::new(patch));
+            }
+        }
+    }
+
+    /// Deconstructs the [`DynamicScene`] into its component patches and children.
+    pub fn deconstruct(self) -> (TypeIdMap<ComponentProps>, Vec<DynamicScene>) {
+        (self.component_props, self.children)
+    }
+}
+
+enum DynamicConstructFn {
+    Typed(
+        fn(
+            &mut ConstructContext,
+            TypeId,
+            &Vec<Box<dyn DynamicComponentPatch>>,
+        ) -> Result<(), ConstructError>,
+    ),
+    Reflected,
+}
+
+fn construct_typed_component<C: Construct + Component>(
+    context: &mut ConstructContext,
+    type_id: TypeId,
+    patches: &Vec<Box<dyn DynamicComponentPatch>>,
+) -> Result<(), ConstructError> {
+    let mut props = C::Props::default();
+    {
+        let registry = &context.world.resource::<AppTypeRegistry>().read();
+        for patch in patches.iter() {
+            patch.patch_any(type_id, &mut props, registry)?;
+        }
+    }
+    let component = C::construct(context, props)?;
+    context.world.entity_mut(context.id).insert(component);
+    Ok(())
+}
+
+fn construct_reflected_component(
+    context: &mut ConstructContext,
+    type_id: TypeId,
+    patches: &Vec<Box<dyn DynamicComponentPatch>>,
+) -> Result<(), ConstructError> {
+    context
+        .world
+        .resource_scope(|world, app_registry: Mut<AppTypeRegistry>| {
+            let registry = app_registry.read();
+            let t = registry
+                .get(type_id)
+                .ok_or(ConstructError::Custom("missing type in registry"))?;
+            let reflect_construct = t.data::<ReflectConstruct>().ok_or(ConstructError::Custom(
+                "No registered ReflectConstruct for component",
+            ))?;
+
+            let reflect_component = t.data::<ReflectComponent>().ok_or(ConstructError::Custom(
+                "No registered ReflectComponent for component",
+            ))?;
+
+            // Prepare props
+            let mut props = reflect_construct.default_props();
+            for patch in patches.iter() {
+                patch.patch_any(type_id, props.as_any_mut(), &registry)?;
+            }
+
+            // Construct component
+            let component = reflect_construct
+                .construct(&mut ConstructContext::new(context.id, world), props)?;
+
+            // Insert component on entity
+            let mut entity = world.entity_mut(context.id);
+            reflect_component.insert(&mut entity, component.as_ref(), &registry);
+
+            Ok(())
+        })
 }

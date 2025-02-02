@@ -1,4 +1,4 @@
-use std::any::TypeId;
+use std::any::{Any, TypeId};
 
 use bevy::{
     app::App,
@@ -21,6 +21,8 @@ pub struct ReflectConstruct {
     pub default_props: fn() -> Box<dyn Reflect>,
     /// The type of props used to construct this type.
     pub props_type: TypeId,
+    /// Downcasts an instance of `T::Props` to `&mut dyn`[`PartialReflect`].
+    pub downcast_props_mut: fn(&mut dyn Any) -> Option<&mut dyn PartialReflect>,
 }
 
 impl ReflectConstruct {
@@ -36,6 +38,14 @@ impl ReflectConstruct {
     /// Returns the default props for this type.
     pub fn default_props(&self) -> Box<dyn Reflect> {
         (self.default_props)()
+    }
+
+    /// Downcasts an instance of `T::Props` to `&mut dyn`[`PartialReflect`].
+    pub fn downcast_props_mut<'a>(
+        &self,
+        props: &'a mut dyn Any,
+    ) -> Option<&'a mut dyn PartialReflect> {
+        (self.downcast_props_mut)(props)
     }
 }
 
@@ -57,6 +67,11 @@ where
             },
             default_props: || Box::new(T::Props::default()),
             props_type: TypeId::of::<T::Props>(),
+            downcast_props_mut: |props| {
+                props
+                    .downcast_mut::<T::Props>()
+                    .map(PartialReflect::as_partial_reflect_mut)
+            },
         }
     }
 }

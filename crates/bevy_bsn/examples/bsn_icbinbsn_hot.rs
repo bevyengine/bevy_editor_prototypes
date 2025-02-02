@@ -58,10 +58,7 @@ fn spawn_and_reload_scene(
 }
 
 fn fragment_from_dynamic_scene(dynamic_scene: DynamicScene) -> Fragment {
-    let DynamicScene {
-        component_props,
-        children,
-    } = dynamic_scene;
+    let (component_props, children) = dynamic_scene.deconstruct();
 
     Fragment {
         bundle: BoxedBundle::new(DynamicSceneBundle(component_props)),
@@ -73,7 +70,7 @@ fn fragment_from_dynamic_scene(dynamic_scene: DynamicScene) -> Fragment {
     }
 }
 
-struct DynamicSceneBundle(TypeIdMap<Vec<Box<dyn ReflectPatch>>>);
+struct DynamicSceneBundle(TypeIdMap<ComponentProps>);
 
 impl ErasedBundle for DynamicSceneBundle {
     fn build(
@@ -86,12 +83,10 @@ impl ErasedBundle for DynamicSceneBundle {
         let new_components = self.0.keys().copied().collect::<Vec<_>>();
 
         // Construct and insert the components
-        DynamicScene {
-            component_props: self.0,
-            ..Default::default()
+        let mut context = ConstructContext::new(entity_id, world);
+        for (_, component_props) in self.0 {
+            component_props.construct(&mut context).unwrap();
         }
-        .construct_components(&mut ConstructContext::new(entity_id, world))
-        .unwrap();
 
         // Get the new component ids
         let new_components = new_components

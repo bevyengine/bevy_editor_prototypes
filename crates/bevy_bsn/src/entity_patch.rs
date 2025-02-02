@@ -8,40 +8,40 @@ use crate::{
     Patch,
 };
 
-/// Destination trait for [`EntityPatch`].
-pub trait Scene {
+/// Destination trait for [`EntityPatch`] and [`DynamicScene`].
+///
+/// Allows using `impl Scene` instead of complicated generics and also enables boxed scenes.
+pub trait Scene: DynamicPatch {
     /// The number of root entities in this scene.
-    const ROOT_COUNT: usize;
+    fn root_count(&self) -> usize;
 
     /// Constructs a [`Scene`], inserts the components to the context entity, and recursively spawns scene descendants.
     ///
     /// If this is called on a multi-root scene, each root entity will be constructed separately.
-    fn construct(self, context: &mut ConstructContext) -> Result<(), ConstructError>;
+    fn construct(&mut self, context: &mut ConstructContext) -> Result<(), ConstructError>;
 
     /// Constructs and spawns a [`Scene`] as a child (or children if multi-root) under the context entity recursively.
-    fn spawn(self, context: &mut ConstructContext) -> Result<(), ConstructError>;
+    fn spawn(&mut self, context: &mut ConstructContext) -> Result<(), ConstructError> {
+        let id = context.world.spawn_empty().id();
+        context.world.entity_mut(context.id).add_child(id);
 
-    /// Dynamically applies the patches of this scene to a [`DynamicScene`], effectively overwriting any patched props.
-    fn dynamic_patch(&mut self, scene: &mut DynamicScene);
+        self.construct(&mut ConstructContext {
+            id,
+            world: context.world,
+        })?;
 
-    /// Dynamically patches the scene and pushes it as a child of the [`DynamicScene`].
-    fn dynamic_patch_as_child(&mut self, scene: &mut DynamicScene);
+        Ok(())
+    }
 }
 
 impl Scene for () {
-    const ROOT_COUNT: usize = 0;
-
-    fn construct(self, _: &mut ConstructContext) -> Result<(), ConstructError> {
-        Ok(())
+    fn root_count(&self) -> usize {
+        0
     }
 
-    fn spawn(self, _: &mut ConstructContext) -> Result<(), ConstructError> {
+    fn construct(&mut self, _: &mut ConstructContext) -> Result<(), ConstructError> {
         Ok(())
     }
-
-    fn dynamic_patch(&mut self, _: &mut DynamicScene) {}
-
-    fn dynamic_patch_as_child(&mut self, _: &mut DynamicScene) {}
 }
 
 // Tuple impls
@@ -50,31 +50,20 @@ macro_rules! impl_scene_tuple {
         $(#[$meta])*
         impl<$($S: Scene),*> Scene for ($($S,)*)
         {
-            const ROOT_COUNT: usize = $N;
+            fn root_count(&self) -> usize {
+                $N
+            }
 
-            fn construct(self, context: &mut ConstructContext) -> Result<(), ConstructError> {
+            fn construct(&mut self, context: &mut ConstructContext) -> Result<(), ConstructError> {
                 let ($($s,)*) = self;
                 $($s.construct(context)?;)*
                 Ok(())
             }
 
-            fn spawn(self, context: &mut ConstructContext) -> Result<(), ConstructError> {
+            fn spawn(&mut self, context: &mut ConstructContext) -> Result<(), ConstructError> {
                 let ($($s,)*) = self;
                 $($s.spawn(context)?;)*
                 Ok(())
-            }
-
-            fn dynamic_patch(
-                &mut self,
-                scene: &mut DynamicScene,
-            ) {
-                let ($($s,)*) = self;
-                $($s.dynamic_patch(scene);)*
-            }
-
-            fn dynamic_patch_as_child(&mut self, scene: &mut DynamicScene) {
-                let ($($s,)*) = self;
-                $($s.dynamic_patch_as_child(scene);)*
             }
         }
     };
@@ -112,11 +101,13 @@ where
     P: Patch + DynamicPatch,
     C: Scene,
 {
-    const ROOT_COUNT: usize = 1;
+    fn root_count(&self) -> usize {
+        1
+    }
 
     /// Constructs an [`EntityPatch`], inserts the resulting bundle to the context entity, and recursively spawns children.
-    fn construct(mut self, context: &mut ConstructContext) -> Result<(), ConstructError> {
-        if !I::ROOT_COUNT > 0 {
+    fn construct(&mut self, context: &mut ConstructContext) -> Result<(), ConstructError> {
+        if !self.inherit.root_count() > 0 {
             // Dynamic scene
             let mut dynamic_scene = DynamicScene::default();
             self.dynamic_patch(&mut dynamic_scene);
@@ -131,7 +122,7 @@ where
         Ok(())
     }
 
-    fn spawn(self, context: &mut ConstructContext) -> Result<(), ConstructError> {
+    fn spawn(&mut self, context: &mut ConstructContext) -> Result<(), ConstructError> {
         let id = context.world.spawn_empty().id();
         context.world.entity_mut(context.id).add_child(id);
 
@@ -142,7 +133,14 @@ where
 
         Ok(())
     }
+}
 
+impl<I, P, C> DynamicPatch for EntityPatch<I, P, C>
+where
+    I: Scene,
+    P: Patch + DynamicPatch,
+    C: Scene,
+{
     fn dynamic_patch(&mut self, scene: &mut DynamicScene) {
         // Apply the inherited patches
         self.inherit.dynamic_patch(scene);
@@ -152,13 +150,6 @@ where
 
         // Push the children
         self.children.dynamic_patch_as_child(scene);
-    }
-
-    /// Dynamically patches the scene and pushes it as a child of the [`DynamicScene`].
-    fn dynamic_patch_as_child(&mut self, parent_scene: &mut DynamicScene) {
-        let mut child_scene = DynamicScene::default();
-        self.dynamic_patch(&mut child_scene);
-        parent_scene.push_child(child_scene);
     }
 }
 
@@ -172,12 +163,12 @@ pub trait ConstructContextSceneExt {
 }
 
 impl ConstructContextSceneExt for ConstructContext<'_> {
-    fn construct_scene(&mut self, scene: impl Scene) -> Result<&mut Self, ConstructError> {
+    fn construct_scene(&mut self, mut scene: impl Scene) -> Result<&mut Self, ConstructError> {
         scene.construct(self)?;
         Ok(self)
     }
 
-    fn spawn_scene(&mut self, scene: impl Scene) -> Result<&mut Self, ConstructError> {
+    fn spawn_scene(&mut self, mut scene: impl Scene) -> Result<&mut Self, ConstructError> {
         scene.spawn(self)?;
         Ok(self)
     }
@@ -191,11 +182,11 @@ impl<S> EntityCommand for ConstructSceneCommand<S>
 where
     S: Scene + Send + 'static,
 {
-    fn apply(self, entity: EntityWorldMut) {
+    fn apply(mut self, entity: EntityWorldMut) {
         let mut context = ConstructContext::new(entity.id(), entity.into_world_mut());
         self.0
             .construct(&mut context)
-            .expect("failed to spawn_scene in ConstructSceneCommand");
+            .expect("failed to construct scene in ConstructSceneCommand");
     }
 }
 

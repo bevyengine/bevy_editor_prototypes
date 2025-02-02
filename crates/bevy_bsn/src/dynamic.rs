@@ -11,13 +11,20 @@ use variadics_please::all_tuples;
 
 use crate::{
     Construct, ConstructContext, ConstructError, ConstructPatch, ConstructPatchExt, Key,
-    ReflectConstruct,
+    ReflectConstruct, Scene,
 };
 
 /// Dynamic patch
 pub trait DynamicPatch: Send + Sync + 'static {
     /// Layer this patch onto a [`DynamicScene`].
     fn dynamic_patch(&mut self, scene: &mut DynamicScene);
+
+    /// Creates a new [`DynamicScene`], patches it, and pushes it as a child of the provided `parent_scene`.
+    fn dynamic_patch_as_child(&mut self, parent_scene: &mut DynamicScene) {
+        let mut child_scene = DynamicScene::default();
+        self.dynamic_patch(&mut child_scene);
+        parent_scene.push_child(child_scene);
+    }
 }
 
 // Tuple impls
@@ -28,6 +35,11 @@ macro_rules! impl_patch_for_tuple {
             fn dynamic_patch(&mut self, _scene: &mut DynamicScene) {
                 let ($($t,)*) = self;
                 $($t.dynamic_patch(_scene);)*
+            }
+
+            fn dynamic_patch_as_child(&mut self, _parent_scene: &mut DynamicScene) {
+                let ($($t,)*) = self;
+                $($t.dynamic_patch_as_child(_parent_scene);)*
             }
         }
     };
@@ -144,23 +156,9 @@ pub struct DynamicScene {
 }
 
 impl DynamicScene {
-    /// Constructs this dynamic scene onto the context entity by:
-    ///  - Constructing and inserting the resulting components.
-    ///  - Spawning children recursively.
-    pub fn construct(&self, context: &mut ConstructContext) -> Result<(), ConstructError> {
-        self.construct_components(context)?;
-        self.construct_children(context)?;
-        Ok(())
-    }
-
     /// Returns the component props of the dynamic scene.
     pub fn component_props(&self) -> &TypeIdMap<ComponentProps> {
         &self.component_props
-    }
-
-    /// Returns the children of the dynamic scene, consuming self.
-    pub fn into_children(self) -> Vec<DynamicScene> {
-        self.children
     }
 
     /// Returns the optional key of the root entity in the dynamic scene.
@@ -168,30 +166,9 @@ impl DynamicScene {
         &self.key
     }
 
-    /// Construct and insert the dynamic components onto the context entity.
-    pub fn construct_components(
-        &self,
-        context: &mut ConstructContext,
-    ) -> Result<(), ConstructError> {
-        for (_, component_props) in self.component_props.iter() {
-            component_props.construct(context)?;
-        }
-        Ok(())
-    }
-
-    /// Construct and spawn the dynamic children under the context entity.
-    pub fn construct_children(&self, context: &mut ConstructContext) -> Result<(), ConstructError> {
-        // Spawn children
-        for child in self.children.iter() {
-            let child_id = context.world.spawn_empty().id();
-            context.world.entity_mut(context.id).add_child(child_id);
-            child.construct(&mut ConstructContext {
-                id: child_id,
-                world: context.world,
-            })?;
-        }
-
-        Ok(())
+    /// Returns a mutable borrow of the children of the dynamic scene.
+    pub fn children_mut(&mut self) -> &mut Vec<DynamicScene> {
+        &mut self.children
     }
 
     /// Add a child to the dynamic scene.
@@ -245,10 +222,53 @@ impl DynamicScene {
             }
         }
     }
+}
 
-    /// Deconstructs the [`DynamicScene`] into its component patches and children.
-    pub fn deconstruct(self) -> (TypeIdMap<ComponentProps>, Vec<DynamicScene>) {
-        (self.component_props, self.children)
+impl DynamicPatch for DynamicScene {
+    /// Dynamic patch this scene onto another [`DynamicScene`].
+    ///
+    /// NOTE: This will drain the component patches and children of `self`, leaving it empty.
+    fn dynamic_patch(&mut self, other: &mut DynamicScene) {
+        // Push the component patches
+        for (type_id, mut component_props) in self.component_props.drain() {
+            other
+                .component_props
+                .entry(type_id)
+                .and_modify(|props| {
+                    props
+                        .patches
+                        .extend(std::mem::take(&mut component_props.patches));
+                })
+                .or_insert(component_props);
+        }
+
+        // Push the children
+        other.children.extend(std::mem::take(&mut self.children));
+    }
+}
+
+impl Scene for DynamicScene {
+    fn root_count(&self) -> usize {
+        1
+    }
+
+    fn construct(&mut self, context: &mut ConstructContext) -> Result<(), ConstructError> {
+        // Construct and insert components
+        for (_, component_props) in self.component_props.iter() {
+            component_props.construct(context)?;
+        }
+
+        // Spawn children
+        for child in self.children.iter_mut() {
+            let child_id = context.world.spawn_empty().id();
+            context.world.entity_mut(context.id).add_child(child_id);
+            child.construct(&mut ConstructContext {
+                id: child_id,
+                world: context.world,
+            })?;
+        }
+
+        Ok(())
     }
 }
 

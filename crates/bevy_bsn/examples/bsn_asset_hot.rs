@@ -41,9 +41,7 @@ fn spawn_and_reload_scene(
                     .reflect_dynamic_scene()
                     .unwrap();
 
-                commands
-                    .entity(*scene_root)
-                    .retain_dynamic_scene(dynamic_scene);
+                commands.entity(*scene_root).retain_scene(dynamic_scene);
             }
             _ => {}
         }

@@ -41,6 +41,7 @@ all_tuples!(
 );
 
 /// [`Patch`]-implementation that wraps a patch function and retains the [`Construct`] type.
+#[derive(Debug)]
 pub struct ConstructPatch<C: Construct, F> {
     pub(crate) func: F,
     pub(crate) _marker: PhantomData<C>,
@@ -49,7 +50,7 @@ pub struct ConstructPatch<C: Construct, F> {
 impl<C, F> ConstructPatch<C, F>
 where
     C: Construct<Props = C>,
-    F: Fn(&mut C) + Clone + Sync + Send + 'static,
+    F: Fn(&mut C) + Sync + Send + 'static,
 {
     /// Allows inferring the type of a bsn expression.
     ///
@@ -62,7 +63,7 @@ where
     }
 }
 
-impl<C: Construct + Bundle, F: Fn(&mut C::Props) + Clone + Sync + Send + 'static> Patch
+impl<C: Construct + Bundle, F: Fn(&mut C::Props) + Sync + Send + 'static> Patch
     for ConstructPatch<C, F>
 {
     type Construct = C;
@@ -78,11 +79,7 @@ pub trait ConstructPatchExt {
 
     /// Returns a [`ConstructPatch`] wrapping the provided closure.
     fn patch<
-        F: Fn(&mut <<Self as ConstructPatchExt>::C as Construct>::Props)
-            + Clone
-            + Send
-            + Sync
-            + 'static,
+        F: Fn(&mut <<Self as ConstructPatchExt>::C as Construct>::Props) + Send + Sync + 'static,
     >(
         func: F,
     ) -> ConstructPatch<Self::C, F> {

@@ -76,6 +76,17 @@ pub struct BsnEntity {
     pub components: Vec<BsnComponent>,
     /// Child entities
     pub children: Vec<BsnEntity>,
+    /// Optional key used for retaining.
+    pub key: Option<BsnKey>,
+}
+
+/// A non type-aware representation of a BSN key.
+#[derive(Debug, Clone, Hash)]
+pub enum BsnKey {
+    /// A static key: `key: ...`
+    Static(String),
+    /// A dynamic key: `{<expr>}: ...`
+    Dynamic(String),
 }
 
 /// A non type-aware representation of a BSN component.
@@ -163,6 +174,16 @@ impl From<&BsnAstEntity> for BsnEntity {
         BsnEntity {
             components: BsnComponent::vec_from_ast_patch(&ast.patch),
             children: ast.children.iter().map(BsnEntity::from).collect(),
+            key: ast.key.as_ref().map(BsnKey::from),
+        }
+    }
+}
+
+impl From<&BsnAstKey> for BsnKey {
+    fn from(key: &BsnAstKey) -> Self {
+        match key {
+            BsnAstKey::Static(key) => BsnKey::Static(key.clone()),
+            BsnAstKey::Dynamic(key) => BsnKey::Dynamic(key.to_token_stream().to_string()),
         }
     }
 }
@@ -342,6 +363,15 @@ impl ToBsnString for BsnEntity {
             format!(" [{}]", self.children.joined(", "))
         };
         format!("{}{}", components, children)
+    }
+}
+
+impl ToBsnString for BsnKey {
+    fn to_bsn_string(&self) -> String {
+        match self {
+            BsnKey::Static(key) => format!("{}: ", key),
+            BsnKey::Dynamic(key) => format!("{{{}}}: ", key),
+        }
     }
 }
 

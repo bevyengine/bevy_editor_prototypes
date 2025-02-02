@@ -4,7 +4,8 @@ use bevy::prelude::{
 use variadics_please::all_tuples_with_size;
 
 use crate::{
-    ConstructContext, ConstructContextPatchExt, ConstructError, DynamicPatch, DynamicScene, Patch,
+    ConstructContext, ConstructContextPatchExt, ConstructError, DynamicPatch, DynamicScene, Key,
+    Patch,
 };
 
 /// Destination trait for [`EntityPatch`].
@@ -101,6 +102,8 @@ where
     pub patch: P,
     /// Child scenes of this entity.
     pub children: C,
+    /// Optional key used for retaining.
+    pub key: Option<Key>,
 }
 
 impl<I, P, C> Scene for EntityPatch<I, P, C>

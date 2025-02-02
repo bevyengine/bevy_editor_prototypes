@@ -10,7 +10,7 @@ use bevy::{
 use variadics_please::all_tuples;
 
 use crate::{
-    Construct, ConstructContext, ConstructError, ConstructPatch, ConstructPatchExt,
+    Construct, ConstructContext, ConstructError, ConstructPatch, ConstructPatchExt, Key,
     ReflectConstruct,
 };
 
@@ -139,6 +139,8 @@ pub struct DynamicScene {
     component_props: TypeIdMap<ComponentProps>,
     /// Children of the scene.
     children: Vec<DynamicScene>,
+    /// Optional key used for retaining.
+    key: Option<Key>,
 }
 
 impl DynamicScene {
@@ -149,6 +151,21 @@ impl DynamicScene {
         self.construct_components(context)?;
         self.construct_children(context)?;
         Ok(())
+    }
+
+    /// Returns the component props of the dynamic scene.
+    pub fn component_props(&self) -> &TypeIdMap<ComponentProps> {
+        &self.component_props
+    }
+
+    /// Returns the children of the dynamic scene, consuming self.
+    pub fn into_children(self) -> Vec<DynamicScene> {
+        self.children
+    }
+
+    /// Returns the optional key of the root entity in the dynamic scene.
+    pub fn key(&self) -> &Option<Key> {
+        &self.key
     }
 
     /// Construct and insert the dynamic components onto the context entity.

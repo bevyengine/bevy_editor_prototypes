@@ -2,10 +2,10 @@
 
 use syn::{
     braced, bracketed, parenthesized,
-    parse::{Parse, ParseStream},
+    parse::{discouraged::Speculative, Parse, ParseStream},
     punctuated::Punctuated,
     token::{self, Brace, Paren},
-    Expr, Member, Path, Result, Token,
+    Block, Expr, Ident, Member, Path, Result, Token,
 };
 
 pub use quote;
@@ -19,10 +19,34 @@ pub struct BsnAstEntity {
     pub patch: BsnAstPatch,
     /// Child entities
     pub children: Punctuated<BsnAstEntity, Token![,]>,
+    /// Key for this entity
+    pub key: Option<BsnAstKey>,
 }
 
 impl Parse for BsnAstEntity {
     fn parse(input: ParseStream) -> Result<Self> {
+        let key = if input.peek(Ident) && input.peek2(Token![:]) {
+            // Static key
+            let key = input.parse::<Ident>()?;
+            input.parse::<Token![:]>()?;
+            Some(BsnAstKey::Static(key.to_string()))
+        } else {
+            // Look for dynamic key
+            let fork = input.fork();
+            if fork.peek(Brace) {
+                let block: Block = fork.parse()?;
+                if fork.peek(Token![:]) {
+                    fork.parse::<Token![:]>()?;
+                    input.advance_to(&fork);
+                    Some(BsnAstKey::Dynamic(block))
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        };
+
         let mut inherits = Punctuated::new();
         let patch;
         if input.peek(Paren) {
@@ -79,8 +103,17 @@ impl Parse for BsnAstEntity {
             inherits,
             patch,
             children,
+            key,
         })
     }
+}
+
+/// AST for a BSN entity key.
+pub enum BsnAstKey {
+    /// A static key: `key: ...`
+    Static(String),
+    /// A dynamic key: `{key}: ...`
+    Dynamic(Block),
 }
 
 /// AST for a BSN patch.

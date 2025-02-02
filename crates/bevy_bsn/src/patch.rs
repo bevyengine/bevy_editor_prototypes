@@ -121,3 +121,18 @@ impl ConstructContextPatchExt for ConstructContext<'_> {
         self.construct(props)
     }
 }
+
+impl ConstructContextPatchExt for EntityWorldMut<'_> {
+    fn construct_from_patch<P: Patch>(
+        &mut self,
+        patch: &mut P,
+    ) -> Result<P::Construct, ConstructError>
+    where
+        <<P as Patch>::Construct as Construct>::Props: Default,
+    {
+        let mut props = <<P as Patch>::Construct as Construct>::Props::default();
+        patch.patch(&mut props);
+        let id = self.id();
+        self.world_scope(|world| ConstructContext::new(id, world).construct(props))
+    }
+}

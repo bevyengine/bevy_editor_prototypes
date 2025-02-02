@@ -1,7 +1,7 @@
 use alloc::borrow::Cow;
 use bevy::{
     ecs::{
-        bundle::DynamicBundle,
+        bundle::{BundleFromComponents, DynamicBundle},
         component::{ComponentId, Components, RequiredComponents, StorageType},
         storage::Storages,
         system::EntityCommands,
@@ -196,18 +196,6 @@ unsafe impl<B: Bundle> Bundle for ConstructTuple<B> {
         B::component_ids(components, storages, ids);
     }
 
-    unsafe fn from_components<T, F>(ctx: &mut T, func: &mut F) -> Self
-    where
-        // Ensure that the `OwningPtr` is used correctly
-        F: for<'a> FnMut(&'a mut T) -> OwningPtr<'a>,
-        Self: Sized,
-    {
-        ConstructTuple(
-            // SAFETY: B::from_components has the same constraints as Self::from_components
-            unsafe { B::from_components(ctx, func) },
-        )
-    }
-
     fn register_required_components(
         components: &mut Components,
         storages: &mut Storages,
@@ -221,7 +209,25 @@ unsafe impl<B: Bundle> Bundle for ConstructTuple<B> {
     }
 }
 
+#[allow(unsafe_code)]
+/// SAFETY: This just passes through to the inner [`BundleFromComponents`] implementations.
+unsafe impl<B: BundleFromComponents> BundleFromComponents for ConstructTuple<B> {
+    unsafe fn from_components<T, F>(ctx: &mut T, func: &mut F) -> Self
+    where
+        // Ensure that the `OwningPtr` is used correctly
+        F: for<'a> FnMut(&'a mut T) -> OwningPtr<'a>,
+        Self: Sized,
+    {
+        ConstructTuple(
+            // SAFETY: B::from_components has the same constraints as Self::from_components
+            unsafe { B::from_components(ctx, func) },
+        )
+    }
+}
+
 impl<B: Bundle> DynamicBundle for ConstructTuple<B> {
+    type Effect = ();
+
     fn get_components(self, func: &mut impl FnMut(StorageType, OwningPtr<'_>)) {
         self.0.get_components(func);
     }

@@ -1,18 +1,23 @@
 use bevy::prelude::{
     ChildSpawnerCommands, Commands, EntityCommand, EntityCommands, EntityWorldMut,
 };
-use variadics_please::all_tuples;
+use variadics_please::all_tuples_with_size;
 
 use crate::{
     ConstructContext, ConstructContextPatchExt, ConstructError, DynamicPatch, DynamicScene, Patch,
 };
 
 /// Destination trait for [`EntityPatch`].
-pub trait Scene: Sized {
+pub trait Scene {
+    /// The number of root entities in this scene.
+    const ROOT_COUNT: usize;
+
     /// Constructs a [`Scene`], inserts the components to the context entity, and recursively spawns scene descendants.
+    ///
+    /// If this is called on a multi-root scene, each root entity will be constructed separately.
     fn construct(self, context: &mut ConstructContext) -> Result<(), ConstructError>;
 
-    /// Constructs and spawns a [`Scene`] as a child under the context entity recursively.
+    /// Constructs and spawns a [`Scene`] as a child (or children if multi-root) under the context entity recursively.
     fn spawn(self, context: &mut ConstructContext) -> Result<(), ConstructError>;
 
     /// Dynamically applies the patches of this scene to a [`DynamicScene`], effectively overwriting any patched props.
@@ -22,42 +27,37 @@ pub trait Scene: Sized {
     fn dynamic_patch_as_child(&mut self, scene: &mut DynamicScene);
 }
 
-/// Zero or more [`Scene`]es forming a set of children or inherited patches. Implemented for tuples of [`Scene`].
-pub trait SceneTuple {
-    /// Whether this is an empty tuple
-    const IS_EMPTY: bool;
+impl Scene for () {
+    const ROOT_COUNT: usize = 0;
 
-    /// Recursively constructs/spawns all the entities in the tuple and their descendants under the context entity.
-    fn spawn_children(self, context: &mut ConstructContext) -> Result<(), ConstructError>;
+    fn construct(self, _: &mut ConstructContext) -> Result<(), ConstructError> {
+        Ok(())
+    }
 
-    /// Applies each scene in the tuple to the dynamic scene by calling [`Scene::dynamic_patch`].
-    fn dynamic_patch(&mut self, scene: &mut DynamicScene);
-
-    /// Pushes the scenes in the tuple as children of the dynamic scene.
-    fn push_dynamic_children(&mut self, scene: &mut DynamicScene);
-}
-
-impl SceneTuple for () {
-    const IS_EMPTY: bool = true;
-
-    fn spawn_children(self, _: &mut ConstructContext) -> Result<(), ConstructError> {
+    fn spawn(self, _: &mut ConstructContext) -> Result<(), ConstructError> {
         Ok(())
     }
 
     fn dynamic_patch(&mut self, _: &mut DynamicScene) {}
 
-    fn push_dynamic_children(&mut self, _: &mut DynamicScene) {}
+    fn dynamic_patch_as_child(&mut self, _: &mut DynamicScene) {}
 }
 
 // Tuple impls
 macro_rules! impl_scene_tuple {
-    ($(#[$meta:meta])* $(($S:ident, $s:ident)),*) => {
+    ($N:expr, $(#[$meta:meta])* $(($S:ident, $s:ident)),*) => {
         $(#[$meta])*
-        impl<$($S: Scene),*> SceneTuple for ($($S,)*)
+        impl<$($S: Scene),*> Scene for ($($S,)*)
         {
-            const IS_EMPTY: bool = false;
+            const ROOT_COUNT: usize = $N;
 
-            fn spawn_children(self, context: &mut ConstructContext) -> Result<(), ConstructError> {
+            fn construct(self, context: &mut ConstructContext) -> Result<(), ConstructError> {
+                let ($($s,)*) = self;
+                $($s.construct(context)?;)*
+                Ok(())
+            }
+
+            fn spawn(self, context: &mut ConstructContext) -> Result<(), ConstructError> {
                 let ($($s,)*) = self;
                 $($s.spawn(context)?;)*
                 Ok(())
@@ -71,7 +71,7 @@ macro_rules! impl_scene_tuple {
                 $($s.dynamic_patch(scene);)*
             }
 
-            fn push_dynamic_children(&mut self, scene: &mut DynamicScene) {
+            fn dynamic_patch_as_child(&mut self, scene: &mut DynamicScene) {
                 let ($($s,)*) = self;
                 $($s.dynamic_patch_as_child(scene);)*
             }
@@ -79,7 +79,7 @@ macro_rules! impl_scene_tuple {
     };
 }
 
-all_tuples!(
+all_tuples_with_size!(
     #[doc(fake_variadic)]
     impl_scene_tuple,
     1,
@@ -91,9 +91,9 @@ all_tuples!(
 /// Represents a tree of entities and patches to be applied to them.
 pub struct EntityPatch<I, P, C>
 where
-    I: SceneTuple,
+    I: Scene,
     P: Patch + DynamicPatch,
-    C: SceneTuple,
+    C: Scene,
 {
     /// Inherited scenes.
     pub inherit: I,
@@ -105,13 +105,15 @@ where
 
 impl<I, P, C> Scene for EntityPatch<I, P, C>
 where
-    I: SceneTuple,
+    I: Scene,
     P: Patch + DynamicPatch,
-    C: SceneTuple,
+    C: Scene,
 {
+    const ROOT_COUNT: usize = 1;
+
     /// Constructs an [`EntityPatch`], inserts the resulting bundle to the context entity, and recursively spawns children.
     fn construct(mut self, context: &mut ConstructContext) -> Result<(), ConstructError> {
-        if !I::IS_EMPTY {
+        if !I::ROOT_COUNT > 0 {
             // Dynamic scene
             let mut dynamic_scene = DynamicScene::default();
             self.dynamic_patch(&mut dynamic_scene);
@@ -120,7 +122,7 @@ where
             // Static scene
             let bundle = context.construct_from_patch(&mut self.patch)?;
             context.world.entity_mut(context.id).insert(bundle);
-            self.children.spawn_children(context)?;
+            self.children.spawn(context)?;
         }
 
         Ok(())
@@ -146,7 +148,7 @@ where
         self.patch.dynamic_patch(scene);
 
         // Push the children
-        self.children.push_dynamic_children(scene);
+        self.children.dynamic_patch_as_child(scene);
     }
 
     /// Dynamically patches the scene and pushes it as a child of the [`DynamicScene`].

@@ -172,6 +172,12 @@ pub trait RetainSceneExt {
     ///
     /// Maintains [`Receipt`]s to allow for intelligent updates.
     fn retain_scene(&mut self, scene: impl Scene) -> Result<(), ConstructError>;
+
+    /// Retains the provided scenes as children of self.
+    fn retain_child_scenes<T: Scene>(
+        &mut self,
+        child_scenes: impl IntoIterator<Item = T>,
+    ) -> Result<(), ConstructError>;
 }
 
 impl RetainSceneExt for EntityWorldMut<'_> {
@@ -179,6 +185,29 @@ impl RetainSceneExt for EntityWorldMut<'_> {
         let mut dynamic_scene = DynamicScene::default();
         scene.dynamic_patch(&mut dynamic_scene);
         dynamic_scene.retain(self)
+    }
+
+    fn retain_child_scenes<T: Scene>(
+        &mut self,
+        child_scenes: impl IntoIterator<Item = T>,
+    ) -> Result<(), ConstructError> {
+        // Take the receipt from targeted entity.
+        let receipt = self.take::<Receipt>().unwrap_or_default();
+
+        // Retain the children
+        let anchors = child_scenes
+            .into_iter()
+            .map(|mut scene| scene.dynamic_patch_as_new())
+            .collect::<Vec<_>>()
+            .retain_children(self, receipt.anchors)?;
+
+        // Place the receipt back onto the entity
+        self.insert(Receipt {
+            components: receipt.components,
+            anchors,
+        });
+
+        Ok(())
     }
 }
 
@@ -188,12 +217,27 @@ pub trait RetainSceneCommandsExt {
     ///
     /// See [`RetainScene::retain`].
     fn retain_scene(&mut self, scene: impl Scene + Send + 'static);
+
+    /// Retains the provided scenes as children of self.
+    fn retain_child_scenes<T: Scene>(
+        &mut self,
+        child_scenes: impl IntoIterator<Item = T> + Send + 'static,
+    );
 }
 
 impl RetainSceneCommandsExt for EntityCommands<'_> {
     fn retain_scene(&mut self, scene: impl Scene + Send + 'static) {
         self.queue(|mut entity: EntityWorldMut| {
             entity.retain_scene(scene).unwrap();
+        });
+    }
+
+    fn retain_child_scenes<T: Scene>(
+        &mut self,
+        child_scenes: impl IntoIterator<Item = T> + Send + 'static,
+    ) {
+        self.queue(|mut entity: EntityWorldMut| {
+            entity.retain_child_scenes(child_scenes).unwrap();
         });
     }
 }

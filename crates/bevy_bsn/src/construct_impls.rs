@@ -45,7 +45,7 @@ impl<T: Asset> Construct for ConstructHandle<T> {
 }
 
 /// Entity reference constructable using [`EntityPath`], allowing passing either entity name or id as prop.
-#[derive(Deref, DerefMut, Debug, Clone, Reflect)]
+#[derive(Deref, DerefMut, Debug, Copy, Clone, Reflect)]
 #[reflect(Construct)]
 pub struct ConstructEntity(Entity);
 

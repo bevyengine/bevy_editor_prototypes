@@ -25,6 +25,13 @@ pub trait DynamicPatch: Send + Sync + 'static {
         self.dynamic_patch(&mut child_scene);
         parent_scene.push_child(child_scene);
     }
+
+    /// Creates a new [`DynamicScene`], patches it, and returns it.
+    fn dynamic_patch_as_new(&mut self) -> DynamicScene {
+        let mut scene = DynamicScene::default();
+        self.dynamic_patch(&mut scene);
+        scene
+    }
 }
 
 // Tuple impls
@@ -57,7 +64,7 @@ all_tuples!(
 impl<C, F> DynamicPatch for ConstructPatch<C, F>
 where
     C: Construct + Component,
-    F: Fn(&mut C::Props) + Clone + Sync + Send + 'static,
+    F: FnOnce(&mut C::Props) + Clone + Sync + Send + 'static,
 {
     fn dynamic_patch(&mut self, scene: &mut DynamicScene) {
         scene.patch_typed::<C, F>(self.func.clone());
@@ -77,7 +84,7 @@ trait DynamicComponentPatch: Send + Sync + 'static {
 impl<C, F> DynamicComponentPatch for ConstructPatch<C, F>
 where
     C: Construct + Component,
-    F: Fn(&mut C::Props) + Send + Sync + 'static,
+    F: FnOnce(&mut C::Props) + Clone + Send + Sync + 'static,
 {
     fn patch_any(
         &self,
@@ -90,7 +97,7 @@ where
             .ok_or(ConstructError::InvalidProps {
                 message: "failed to downcast props".into(),
             })?;
-        (self.func)(props);
+        (self.func.clone())(props);
         Ok(())
     }
 }
@@ -180,7 +187,7 @@ impl DynamicScene {
     pub fn patch_typed<C, F>(&mut self, patch: F)
     where
         C: Construct + Component,
-        F: Fn(&mut C::Props) + Sync + Send + 'static,
+        F: FnOnce(&mut C::Props) + Clone + Sync + Send + 'static,
     {
         let construct = DynamicConstructFn::Typed(|context, type_id, patches| {
             construct_typed_component::<C>(context, type_id, patches)

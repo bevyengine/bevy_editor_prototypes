@@ -50,7 +50,7 @@ pub struct ConstructPatch<C: Construct, F> {
 impl<C, F> ConstructPatch<C, F>
 where
     C: Construct<Props = C>,
-    F: Fn(&mut C) + Sync + Send + 'static,
+    F: FnOnce(&mut C) + Clone + Sync + Send + 'static,
 {
     /// Allows inferring the type of a bsn expression.
     ///
@@ -63,12 +63,12 @@ where
     }
 }
 
-impl<C: Construct + Bundle, F: Fn(&mut C::Props) + Sync + Send + 'static> Patch
+impl<C: Construct + Bundle, F: FnOnce(&mut C::Props) + Clone + Sync + Send + 'static> Patch
     for ConstructPatch<C, F>
 {
     type Construct = C;
     fn patch(&mut self, props: &mut <Self::Construct as Construct>::Props) {
-        (self.func)(props);
+        (self.func.clone())(props);
     }
 }
 
@@ -79,7 +79,11 @@ pub trait ConstructPatchExt {
 
     /// Returns a [`ConstructPatch`] wrapping the provided closure.
     fn patch<
-        F: Fn(&mut <<Self as ConstructPatchExt>::C as Construct>::Props) + Send + Sync + 'static,
+        F: FnOnce(&mut <<Self as ConstructPatchExt>::C as Construct>::Props)
+            + Clone
+            + Send
+            + Sync
+            + 'static,
     >(
         func: F,
     ) -> ConstructPatch<Self::C, F> {

@@ -10,7 +10,7 @@ use bevy::{
 use variadics_please::all_tuples;
 
 use crate::{
-    Construct, ConstructContext, ConstructError, ConstructPatch, ConstructPatchExt, Key,
+    Construct, ConstructContext, ConstructError, ConstructPatch, ConstructPatchExt, Key, Patch,
     ReflectConstruct, Scene,
 };
 
@@ -64,7 +64,7 @@ all_tuples!(
 impl<C, F> DynamicPatch for ConstructPatch<C, F>
 where
     C: Construct + Component,
-    F: FnOnce(&mut C::Props) + Clone + Sync + Send + 'static,
+    F: FnMut(&mut C::Props) + Clone + Sync + Send + 'static,
 {
     fn dynamic_patch(&mut self, scene: &mut DynamicScene) {
         scene.patch_typed::<C, F>(self.func.clone());
@@ -74,7 +74,7 @@ where
 /// Exists to allow either typed or reflect based patches in [`DynamicScene`].
 trait DynamicComponentPatch: Send + Sync + 'static {
     fn patch_any(
-        &self,
+        &mut self,
         type_id: TypeId,
         props: &mut dyn Any,
         registry: &TypeRegistry,
@@ -84,10 +84,10 @@ trait DynamicComponentPatch: Send + Sync + 'static {
 impl<C, F> DynamicComponentPatch for ConstructPatch<C, F>
 where
     C: Construct + Component,
-    F: FnOnce(&mut C::Props) + Clone + Send + Sync + 'static,
+    F: FnMut(&mut C::Props) + Send + Sync + 'static,
 {
     fn patch_any(
-        &self,
+        &mut self,
         _: TypeId,
         props: &mut dyn Any,
         _: &TypeRegistry,
@@ -97,7 +97,7 @@ where
             .ok_or(ConstructError::InvalidProps {
                 message: "failed to downcast props".into(),
             })?;
-        (self.func.clone())(props);
+        (self.func)(props);
         Ok(())
     }
 }
@@ -107,7 +107,7 @@ where
     F: Fn(&mut dyn PartialReflect) + Send + Sync + 'static,
 {
     fn patch_any(
-        &self,
+        &mut self,
         type_id: TypeId,
         props: &mut dyn Any,
         registry: &TypeRegistry,
@@ -141,11 +141,13 @@ pub struct ComponentProps {
 
 impl ComponentProps {
     /// Constructs the component using the patches and inserts it onto the context entity.
-    pub fn construct(&self, context: &mut ConstructContext) -> Result<(), ConstructError> {
+    pub fn construct(&mut self, context: &mut ConstructContext) -> Result<(), ConstructError> {
         match &self.construct {
-            DynamicConstructFn::Typed(construct) => construct(context, self.type_id, &self.patches),
+            DynamicConstructFn::Typed(construct) => {
+                construct(context, self.type_id, &mut self.patches)
+            }
             DynamicConstructFn::Reflected => {
-                construct_reflected_component(context, self.type_id, &self.patches)
+                construct_reflected_component(context, self.type_id, &mut self.patches)
             }
         }
     }
@@ -164,8 +166,8 @@ pub struct DynamicScene {
 
 impl DynamicScene {
     /// Returns the component props of the dynamic scene.
-    pub fn component_props(&self) -> &TypeIdMap<ComponentProps> {
-        &self.component_props
+    pub fn component_props(&mut self) -> &mut TypeIdMap<ComponentProps> {
+        &mut self.component_props
     }
 
     /// Returns the optional key of the root entity in the dynamic scene.
@@ -187,7 +189,7 @@ impl DynamicScene {
     pub fn patch_typed<C, F>(&mut self, patch: F)
     where
         C: Construct + Component,
-        F: FnOnce(&mut C::Props) + Clone + Sync + Send + 'static,
+        F: FnMut(&mut C::Props) + Sync + Send + 'static,
     {
         let construct = DynamicConstructFn::Typed(|context, type_id, patches| {
             construct_typed_component::<C>(context, type_id, patches)
@@ -261,7 +263,7 @@ impl Scene for DynamicScene {
 
     fn construct(&mut self, context: &mut ConstructContext) -> Result<(), ConstructError> {
         // Construct and insert components
-        for (_, component_props) in self.component_props.iter() {
+        for (_, component_props) in self.component_props.iter_mut() {
             component_props.construct(context)?;
         }
 
@@ -284,7 +286,7 @@ enum DynamicConstructFn {
         fn(
             &mut ConstructContext,
             TypeId,
-            &Vec<Box<dyn DynamicComponentPatch>>,
+            &mut Vec<Box<dyn DynamicComponentPatch>>,
         ) -> Result<(), ConstructError>,
     ),
     Reflected,
@@ -293,12 +295,12 @@ enum DynamicConstructFn {
 fn construct_typed_component<C: Construct + Component>(
     context: &mut ConstructContext,
     type_id: TypeId,
-    patches: &Vec<Box<dyn DynamicComponentPatch>>,
+    patches: &mut Vec<Box<dyn DynamicComponentPatch>>,
 ) -> Result<(), ConstructError> {
     let mut props = C::Props::default();
     {
         let registry = &context.world.resource::<AppTypeRegistry>().read();
-        for patch in patches.iter() {
+        for patch in patches.iter_mut() {
             patch.patch_any(type_id, &mut props, registry)?;
         }
     }
@@ -310,7 +312,7 @@ fn construct_typed_component<C: Construct + Component>(
 fn construct_reflected_component(
     context: &mut ConstructContext,
     type_id: TypeId,
-    patches: &Vec<Box<dyn DynamicComponentPatch>>,
+    patches: &mut Vec<Box<dyn DynamicComponentPatch>>,
 ) -> Result<(), ConstructError> {
     context
         .world
@@ -329,7 +331,7 @@ fn construct_reflected_component(
 
             // Prepare props
             let mut props = reflect_construct.default_props();
-            for patch in patches.iter() {
+            for patch in patches.iter_mut() {
                 patch.patch_any(type_id, props.as_any_mut(), &registry)?;
             }
 

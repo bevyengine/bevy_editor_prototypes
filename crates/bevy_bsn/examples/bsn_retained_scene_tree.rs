@@ -96,7 +96,7 @@ fn scene_tree_row(
                 if is_selected { SELECTED_BACKGROUND.into() } else if is_hovered { HOVERED_BACKGROUND.into() } else { Color::NONE }
             )
         ) [
-            (Text(name), TextFont { font_size: 11.0 }, {Pickable::IGNORE})
+            (Text(name.clone()), TextFont { font_size: 11.0 }, {Pickable::IGNORE})
         ]
     }
 }

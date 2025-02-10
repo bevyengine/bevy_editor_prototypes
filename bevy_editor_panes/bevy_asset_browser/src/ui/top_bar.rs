@@ -52,7 +52,7 @@ pub fn refresh_ui(
         // Clear location path UI
         if let Some(childrens) = top_bar_childrens {
             for child in childrens.iter() {
-                commands.entity(*child).despawn();
+                commands.entity(child).despawn();
             }
             commands.entity(top_bar_entity).remove::<Children>();
         }
@@ -169,7 +169,7 @@ fn spawn_path_segment_ui<'a>(
                             .iter()
                             .step_by(2) // Step by 2 to go through each segment, skipping the separators
                             .skip(1) // Skip the "Sources" segment
-                            .position(|child| *child == segment)
+                            .position(|child| child == segment)
                             .expect(
                                 "You shouldn't be able to click on a segment that isn't in the asset location path"
                             );

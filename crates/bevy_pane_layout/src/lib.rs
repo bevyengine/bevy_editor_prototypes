@@ -142,8 +142,8 @@ fn cleanup_divider_single_child(
     for (entity, children, parent) in &mut query {
         let mut iter = children
             .iter()
-            .filter(|child| !resize_handle_query.contains(**child));
-        let child = *iter.next().unwrap();
+            .filter(|child| !resize_handle_query.contains(*child));
+        let child = iter.next().unwrap();
         if iter.next().is_some() {
             continue;
         }
@@ -153,7 +153,7 @@ fn cleanup_divider_single_child(
 
         // Find the index of this divider among its siblings
         let siblings = children_query.get(parent.get()).unwrap();
-        let index = siblings.iter().position(|s| *s == entity).unwrap();
+        let index = siblings.iter().position(|s| s == entity).unwrap();
 
         commands
             .entity(parent.get())

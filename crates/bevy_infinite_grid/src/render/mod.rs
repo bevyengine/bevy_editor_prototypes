@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use bevy::{
-    asset::load_internal_asset,
+    asset::{load_internal_asset, weak_handle},
     core_pipeline::{core_2d::Transparent2d, core_3d::Transparent3d},
     ecs::{
         query::ROQueryItem,
@@ -37,7 +37,7 @@ use bevy::{
 
 use crate::InfiniteGridSettings;
 
-const GRID_SHADER_HANDLE: Handle<Shader> = Handle::weak_from_u128(15204473893972682982);
+const GRID_SHADER_HANDLE: Handle<Shader> = weak_handle!("7cd38dd1-d707-481e-b38c-0eccb706e629");
 
 pub fn render_app_builder(app: &mut App) {
     load_internal_asset!(app, GRID_SHADER_HANDLE, "grid.wgsl", Shader::from_wgsl);

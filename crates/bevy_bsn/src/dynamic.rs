@@ -10,7 +10,7 @@ use bevy::{
 use variadics_please::all_tuples;
 
 use crate::{
-    Construct, ConstructContext, ConstructError, ConstructPatch, ConstructPatchExt, Key, Patch,
+    Construct, ConstructContext, ConstructError, ConstructPatch, ConstructPatchExt, Key,
     ReflectConstruct, Scene,
 };
 

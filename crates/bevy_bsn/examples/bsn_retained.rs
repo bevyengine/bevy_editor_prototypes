@@ -57,13 +57,7 @@ fn sheep_system(mut commands: Commands, sheep: Query<&Sheep>, root: Single<Entit
 }
 
 // A function that returns an ecs template.
-// TODO: This is not an ideal way for generic reusable stuff
-fn counter<T: Component + Construct<Props = T> + Clone>(
-    num: usize,
-    name: &str,
-    inc: T,
-    dec: T,
-) -> impl Scene {
+fn counter<T: Component + Default + Clone>(num: usize, name: &str, inc: T, dec: T) -> impl Scene {
     let name = name.to_string();
     bsn! {
         Node [

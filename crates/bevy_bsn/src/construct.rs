@@ -1,9 +1,8 @@
 use alloc::borrow::Cow;
 use bevy::{
     ecs::{
-        bundle::DynamicBundle,
+        bundle::{BundleFromComponents, DynamicBundle},
         component::{ComponentId, Components, RequiredComponents, StorageType},
-        storage::Storages,
         system::EntityCommands,
         world::error::EntityFetchError,
     },
@@ -186,16 +185,27 @@ all_tuples!(
 );
 
 #[allow(unsafe_code)]
-/// SAFETY: This just passes through to the inner [`Bundle`] implementations.
+/// SAFETY: This just passes through to the inner [`Bundle`] implementation.
 unsafe impl<B: Bundle> Bundle for ConstructTuple<B> {
-    fn component_ids(
-        components: &mut Components,
-        storages: &mut Storages,
-        ids: &mut impl FnMut(ComponentId),
-    ) {
-        B::component_ids(components, storages, ids);
+    fn component_ids(components: &mut Components, ids: &mut impl FnMut(ComponentId)) {
+        B::component_ids(components, ids);
     }
 
+    fn register_required_components(
+        components: &mut Components,
+        required_components: &mut RequiredComponents,
+    ) {
+        B::register_required_components(components, required_components);
+    }
+
+    fn get_component_ids(components: &Components, ids: &mut impl FnMut(Option<ComponentId>)) {
+        B::get_component_ids(components, ids);
+    }
+}
+
+#[allow(unsafe_code)]
+/// SAFETY: This just passes through to the inner [`BundleFromComponents`] implementation.
+unsafe impl<B: BundleFromComponents> BundleFromComponents for ConstructTuple<B> {
     unsafe fn from_components<T, F>(ctx: &mut T, func: &mut F) -> Self
     where
         // Ensure that the `OwningPtr` is used correctly
@@ -207,21 +217,11 @@ unsafe impl<B: Bundle> Bundle for ConstructTuple<B> {
             unsafe { B::from_components(ctx, func) },
         )
     }
-
-    fn register_required_components(
-        components: &mut Components,
-        storages: &mut Storages,
-        required_components: &mut RequiredComponents,
-    ) {
-        B::register_required_components(components, storages, required_components);
-    }
-
-    fn get_component_ids(components: &Components, ids: &mut impl FnMut(Option<ComponentId>)) {
-        B::get_component_ids(components, ids);
-    }
 }
 
 impl<B: Bundle> DynamicBundle for ConstructTuple<B> {
+    type Effect = ();
+
     fn get_components(self, func: &mut impl FnMut(StorageType, OwningPtr<'_>)) {
         self.0.get_components(func);
     }

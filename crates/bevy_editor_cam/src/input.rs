@@ -286,7 +286,8 @@ impl EditorCamInputEvent {
                     PointerAction::Move { delta } => Some(delta),
                     PointerAction::Press { .. }
                     | PointerAction::Cancel
-                    | PointerAction::Release(_) => None,
+                    | PointerAction::Release(_)
+                    | PointerAction::Scroll { .. } => None,
                 })
                 .sum();
 

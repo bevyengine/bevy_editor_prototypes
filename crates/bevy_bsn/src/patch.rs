@@ -10,8 +10,8 @@ use crate::{Construct, ConstructContext, ConstructError, ConstructTuple};
 pub trait Patch: Send + Sync + 'static {
     /// The construct type whose props this patch can be applied to.
     type Construct: Construct + Bundle;
-    /// Apply patch to the supplied `props`.
-    fn patch(&mut self, props: &mut <Self::Construct as Construct>::Props);
+    /// Apply the patch to the supplied `props`.
+    fn patch(self, props: &mut <Self::Construct as Construct>::Props);
 }
 
 // Tuple impls
@@ -22,7 +22,7 @@ macro_rules! impl_patch_for_tuple {
             type Construct = ConstructTuple<($($T::Construct,)*)>;
 
             #[allow(non_snake_case)]
-            fn patch(&mut self, props: &mut <Self::Construct as Construct>::Props) {
+            fn patch(self, props: &mut <Self::Construct as Construct>::Props) {
                 let ($($T,)*) = self;
                 let ($($t,)*) = props;
                 $($T.patch($t);)*
@@ -50,7 +50,7 @@ pub struct ConstructPatch<C: Construct, F> {
 impl<C, F> ConstructPatch<C, F>
 where
     C: Construct<Props = C>,
-    F: FnMut(&mut C) + Sync + Send + 'static,
+    F: FnOnce(&mut C) + Sync + Send + 'static,
 {
     /// Allows inferring the type of a bsn expression.
     ///
@@ -63,11 +63,11 @@ where
     }
 }
 
-impl<C: Construct + Bundle, F: FnMut(&mut C::Props) + Sync + Send + 'static> Patch
+impl<C: Construct + Bundle, F: FnOnce(&mut C::Props) + Sync + Send + 'static> Patch
     for ConstructPatch<C, F>
 {
     type Construct = C;
-    fn patch(&mut self, props: &mut <Self::Construct as Construct>::Props) {
+    fn patch(self, props: &mut <Self::Construct as Construct>::Props) {
         (self.func)(props);
     }
 }
@@ -79,7 +79,7 @@ pub trait ConstructPatchExt {
 
     /// Returns a [`ConstructPatch`] wrapping the provided closure.
     fn patch<
-        F: FnMut(&mut <<Self as ConstructPatchExt>::C as Construct>::Props) + Send + Sync + 'static,
+        F: FnOnce(&mut <<Self as ConstructPatchExt>::C as Construct>::Props) + Send + Sync + 'static,
     >(
         func: F,
     ) -> ConstructPatch<Self::C, F> {
@@ -97,19 +97,13 @@ impl<C: Construct> ConstructPatchExt for C {
 /// Extension trait implementing patch utilities for [`ConstructContext`].
 pub trait ConstructContextPatchExt {
     /// Construct an instance of `P::Construct` from a patch.
-    fn construct_from_patch<P: Patch>(
-        &mut self,
-        patch: &mut P,
-    ) -> Result<P::Construct, ConstructError>
+    fn construct_from_patch<P: Patch>(&mut self, patch: P) -> Result<P::Construct, ConstructError>
     where
         <<P as Patch>::Construct as Construct>::Props: Default;
 }
 
 impl ConstructContextPatchExt for ConstructContext<'_> {
-    fn construct_from_patch<P: Patch>(
-        &mut self,
-        patch: &mut P,
-    ) -> Result<P::Construct, ConstructError>
+    fn construct_from_patch<P: Patch>(&mut self, patch: P) -> Result<P::Construct, ConstructError>
     where
         <<P as Patch>::Construct as Construct>::Props: Default,
     {
@@ -120,10 +114,7 @@ impl ConstructContextPatchExt for ConstructContext<'_> {
 }
 
 impl ConstructContextPatchExt for EntityWorldMut<'_> {
-    fn construct_from_patch<P: Patch>(
-        &mut self,
-        patch: &mut P,
-    ) -> Result<P::Construct, ConstructError>
+    fn construct_from_patch<P: Patch>(&mut self, patch: P) -> Result<P::Construct, ConstructError>
     where
         <<P as Patch>::Construct as Construct>::Props: Default,
     {

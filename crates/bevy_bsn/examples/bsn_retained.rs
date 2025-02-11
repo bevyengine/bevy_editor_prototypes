@@ -57,8 +57,12 @@ fn sheep_system(mut commands: Commands, sheep: Query<&Sheep>, root: Single<Entit
 }
 
 // A function that returns an ecs template.
-fn counter<T: Component + Default + Clone>(num: usize, name: &str, inc: T, dec: T) -> impl Scene {
-    let name = name.to_string();
+fn counter<T: Component + Default + Clone>(
+    num: usize,
+    name: &'static str,
+    inc: T,
+    dec: T,
+) -> impl Scene {
     bsn! {
         Node [
             youhave: Text("You have ") [

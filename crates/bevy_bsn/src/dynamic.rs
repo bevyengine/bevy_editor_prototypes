@@ -15,19 +15,19 @@ use crate::{
 };
 
 /// Dynamic patch
-pub trait DynamicPatch: Send + Sync + 'static {
+pub trait DynamicPatch: Sized + Send + Sync + 'static {
     /// Layer this patch onto a [`DynamicScene`].
-    fn dynamic_patch(&mut self, scene: &mut DynamicScene);
+    fn dynamic_patch(self, scene: &mut DynamicScene);
 
     /// Creates a new [`DynamicScene`], patches it, and pushes it as a child of the provided `parent_scene`.
-    fn dynamic_patch_as_child(&mut self, parent_scene: &mut DynamicScene) {
+    fn dynamic_patch_as_child(self, parent_scene: &mut DynamicScene) {
         let mut child_scene = DynamicScene::default();
         self.dynamic_patch(&mut child_scene);
         parent_scene.push_child(child_scene);
     }
 
     /// Creates a new [`DynamicScene`], patches it, and returns it.
-    fn dynamic_patch_as_new(&mut self) -> DynamicScene {
+    fn dynamic_patch_as_new(self) -> DynamicScene {
         let mut scene = DynamicScene::default();
         self.dynamic_patch(&mut scene);
         scene
@@ -39,12 +39,12 @@ macro_rules! impl_patch_for_tuple {
     ($(#[$meta:meta])* $(($T:ident, $t:ident)),*) => {
         $(#[$meta])*
         impl<$($T: DynamicPatch),*> DynamicPatch for ($($T,)*) {
-            fn dynamic_patch(&mut self, _scene: &mut DynamicScene) {
+            fn dynamic_patch(self, _scene: &mut DynamicScene) {
                 let ($($t,)*) = self;
                 $($t.dynamic_patch(_scene);)*
             }
 
-            fn dynamic_patch_as_child(&mut self, _parent_scene: &mut DynamicScene) {
+            fn dynamic_patch_as_child(self, _parent_scene: &mut DynamicScene) {
                 let ($($t,)*) = self;
                 $($t.dynamic_patch_as_child(_parent_scene);)*
             }
@@ -64,17 +64,17 @@ all_tuples!(
 impl<C, F> DynamicPatch for ConstructPatch<C, F>
 where
     C: Construct + Component,
-    F: FnMut(&mut C::Props) + Clone + Sync + Send + 'static,
+    F: FnOnce(&mut C::Props) + Clone + Sync + Send + 'static,
 {
-    fn dynamic_patch(&mut self, scene: &mut DynamicScene) {
-        scene.patch_typed::<C, F>(self.func.clone());
+    fn dynamic_patch(self, scene: &mut DynamicScene) {
+        scene.patch_typed::<C, F>(self.func);
     }
 }
 
 /// Exists to allow either typed or reflect based patches in [`DynamicScene`].
 trait DynamicComponentPatch: Send + Sync + 'static {
     fn patch_any(
-        &mut self,
+        self: Box<Self>,
         type_id: TypeId,
         props: &mut dyn Any,
         registry: &TypeRegistry,
@@ -84,10 +84,10 @@ trait DynamicComponentPatch: Send + Sync + 'static {
 impl<C, F> DynamicComponentPatch for ConstructPatch<C, F>
 where
     C: Construct + Component,
-    F: FnMut(&mut C::Props) + Send + Sync + 'static,
+    F: FnOnce(&mut C::Props) + Send + Sync + 'static,
 {
     fn patch_any(
-        &mut self,
+        self: Box<Self>,
         _: TypeId,
         props: &mut dyn Any,
         _: &TypeRegistry,
@@ -104,10 +104,10 @@ where
 
 impl<F> DynamicComponentPatch for F
 where
-    F: Fn(&mut dyn PartialReflect) + Send + Sync + 'static,
+    F: FnOnce(&mut dyn PartialReflect) + Send + Sync + 'static,
 {
     fn patch_any(
-        &mut self,
+        self: Box<Self>,
         type_id: TypeId,
         props: &mut dyn Any,
         registry: &TypeRegistry,
@@ -141,13 +141,11 @@ pub struct ComponentProps {
 
 impl ComponentProps {
     /// Constructs the component using the patches and inserts it onto the context entity.
-    pub fn construct(&mut self, context: &mut ConstructContext) -> Result<(), ConstructError> {
+    pub fn construct(self, context: &mut ConstructContext) -> Result<(), ConstructError> {
         match &self.construct {
-            DynamicConstructFn::Typed(construct) => {
-                construct(context, self.type_id, &mut self.patches)
-            }
+            DynamicConstructFn::Typed(construct) => construct(context, self.type_id, self.patches),
             DynamicConstructFn::Reflected => {
-                construct_reflected_component(context, self.type_id, &mut self.patches)
+                construct_reflected_component(context, self.type_id, self.patches)
             }
         }
     }
@@ -157,19 +155,14 @@ impl ComponentProps {
 #[derive(Default)]
 pub struct DynamicScene {
     /// Maps component type ids to patches to be applied on the props before construction.
-    component_props: TypeIdMap<ComponentProps>,
+    pub(crate) component_props: TypeIdMap<ComponentProps>,
     /// Children of the scene.
-    children: Vec<DynamicScene>,
+    pub(crate) children: Vec<DynamicScene>,
     /// Optional key used for retaining.
     key: Option<Key>,
 }
 
 impl DynamicScene {
-    /// Returns the component props of the dynamic scene.
-    pub fn component_props(&mut self) -> &mut TypeIdMap<ComponentProps> {
-        &mut self.component_props
-    }
-
     /// Returns the optional key of the root entity in the dynamic scene.
     pub fn key(&self) -> &Option<Key> {
         &self.key
@@ -189,7 +182,7 @@ impl DynamicScene {
     pub fn patch_typed<C, F>(&mut self, patch: F)
     where
         C: Construct + Component,
-        F: FnMut(&mut C::Props) + Sync + Send + 'static,
+        F: FnOnce(&mut C::Props) + Clone + Sync + Send + 'static,
     {
         let construct = DynamicConstructFn::Typed(|context, type_id, patches| {
             construct_typed_component::<C>(context, type_id, patches)
@@ -235,11 +228,9 @@ impl DynamicScene {
 
 impl DynamicPatch for DynamicScene {
     /// Dynamic patch this scene onto another [`DynamicScene`].
-    ///
-    /// NOTE: This will drain the component patches and children of `self`, leaving it empty.
-    fn dynamic_patch(&mut self, other: &mut DynamicScene) {
+    fn dynamic_patch(self, other: &mut DynamicScene) {
         // Push the component patches
-        for (type_id, mut component_props) in self.component_props.drain() {
+        for (type_id, mut component_props) in self.component_props {
             other
                 .component_props
                 .entry(type_id)
@@ -252,7 +243,7 @@ impl DynamicPatch for DynamicScene {
         }
 
         // Push the children
-        other.children.extend(std::mem::take(&mut self.children));
+        other.children.extend(self.children);
     }
 }
 
@@ -261,14 +252,14 @@ impl Scene for DynamicScene {
         1
     }
 
-    fn construct(&mut self, context: &mut ConstructContext) -> Result<(), ConstructError> {
+    fn construct(self, context: &mut ConstructContext) -> Result<(), ConstructError> {
         // Construct and insert components
-        for (_, component_props) in self.component_props.iter_mut() {
+        for (_, component_props) in self.component_props {
             component_props.construct(context)?;
         }
 
         // Spawn children
-        for child in self.children.iter_mut() {
+        for child in self.children {
             let child_id = context.world.spawn_empty().id();
             context.world.entity_mut(context.id).add_child(child_id);
             child.construct(&mut ConstructContext {
@@ -286,7 +277,7 @@ enum DynamicConstructFn {
         fn(
             &mut ConstructContext,
             TypeId,
-            &mut Vec<Box<dyn DynamicComponentPatch>>,
+            Vec<Box<dyn DynamicComponentPatch>>,
         ) -> Result<(), ConstructError>,
     ),
     Reflected,
@@ -295,12 +286,12 @@ enum DynamicConstructFn {
 fn construct_typed_component<C: Construct + Component>(
     context: &mut ConstructContext,
     type_id: TypeId,
-    patches: &mut Vec<Box<dyn DynamicComponentPatch>>,
+    patches: Vec<Box<dyn DynamicComponentPatch>>,
 ) -> Result<(), ConstructError> {
     let mut props = C::Props::default();
     {
         let registry = &context.world.resource::<AppTypeRegistry>().read();
-        for patch in patches.iter_mut() {
+        for patch in patches {
             patch.patch_any(type_id, &mut props, registry)?;
         }
     }
@@ -312,7 +303,7 @@ fn construct_typed_component<C: Construct + Component>(
 fn construct_reflected_component(
     context: &mut ConstructContext,
     type_id: TypeId,
-    patches: &mut Vec<Box<dyn DynamicComponentPatch>>,
+    patches: Vec<Box<dyn DynamicComponentPatch>>,
 ) -> Result<(), ConstructError> {
     context
         .world
@@ -331,7 +322,7 @@ fn construct_reflected_component(
 
             // Prepare props
             let mut props = reflect_construct.default_props();
-            for patch in patches.iter_mut() {
+            for patch in patches {
                 patch.patch_any(type_id, props.as_any_mut(), &registry)?;
             }
 

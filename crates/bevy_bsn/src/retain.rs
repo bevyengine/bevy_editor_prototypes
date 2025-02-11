@@ -46,11 +46,11 @@ pub trait RetainScene {
     ///  removing components that should be removed, and spawning/updating children.
     ///
     /// Maintains [`Receipt`]s to allow for intelligent updates.
-    fn retain(&mut self, entity: &mut EntityWorldMut) -> Result<(), ConstructError>;
+    fn retain(self, entity: &mut EntityWorldMut) -> Result<(), ConstructError>;
 }
 
 impl RetainScene for DynamicScene {
-    fn retain(&mut self, entity: &mut EntityWorldMut) -> Result<(), ConstructError> {
+    fn retain(self, entity: &mut EntityWorldMut) -> Result<(), ConstructError> {
         // Clone the receipt for the targeted entity.
         let receipt = entity
             .get::<Receipt>()
@@ -61,12 +61,12 @@ impl RetainScene for DynamicScene {
         entity.world_scope(|world| {
             // Construct and insert the components
             let mut components =
-                HashSet::with_capacity_and_hasher(self.component_props().len(), FixedHasher);
-            for (type_id, component_props) in self.component_props() {
+                HashSet::with_capacity_and_hasher(self.component_props.len(), FixedHasher);
+            for (type_id, component_props) in self.component_props {
                 component_props
                     .construct(&mut ConstructContext::new(entity_id, world))
                     .unwrap();
-                components.insert(world.components().get_id(*type_id).unwrap());
+                components.insert(world.components().get_id(type_id).unwrap());
             }
 
             // Remove the components in the previous bundle but not this one
@@ -77,7 +77,7 @@ impl RetainScene for DynamicScene {
 
             // Retain the children
             let anchors = self
-                .children_mut()
+                .children
                 .retain_children(&mut entity, receipt.anchors)?;
 
             // Place the new receipt onto the entity
@@ -95,7 +95,7 @@ impl RetainScene for DynamicScene {
 pub trait RetainChildren {
     /// Retains the children of a scene.
     fn retain_children(
-        &mut self,
+        self,
         entity: &mut EntityWorldMut,
         current_anchors: HashMap<Anchor, Entity>,
     ) -> Result<HashMap<Anchor, Entity>, ConstructError>;
@@ -103,7 +103,7 @@ pub trait RetainChildren {
 
 impl RetainChildren for Vec<DynamicScene> {
     fn retain_children(
-        &mut self,
+        self,
         entity: &mut EntityWorldMut,
         mut current_anchors: HashMap<Anchor, Entity>,
     ) -> Result<HashMap<Anchor, Entity>, ConstructError> {
@@ -111,7 +111,7 @@ impl RetainChildren for Vec<DynamicScene> {
             // Get or create an entity for each fragment.
             let mut i = 0;
             let children: Vec<_> = self
-                .iter_mut()
+                .into_iter()
                 .map(|child| {
                     // Compute the anchor for this fragment, using it's key if supplied
                     // or an auto-incrementing counter if not.
@@ -181,7 +181,7 @@ pub trait RetainSceneExt {
 }
 
 impl RetainSceneExt for EntityWorldMut<'_> {
-    fn retain_scene(&mut self, mut scene: impl Scene) -> Result<(), ConstructError> {
+    fn retain_scene(&mut self, scene: impl Scene) -> Result<(), ConstructError> {
         let mut dynamic_scene = DynamicScene::default();
         scene.dynamic_patch(&mut dynamic_scene);
         dynamic_scene.retain(self)
@@ -197,7 +197,7 @@ impl RetainSceneExt for EntityWorldMut<'_> {
         // Retain the children
         let anchors = child_scenes
             .into_iter()
-            .map(|mut scene| scene.dynamic_patch_as_new())
+            .map(DynamicPatch::dynamic_patch_as_new)
             .collect::<Vec<_>>()
             .retain_children(self, receipt.anchors)?;
 

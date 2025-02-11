@@ -26,10 +26,7 @@ pub(crate) fn remove_pane(
 
     // Find the index of this pane among its siblings
     let siblings = children_query.get(parent).unwrap();
-    let index = siblings
-        .iter()
-        .position(|entity| *entity == target)
-        .unwrap();
+    let index = siblings.iter().position(|entity| entity == target).unwrap();
 
     let size = size_query.get(target).unwrap().0;
 
@@ -84,10 +81,7 @@ pub(crate) fn split_pane(
 
     // Find the index of this pane among its siblings
     let siblings = children_query.get(parent).unwrap();
-    let index = siblings
-        .iter()
-        .position(|entity| *entity == target)
-        .unwrap();
+    let index = siblings.iter().position(|entity| entity == target).unwrap();
 
     // Parent has a matching divider direction
     let matching_direction = divider_query

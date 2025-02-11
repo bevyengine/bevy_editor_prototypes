@@ -256,7 +256,7 @@ mod tests {
         assert_eq!(children.len(), 3);
 
         for (i, child_entity) in children.iter().enumerate() {
-            assert_eq!(world.get::<B>(*child_entity), Some(&B(i as u8)));
+            assert_eq!(world.get::<B>(child_entity), Some(&B(i as u8)));
         }
     }
 
@@ -275,7 +275,7 @@ mod tests {
         assert_eq!(children.len(), 7);
 
         for (i, child_entity) in children.iter().enumerate() {
-            assert_eq!(world.get::<B>(*child_entity), Some(&B(i as u8)));
+            assert_eq!(world.get::<B>(child_entity), Some(&B(i as u8)));
         }
     }
 

@@ -223,10 +223,7 @@ pub(crate) fn spawn_resize_handle<'a>(
 
             let siblings = children_query.get(parent).unwrap();
             // Find the index of this handle among its siblings
-            let index = siblings
-                .iter()
-                .position(|entity| *entity == target)
-                .unwrap();
+            let index = siblings.iter().position(|entity| entity == target).unwrap();
 
             let size_a = size_query.get(siblings[index - 1]).unwrap().0;
             let size_b = size_query.get(siblings[index + 1]).unwrap().0;
@@ -252,10 +249,7 @@ pub(crate) fn spawn_resize_handle<'a>(
             let parent = parent_query.get(target).unwrap().get();
             let siblings = children_query.get(parent).unwrap();
             // Find the index of this handle among its siblings
-            let index = siblings
-                .iter()
-                .position(|entity| *entity == target)
-                .unwrap();
+            let index = siblings.iter().position(|entity| entity == target).unwrap();
 
             let delta = trigger.event().delta;
             let delta = match divider_parent {

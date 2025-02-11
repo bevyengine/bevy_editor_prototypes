@@ -27,11 +27,11 @@ unsafe_op_in_unsafe_fn = "warn"
 unused_qualifications = "warn"
 
 [workspace.dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "232824c009c38ee26ad308f054bc12888f0020e9", features = [
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "d6725d3b1baa6a730fa6bfab1bb8f2a9e5f4716e", features = [
     "wayland",
 ] }
-bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "232824c009c38ee26ad308f054bc12888f0020e9" }
-bevy_macro_utils = { git = "https://github.com/bevyengine/bevy.git", rev = "232824c009c38ee26ad308f054bc12888f0020e9" }
+bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "d6725d3b1baa6a730fa6bfab1bb8f2a9e5f4716e" }
+bevy_macro_utils = { git = "https://github.com/bevyengine/bevy.git", rev = "d6725d3b1baa6a730fa6bfab1bb8f2a9e5f4716e" }
 thiserror = "2.0"
 serde = { version = "1", features = ["derive"] }
 tracing-test = "0.2.5"

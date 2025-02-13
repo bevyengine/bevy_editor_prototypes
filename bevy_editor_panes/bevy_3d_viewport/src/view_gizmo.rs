@@ -55,7 +55,7 @@ pub fn spawn_view_gizmo_target_texture(
 
     let image = images.add(target_texture);
 
-    // TODO don't harcode it to top left
+    // TODO don't hardcode it to top left
     // TODO send input events to the image target
     parent.spawn((
         ImageNode::new(image.clone()),

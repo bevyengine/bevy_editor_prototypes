@@ -23,7 +23,8 @@ const GIZMO_CAMERA_ZOOM: f32 = 3.5;
 pub struct ViewGizmoPlugin;
 impl Plugin for ViewGizmoPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (setup_view_gizmo, update_view_gizmo));
+        app.add_systems(Startup, setup_view_gizmo)
+            .add_systems(Update, (spawn_view_gizmo_camera, update_view_gizmo));
     }
 }
 
@@ -77,12 +78,8 @@ fn setup_view_gizmo(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    q: Query<&ViewGizmoCameraTarget, Added<ViewGizmoCameraTarget>>,
     mut gizmo_assets: ResMut<Assets<GizmoAsset>>,
 ) {
-    if q.is_empty() {
-        return;
-    }
     let view_gizmo_pass_layer = RenderLayers::layer(VIEW_GIZMO_LAYER);
     let sphere = meshes.add(Sphere::new(0.2).mesh().uv(32, 18));
 
@@ -133,7 +130,13 @@ fn setup_view_gizmo(
         Transform::from_xyz(0.0, 0.0, 0.0),
         view_gizmo_pass_layer.clone(),
     ));
+}
 
+fn spawn_view_gizmo_camera(
+    mut commands: Commands,
+    q: Query<&ViewGizmoCameraTarget, Added<ViewGizmoCameraTarget>>,
+) {
+    let view_gizmo_pass_layer = RenderLayers::layer(VIEW_GIZMO_LAYER);
     for target in &q {
         commands.spawn((
             Camera3d::default(),

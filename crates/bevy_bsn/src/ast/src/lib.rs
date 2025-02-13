@@ -18,7 +18,7 @@ pub struct BsnAstEntity {
     /// Comoponents patch
     pub patch: BsnAstPatch,
     /// Child entities
-    pub children: Punctuated<BsnAstEntity, Token![,]>,
+    pub children: Punctuated<BsnAstChild, Token![,]>,
     /// Key for this entity
     pub key: Option<BsnAstKey>,
 }
@@ -94,7 +94,7 @@ impl Parse for BsnAstEntity {
         let children = if input.peek(token::Bracket) {
             let content;
             bracketed![content in input];
-            content.parse_terminated(BsnAstEntity::parse, Token![,])?
+            content.parse_terminated(BsnAstChild::parse, Token![,])?
         } else {
             Punctuated::new()
         };
@@ -105,6 +105,25 @@ impl Parse for BsnAstEntity {
             children,
             key,
         })
+    }
+}
+
+/// AST-representation of a single child item of a BSN entity.
+pub enum BsnAstChild {
+    /// A child entity using the BSN syntax.
+    Entity(BsnAstEntity),
+    /// An expression prefixed with `..`, evaluating to a `Scene`.
+    Spread(Expr),
+}
+
+impl Parse for BsnAstChild {
+    fn parse(input: ParseStream) -> Result<Self> {
+        if input.peek(Token![..]) {
+            input.parse::<Token![..]>()?;
+            Ok(BsnAstChild::Spread(input.parse()?))
+        } else {
+            Ok(BsnAstChild::Entity(input.parse()?))
+        }
     }
 }
 

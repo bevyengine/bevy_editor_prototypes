@@ -44,6 +44,26 @@ impl Scene for () {
     }
 }
 
+impl<S: Scene + DynamicPatch> Scene for Vec<S> {
+    fn root_count(&self) -> usize {
+        self.len()
+    }
+
+    fn construct(self, context: &mut ConstructContext) -> Result<(), ConstructError> {
+        for scene in self {
+            scene.construct(context)?;
+        }
+        Ok(())
+    }
+
+    fn spawn(self, context: &mut ConstructContext) -> Result<(), ConstructError> {
+        for scene in self {
+            scene.spawn(context)?;
+        }
+        Ok(())
+    }
+}
+
 // Tuple impls
 macro_rules! impl_scene_tuple {
     ($N:expr, $(#[$meta:meta])* $(($S:ident, $s:ident)),*) => {

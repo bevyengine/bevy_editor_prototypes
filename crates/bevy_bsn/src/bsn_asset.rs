@@ -173,7 +173,14 @@ impl From<&BsnAstEntity> for BsnEntity {
     fn from(ast: &BsnAstEntity) -> Self {
         BsnEntity {
             components: BsnComponent::vec_from_ast_patch(&ast.patch),
-            children: ast.children.iter().map(BsnEntity::from).collect(),
+            children: ast
+                .children
+                .iter()
+                .filter_map(|c| match c {
+                    BsnAstChild::Entity(entity) => Some(BsnEntity::from(entity)),
+                    _ => None,
+                })
+                .collect(),
             key: ast.key.as_ref().map(BsnKey::from),
         }
     }

@@ -66,6 +66,15 @@ impl ToTokensInternal for BsnAstEntity {
     }
 }
 
+impl ToTokensInternal for BsnAstChild {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        match self {
+            BsnAstChild::Entity(entity) => entity.to_tokens(tokens),
+            BsnAstChild::Spread(expr) => expr.to_tokens(tokens),
+        };
+    }
+}
+
 impl ToTokensInternal for Option<BsnAstKey> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         match self {

@@ -49,7 +49,7 @@ fn sheep_system(mut commands: Commands, sheep: Query<&Sheep>, root: Single<Entit
             bottom: Val::Px(5.0),
             right: Val::Px(5.0),
         } [
-            (:counter(num_sheep, "sheep", SheepButton::Increment, SheepButton::Decrement))
+            ..counter(num_sheep, "sheep", SheepButton::Increment, SheepButton::Decrement),
         ]
     };
 

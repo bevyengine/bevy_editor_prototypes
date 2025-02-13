@@ -61,6 +61,20 @@ all_tuples!(
     t
 );
 
+impl<D: DynamicPatch> DynamicPatch for Vec<D> {
+    fn dynamic_patch(self, dynamic_scene: &mut DynamicScene) {
+        for scene in self {
+            scene.dynamic_patch(dynamic_scene);
+        }
+    }
+
+    fn dynamic_patch_as_child(self, parent_scene: &mut DynamicScene) {
+        for scene in self {
+            scene.dynamic_patch_as_child(parent_scene);
+        }
+    }
+}
+
 impl<C, F> DynamicPatch for ConstructPatch<C, F>
 where
     C: Construct + Component,

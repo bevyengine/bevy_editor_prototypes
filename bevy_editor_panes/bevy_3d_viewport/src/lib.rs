@@ -16,6 +16,9 @@ use bevy_editor_cam::prelude::{DefaultEditorCamPlugins, EditorCam};
 use bevy_editor_styles::Theme;
 use bevy_infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings};
 use bevy_pane_layout::prelude::*;
+use view_gizmo::{spawn_view_gizmo_target_texture, ViewGizmoPlugin};
+
+mod view_gizmo;
 
 /// The identifier for the 3D Viewport.
 /// This is present on any pane that is a 3D Viewport.
@@ -40,7 +43,8 @@ impl Plugin for Viewport3dPanePlugin {
         if !app.is_plugin_added::<InfiniteGridPlugin>() {
             app.add_plugins(InfiniteGridPlugin);
         }
-        app.add_plugins(DefaultEditorCamPlugins)
+
+        app.add_plugins((DefaultEditorCamPlugins, ViewGizmoPlugin))
             .add_systems(Startup, setup)
             .add_systems(
                 PreUpdate,
@@ -162,6 +166,9 @@ fn on_pane_creation(
             },
             ChildOf(structure.content),
         ))
+        .with_children(|parent| {
+            spawn_view_gizmo_target_texture(images, parent);
+        })
         .observe(|trigger: Trigger<Pointer<Over>>, mut commands: Commands| {
             commands.entity(trigger.target()).insert(Active);
         })

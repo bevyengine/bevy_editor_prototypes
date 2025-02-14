@@ -20,6 +20,13 @@ fn derive_internal(ast: DeriveInput) -> TokenStream {
 
     let props_type = format_ident!("{struct_name}Props");
 
+    let no_reflect = ast.attrs.iter().any(|a| a.path().is_ident("no_reflect"));
+    let props_derive = if no_reflect {
+        quote! { #FQClone }
+    } else {
+        quote! { #FQClone, #bevy_reflect::Reflect }
+    };
+
     match &ast.data {
         Data::Struct(data_struct) => {
             let StructImpl {
@@ -31,7 +38,7 @@ fn derive_internal(ast: DeriveInput) -> TokenStream {
             let props_type_declaration = if is_named {
                 quote! {
                     #[allow(missing_docs)]
-                    #[derive(#FQClone, #bevy_reflect::Reflect)]
+                    #[derive(#props_derive)]
                     pub struct #props_type #impl_generics #where_clause {
                         #(#props_fields)*
                     }
@@ -47,7 +54,7 @@ fn derive_internal(ast: DeriveInput) -> TokenStream {
             } else {
                 quote! {
                     #[allow(missing_docs)]
-                    #[derive(#FQClone, #bevy_reflect::Reflect)]
+                    #[derive(#props_derive)]
                     pub struct #props_type #impl_generics (#(#props_fields)*) #where_clause;
 
                     impl #impl_generics #FQDefault for #props_type #type_generics #where_clause {
@@ -125,7 +132,7 @@ fn derive_internal(ast: DeriveInput) -> TokenStream {
 
             quote! {
                 #[allow(missing_docs)]
-                #[derive(#FQClone, #bevy_reflect::Reflect)]
+                #[derive(#props_derive)]
                 pub enum #props_type #type_generics #where_clause {
                     #(#variant_props_entries,)*
                 }

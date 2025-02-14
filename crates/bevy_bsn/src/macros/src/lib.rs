@@ -14,7 +14,7 @@ pub fn bsn(item: TokenStream) -> TokenStream {
 }
 
 /// Derive macro for the `Construct` trait.
-#[proc_macro_derive(Construct, attributes(construct))]
+#[proc_macro_derive(Construct, attributes(no_reflect, construct))]
 pub fn derive_construct(item: TokenStream) -> TokenStream {
     derive_construct::derive_construct(item.into()).into()
 }

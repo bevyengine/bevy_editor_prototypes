@@ -17,8 +17,7 @@ fn main() {
 
 fn sheep_plugin(app: &mut App) {
     app.add_systems(Startup, setup)
-        .add_systems(Update, sheep_system)
-        .add_observer(observe_buttons);
+        .add_systems(Update, sheep_system);
 }
 
 fn setup(mut commands: Commands) {
@@ -32,13 +31,6 @@ struct UiRoot;
 #[derive(Component)]
 struct Sheep;
 
-#[derive(Component, Default, Clone)]
-enum SheepButton {
-    #[default]
-    Increment,
-    Decrement,
-}
-
 // A query that pulls data from the ecs and then updates it using a template.
 fn sheep_system(mut commands: Commands, sheep: Query<&Sheep>, root: Single<Entity, With<UiRoot>>) {
     let num_sheep = sheep.iter().len();
@@ -49,7 +41,7 @@ fn sheep_system(mut commands: Commands, sheep: Query<&Sheep>, root: Single<Entit
             bottom: Val::Px(5.0),
             right: Val::Px(5.0),
         } [
-            ..counter(num_sheep, "sheep", SheepButton::Increment, SheepButton::Decrement),
+            ..counter(num_sheep, "sheep",),
         ]
     };
 
@@ -57,20 +49,37 @@ fn sheep_system(mut commands: Commands, sheep: Query<&Sheep>, root: Single<Entit
 }
 
 // A function that returns an ecs template.
-fn counter<T: Component + Default + Clone>(
-    num: usize,
-    name: &'static str,
-    inc: T,
-    dec: T,
-) -> impl Scene {
+fn counter(num: usize, name: &'static str) -> impl Scene {
     bsn! {
         Node [
-            youhave: Text("You have ") [
+            Text("You have ") [
                 TextSpan(format!("{num}")),
                 TextSpan(format!(" {name}!")),
             ],
-            {1}: ( Button, Text("Increase"), TextColor(css::GREEN), {inc.clone()}, {visible_if(num < 100)} ),
-            {2}: ( Button, Text("Decrease"), TextColor(css::RED), {dec.clone()}, {visible_if(num > 0)} ),
+            (
+                Button,
+                Text("Increase"),
+                TextColor(css::GREEN),
+                {visible_if(num < 100)}
+            ) [
+                // Observes parent entity.
+                On(|_: Trigger<Pointer<Released>>, mut commands: Commands| {
+                    commands.spawn(Sheep);
+                })
+            ],
+            (
+                {Name::new("DecreaseButton")},
+                Button,
+                Text("Decrease"),
+                TextColor(css::RED),
+                {visible_if(num > 0)},
+            ),
+            // Observes named entity "DecreaseButton"
+            On(|_: Trigger<Pointer<Released>>, sheep: Query<Entity, With<Sheep>>, mut commands: Commands| {
+                if let Some(sheep) = sheep.iter().next() {
+                    commands.entity(sheep).despawn();
+                }
+            }, @"DecreaseButton"),
         ]
     }
 }
@@ -82,25 +91,4 @@ fn visible_if(condition: bool) -> Visibility {
     } else {
         Visibility::Hidden
     }
-}
-
-// A global observer which responds to button clicks.
-fn observe_buttons(
-    mut trigger: Trigger<Pointer<Released>>,
-    buttons: Query<&SheepButton>,
-    sheep: Query<Entity, With<Sheep>>,
-    mut commands: Commands,
-) {
-    match buttons.get(trigger.target).ok() {
-        Some(SheepButton::Increment) => {
-            commands.spawn(Sheep);
-        }
-        Some(SheepButton::Decrement) => {
-            if let Some(sheep) = sheep.iter().next() {
-                commands.entity(sheep).despawn();
-            }
-        }
-        _ => {}
-    }
-    trigger.propagate(false);
 }

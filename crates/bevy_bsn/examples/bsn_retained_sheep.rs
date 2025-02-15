@@ -2,7 +2,7 @@
 //!
 //! An all-in-one numerical ruminant package.
 //!
-//! This example is originally from `i-cant-believe-its-not-bsn`.
+//! This example is originally from `i-cant-believe-its-not-bsn` and shows the differences between using `bsn!` and `template!`.
 use bevy::{color::palettes::css, prelude::*};
 
 use bevy_bsn::{Scene, *};
@@ -41,7 +41,7 @@ fn sheep_system(mut commands: Commands, sheep: Query<&Sheep>, root: Single<Entit
             bottom: Val::Px(5.0),
             right: Val::Px(5.0),
         } [
-            ..counter(num_sheep, "sheep",),
+            ..counter(num_sheep, "sheep"),
         ]
     };
 

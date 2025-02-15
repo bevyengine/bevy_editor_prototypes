@@ -14,23 +14,26 @@ use crate::{
     ReflectConstruct, Scene,
 };
 
-/// Dynamic patch
+/// Trait for entity patches that can be applied to a [`DynamicScene`].
+///
+/// Implemented for tuples of [`DynamicPatch`] and [`Vec<impl DynamicPatch>`], allowing multiple patches to be applied at once, either:
+/// - Onto the same entity, to power things like inheritance, using [`DynamicPatch::dynamic_patch`].
+/// - As children using [`DynamicPatch::dynamic_patch_as_children`]
 pub trait DynamicPatch: Sized + Send + Sync + 'static {
-    /// Layer this patch onto a [`DynamicScene`].
+    /// Apply this patch to the provided [`DynamicScene`].
     fn dynamic_patch(self, scene: &mut DynamicScene);
 
-    /// Creates a new [`DynamicScene`], patches it, and pushes it as a child of the provided `parent_scene`.
-    fn dynamic_patch_as_child(self, parent_scene: &mut DynamicScene) {
-        let mut child_scene = DynamicScene::default();
-        self.dynamic_patch(&mut child_scene);
-        parent_scene.push_child(child_scene);
-    }
-
-    /// Creates a new [`DynamicScene`], patches it, and returns it.
-    fn dynamic_patch_as_new(self) -> DynamicScene {
+    /// Creates a new [`DynamicScene`], patches it with `self`, and returns it.
+    fn into_dynamic_scene(self) -> DynamicScene {
         let mut scene = DynamicScene::default();
         self.dynamic_patch(&mut scene);
         scene
+    }
+
+    /// Creates a new [`DynamicScene`] per root in `self`, patches it, and pushes it as a child of the provided `parent_scene`.
+    fn dynamic_patch_as_children(self, parent_scene: &mut DynamicScene) {
+        let child_scene = self.into_dynamic_scene();
+        parent_scene.push_child(child_scene);
     }
 }
 
@@ -44,9 +47,9 @@ macro_rules! impl_patch_for_tuple {
                 $($t.dynamic_patch(_scene);)*
             }
 
-            fn dynamic_patch_as_child(self, _parent_scene: &mut DynamicScene) {
+            fn dynamic_patch_as_children(self, _parent_scene: &mut DynamicScene) {
                 let ($($t,)*) = self;
-                $($t.dynamic_patch_as_child(_parent_scene);)*
+                $($t.dynamic_patch_as_children(_parent_scene);)*
             }
         }
     };
@@ -68,9 +71,9 @@ impl<D: DynamicPatch> DynamicPatch for Vec<D> {
         }
     }
 
-    fn dynamic_patch_as_child(self, parent_scene: &mut DynamicScene) {
+    fn dynamic_patch_as_children(self, parent_scene: &mut DynamicScene) {
         for scene in self {
-            scene.dynamic_patch_as_child(parent_scene);
+            scene.dynamic_patch_as_children(parent_scene);
         }
     }
 }
@@ -147,7 +150,7 @@ where
 }
 
 /// Holds component patches and a dynamic construct function.
-pub struct ComponentProps {
+pub(crate) struct ComponentProps {
     type_id: TypeId,
     patches: Vec<Box<dyn DynamicComponentPatch>>,
     construct: DynamicConstructFn,
@@ -192,7 +195,7 @@ impl DynamicScene {
         self.children.push(child);
     }
 
-    /// Adds a typed component patch to the dynamic scene.
+    /// Adds a typed component patch to the root entity of this dynamic scene.
     pub fn patch_typed<C, F>(&mut self, patch: F)
     where
         C: Construct + Component,
@@ -220,7 +223,7 @@ impl DynamicScene {
         }
     }
 
-    /// Adds a reflected component patch to the dynamic scene.
+    /// Adds a reflected component patch to the root entity of this dynamic scene.
     pub fn patch_reflected<F>(&mut self, type_id: TypeId, patch: F)
     where
         F: Fn(&mut dyn PartialReflect) + Send + Sync + 'static,

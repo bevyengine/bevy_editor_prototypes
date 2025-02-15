@@ -8,9 +8,13 @@ use crate::{
     Patch,
 };
 
-/// Destination trait for [`EntityPatch`] and [`DynamicScene`].
+/// A patch tree of entities to spawn or retain.
 ///
-/// Allows using `impl Scene` instead of complicated generics and also enables boxed scenes.
+/// Destination trait for [`EntityPatch`] and [`DynamicScene`], allowing `impl Scene` instead of complicated generics.
+///
+/// [`Scene`] is also implemented for tuples of [`Scene`] and [`Vec<impl Scene>`], allowing spread operations and powering multiple inheritance.
+///
+///
 pub trait Scene: Sized + DynamicPatch {
     /// The number of root entities in this scene.
     fn root_count(&self) -> usize;
@@ -99,6 +103,10 @@ all_tuples_with_size!(
 );
 
 /// Represents a tree of entities and patches to be applied to them.
+///
+/// This is what the [`crate::bsn`] macro expands to.
+///
+/// See [`Scene`] for more usage information.
 pub struct EntityPatch<I, P, C>
 where
     I: Scene,
@@ -169,7 +177,7 @@ where
         self.patch.dynamic_patch(scene);
 
         // Push the children
-        self.children.dynamic_patch_as_child(scene);
+        self.children.dynamic_patch_as_children(scene);
     }
 }
 

@@ -44,10 +44,12 @@ impl<T: Asset> Construct for ConstructHandle<T> {
     }
 }
 
-/// Entity reference constructable using [`EntityPath`], allowing passing either entity name or id as prop.
+/// [`Entity`] constructable using [`EntityPath`], allowing passing either entity name or id as prop.
+///
+/// This exists because we can't implement [`Construct`] for any foreign types. When [`Construct`] is available upstream this should no longer be needed.
 #[derive(Deref, DerefMut, Debug, Copy, Clone, Reflect)]
 #[reflect(Construct)]
-pub struct ConstructEntity(Entity);
+pub struct ConstructEntity(pub Entity);
 
 impl From<Entity> for ConstructEntity {
     fn from(value: Entity) -> Self {

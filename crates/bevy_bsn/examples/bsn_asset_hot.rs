@@ -1,4 +1,4 @@
-//! Simple non-destructive .bsn-hot-reloading utilizing retained scenes.
+//! Simple non-destructive .bsn-hot-reloading utilizing [`RetainScene`].
 //!
 //! Run with `--features="bevy/file_watcher"` to enable hot-reloading.
 use bevy::prelude::*;

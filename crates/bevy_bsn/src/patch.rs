@@ -6,7 +6,7 @@ use crate::{Construct, ConstructContext, ConstructError, ConstructTuple};
 
 /// A patch that can be applied to the props of a [`Construct`]able [`Bundle`].
 ///
-/// [`Patch`] is implemented for functions that modify `Construct::Props`, aka [`ConstructPatch`].
+/// [`Patch`] is implemented for functions that modify `Construct::Props`, aka [`ConstructPatch`]. It is also implemented for tuples of [`Patch`].
 pub trait Patch: Send + Sync + 'static {
     /// The construct type whose props this patch can be applied to.
     type Construct: Construct + Bundle;

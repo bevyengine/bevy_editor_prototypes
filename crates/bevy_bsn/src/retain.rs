@@ -93,7 +93,9 @@ impl RetainScene for DynamicScene {
 
 /// Trait implemented for collections of scenes that can be retained.
 pub trait RetainChildren {
-    /// Retains the children of a scene.
+    /// Retains the scenes as children of `entity`, updating the [`Receipt`] in the process.
+    ///
+    /// See: [`RetainScene::retain`].
     fn retain_children(
         self,
         entity: &mut EntityWorldMut,
@@ -167,13 +169,14 @@ impl RetainChildren for Vec<DynamicScene> {
 
 /// Retain [`Scene`] extension.
 pub trait RetainSceneExt {
-    /// Retains the scene by applying the patch to the entity,
-    ///  removing components that should be removed, and spawning/updating children.
+    /// Retains the provided scene on the entity.
     ///
-    /// Maintains [`Receipt`]s to allow for intelligent updates.
+    /// See [`RetainScene::retain`].
     fn retain_scene(&mut self, scene: impl Scene) -> Result<(), ConstructError>;
 
     /// Retains the provided scenes as children of self.
+    ///
+    /// See [`RetainChildren::retain_children`].
     fn retain_child_scenes<T: Scene>(
         &mut self,
         child_scenes: impl IntoIterator<Item = T>,
@@ -197,7 +200,7 @@ impl RetainSceneExt for EntityWorldMut<'_> {
         // Retain the children
         let anchors = child_scenes
             .into_iter()
-            .map(DynamicPatch::dynamic_patch_as_new)
+            .map(DynamicPatch::into_dynamic_scene)
             .collect::<Vec<_>>()
             .retain_children(self, receipt.anchors)?;
 
@@ -219,6 +222,8 @@ pub trait RetainSceneCommandsExt {
     fn retain_scene(&mut self, scene: impl Scene + Send + 'static);
 
     /// Retains the provided scenes as children of self.
+    ///
+    /// See [`RetainChildren::retain_children`].
     fn retain_child_scenes<T: Scene>(
         &mut self,
         child_scenes: impl IntoIterator<Item = T> + Send + 'static,

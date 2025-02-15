@@ -2,12 +2,9 @@ use core::hash::Hash;
 use std::fmt::Display;
 
 use bevy::{
-    ecs::component::ComponentId,
-    platform_support::{
-        collections::{HashMap, HashSet},
-        hash::FixedHasher,
-    },
-    prelude::{Children, Component, Entity, EntityCommands, EntityWorldMut},
+    ecs::component::{ComponentId, ComponentInfo},
+    platform_support::{collections::HashMap, hash::FixedHasher},
+    prelude::{Children, Component, Deref, DerefMut, Entity, EntityCommands, EntityWorldMut},
 };
 
 use crate::{Scene, *};
@@ -35,9 +32,44 @@ impl<T: Display> From<T> for Key {
 #[derive(Default, Component, Clone)]
 pub struct Receipt {
     /// The components it inserted.
-    components: HashSet<ComponentId>,
+    components: InsertedComponents,
     /// The anchors of all the children it spawned/retained.
     anchors: HashMap<Anchor, Entity>,
+}
+
+/// Map of inserted component ids to a bool of whether they were explicit or required.
+#[derive(Default, Clone, Deref, DerefMut)]
+pub struct InsertedComponents(HashMap<ComponentId, bool>);
+
+impl InsertedComponents {
+    fn with_capacity(capacity: usize) -> Self {
+        Self(HashMap::with_capacity_and_hasher(capacity, FixedHasher))
+    }
+
+    /// Returns an iterator of the component ids that should be removed going from `self` to `new`.
+    ///
+    /// Components are considered removed if they are in `self` but not in `new`, or if they were previously explicit but are now required.
+    fn iter_removed<'a>(
+        &'a self,
+        new: &'a InsertedComponents,
+    ) -> impl Iterator<Item = ComponentId> + 'a {
+        self.iter()
+            .filter(|(id, explicit)| {
+                !new.contains_key(*id) || (**explicit && !new.get(*id).unwrap())
+            })
+            .map(|(id, _)| *id)
+    }
+
+    fn insert_required(&mut self, id: ComponentId) {
+        self.entry(id).or_insert(false);
+    }
+
+    fn insert_explicit(&mut self, component_info: &ComponentInfo) {
+        self.insert(component_info.id(), true);
+        for required_id in component_info.required_components().iter_ids() {
+            self.insert_required(required_id);
+        }
+    }
 }
 
 /// Trait implemented for scenes that can be retained.
@@ -57,37 +89,48 @@ impl RetainScene for DynamicScene {
             .map(ToOwned::to_owned)
             .unwrap_or_default();
 
+        // Collect the full set of inserted components, along with whether they are explicit or required.
+        let mut components = InsertedComponents::with_capacity(usize::max(
+            self.component_props.len(),
+            receipt.components.len(),
+        ));
+        for type_id in self.component_props.keys() {
+            let Some(id) = entity.world().components().get_id(*type_id) else {
+                continue;
+            };
+
+            #[allow(unsafe_code)]
+            // SAFETY: We know that the id is valid because we just got it from the world.
+            let info = unsafe { entity.world().components().get_info_unchecked(id) };
+
+            components.insert_explicit(info);
+        }
+
+        // Remove the components in the previous bundle but not this one
+        for component_id in receipt.components.iter_removed(&components) {
+            entity.remove_by_id(component_id);
+        }
+
+        // Insert the new bundle
         let entity_id = entity.id();
         entity.world_scope(|world| {
-            // Construct and insert the components
-            let mut components =
-                HashSet::with_capacity_and_hasher(self.component_props.len(), FixedHasher);
-            for (type_id, component_props) in self.component_props {
+            for (_, component_props) in self.component_props {
                 component_props
                     .construct(&mut ConstructContext::new(entity_id, world))
                     .unwrap();
-                components.insert(world.components().get_id(type_id).unwrap());
             }
+        });
 
-            // Remove the components in the previous bundle but not this one
-            let mut entity = world.entity_mut(entity_id);
-            for component_id in receipt.components.difference(&components) {
-                entity.remove_by_id(*component_id);
-            }
+        // Retain the children
+        let anchors = self.children.retain_children(entity, receipt.anchors)?;
 
-            // Retain the children
-            let anchors = self
-                .children
-                .retain_children(&mut entity, receipt.anchors)?;
+        // Place the new receipt onto the entity
+        entity.insert(Receipt {
+            components,
+            anchors,
+        });
 
-            // Place the new receipt onto the entity
-            entity.insert(Receipt {
-                components,
-                anchors,
-            });
-
-            Ok(())
-        })
+        Ok(())
     }
 }
 

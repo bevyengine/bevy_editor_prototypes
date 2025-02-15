@@ -99,11 +99,11 @@ impl ToTokensInternal for BsnAstPatch {
                     let member = member.to_token_stream();
                     let prop = prop.to_token_stream();
                     quote! {
-                        props.#member = #prop;
+                        __props.#member = #prop;
                     }
                 });
                 quote! {
-                    #path::patch(move |props| {
+                    #path::patch(move |__props| {
                         #(#assignments)*
                     })
                 }
@@ -115,8 +115,8 @@ impl ToTokensInternal for BsnAstPatch {
                 }
             }
             BsnAstPatch::Expr(expr) => quote! {
-                #bevy_bsn::ConstructPatch::new_inferred(move |props| {
-                    *props = #expr;
+                #bevy_bsn::ConstructPatch::new_inferred(move |__props| {
+                    *__props = #expr;
                 })
             },
         }

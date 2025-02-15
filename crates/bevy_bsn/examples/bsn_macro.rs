@@ -23,7 +23,7 @@ fn ui() -> impl Scene {
             flex_direction: FlexDirection::Column,
             row_gap: px(5.0),
         } [
-            (Node, :button("Basic")),
+            (Node, {Name::new("BasicButton")}, :button("Basic")),
             (Node, :button("Rounded"), rounded),
             (Node { border: px_all(5.0) }, BorderColor(RED_500) :button("Thick red"), rounded),
             (Node, :button("Merged children"), rounded) [(
@@ -34,6 +34,18 @@ fn ui() -> impl Scene {
                 BackgroundColor(BLUE_500),
                 {BorderRadius::MAX}
             )],
+
+            (:button("Click me!")) [
+                // Observing parent entity
+                On(|_: Trigger<Pointer<Click>>| {
+                    info!("Clicked me!");
+                })
+            ],
+
+            // Observing entity "BasicButton" by name
+            On(|_: Trigger<Pointer<Click>>| {
+                info!("Clicked Basic!");
+            }, @"BasicButton"),
         ]
     }
 }

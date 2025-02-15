@@ -2,8 +2,8 @@ use core::{any::TypeId, str::FromStr};
 
 use bevy::reflect::{
     DynamicEnum, DynamicStruct, DynamicTuple, DynamicTupleStruct, DynamicVariant, NamedField,
-    PartialReflect, Reflect, ReflectKind, StructInfo, StructVariantInfo, TypeInfo,
-    TypeRegistration, TypeRegistry,
+    PartialReflect, ReflectKind, StructInfo, StructVariantInfo, TypeInfo, TypeRegistration,
+    TypeRegistry,
 };
 use thiserror::Error;
 
@@ -121,18 +121,18 @@ impl<'a> BsnReflector<'a> {
         // Add component patches
         for component in bsn_entity.components.iter() {
             let patch_data = self.reflect_component_patch(component)?;
-            let patch = Box::new(move |props: &mut dyn Reflect| {
-                props.apply(patch_data.props.instance.as_ref());
-            });
-            dynamic_scene
-                .component_props
-                .insert(patch_data.type_id, vec![patch]);
+            dynamic_scene.patch_reflected(
+                patch_data.type_id,
+                move |props: &mut dyn PartialReflect| {
+                    props.apply(patch_data.props.instance.as_ref());
+                },
+            );
         }
 
         // Add children
         for child in bsn_entity.children.iter() {
             let child_dynamic_scene = self.reflect_dynamic_scene_internal(child)?;
-            dynamic_scene.children.push(child_dynamic_scene);
+            dynamic_scene.push_child(child_dynamic_scene);
         }
 
         Ok(dynamic_scene)

@@ -53,12 +53,38 @@ impl ToTokensInternal for BsnAstEntity {
         let patch = &self.patch.to_token_stream();
         let inherits = self.inherits.iter().map(ToTokensInternal::to_token_stream);
         let children = self.children.iter().map(ToTokensInternal::to_token_stream);
+        let key = self.key.to_token_stream();
         quote! {
             #bevy_bsn::EntityPatch {
                 inherit: (#(#inherits,)*),
                 patch: #patch,
                 children: (#(#children,)*),
+                key: #key,
             }
+        }
+        .to_tokens(tokens);
+    }
+}
+
+impl ToTokensInternal for BsnAstChild {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        match self {
+            BsnAstChild::Entity(entity) => entity.to_tokens(tokens),
+            BsnAstChild::Spread(expr) => expr.to_tokens(tokens),
+        };
+    }
+}
+
+impl ToTokensInternal for Option<BsnAstKey> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        match self {
+            Some(BsnAstKey::Static(key)) => quote! {
+                Some(#key.into())
+            },
+            Some(BsnAstKey::Dynamic(block)) => quote! {
+                Some(#block.into())
+            },
+            None => quote! { None },
         }
         .to_tokens(tokens);
     }
@@ -73,11 +99,11 @@ impl ToTokensInternal for BsnAstPatch {
                     let member = member.to_token_stream();
                     let prop = prop.to_token_stream();
                     quote! {
-                        props.#member = #prop;
+                        __props.#member = #prop;
                     }
                 });
                 quote! {
-                    #path::patch(move |props| {
+                    #path::patch(move |__props| {
                         #(#assignments)*
                     })
                 }
@@ -89,8 +115,8 @@ impl ToTokensInternal for BsnAstPatch {
                 }
             }
             BsnAstPatch::Expr(expr) => quote! {
-                #bevy_bsn::ConstructPatch::new_inferred(move |props| {
-                    *props = #expr;
+                #bevy_bsn::ConstructPatch::new_inferred(move |__props| {
+                    *__props = #expr;
                 })
             },
         }

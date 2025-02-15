@@ -2,10 +2,10 @@
 
 use syn::{
     braced, bracketed, parenthesized,
-    parse::{Parse, ParseStream},
+    parse::{discouraged::Speculative, Parse, ParseStream},
     punctuated::Punctuated,
     token::{self, Brace, Paren},
-    Expr, Member, Path, Result, Token,
+    Block, Expr, Ident, Member, Path, Result, Token,
 };
 
 pub use quote;
@@ -18,11 +18,35 @@ pub struct BsnAstEntity {
     /// Comoponents patch
     pub patch: BsnAstPatch,
     /// Child entities
-    pub children: Punctuated<BsnAstEntity, Token![,]>,
+    pub children: Punctuated<BsnAstChild, Token![,]>,
+    /// Key for this entity
+    pub key: Option<BsnAstKey>,
 }
 
 impl Parse for BsnAstEntity {
     fn parse(input: ParseStream) -> Result<Self> {
+        let key = if input.peek(Ident) && input.peek2(Token![:]) {
+            // Static key
+            let key = input.parse::<Ident>()?;
+            input.parse::<Token![:]>()?;
+            Some(BsnAstKey::Static(key.to_string()))
+        } else {
+            // Look for dynamic key
+            let fork = input.fork();
+            if fork.peek(Brace) {
+                let block: Block = fork.parse()?;
+                if fork.peek(Token![:]) {
+                    fork.parse::<Token![:]>()?;
+                    input.advance_to(&fork);
+                    Some(BsnAstKey::Dynamic(block))
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        };
+
         let mut inherits = Punctuated::new();
         let patch;
         if input.peek(Paren) {
@@ -70,7 +94,7 @@ impl Parse for BsnAstEntity {
         let children = if input.peek(token::Bracket) {
             let content;
             bracketed![content in input];
-            content.parse_terminated(BsnAstEntity::parse, Token![,])?
+            content.parse_terminated(BsnAstChild::parse, Token![,])?
         } else {
             Punctuated::new()
         };
@@ -79,8 +103,36 @@ impl Parse for BsnAstEntity {
             inherits,
             patch,
             children,
+            key,
         })
     }
+}
+
+/// AST-representation of a single child item of a BSN entity.
+pub enum BsnAstChild {
+    /// A child entity using the BSN syntax.
+    Entity(BsnAstEntity),
+    /// An expression prefixed with `..`, evaluating to a `Scene`.
+    Spread(Expr),
+}
+
+impl Parse for BsnAstChild {
+    fn parse(input: ParseStream) -> Result<Self> {
+        if input.peek(Token![..]) {
+            input.parse::<Token![..]>()?;
+            Ok(BsnAstChild::Spread(input.parse()?))
+        } else {
+            Ok(BsnAstChild::Entity(input.parse()?))
+        }
+    }
+}
+
+/// AST for a BSN entity key.
+pub enum BsnAstKey {
+    /// A static key: `key: ...`
+    Static(String),
+    /// A dynamic key: `{key}: ...`
+    Dynamic(Block),
 }
 
 /// AST for a BSN patch.

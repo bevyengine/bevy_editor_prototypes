@@ -39,12 +39,7 @@ fn spawn_scene_on_load(
                 .reflect_dynamic_scene()
                 .unwrap();
 
-            commands.queue(move |world: &mut World| {
-                let id = world.spawn_empty().id();
-                dynamic_scene
-                    .construct(&mut ConstructContext::new(id, world))
-                    .unwrap();
-            });
+            commands.spawn_scene(dynamic_scene);
         };
     }
 }

@@ -41,6 +41,8 @@ pub enum ConstructError {
 ///
 /// This trait is blanket implemented with a "passthrough" for all types that are [`Default`] + [`Clone`]
 /// to allow these types to be used in any place expecting a [`Construct`].
+///
+/// [`Construct`] can be derived using `#[derive(Construct)]`.
 pub trait Construct: Sized {
     /// The type of props used to construct this type.
     type Props: Default + Clone;

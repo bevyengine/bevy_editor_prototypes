@@ -15,6 +15,7 @@ mod construct_reflect;
 mod dynamic;
 mod entity_patch;
 mod patch;
+mod retain;
 
 use bevy::app::App;
 use bevy::app::Plugin;
@@ -28,6 +29,7 @@ pub use construct_reflect::*;
 pub use dynamic::*;
 pub use entity_patch::*;
 pub use patch::*;
+pub use retain::*;
 
 pub use bevy_bsn_macros::bsn;
 pub use bevy_bsn_macros::Construct;

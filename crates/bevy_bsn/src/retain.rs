@@ -29,13 +29,33 @@ impl<T: Display> From<T> for Key {
 }
 
 /// Receipts allow retaining of scenes that can be intelligently updated.
-#[derive(Default, Component, Clone)]
+#[derive(Component)]
 pub struct Receipt<T = ()> {
     /// The components it inserted.
     components: InsertedComponents,
     /// The anchors of all the children it spawned/retained.
     anchors: HashMap<Anchor, Entity>,
     marker: core::marker::PhantomData<T>,
+}
+
+impl<T> Clone for Receipt<T> {
+    fn clone(&self) -> Self {
+        Self {
+            components: self.components.clone(),
+            anchors: self.anchors.clone(),
+            marker: Default::default(),
+        }
+    }
+}
+
+impl<T> Default for Receipt<T> {
+    fn default() -> Self {
+        Self {
+            components: Default::default(),
+            anchors: Default::default(),
+            marker: Default::default(),
+        }
+    }
 }
 
 /// Map of inserted component ids to a bool of whether they were explicit or required.
@@ -79,14 +99,14 @@ pub trait RetainScene {
     ///  removing components that should be removed, and spawning/updating children.
     ///
     /// Maintains [`Receipt`]s to allow for intelligent updates.
-    fn retain<T: Clone + Default + Send + Sync + 'static>(
+    fn retain<T: Send + Sync + 'static>(
         self,
         entity: &mut EntityWorldMut,
     ) -> Result<(), ConstructError>;
 }
 
 impl RetainScene for DynamicScene {
-    fn retain<T: Clone + Default + Send + Sync + 'static>(
+    fn retain<T: Send + Sync + 'static>(
         self,
         entity: &mut EntityWorldMut,
     ) -> Result<(), ConstructError> {
@@ -149,7 +169,7 @@ pub trait RetainChildren {
     /// Retains the scenes as children of `entity`, updating the [`Receipt`] in the process.
     ///
     /// See: [`RetainScene::retain`].
-    fn retain_children<T: Clone + Default + Send + Sync + 'static>(
+    fn retain_children<T: Send + Sync + 'static>(
         self,
         entity: &mut EntityWorldMut,
         current_anchors: HashMap<Anchor, Entity>,
@@ -157,7 +177,7 @@ pub trait RetainChildren {
 }
 
 impl RetainChildren for Vec<DynamicScene> {
-    fn retain_children<T: Clone + Default + Send + Sync + 'static>(
+    fn retain_children<T: Send + Sync + 'static>(
         self,
         entity: &mut EntityWorldMut,
         mut current_anchors: HashMap<Anchor, Entity>,
@@ -231,7 +251,7 @@ pub trait RetainSceneExt {
     /// Retains the provided scene on the entity with `T` as a marker for the `Receipt`, allowing for multiple retained scenes on the same entity.
     ///
     /// See [`RetainScene::retain`].
-    fn retain_scene_with<T: Clone + Default + Send + Sync + 'static>(
+    fn retain_scene_with<T: Send + Sync + 'static>(
         &mut self,
         scene: impl Scene,
     ) -> Result<(), ConstructError>;
@@ -249,14 +269,14 @@ pub trait RetainSceneExt {
     /// Retains the provided scenes as children of self with `T` as a marker for the `Receipt`, allowing for multiple retained scenes on the same entity.
     ///
     /// See [`RetainChildren::retain_children`].
-    fn retain_child_scenes_with<S: Scene, T: Clone + Default + Send + Sync + 'static>(
+    fn retain_child_scenes_with<S: Scene, T: Send + Sync + 'static>(
         &mut self,
         child_scenes: impl IntoIterator<Item = S>,
     ) -> Result<(), ConstructError>;
 }
 
 impl RetainSceneExt for EntityWorldMut<'_> {
-    fn retain_scene_with<T: Clone + Default + Send + Sync + 'static>(
+    fn retain_scene_with<T: Send + Sync + 'static>(
         &mut self,
         scene: impl Scene,
     ) -> Result<(), ConstructError> {
@@ -265,7 +285,7 @@ impl RetainSceneExt for EntityWorldMut<'_> {
         dynamic_scene.retain::<T>(self)
     }
 
-    fn retain_child_scenes_with<S: Scene, T: Clone + Default + Send + Sync + 'static>(
+    fn retain_child_scenes_with<S: Scene, T: Send + Sync + 'static>(
         &mut self,
         child_scenes: impl IntoIterator<Item = S>,
     ) -> Result<(), ConstructError> {
@@ -302,10 +322,7 @@ pub trait RetainSceneCommandsExt {
     /// Retains the provided scene on the entity with `T` as a marker for the `Receipt`, allowing for multiple retained scenes on the same entity.
     ///
     /// See [`RetainScene::retain`].
-    fn retain_scene_with<T: Clone + Default + Send + Sync + 'static>(
-        &mut self,
-        scene: impl Scene + Send + 'static,
-    );
+    fn retain_scene_with<T: Send + Sync + 'static>(&mut self, scene: impl Scene + Send + 'static);
 
     /// Retains the provided scenes as children of self.
     ///
@@ -320,23 +337,20 @@ pub trait RetainSceneCommandsExt {
     /// Retains the provided scenes as children of self.
     ///
     /// See [`RetainChildren::retain_children`].
-    fn retain_child_scenes_with<S: Scene, T: Clone + Default + Send + Sync + 'static>(
+    fn retain_child_scenes_with<S: Scene, T: Send + Sync + 'static>(
         &mut self,
         child_scenes: impl IntoIterator<Item = S> + Send + 'static,
     );
 }
 
 impl RetainSceneCommandsExt for EntityCommands<'_> {
-    fn retain_scene_with<T: Clone + Default + Send + Sync + 'static>(
-        &mut self,
-        scene: impl Scene + Send + 'static,
-    ) {
+    fn retain_scene_with<T: Send + Sync + 'static>(&mut self, scene: impl Scene + Send + 'static) {
         self.queue(|mut entity: EntityWorldMut| {
             entity.retain_scene_with::<T>(scene).unwrap();
         });
     }
 
-    fn retain_child_scenes_with<S: Scene, T: Clone + Default + Send + Sync + 'static>(
+    fn retain_child_scenes_with<S: Scene, T: Send + Sync + 'static>(
         &mut self,
         child_scenes: impl IntoIterator<Item = S> + Send + 'static,
     ) {

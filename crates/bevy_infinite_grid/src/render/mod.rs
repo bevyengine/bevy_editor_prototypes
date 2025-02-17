@@ -41,6 +41,7 @@ const GRID_SHADER_HANDLE: Handle<Shader> = weak_handle!("7cd38dd1-d707-481e-b38c
 
 pub fn render_app_builder(app: &mut App) {
     load_internal_asset!(app, GRID_SHADER_HANDLE, "grid.wgsl", Shader::from_wgsl);
+    // app.add_systems(Last, update_grid);
 
     let Some(render_app) = app.get_sub_app_mut(RenderApp) else {
         return;
@@ -140,11 +141,13 @@ struct InfiniteGridBindGroup {
 
 #[derive(Clone, ShaderType)]
 pub struct GridViewUniform {
-    projection: Mat4,
-    inverse_projection: Mat4,
-    view: Mat4,
-    inverse_view: Mat4,
+    clip_from_view: Mat4,
+    view_from_clip: Mat4,
+    world_from_view: Mat4,
+    view_from_world: Mat4,
     world_position: Vec3,
+    world_right: Vec3,
+    world_forward: Vec3,
 }
 
 #[derive(Resource, Default)]
@@ -243,16 +246,18 @@ fn prepare_grid_view_uniforms(
 ) {
     view_uniforms.uniforms.clear();
     for (entity, camera) in views.iter() {
-        let projection = camera.clip_from_view;
-        let view = camera.world_from_view.compute_matrix();
-        let inverse_view = view.inverse();
+        let clip_from_view = camera.clip_from_view;
+        let world_from_view = camera.world_from_view.compute_matrix();
+        let view_from_world = world_from_view.inverse();
         commands.entity(entity).insert(GridViewUniformOffset {
             offset: view_uniforms.uniforms.push(&GridViewUniform {
-                projection,
-                view,
-                inverse_view,
-                inverse_projection: projection.inverse(),
+                clip_from_view,
+                world_from_view,
+                view_from_world,
+                view_from_clip: clip_from_view.inverse(),
                 world_position: camera.world_from_view.translation(),
+                world_right: camera.world_from_view.right().as_vec3(),
+                world_forward: camera.world_from_view.forward().as_vec3(),
             }),
         });
     }

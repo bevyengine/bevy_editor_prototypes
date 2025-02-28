@@ -30,7 +30,7 @@ fn main() {
                 state.bsn = asset_server.load(ASSET);
 
                 commands.spawn(Camera2d);
-                commands.spawn_empty().construct_scene(bsn! {
+                commands.spawn_empty().construct_scene(pbsn! {
                     Node {
                         position_type: PositionType::Absolute,
                         flex_direction: FlexDirection::Column,

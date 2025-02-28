@@ -38,14 +38,14 @@ pub fn rgba8(red: u8, green: u8, blue: u8, alpha: u8) -> Color {
     Color::srgba_u8(red, green, blue, alpha)
 }
 
-/// A helper for adding observers to a `bsn` macro invocation.
+/// A helper for adding observers to a `pbsn` macro invocation.
 ///
 /// By default, observers will observe their parent entity. Optionally, a second argument can be passed to specify the entity to observe.
 ///
 /// ```
 /// # use bevy_proto_bsn::*;
 /// # use bevy::prelude::*;
-/// bsn! {
+/// pbsn! {
 ///     {Name::new("MyEntity")} [
 ///         On(|trigger: Trigger<Pointer<Click>>| {
 ///             // Do something when "MyEntity" is clicked.

@@ -31,7 +31,7 @@ pub use entity_patch::*;
 pub use patch::*;
 pub use retain::*;
 
-pub use bevy_proto_bsn_macros::bsn;
+pub use bevy_proto_bsn_macros::pbsn;
 pub use bevy_proto_bsn_macros::Construct;
 
 /// Adds support for BSN assets and reflection-based dynamic scenes.

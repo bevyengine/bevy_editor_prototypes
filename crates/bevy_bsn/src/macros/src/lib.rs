@@ -26,7 +26,7 @@ mod derive_construct;
 /// }
 ///
 /// fn my_scene() -> impl Scene {
-///     bsn! {
+///     pbsn! {
 ///         Node {
 ///             position_type: PositionType::Absolute,
 ///             flex_direction: FlexDirection::Column,
@@ -51,7 +51,7 @@ mod derive_construct;
 /// }
 /// ```
 #[proc_macro]
-pub fn bsn(item: TokenStream) -> TokenStream {
+pub fn pbsn(item: TokenStream) -> TokenStream {
     bsn::bsn(item.into()).into()
 }
 

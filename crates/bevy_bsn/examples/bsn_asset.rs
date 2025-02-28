@@ -15,7 +15,7 @@ fn main() {
             |mut commands: Commands, assets: Res<AssetServer>| {
                 commands.spawn(Camera2d);
 
-                let bsn = assets.load::<Bsn>("hello.bsn");
+                let bsn = assets.load::<Bsn>("hello.proto_bsn");
                 commands.spawn(KeepHandle(bsn));
             },
         )

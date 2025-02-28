@@ -13,8 +13,8 @@ struct EditorState {
 #[derive(Component, Default, Reflect)]
 struct Counter(i32);
 
-const ASSET: &str = "counter.bsn";
-const SAVE_PATH: &str = "assets/counter.bsn";
+const ASSET: &str = "counter.proto_bsn";
+const SAVE_PATH: &str = "assets/counter.proto_bsn";
 
 fn main() {
     App::new()

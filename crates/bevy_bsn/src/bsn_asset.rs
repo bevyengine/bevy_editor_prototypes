@@ -4,7 +4,7 @@ use bevy::{
 };
 use thiserror::Error;
 
-use bevy_bsn_ast::{
+use bevy_proto_bsn_ast::{
     quote::ToTokens,
     syn::{Expr, ExprCall, ExprLit, ExprStruct, Lit, Member},
     *,

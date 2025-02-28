@@ -4,7 +4,7 @@
 #![cfg_attr(any(docsrs, docsrs_dep), feature(rustdoc_internals))]
 
 extern crate alloc;
-extern crate self as bevy_bsn;
+extern crate self as bevy_proto_bsn;
 
 mod bsn_asset;
 mod bsn_helpers;
@@ -31,8 +31,8 @@ pub use entity_patch::*;
 pub use patch::*;
 pub use retain::*;
 
-pub use bevy_bsn_macros::bsn;
-pub use bevy_bsn_macros::Construct;
+pub use bevy_proto_bsn_macros::bsn;
+pub use bevy_proto_bsn_macros::Construct;
 
 /// Adds support for BSN assets and reflection-based dynamic scenes.
 pub struct BsnPlugin;

@@ -2,7 +2,7 @@
 //!
 //! Run with `--features="bevy/file_watcher"` to enable hot-reloading.
 use bevy::prelude::*;
-use bevy_bsn::*;
+use bevy_proto_bsn::*;
 
 fn main() {
     App::new()

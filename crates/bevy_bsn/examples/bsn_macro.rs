@@ -1,6 +1,6 @@
 //! BSN macro example
 use bevy::{color::palettes::tailwind::*, prelude::*};
-use bevy_bsn::{Scene, *};
+use bevy_proto_bsn::{Scene, *};
 
 fn main() {
     App::new()

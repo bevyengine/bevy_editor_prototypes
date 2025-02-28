@@ -6,7 +6,7 @@ use syn::{
     Path,
 };
 
-use bevy_bsn_ast::*;
+use bevy_proto_bsn_ast::*;
 
 pub fn bsn(item: TokenStream) -> TokenStream {
     match parse2::<BsnAstEntity>(item) {
@@ -15,8 +15,8 @@ pub fn bsn(item: TokenStream) -> TokenStream {
     }
 }
 
-fn bevy_bsn_path() -> Path {
-    Path::from(format_ident!("bevy_bsn"))
+fn bevy_proto_bsn_path() -> Path {
+    Path::from(format_ident!("bevy_proto_bsn"))
 }
 
 trait ToTokensInternal {
@@ -49,13 +49,13 @@ where
 
 impl ToTokensInternal for BsnAstEntity {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let bevy_bsn = bevy_bsn_path();
+        let bevy_proto_bsn = bevy_proto_bsn_path();
         let patch = &self.patch.to_token_stream();
         let inherits = self.inherits.iter().map(ToTokensInternal::to_token_stream);
         let children = self.children.iter().map(ToTokensInternal::to_token_stream);
         let key = self.key.to_token_stream();
         quote! {
-            #bevy_bsn::EntityPatch {
+            #bevy_proto_bsn::EntityPatch {
                 inherit: (#(#inherits,)*),
                 patch: #patch,
                 children: (#(#children,)*),
@@ -92,7 +92,7 @@ impl ToTokensInternal for Option<BsnAstKey> {
 
 impl ToTokensInternal for BsnAstPatch {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let bevy_bsn = bevy_bsn_path();
+        let bevy_proto_bsn = bevy_proto_bsn_path();
         match self {
             BsnAstPatch::Patch(path, fields) => {
                 let assignments = fields.iter().map(|(member, prop)| {
@@ -115,7 +115,7 @@ impl ToTokensInternal for BsnAstPatch {
                 }
             }
             BsnAstPatch::Expr(expr) => quote! {
-                #bevy_bsn::ConstructPatch::new_inferred(move |__props| {
+                #bevy_proto_bsn::ConstructPatch::new_inferred(move |__props| {
                     *__props = #expr;
                 })
             },
@@ -126,13 +126,13 @@ impl ToTokensInternal for BsnAstPatch {
 
 impl ToTokensInternal for BsnAstProp {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let bevy_bsn = bevy_bsn_path();
+        let bevy_proto_bsn = bevy_proto_bsn_path();
         match self {
             BsnAstProp::Value(expr) => quote! {
                 (#expr).into()
             },
             BsnAstProp::Props(expr) => quote! {
-                #bevy_bsn::ConstructProp::Props((#expr).into())
+                #bevy_proto_bsn::ConstructProp::Props((#expr).into())
             },
         }
         .to_tokens(tokens);

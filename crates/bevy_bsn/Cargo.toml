@@ -1,11 +1,11 @@
 [package]
-name = "bevy_bsn"
+name = "bevy_proto_bsn"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy_bsn_ast = { path = "src/ast", version = "0.1.0" }
-bevy_bsn_macros = { path = "src/macros", version = "0.1.0" }
+bevy_proto_bsn_ast = { path = "src/ast", version = "0.1.0" }
+bevy_proto_bsn_macros = { path = "src/macros", version = "0.1.0" }
 
 bevy = { workspace = true }
 thiserror = { workspace = true }

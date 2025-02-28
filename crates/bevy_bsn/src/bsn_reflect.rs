@@ -189,7 +189,7 @@ impl<'a> BsnReflector<'a> {
         // This is fine : )
         if ty
             .type_path()
-            .starts_with("bevy_bsn::construct::ConstructProp<")
+            .starts_with("bevy_proto_bsn::construct::ConstructProp<")
         {
             let generic = ty.generics().get_named("T").unwrap();
             let generic_ty = self.registry.get(generic.type_id()).unwrap();

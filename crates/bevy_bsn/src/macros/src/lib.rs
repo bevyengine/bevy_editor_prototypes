@@ -12,7 +12,7 @@ mod derive_construct;
 /// # Example
 /// ```ignore
 /// use bevy::{color::palettes::css, prelude::*};
-/// use bevy_bsn::{Scene, *};
+/// use bevy_proto_bsn::{Scene, *};
 ///
 /// fn main() {
 ///     App::new()

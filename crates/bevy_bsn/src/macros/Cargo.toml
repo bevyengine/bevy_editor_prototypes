@@ -1,5 +1,5 @@
 [package]
-name = "bevy_bsn_macros"
+name = "bevy_proto_bsn_macros"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,7 +7,7 @@ edition = "2021"
 proc-macro = true
 
 [dependencies]
-bevy_bsn_ast = { path = "../ast", version = "0.1.0" }
+bevy_proto_bsn_ast = { path = "../ast", version = "0.1.0" }
 
 bevy_macro_utils.workspace = true
 

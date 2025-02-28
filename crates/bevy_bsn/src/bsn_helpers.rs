@@ -43,7 +43,7 @@ pub fn rgba8(red: u8, green: u8, blue: u8, alpha: u8) -> Color {
 /// By default, observers will observe their parent entity. Optionally, a second argument can be passed to specify the entity to observe.
 ///
 /// ```
-/// # use bevy_bsn::*;
+/// # use bevy_proto_bsn::*;
 /// # use bevy::prelude::*;
 /// bsn! {
 ///     {Name::new("MyEntity")} [

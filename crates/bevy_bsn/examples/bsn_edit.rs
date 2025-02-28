@@ -3,7 +3,7 @@
 //! In a real world editor, you would want to use a more sophisticated way to edit the BSN tree
 //! (likely through an abstraction like [`BsnReflector`] or similar), but this example shows the basic idea.
 use bevy::prelude::*;
-use bevy_bsn::*;
+use bevy_proto_bsn::*;
 
 #[derive(Resource, Default)]
 struct EditorState {

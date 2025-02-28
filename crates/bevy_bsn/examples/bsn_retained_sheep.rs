@@ -5,7 +5,7 @@
 //! This example is originally from `i-cant-believe-its-not-bsn` and shows the differences between using `bsn!` and `template!`.
 use bevy::{color::palettes::css, prelude::*};
 
-use bevy_bsn::{Scene, *};
+use bevy_proto_bsn::{Scene, *};
 
 fn main() {
     App::new()

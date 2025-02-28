@@ -1,6 +1,6 @@
 //! Showcases loading and displaying a BSN asset.
 use bevy::prelude::*;
-use bevy_bsn::*;
+use bevy_proto_bsn::*;
 
 #[derive(Component)]
 #[allow(dead_code)]

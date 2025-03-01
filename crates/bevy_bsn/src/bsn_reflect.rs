@@ -1,9 +1,13 @@
 use core::{any::TypeId, str::FromStr};
 
-use bevy::reflect::{
-    DynamicEnum, DynamicStruct, DynamicTuple, DynamicTupleStruct, DynamicVariant, NamedField,
-    PartialReflect, ReflectKind, StructInfo, StructVariantInfo, TypeInfo, TypeRegistration,
-    TypeRegistry,
+use bevy::{
+    app::App,
+    asset::{Asset, AssetServer, Handle},
+    reflect::{
+        DynamicEnum, DynamicStruct, DynamicTuple, DynamicTupleStruct, DynamicVariant, FromType,
+        NamedField, PartialReflect, Reflect, ReflectKind, StructInfo, StructVariantInfo, TypeInfo,
+        TypeRegistration, TypeRegistry,
+    },
 };
 use thiserror::Error;
 
@@ -32,9 +36,9 @@ pub enum ReflectError {
     /// Not reflectable
     #[error("Not reflectable")]
     NotReflectable,
-    /// Missing [`ReflectConstruct`]
-    #[error("No registered `ReflectConstruct` for type: {0}")]
-    MissingReflectConstruct(String),
+    /// Missing registered type data
+    #[error("No registered `{0}` for type: {1}")]
+    MissingTypeData(String, String),
 }
 
 /// A result from reflecting [`Bsn`]
@@ -49,6 +53,7 @@ pub type ReflectResult<T> = Result<T, ReflectError>;
 pub struct BsnReflector<'a> {
     bsn: &'a Bsn,
     registry: &'a TypeRegistry,
+    asset_server: Option<&'a AssetServer>,
 }
 
 /// A reflected instance of a type containing type id and the (maybe dynamic) instance itself.
@@ -77,7 +82,21 @@ pub struct ReflectedComponentPatch {
 impl<'a> BsnReflector<'a> {
     /// Create a new reflector for the given [`Bsn`] asset and [`TypeRegistry`].
     pub fn new(bsn: &'a Bsn, registry: &'a TypeRegistry) -> Self {
-        Self { bsn, registry }
+        Self {
+            bsn,
+            registry,
+            asset_server: None,
+        }
+    }
+
+    /// A hacky workaround to allow loading assets using @-syntax during BSN reflection.
+    ///
+    /// This exists because a proper [`Construct`] implementation for [`Handle`] is not possible without upstream changes.
+    ///
+    /// NOTE: Any assets loaded during BSN reflection needs to have a [`ReflectHandleLoad`] registered for the [`Handle`] type.
+    pub fn with_asset_load(mut self, asset_server: &'a AssetServer) -> Self {
+        self.asset_server = Some(asset_server);
+        self
     }
 
     fn try_resolve_type(&self, type_path: &str) -> ReflectResult<&TypeRegistration> {
@@ -146,7 +165,10 @@ impl<'a> BsnReflector<'a> {
             BsnComponent::Patch(path, props) => {
                 let component_type = self.try_resolve_type(path)?;
                 let Some(reflect_construct) = component_type.data::<ReflectConstruct>() else {
-                    return Err(ReflectError::MissingReflectConstruct(path.into()));
+                    return Err(ReflectError::MissingTypeData(
+                        "ReflectConstruct".into(),
+                        path.into(),
+                    ));
                 };
 
                 let Some(props_type) = self.registry.get(reflect_construct.props_type) else {
@@ -186,6 +208,25 @@ impl<'a> BsnReflector<'a> {
         prop: &BsnProp,
         ty: &TypeInfo,
     ) -> ReflectResult<Box<dyn PartialReflect>> {
+        // HACK: Allows constructing Handles from asset paths in BSN assets by triggering loads during reflection.
+        // This should be removed when we have an upstream Construct implementation for Handle.
+        if ty.type_path().starts_with("bevy_asset::handle::Handle<") && self.asset_server.is_some()
+        {
+            if let BsnProp::Props(BsnValue::String(asset_path)) = prop {
+                let Some(reflect_handle_load) = self
+                    .registry
+                    .get_type_data::<ReflectHandleLoad>(ty.type_id())
+                else {
+                    return Err(ReflectError::MissingTypeData(
+                        "ReflectHandleLoad".into(),
+                        ty.type_path().into(),
+                    ));
+                };
+                let handle = reflect_handle_load.load(asset_path, self.asset_server.unwrap());
+                return Ok(handle.into_partial_reflect());
+            }
+        }
+
         // This is fine : )
         if ty
             .type_path()
@@ -195,7 +236,8 @@ impl<'a> BsnReflector<'a> {
             let generic_ty = self.registry.get(generic.type_id()).unwrap();
 
             let Some(reflect_construct) = generic_ty.data::<ReflectConstruct>() else {
-                return Err(ReflectError::MissingReflectConstruct(
+                return Err(ReflectError::MissingTypeData(
+                    "ReflectConstruct".into(),
                     generic_ty.type_info().type_path().into(),
                 ));
             };
@@ -489,4 +531,44 @@ impl<'a> BsnReflector<'a> {
             _ => Err(ReflectError::NotReflectable),
         }
     }
+}
+
+/// Type data for handles to load assets during reflection, needed by the hacky asset loading workaround.
+#[derive(Clone)]
+pub struct ReflectHandleLoad {
+    load: fn(&str, &AssetServer) -> Box<dyn Reflect>,
+}
+
+impl ReflectHandleLoad {
+    /// Load a typed asset, returning the resulting handle.
+    pub fn load(&self, path: &str, asset_server: &AssetServer) -> Box<dyn Reflect> {
+        (self.load)(path, asset_server)
+    }
+}
+
+impl<A: Asset> FromType<Handle<A>> for ReflectHandleLoad {
+    fn from_type() -> Self {
+        ReflectHandleLoad {
+            load: |path, asset_server| Box::new(asset_server.load::<A>(path)),
+        }
+    }
+}
+
+/// Register `ReflectHandle`s for some upstream assets to ensure the hacky asset loading workaround works.
+pub(crate) fn register_reflect_handles(app: &mut App) {
+    use bevy::{asset::Handle, prelude::*, sprite::Wireframe2dMaterial};
+
+    app.register_type_data::<Handle<Scene>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<Bsn>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<Font>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<Mesh>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<Gltf>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<Image>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<AnimationGraph>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<AudioSource>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<Shader>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<DynamicScene>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<ColorMaterial>, ReflectHandleLoad>();
+    app.register_type::<Handle<Wireframe2dMaterial>>();
+    app.register_type_data::<Handle<Wireframe2dMaterial>, ReflectHandleLoad>();
 }

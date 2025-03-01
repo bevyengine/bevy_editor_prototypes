@@ -193,6 +193,7 @@ pub(crate) fn register_reflect_construct(app: &mut App) {
     app.register_type::<bevy::render::sync_world::TemporaryRenderEntity>();
     app.register_type_data::<bevy::render::sync_world::TemporaryRenderEntity, ReflectConstruct>();
     app.register_type_data::<bevy::render::view::ColorGrading, ReflectConstruct>();
+    app.register_type_data::<bevy::render::view::visibility::Visibility, ReflectConstruct>();
     app.register_type_data::<bevy::render::view::visibility::InheritedVisibility, ReflectConstruct>();
     app.register_type_data::<bevy::render::view::visibility::VisibilityRange, ReflectConstruct>();
     app.register_type_data::<bevy::render::view::visibility::RenderLayers, ReflectConstruct>();

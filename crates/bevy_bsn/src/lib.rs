@@ -42,5 +42,6 @@ impl Plugin for BsnPlugin {
         register_reflect_construct(app);
         bsn_asset_plugin(app);
         register_construct_impls(app);
+        register_reflect_handles(app);
     }
 }

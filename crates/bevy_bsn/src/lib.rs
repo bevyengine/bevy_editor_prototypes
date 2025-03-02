@@ -15,6 +15,7 @@ mod construct_reflect;
 mod dynamic;
 mod entity_patch;
 mod patch;
+mod prefab;
 mod retain;
 
 use bevy::app::App;
@@ -29,6 +30,7 @@ pub use construct_reflect::*;
 pub use dynamic::*;
 pub use entity_patch::*;
 pub use patch::*;
+pub use prefab::*;
 pub use retain::*;
 
 pub use bevy_proto_bsn_macros::pbsn;
@@ -43,5 +45,6 @@ impl Plugin for BsnPlugin {
         bsn_asset_plugin(app);
         register_construct_impls(app);
         register_reflect_handles(app);
+        prefab_plugin(app);
     }
 }

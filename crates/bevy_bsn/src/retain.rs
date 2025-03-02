@@ -105,6 +105,32 @@ pub trait RetainScene {
     ) -> Result<(), ConstructError>;
 }
 
+impl RetainScene for () {
+    fn retain<T: Send + Sync + 'static>(
+        self,
+        entity: &mut EntityWorldMut,
+    ) -> Result<(), ConstructError> {
+        // Remove/take the receipt if it exists.
+        let Some(receipt) = entity.take::<Receipt<T>>() else {
+            return Ok(());
+        };
+
+        // Remove the components
+        for component_id in receipt.components.keys() {
+            entity.remove_by_id(*component_id);
+        }
+
+        // Clear children
+        entity.world_scope(|world| {
+            for orphan_id in receipt.anchors.into_values() {
+                world.entity_mut(orphan_id).despawn();
+            }
+        });
+
+        Ok(())
+    }
+}
+
 impl RetainScene for DynamicScene {
     fn retain<T: Send + Sync + 'static>(
         self,
@@ -231,7 +257,7 @@ impl RetainChildren for Vec<DynamicScene> {
                 .enumerate()
                 .map(|(i, (dynamic_scene, anchor))| {
                     let entity_id = children_ids[i];
-                    dynamic_scene.retain::<T>(&mut world.entity_mut(entity_id))?;
+                    dynamic_scene.retain::<()>(&mut world.entity_mut(entity_id))?;
                     Ok((anchor, entity_id))
                 })
                 .collect()

@@ -239,7 +239,7 @@ impl<'a, 'b> BsnReflector<'a, 'b> {
 
     /// A hacky workaround to allow loading assets using @-syntax during BSN reflection.
     ///
-    /// This exists because a proper [`Construct`] implementation for [`Handle`] is not possible without upstream changes.
+    /// This exists because a proper [`crate::Construct`] implementation for [`Handle`] is not possible without upstream changes.
     ///
     /// Takes either an [`AssetServer`] or a mutable reference to a [`LoadContext`] to load assets.
     ///

@@ -1,6 +1,5 @@
 use bevy::{
-    ecs::{component::HookContext, world::DeferredWorld},
-    platform_support::collections::HashMap,
+    ecs::{component::HookContext, system::error_handler, world::DeferredWorld},
     prelude::*,
 };
 
@@ -29,55 +28,43 @@ pub struct PrefabInstance {
 }
 
 fn on_insert_prefab(mut world: DeferredWorld, context: HookContext) {
-    world
-        .commands()
-        .entity(context.entity)
-        .queue(|mut entity: EntityWorldMut| {
+    world.commands().entity(context.entity).queue_handled(
+        |mut entity: EntityWorldMut| {
             entity.get_mut::<PrefabInstance>().unwrap().current_hash = None;
-        });
+        },
+        error_handler::silent(),
+    );
 }
 
 fn on_remove_prefab(mut world: DeferredWorld, context: HookContext) {
-    world
-        .commands()
-        .entity(context.entity)
-        .remove::<PrefabInstance>()
-        .retain_scene_with::<Prefab>(());
+    world.commands().entity(context.entity).queue_handled(
+        |mut entity: EntityWorldMut| {
+            entity
+                .remove::<PrefabInstance>()
+                .retain_scene_with::<Prefab>(())
+                .unwrap();
+        },
+        error_handler::silent(),
+    );
 }
 
 fn prefab_system(
     mut query: Query<(Entity, &Prefab, &mut PrefabInstance)>,
-    mut events: EventReader<AssetEvent<ReflectedBsn>>,
     reflected_bsn_assets: Res<Assets<ReflectedBsn>>,
     mut commands: Commands,
-    mut loaded_hashes: Local<HashMap<AssetId<ReflectedBsn>, u64>>,
 ) {
-    // Detect loaded/unloaded BSN assets
-    for event in events.read() {
-        match event {
-            AssetEvent::Added { id } | AssetEvent::Modified { id } => {
-                let bsn = reflected_bsn_assets.get(*id).unwrap();
-                loaded_hashes.insert(*id, bsn.hash);
-            }
-            AssetEvent::Removed { id } => {
-                loaded_hashes.remove(id);
-            }
-            _ => {}
-        }
-    }
-
     // Spawn/retain prefabs
     for (entity, prefab, mut instance) in query.iter_mut() {
         let asset_id = prefab.0.id();
-        let Some(loaded_hash) = loaded_hashes.get(&asset_id) else {
-            continue;
+        let Some(bsn) = reflected_bsn_assets.get(asset_id) else {
+            return;
         };
 
         if instance
             .current_hash
-            .is_none_or(|current_hash| current_hash != *loaded_hash)
+            .is_none_or(|current_hash| current_hash != bsn.hash)
         {
-            instance.current_hash = Some(*loaded_hash);
+            instance.current_hash = Some(bsn.hash);
 
             let bsn = reflected_bsn_assets.get(asset_id).unwrap();
             let scene = bsn.clone().into_dynamic_scene();

@@ -13,7 +13,3 @@ variadics_please = { workspace = true }
 
 [lints]
 workspace = true
-
-[[example]]
-name = "bsn_asset_hot"
-required-features = ["bevy/file_watcher"]

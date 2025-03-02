@@ -1,5 +1,5 @@
 [package]
-name = "bevy_bsn_ast"
+name = "bevy_proto_bsn_ast"
 version = "0.1.0"
 edition = "2021"
 

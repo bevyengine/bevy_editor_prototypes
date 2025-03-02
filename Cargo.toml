@@ -73,7 +73,7 @@ bevy_focus = { path = "bevy_widgets/bevy_focus" }
 # general crates
 bevy_editor_core = { path = "crates/bevy_editor_core" }
 bevy_asset_preview = { path = "crates/bevy_asset_preview" }
-bevy_bsn = { path = "crates/bevy_bsn" }
+bevy_proto_bsn = { path = "crates/bevy_proto_bsn" }
 bevy_editor = { path = "crates/bevy_editor" }
 bevy_editor_camera = { path = "crates/bevy_editor_camera" }
 bevy_editor_launcher = { path = "crates/bevy_editor_launcher" }

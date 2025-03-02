@@ -13,7 +13,7 @@ pub fn derive_construct(item: TokenStream) -> TokenStream {
 fn derive_internal(ast: DeriveInput) -> TokenStream {
     let manifest = BevyManifest::shared();
     let bevy_reflect = manifest.get_path("bevy_reflect");
-    let bevy_bsn = Path::from(format_ident!("bevy_bsn"));
+    let bevy_proto_bsn = Path::from(format_ident!("bevy_proto_bsn"));
 
     let struct_name = &ast.ident;
     let (impl_generics, type_generics, where_clause) = &ast.generics.split_for_impl();
@@ -34,7 +34,7 @@ fn derive_internal(ast: DeriveInput) -> TokenStream {
                 from_props_fields,
                 props_fields,
                 props_fields_defaults,
-            } = struct_impl(&data_struct.fields, &bevy_bsn, false);
+            } = struct_impl(&data_struct.fields, &bevy_proto_bsn, false);
             let props_type_declaration = if is_named {
                 quote! {
                     #[allow(missing_docs)]
@@ -67,13 +67,13 @@ fn derive_internal(ast: DeriveInput) -> TokenStream {
             quote! {
                 #props_type_declaration
 
-                impl #impl_generics #bevy_bsn::Construct for #struct_name #type_generics #where_clause {
+                impl #impl_generics #bevy_proto_bsn::Construct for #struct_name #type_generics #where_clause {
                     type Props = #props_type #type_generics #where_clause;
 
                     fn construct(
-                        _context: &mut #bevy_bsn::ConstructContext,
+                        _context: &mut #bevy_proto_bsn::ConstructContext,
                         props: Self::Props,
-                    ) -> Result<Self, #bevy_bsn::ConstructError> {
+                    ) -> Result<Self, #bevy_proto_bsn::ConstructError> {
                         Ok(Self {
                             #(#from_props_fields)*
                         })
@@ -93,7 +93,7 @@ fn derive_internal(ast: DeriveInput) -> TokenStream {
                     from_props_fields,
                     props_fields,
                     ..
-                } = struct_impl(&variant.fields, &bevy_bsn, true);
+                } = struct_impl(&variant.fields, &bevy_proto_bsn, true);
                 let ident = &variant.ident;
                 // Props will always default to the first variant with all None
                 let variant_name_lower = variant.ident.to_string().to_lowercase();
@@ -137,13 +137,13 @@ fn derive_internal(ast: DeriveInput) -> TokenStream {
                     #(#variant_props_entries,)*
                 }
 
-                impl #impl_generics #bevy_bsn::Construct for #struct_name #type_generics #where_clause {
+                impl #impl_generics #bevy_proto_bsn::Construct for #struct_name #type_generics #where_clause {
                     type Props = #props_type #type_generics #where_clause;
 
                     fn construct(
-                        _context: &mut #bevy_bsn::ConstructContext,
+                        _context: &mut #bevy_proto_bsn::ConstructContext,
                         props: Self::Props,
-                    ) -> Result<Self, #bevy_bsn::ConstructError> {
+                    ) -> Result<Self, #bevy_proto_bsn::ConstructError> {
                         Ok(match props {
                             #(#variant_from_props_match)*
                         })
@@ -164,7 +164,7 @@ struct StructImpl {
 
 const PROP: &str = "construct";
 
-fn struct_impl(fields: &Fields, bevy_bsn: &Path, is_enum: bool) -> StructImpl {
+fn struct_impl(fields: &Fields, bevy_proto_bsn: &Path, is_enum: bool) -> StructImpl {
     let mut from_props_fields = Vec::new();
     let mut props_fields = Vec::new();
     let mut props_fields_defaults = Vec::new();
@@ -179,24 +179,24 @@ fn struct_impl(fields: &Fields, bevy_bsn: &Path, is_enum: bool) -> StructImpl {
         if is_named {
             if is_prop {
                 props_fields.push(quote! {
-                    #maybe_pub #ident: #bevy_bsn::ConstructProp<#ty>,
+                    #maybe_pub #ident: #bevy_proto_bsn::ConstructProp<#ty>,
                 });
                 props_fields_defaults.push(quote! {
-                    #ident: #bevy_bsn::ConstructProp::Props(Default::default()),
+                    #ident: #bevy_proto_bsn::ConstructProp::Props(Default::default()),
                 });
 
                 if is_enum {
                     from_props_fields.push(quote! {
                         #ident: match #ident {
-                            #bevy_bsn::ConstructProp::Props(p) => #bevy_bsn::Construct::construct(_context, p)?,
-                            #bevy_bsn::ConstructProp::Value(v) => v,
+                            #bevy_proto_bsn::ConstructProp::Props(p) => #bevy_proto_bsn::Construct::construct(_context, p)?,
+                            #bevy_proto_bsn::ConstructProp::Value(v) => v,
                         },
                     });
                 } else {
                     from_props_fields.push(quote! {
                         #ident: match props.#ident {
-                            #bevy_bsn::ConstructProp::Props(p) => #bevy_bsn::Construct::construct(_context, p)?,
-                            #bevy_bsn::ConstructProp::Value(v) => v,
+                            #bevy_proto_bsn::ConstructProp::Props(p) => #bevy_proto_bsn::Construct::construct(_context, p)?,
+                            #bevy_proto_bsn::ConstructProp::Value(v) => v,
                         },
                     });
                 }
@@ -220,11 +220,11 @@ fn struct_impl(fields: &Fields, bevy_bsn: &Path, is_enum: bool) -> StructImpl {
             }
         } else if is_prop {
             props_fields.push(quote! {
-                #maybe_pub #bevy_bsn::ConstructProp<#ty>,
+                #maybe_pub #bevy_proto_bsn::ConstructProp<#ty>,
             });
 
             props_fields_defaults.push(quote! {
-                #bevy_bsn::ConstructProp::Props(#FQDefault::default()),
+                #bevy_proto_bsn::ConstructProp::Props(#FQDefault::default()),
             });
 
             if is_enum {
@@ -232,8 +232,8 @@ fn struct_impl(fields: &Fields, bevy_bsn: &Path, is_enum: bool) -> StructImpl {
                 from_props_fields.push(
                     quote! {
                         match #enum_tuple_ident {
-                            #bevy_bsn::ConstructProp::Props(p) => #bevy_bsn::Construct::construct(_context, p)?,
-                            #bevy_bsn::ConstructProp::Value(v) => v,
+                            #bevy_proto_bsn::ConstructProp::Props(p) => #bevy_proto_bsn::Construct::construct(_context, p)?,
+                            #bevy_proto_bsn::ConstructProp::Value(v) => v,
                         },
                     }
                 );
@@ -241,8 +241,8 @@ fn struct_impl(fields: &Fields, bevy_bsn: &Path, is_enum: bool) -> StructImpl {
                 from_props_fields.push(
                     quote! {
                         #field_index: match props.#field_index {
-                            #bevy_bsn::ConstructProp::Props(p) => #bevy_bsn::Construct::construct(_context, p)?,
-                            #bevy_bsn::ConstructProp::Value(v) => v,
+                            #bevy_proto_bsn::ConstructProp::Props(p) => #bevy_proto_bsn::Construct::construct(_context, p)?,
+                            #bevy_proto_bsn::ConstructProp::Value(v) => v,
                         },
                     }
                 );

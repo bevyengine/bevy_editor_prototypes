@@ -1,6 +1,6 @@
 //! BSN macro example
 use bevy::{color::palettes::tailwind::*, prelude::*};
-use bevy_bsn::{Scene, *};
+use bevy_proto_bsn::{Scene, *};
 
 fn main() {
     App::new()
@@ -14,7 +14,7 @@ fn main() {
 }
 
 fn ui() -> impl Scene {
-    bsn! {
+    pbsn! {
         Node {
             width: Val::Percent(100.0),
             height: Val::Percent(100.0),
@@ -51,7 +51,7 @@ fn ui() -> impl Scene {
 }
 
 fn button(text: &'static str) -> impl Scene {
-    bsn! {(
+    pbsn! {(
         Button,
         Node {
             padding: px_all(5.0),
@@ -67,7 +67,7 @@ fn button(text: &'static str) -> impl Scene {
 }
 
 fn rounded() -> impl Scene {
-    bsn! {(
+    pbsn! {(
         {BorderRadius::all(px(10.0))}
     )}
 }

@@ -3,7 +3,7 @@
 //! In a real world editor, you would want to use a more sophisticated way to edit the BSN tree
 //! (likely through an abstraction like [`BsnReflector`] or similar), but this example shows the basic idea.
 use bevy::prelude::*;
-use bevy_bsn::*;
+use bevy_proto_bsn::*;
 
 #[derive(Resource, Default)]
 struct EditorState {
@@ -13,8 +13,8 @@ struct EditorState {
 #[derive(Component, Default, Reflect)]
 struct Counter(i32);
 
-const ASSET: &str = "counter.bsn";
-const SAVE_PATH: &str = "assets/counter.bsn";
+const ASSET: &str = "counter.proto_bsn";
+const SAVE_PATH: &str = "assets/counter.proto_bsn";
 
 fn main() {
     App::new()
@@ -30,7 +30,7 @@ fn main() {
                 state.bsn = asset_server.load(ASSET);
 
                 commands.spawn(Camera2d);
-                commands.spawn_empty().construct_scene(bsn! {
+                commands.spawn_empty().construct_scene(pbsn! {
                     Node {
                         position_type: PositionType::Absolute,
                         flex_direction: FlexDirection::Column,

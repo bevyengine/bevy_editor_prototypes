@@ -104,7 +104,7 @@ all_tuples_with_size!(
 
 /// Represents a tree of entities and patches to be applied to them.
 ///
-/// This is what the [`crate::bsn`] macro expands to.
+/// This is what the [`crate::pbsn`] macro expands to.
 ///
 /// See [`Scene`] for more usage information.
 pub struct EntityPatch<I, P, C>

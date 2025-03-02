@@ -2,10 +2,10 @@
 //!
 //! An all-in-one numerical ruminant package.
 //!
-//! This example is originally from `i-cant-believe-its-not-bsn` and shows the differences between using `bsn!` and `template!`.
+//! This example is originally from `i-cant-believe-its-not-bsn` and shows the differences between using `pbsn!` and `template!`.
 use bevy::{color::palettes::css, prelude::*};
 
-use bevy_bsn::{Scene, *};
+use bevy_proto_bsn::{Scene, *};
 
 fn main() {
     App::new()
@@ -35,7 +35,7 @@ struct Sheep;
 fn sheep_system(mut commands: Commands, sheep: Query<&Sheep>, root: Single<Entity, With<UiRoot>>) {
     let num_sheep = sheep.iter().len();
 
-    let template = bsn! {
+    let template = pbsn! {
         Node {
             position_type: PositionType::Absolute,
             bottom: Val::Px(5.0),
@@ -50,7 +50,7 @@ fn sheep_system(mut commands: Commands, sheep: Query<&Sheep>, root: Single<Entit
 
 // A function that returns an ecs template.
 fn counter(num: usize, name: &'static str) -> impl Scene {
-    bsn! {
+    pbsn! {
         Node [
             Text("You have ") [
                 TextSpan(format!("{num}")),

@@ -1,15 +1,153 @@
-use core::{any::TypeId, str::FromStr};
+use core::{any::TypeId, cell::RefCell, hash::BuildHasher, ops::Deref, str::FromStr};
 
-use bevy::reflect::{
-    DynamicEnum, DynamicStruct, DynamicTuple, DynamicTupleStruct, DynamicVariant, NamedField,
-    PartialReflect, ReflectKind, StructInfo, StructVariantInfo, TypeInfo, TypeRegistration,
-    TypeRegistry,
+use bevy::{
+    app::App,
+    asset::{io::Reader, Asset, AssetLoader, AssetServer, Handle, LoadContext},
+    ecs::{
+        reflect::AppTypeRegistry,
+        world::{FromWorld, World},
+    },
+    platform_support::hash::FixedState,
+    reflect::{
+        DynamicEnum, DynamicStruct, DynamicTuple, DynamicTupleStruct, DynamicVariant, FromType,
+        NamedField, PartialReflect, Reflect, ReflectKind, StructInfo, StructVariantInfo, TypeInfo,
+        TypePath, TypeRegistration, TypeRegistry, TypeRegistryArc,
+    },
 };
 use thiserror::Error;
 
 use crate::{
-    Bsn, BsnComponent, BsnEntity, BsnProp, BsnProps, BsnValue, DynamicScene, ReflectConstruct,
+    Bsn, BsnComponent, BsnEntity, BsnKey, BsnLoader, BsnLoaderError, BsnProp, BsnProps, BsnValue,
+    DynamicPatch, DynamicScene, ReflectConstruct,
 };
+
+pub(crate) fn bsn_reflect_plugin(app: &mut App) {
+    app.init_asset::<ReflectedBsn>();
+    app.init_asset_loader::<ReflectedBsnLoader>();
+
+    /// Register `ReflectHandle`s for some upstream assets to ensure the hacky asset loading workaround works.
+    use bevy::{asset::Handle, prelude::*, sprite::Wireframe2dMaterial};
+    app.register_type_data::<Handle<Scene>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<Bsn>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<Font>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<Mesh>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<Gltf>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<Image>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<AnimationGraph>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<AudioSource>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<Shader>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<DynamicScene>, ReflectHandleLoad>();
+    app.register_type_data::<Handle<ColorMaterial>, ReflectHandleLoad>();
+    app.register_type::<Handle<Wireframe2dMaterial>>();
+    app.register_type_data::<Handle<Wireframe2dMaterial>, ReflectHandleLoad>();
+}
+
+/// A reflected BSN scene. Implements [`DynamicPatch`] so it can be applied to/or spawned as a [`DynamicScene`].
+#[derive(Debug, Clone, TypePath, Asset)]
+pub struct ReflectedBsn {
+    /// Hash of the BSN ast that produced this reflected BSN scene
+    pub hash: u64,
+    /// Component patches to be applied to the scene
+    pub component_patches: Vec<ReflectedComponentPatch>,
+    /// Children of the scene
+    pub children: Vec<ReflectedBsn>,
+    /// Static key for the scene
+    pub key: Option<String>,
+}
+
+impl ReflectedBsn {
+    /// Try to reflect a [`BsnEntity`] to a [`ReflectedBsn`].
+    pub fn try_from_bsn(bsn: &BsnEntity, reflector: &BsnReflector) -> ReflectResult<Self> {
+        let key = match &bsn.key {
+            Some(BsnKey::Static(key)) => Some(key.clone()),
+            Some(BsnKey::Dynamic(key)) => {
+                return Err(ReflectError::DynamicKeyNotSupported(key.clone()))
+            }
+            None => None,
+        };
+
+        let component_patches = bsn
+            .components
+            .iter()
+            .map(|component| reflector.reflect_component_patch(component))
+            .collect::<Result<_, _>>()?;
+
+        let children = bsn
+            .children
+            .iter()
+            .map(|child| Self::try_from_bsn(child, reflector))
+            .collect::<Result<_, _>>()?;
+
+        Ok(Self {
+            hash: FixedState::default().hash_one(bsn),
+            component_patches,
+            children,
+            key,
+        })
+    }
+}
+
+impl DynamicPatch for ReflectedBsn {
+    fn dynamic_patch(self, scene: &mut DynamicScene) {
+        for patch in self.component_patches {
+            scene.patch_reflected(patch.type_id, move |props: &mut dyn PartialReflect| {
+                props.apply(patch.props.instance.as_ref());
+            });
+        }
+
+        self.children.dynamic_patch_as_children(scene);
+    }
+}
+
+/// Asset loader for loading `.bsn`-files as [`ReflectedBsn`].
+#[derive(Debug)]
+pub struct ReflectedBsnLoader {
+    type_registry: TypeRegistryArc,
+}
+
+impl FromWorld for ReflectedBsnLoader {
+    fn from_world(world: &mut World) -> Self {
+        let type_registry = world.resource::<AppTypeRegistry>();
+        ReflectedBsnLoader {
+            type_registry: type_registry.0.clone(),
+        }
+    }
+}
+
+/// Error type for [`ReflectedBsnLoader`].
+#[non_exhaustive]
+#[derive(Debug, Error)]
+pub enum ReflectedBsnLoaderError {
+    /// A [`BsnLoaderError`]
+    #[error("Load error: {0}")]
+    LoadError(#[from] BsnLoaderError),
+    /// A reflection error
+    #[error("Reflection error: {0}")]
+    ReflectError(#[from] ReflectError),
+}
+
+impl AssetLoader for ReflectedBsnLoader {
+    type Asset = ReflectedBsn;
+    type Settings = ();
+    type Error = ReflectedBsnLoaderError;
+
+    async fn load(
+        &self,
+        reader: &mut dyn Reader,
+        _settings: &(),
+        load_context: &mut LoadContext<'_>,
+    ) -> Result<Self::Asset, Self::Error> {
+        let bsn = BsnLoader.load(reader, &(), load_context).await?;
+        let registry = self.type_registry.read();
+        let reflector = BsnReflector::new(&bsn, registry.deref()).with_asset_load(load_context);
+        let reflected_bsn = ReflectedBsn::try_from_bsn(&bsn.root, &reflector)?;
+        Ok(reflected_bsn)
+    }
+
+    fn extensions(&self) -> &[&str] {
+        &["proto_bsn", "bsn"]
+    }
+}
 
 /// A reflection error returned when reflecting [`Bsn`].
 #[derive(Error, Debug, Hash)]
@@ -32,9 +170,12 @@ pub enum ReflectError {
     /// Not reflectable
     #[error("Not reflectable")]
     NotReflectable,
-    /// Missing [`ReflectConstruct`]
-    #[error("No registered `ReflectConstruct` for type: {0}")]
-    MissingReflectConstruct(String),
+    /// Missing registered type data
+    #[error("No registered `{0}` for type: {1}")]
+    MissingTypeData(String, String),
+    /// Dynamic key not supported
+    #[error("Dynamic keys are not supported in reflected BSN: {0}")]
+    DynamicKeyNotSupported(String),
 }
 
 /// A result from reflecting [`Bsn`]
@@ -46,18 +187,29 @@ pub type ReflectResult<T> = Result<T, ReflectError>;
 ///  - Converting a [`Bsn`] asset to a spawnable [`DynamicScene`].
 ///  - TODO: Querying/retrieving type-aware information from a [`Bsn`] asset.
 ///  - TODO: Editing a [`Bsn`] asset in a type-aware way.
-pub struct BsnReflector<'a> {
+pub struct BsnReflector<'a, 'b> {
     bsn: &'a Bsn,
     registry: &'a TypeRegistry,
+    asset_loader: Option<BsnReflectorAssetLoader<'a, 'b>>,
 }
 
 /// A reflected instance of a type containing type id and the (maybe dynamic) instance itself.
+#[derive(Debug, TypePath)]
 pub struct ReflectedValue {
     /// The type id of the type that the `instance` represents.
     pub type_id: TypeId,
     /// The instance of the type. Note that this may not be a concrete instance,
     /// but a dynamic one.
     pub instance: Box<dyn PartialReflect>,
+}
+
+impl Clone for ReflectedValue {
+    fn clone(&self) -> Self {
+        Self {
+            type_id: self.type_id,
+            instance: self.instance.as_ref().clone_value(),
+        }
+    }
 }
 
 impl ReflectedValue {
@@ -67,6 +219,7 @@ impl ReflectedValue {
 }
 
 /// A reflected component patch containing the type id of the component and the props to be applied.
+#[derive(Debug, Clone, TypePath)]
 pub struct ReflectedComponentPatch {
     /// The type id of the component.
     pub type_id: TypeId,
@@ -74,10 +227,29 @@ pub struct ReflectedComponentPatch {
     pub props: ReflectedValue,
 }
 
-impl<'a> BsnReflector<'a> {
+impl<'a, 'b> BsnReflector<'a, 'b> {
     /// Create a new reflector for the given [`Bsn`] asset and [`TypeRegistry`].
     pub fn new(bsn: &'a Bsn, registry: &'a TypeRegistry) -> Self {
-        Self { bsn, registry }
+        Self {
+            bsn,
+            registry,
+            asset_loader: None,
+        }
+    }
+
+    /// A hacky workaround to allow loading assets using @-syntax during BSN reflection.
+    ///
+    /// This exists because a proper [`crate::Construct`] implementation for [`Handle`] is not possible without upstream changes.
+    ///
+    /// Takes either an [`AssetServer`] or a mutable reference to a [`LoadContext`] to load assets.
+    ///
+    /// NOTE: Any assets loaded during BSN reflection needs to have a [`ReflectHandleLoad`] registered for the [`Handle`] type.
+    pub fn with_asset_load(
+        mut self,
+        asset_loader: impl Into<BsnReflectorAssetLoader<'a, 'b>> + 'a,
+    ) -> Self {
+        self.asset_loader = Some(asset_loader.into());
+        self
     }
 
     fn try_resolve_type(&self, type_path: &str) -> ReflectResult<&TypeRegistration> {
@@ -146,7 +318,10 @@ impl<'a> BsnReflector<'a> {
             BsnComponent::Patch(path, props) => {
                 let component_type = self.try_resolve_type(path)?;
                 let Some(reflect_construct) = component_type.data::<ReflectConstruct>() else {
-                    return Err(ReflectError::MissingReflectConstruct(path.into()));
+                    return Err(ReflectError::MissingTypeData(
+                        "ReflectConstruct".into(),
+                        path.into(),
+                    ));
                 };
 
                 let Some(props_type) = self.registry.get(reflect_construct.props_type) else {
@@ -186,16 +361,37 @@ impl<'a> BsnReflector<'a> {
         prop: &BsnProp,
         ty: &TypeInfo,
     ) -> ReflectResult<Box<dyn PartialReflect>> {
+        // HACK: Allows constructing Handles from asset paths in BSN assets by triggering loads during reflection.
+        // This should be removed when we have an upstream Construct implementation for Handle.
+        if ty.type_path().starts_with("bevy_asset::handle::Handle<") && self.asset_loader.is_some()
+        {
+            if let BsnProp::Props(BsnValue::String(asset_path)) = prop {
+                let Some(reflect_handle_load) = self
+                    .registry
+                    .get_type_data::<ReflectHandleLoad>(ty.type_id())
+                else {
+                    return Err(ReflectError::MissingTypeData(
+                        "ReflectHandleLoad".into(),
+                        ty.type_path().into(),
+                    ));
+                };
+                let handle =
+                    reflect_handle_load.load(asset_path, self.asset_loader.as_ref().unwrap());
+                return Ok(handle.into_partial_reflect());
+            }
+        }
+
         // This is fine : )
         if ty
             .type_path()
-            .starts_with("bevy_bsn::construct::ConstructProp<")
+            .starts_with("bevy_proto_bsn::construct::ConstructProp<")
         {
             let generic = ty.generics().get_named("T").unwrap();
             let generic_ty = self.registry.get(generic.type_id()).unwrap();
 
             let Some(reflect_construct) = generic_ty.data::<ReflectConstruct>() else {
-                return Err(ReflectError::MissingReflectConstruct(
+                return Err(ReflectError::MissingTypeData(
+                    "ReflectConstruct".into(),
                     generic_ty.type_info().type_path().into(),
                 ));
             };
@@ -453,7 +649,6 @@ impl<'a> BsnReflector<'a> {
                         ));
                     };
 
-                    //let val = self.reflect_value(value, field.type_info().unwrap())?;
                     dynamic_struct.insert_boxed(get_value(value, field.type_info().unwrap())?);
                 }
 
@@ -487,6 +682,58 @@ impl<'a> BsnReflector<'a> {
                 ))
             }
             _ => Err(ReflectError::NotReflectable),
+        }
+    }
+}
+
+/// Wraps either an [`AssetServer`] or a mutable reference to a [`LoadContext`] to allow loading assets during reflection.
+pub enum BsnReflectorAssetLoader<'a, 'b> {
+    /// Use an [`AssetServer`] to load assets.
+    AssetServer(&'a AssetServer),
+    /// Use a [`LoadContext`] to load assets.
+    LoadContext(RefCell<&'a mut LoadContext<'b>>),
+}
+
+impl BsnReflectorAssetLoader<'_, '_> {
+    fn load<A: Asset>(&self, path: &str) -> Handle<A> {
+        match self {
+            BsnReflectorAssetLoader::AssetServer(asset_server) => asset_server.load::<A>(path),
+            BsnReflectorAssetLoader::LoadContext(load_context) => {
+                load_context.borrow_mut().load::<A>(path)
+            }
+        }
+    }
+}
+
+impl<'a> From<&'a AssetServer> for BsnReflectorAssetLoader<'a, '_> {
+    fn from(asset_server: &'a AssetServer) -> Self {
+        BsnReflectorAssetLoader::AssetServer(asset_server)
+    }
+}
+
+impl<'a, 'b> From<&'a mut LoadContext<'b>> for BsnReflectorAssetLoader<'a, 'b> {
+    fn from(load_context: &'a mut LoadContext<'b>) -> Self {
+        BsnReflectorAssetLoader::LoadContext(RefCell::new(load_context))
+    }
+}
+
+/// Type data for handles to load assets during reflection, needed by the hacky asset loading workaround.
+#[derive(Clone)]
+pub struct ReflectHandleLoad {
+    load: fn(&str, &BsnReflectorAssetLoader) -> Box<dyn Reflect>,
+}
+
+impl ReflectHandleLoad {
+    /// Load a typed asset, returning the resulting handle.
+    pub fn load(&self, path: &str, asset_loader: &BsnReflectorAssetLoader) -> Box<dyn Reflect> {
+        (self.load)(path, asset_loader)
+    }
+}
+
+impl<A: Asset> FromType<Handle<A>> for ReflectHandleLoad {
+    fn from_type() -> Self {
+        ReflectHandleLoad {
+            load: |path, asset_loader| Box::new(asset_loader.load::<A>(path)),
         }
     }
 }

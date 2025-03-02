@@ -4,7 +4,7 @@ use bevy::{
 };
 use thiserror::Error;
 
-use bevy_bsn_ast::{
+use bevy_proto_bsn_ast::{
     quote::ToTokens,
     syn::{Expr, ExprCall, ExprLit, ExprStruct, Lit, Member},
     *,
@@ -15,7 +15,7 @@ pub(crate) fn bsn_asset_plugin(app: &mut App) {
     app.init_asset_loader::<BsnLoader>();
 }
 
-/// Asset loader for loading `.bsn`-files as [`BsnEntity`]s.
+/// Asset loader for loading `.bsn`-files as [`Bsn`]s.
 #[derive(Default)]
 pub struct BsnLoader;
 
@@ -56,7 +56,7 @@ impl AssetLoader for BsnLoader {
     }
 
     fn extensions(&self) -> &[&str] {
-        &["bsn"]
+        &["proto_bsn", "bsn"]
     }
 }
 

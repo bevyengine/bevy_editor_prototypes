@@ -20,7 +20,9 @@ struct InfiniteGridSettings {
 struct View {
     projection: mat4x4<f32>,
     inverse_projection: mat4x4<f32>,
+    /// Expected to be World from view
     view: mat4x4<f32>,
+    /// Expected to be View from world
     inverse_view: mat4x4<f32>,
     world_position: vec3<f32>,
 };
@@ -34,11 +36,6 @@ struct Vertex {
     @builtin(vertex_index) index: u32,
 };
 
-fn unproject_point(p: vec3<f32>) -> vec3<f32> {
-    let unprojected = view.view * view.inverse_projection * vec4<f32>(p, 1.0);
-    return unprojected.xyz / unprojected.w;
-}
-
 fn strip_translation(m: mat4x4<f32>) -> mat4x4<f32> {
     return mat4x4<f32>(
         m[0],
@@ -48,17 +45,24 @@ fn strip_translation(m: mat4x4<f32>) -> mat4x4<f32> {
     );
 }
 
-fn unproject_point_no_transform(p: vec3<f32>) -> vec3<f32> {
+// Transforms point `p` from NDC to World Space Coordinates 
+fn unproject_point(p: vec3<f32>) -> vec3<f32> {
+    let unprojected = view.view * view.inverse_projection * vec4<f32>(p, 1.0);
+    return unprojected.xyz / unprojected.w;
+}
+
+// Transforms point `p` from NDC to World Space Coordinates 
+// but relative to View's translation
+fn unproject_point_no_translation(p: vec3<f32>) -> vec3<f32> {
     let unprojected = strip_translation(view.view) * view.inverse_projection * vec4<f32>(p, 1.0);
     return unprojected.xyz / unprojected.w;
 }
 
 struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>,
-    @location(0) near_point: vec3<f32>,
-    @location(1) far_point: vec3<f32>,
-    @location(2) near_point_dir: vec3<f32>,
-    @location(3) far_point_dir: vec3<f32>,
+    @location(0) ray_origin: vec3<f32>,
+    @location(1) ray_direction_near: vec3<f32>,
+    @location(2) ray_direction_far: vec3<f32>,
 };
 
 @vertex
@@ -75,10 +79,9 @@ fn vertex(vertex: Vertex) -> VertexOutput {
     var out: VertexOutput;
 
     out.clip_position = vec4<f32>(p, 1.);
-    out.near_point = unproject_point(p);
-    out.far_point = unproject_point(vec3<f32>(p.xy, 0.001)); // unprojecting on the far plane
-    out.near_point_dir = unproject_point_no_transform(p);
-    out.far_point_dir = unproject_point_no_transform(vec3<f32>(p.xy, 0.001));
+    out.ray_origin = unproject_point(p);
+    out.ray_direction_near = unproject_point_strip_translation(p);
+    out.ray_direction_far = unproject_point_strip_translation(vec3<f32>(p.xy, 0.001));
     return out;
 }
 
@@ -89,8 +92,8 @@ struct FragmentOutput {
 
 @fragment
 fn fragment(in: VertexOutput) -> FragmentOutput {
-    let ray_origin = in.near_point;
-    let ray_direction = normalize(in.far_point_dir - in.near_point_dir);
+    let ray_origin = in.ray_origin;
+    let ray_direction = normalize(in.ray_direction_far - in.ray_direction_near);
     let plane_normal = grid_position.normal;
     let plane_origin = grid_position.origin;
 

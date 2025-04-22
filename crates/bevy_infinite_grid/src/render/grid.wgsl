@@ -80,8 +80,8 @@ fn vertex(vertex: Vertex) -> VertexOutput {
 
     out.clip_position = vec4<f32>(p, 1.);
     out.ray_origin = unproject_point(p);
-    out.ray_direction_near = unproject_point_strip_translation(p);
-    out.ray_direction_far = unproject_point_strip_translation(vec3<f32>(p.xy, 0.001));
+    out.ray_direction_near = unproject_point_no_translation(p);
+    out.ray_direction_far = unproject_point_no_translation(vec3<f32>(p.xy, 0.001));
     return out;
 }
 

@@ -59,7 +59,7 @@ pub fn fetch_directory_content(
         while let Some(entry) = dir_stream.next().await {
             let entry_name = entry
                 .components()
-                .last()
+                .next_back()
                 .unwrap()
                 .as_os_str()
                 .to_string_lossy()

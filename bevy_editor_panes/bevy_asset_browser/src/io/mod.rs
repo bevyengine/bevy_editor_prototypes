@@ -19,7 +19,7 @@ pub fn create_new_folder(mut parent: PathBuf) -> std::io::Result<String> {
     create_dir_all(&parent)?;
     Ok(parent
         .components()
-        .last()
+        .next_back()
         .unwrap()
         .as_os_str()
         .to_str()
@@ -44,7 +44,7 @@ pub fn create_new_script(mut parent: PathBuf) -> std::io::Result<String> {
     )?;
     Ok(parent
         .components()
-        .last()
+        .next_back()
         .unwrap()
         .as_os_str()
         .to_str()

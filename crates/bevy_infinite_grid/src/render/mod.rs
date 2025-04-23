@@ -142,7 +142,9 @@ struct InfiniteGridBindGroup {
 pub struct GridViewUniform {
     projection: Mat4,
     inverse_projection: Mat4,
+    /// Expected to be World from view
     view: Mat4,
+    /// Expected to be View from world
     inverse_view: Mat4,
     world_position: Vec3,
 }

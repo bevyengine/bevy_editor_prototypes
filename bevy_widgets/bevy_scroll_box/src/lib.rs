@@ -181,7 +181,10 @@ fn spawn_scroll_bar<'a>(
                 let handle = query_handle.get(handle_entity).unwrap();
                 let scrollbox_entity = {
                     let scrollbar_parent = query_parent.get(handle_entity).unwrap();
-                    query_parent.get(scrollbar_parent.parent()).unwrap().parent()
+                    query_parent
+                        .get(scrollbar_parent.parent())
+                        .unwrap()
+                        .parent()
                 };
                 let (mut scrollbox, cursor_pos, scrollbox_children) =
                     query_scrollbox.get_mut(scrollbox_entity).unwrap();

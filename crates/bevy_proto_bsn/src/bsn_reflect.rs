@@ -207,7 +207,11 @@ impl Clone for ReflectedValue {
     fn clone(&self) -> Self {
         Self {
             type_id: self.type_id,
-            instance: self.instance.as_ref().reflect_clone().expect("Failed to clone instance"),
+            instance: self
+                .instance
+                .as_ref()
+                .reflect_clone()
+                .expect("Failed to clone instance"),
         }
     }
 }

@@ -2,7 +2,9 @@ use alloc::borrow::Cow;
 use bevy::{
     ecs::{
         bundle::{BundleFromComponents, DynamicBundle},
-        component::{ComponentId, Components, ComponentsRegistrator, RequiredComponents, StorageType},
+        component::{
+            ComponentId, Components, ComponentsRegistrator, RequiredComponents, StorageType,
+        },
         system::EntityCommands,
         world::error::EntityMutableFetchError,
     },

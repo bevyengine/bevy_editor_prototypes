@@ -6,9 +6,10 @@ use std::{f32::consts::PI, time::Duration};
 use bevy::app::prelude::*;
 use bevy::ecs::prelude::*;
 use bevy::math::{prelude::*, DQuat, DVec3};
+use bevy::platform_support::collections::HashMap;
+use bevy::platform_support::time::Instant;
 use bevy::reflect::prelude::*;
 use bevy::transform::prelude::*;
-use bevy::utils::{HashMap, Instant};
 use bevy::window::RequestRedraw;
 
 use crate::prelude::*;

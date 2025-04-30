@@ -41,12 +41,14 @@ pub fn setup(
         .id();
 
     let main = commands
-        .spawn(Node {
-            width: Val::Percent(100.0),
-            flex_grow: 1.0,
-            ..default()
-        })
-        .set_parent(root)
+        .spawn((
+            Node {
+                width: Val::Percent(100.0),
+                flex_grow: 1.0,
+                ..default()
+            },
+            ChildOf(root),
+        ))
         .id();
 
     spawn_scroll_box(
@@ -92,26 +94,28 @@ pub fn setup(
                         },
                         ImageNode::new(asset_server.load("plus.png")),
                     ))
-                    .observe(|_trigger: Trigger<Pointer<Up>>, mut commands: Commands| {
-                        let new_project_path = rfd::FileDialog::new().pick_folder();
-                        if let Some(path) = new_project_path {
-                            crate::spawn_create_new_project_task(
-                                &mut commands,
-                                Templates::Blank,
-                                path,
-                            );
-                        }
-                    });
+                    .observe(
+                        |_trigger: Trigger<Pointer<Released>>, mut commands: Commands| {
+                            let new_project_path = rfd::FileDialog::new().pick_folder();
+                            if let Some(path) = new_project_path {
+                                crate::spawn_create_new_project_task(
+                                    &mut commands,
+                                    Templates::Blank,
+                                    path,
+                                );
+                            }
+                        },
+                    );
             });
         }),
     )
-    .set_parent(main);
+    .insert(ChildOf(main));
 
-    let _footer = commands.spawn(FooterBarNode).set_parent(root).id();
+    let _footer = commands.spawn(FooterBarNode).insert(ChildOf(root)).id();
 }
 
 pub(crate) fn spawn_project_node<'a>(
-    commands: &'a mut ChildBuilder,
+    commands: &'a mut ChildSpawnerCommands,
     theme: &Theme,
     asset_server: &Res<AssetServer>,
     project: &ProjectInfo,
@@ -131,16 +135,15 @@ pub(crate) fn spawn_project_node<'a>(
     ));
 
     root_ec.observe(
-        |trigger: Trigger<Pointer<Up>>,
+        |trigger: Trigger<Pointer<Released>>,
          mut commands: Commands,
          query_children: Query<&Children>,
          query_text: Query<&Text>,
          mut exit: EventWriter<AppExit>,
-         query_parent: Query<&Parent>,
          mut project_list: ResMut<ProjectInfoList>| {
             let project = {
                 let text = {
-                    let project_entity = trigger.entity();
+                    let project_entity = trigger.target();
                     let project_children = query_children.get(project_entity).unwrap();
                     let text_container = project_children.get(1).expect(
                         "Expected project node to have 2 children, (the second being a container for the name)"
@@ -174,12 +177,8 @@ pub(crate) fn spawn_project_node<'a>(
                             project_list.0.retain(|p| p.path != project.path);
                             set_project_list(project_list.0.clone());
                             // Remove project node from UI
-                            let project_entity = trigger.entity();
-                            let parent = query_parent.get(project_entity).unwrap();
-                            commands
-                                .entity(parent.get())
-                                .remove_children(&[project_entity]);
-                            commands.entity(project_entity).despawn_recursive();
+                            let project_entity = trigger.target();
+                            commands.entity(project_entity).despawn();
                         }
                         _ => {}
                     }

@@ -27,7 +27,7 @@
 //! use bevy::prelude::*;
 //! use bevy_undo::*;
 //! use std::sync::Arc;
-//! use bevy::utils::hashbrown::HashMap;
+//! use bevy::platform_support::collections::HashMap;
 //!
 //! fn main() {
 //!     App::new()
@@ -57,7 +57,7 @@
 //!         // Apply some change
 //!         let old_transform = transform.clone();
 //!         transform.translation.x += 1.0;
-//!         
+//!
 //!         // Register custom change
 //!         new_changes.send(NewChange::new(CustomTransformChange {
 //!             entity: entity,
@@ -134,7 +134,7 @@
 #![allow(clippy::type_complexity)]
 use std::sync::Arc;
 
-use bevy::{prelude::*, utils::HashMap};
+use bevy::{platform_support::collections::HashMap, prelude::*};
 
 const MAX_REFLECT_RECURSION: i32 = 10;
 const AUTO_UNDO_LATENCY: i32 = 2;
@@ -273,7 +273,7 @@ pub struct UndoRedoApplied<T> {
 /// fn apply_undo(mut commands: Commands, entity: Entity) {
 ///     // Apply undo changes
 ///     // ...
-///     
+///
 ///     // Mark the entity to be ignored by the undo system for the next 10 frames
 ///     commands.entity(entity).insert(OneFrameUndoIgnore::default());
 /// }
@@ -356,7 +356,7 @@ fn undo_redo_logic(world: &mut World) {
     world.resource_scope::<Events<UndoRedo>, _>(|world, mut events| {
         world.resource_scope::<ChangeChain, _>(|world, mut change_chain| {
             {
-                let mut reader = events.get_reader();
+                let mut reader = events.get_cursor();
                 for event in reader.read(&events) {
                     match event {
                         UndoRedo::Undo => {
@@ -526,7 +526,7 @@ impl EditorChange for AddedEntity {
         entity_remap: &HashMap<Entity, Entity>,
     ) -> Result<ChangeResult, String> {
         let e = get_entity_with_remap(self.entity, entity_remap);
-        world.entity_mut(e).despawn_recursive();
+        world.entity_mut(e).despawn();
         world
             .resource_mut::<UndoIgnoreStorage>()
             .storage
@@ -562,7 +562,7 @@ impl EditorChange for RemovedEntity {
         remap: &HashMap<Entity, Entity>,
     ) -> Result<ChangeResult, String> {
         if let Some(e) = remap.get(&self.entity) {
-            if world.get_entity(*e).is_none() {
+            if world.get_entity(*e).is_ok() {
                 let id = world
                     .spawn_empty()
                     .insert(OneFrameUndoIgnore::default())
@@ -734,7 +734,7 @@ impl<T: Component + Clone> EditorChange for AddedComponent<T> {
     ) -> Result<ChangeResult, String> {
         let e = get_entity_with_remap(self.entity, entity_remap);
         let mut add_to_ignore = false;
-        if let Some(mut e) = world.get_entity_mut(e) {
+        if let Ok(mut e) = world.get_entity_mut(e) {
             e.remove::<T>().insert(OneFrameUndoIgnore::default());
             add_to_ignore = true;
         }
@@ -787,7 +787,7 @@ impl<T: Component + Reflect + FromReflect> EditorChange for ReflectedAddedCompon
         let dst = entity_remap
             .get(&self.entity)
             .map_or(self.entity, |remapped| *remapped);
-        if let Some(mut e) = world.get_entity_mut(dst) {
+        if let Ok(mut e) = world.get_entity_mut(dst) {
             e.remove::<T>().insert(OneFrameUndoIgnore::default());
         }
         world
@@ -843,7 +843,7 @@ impl<T: Component + Clone> EditorChange for RemovedComponent<T> {
         let mut remap = vec![];
         let dst = entity_remap.get(&self.entity).map_or_else(
             || {
-                if world.get_entity(self.entity).is_some() {
+                if world.get_entity(self.entity).is_ok() {
                     self.entity
                 } else {
                     let id = world.spawn_empty().id();
@@ -900,7 +900,7 @@ impl<T: Component + Reflect + FromReflect> EditorChange for ReflectedRemovedComp
         let mut remap = vec![];
         let dst = entity_remap.get(&self.entity).map_or_else(
             || {
-                if world.get_entity(self.entity).is_some() {
+                if world.get_entity(self.entity).is_ok() {
                     self.entity
                 } else {
                     let id = world.spawn_empty().id();
@@ -1094,7 +1094,7 @@ pub struct AutoUndoStorage<T: Component> {
 impl<T: Component> Default for AutoUndoStorage<T> {
     fn default() -> Self {
         Self {
-            storage: HashMap::new(),
+            storage: HashMap::default(),
         }
     }
 }
@@ -1160,7 +1160,7 @@ impl AppAutoUndo for App {
                 auto_undo_update_cache::<T>,
                 auto_undo_add_init::<T>,
                 auto_undo_remove_detect::<T>,
-                apply_deferred,
+                ApplyDeferred,
                 auto_undo_system_changed::<T>,
                 auto_undo_system::<T>,
             )
@@ -1186,7 +1186,7 @@ impl AppAutoUndo for App {
                 auto_undo_reflected_update_cache::<T>,
                 auto_undo_reflected_add_init::<T>,
                 auto_undo_reflected_remove_detect::<T>,
-                apply_deferred,
+                ApplyDeferred,
                 auto_undo_system_changed::<T>,
                 auto_undo_reflected_system::<T>,
             )
@@ -1203,8 +1203,8 @@ impl AppAutoUndo for App {
     }
 }
 
-fn apply_for_every_typed_field<D: Reflect>(
-    value: &mut dyn Reflect,
+fn apply_for_every_typed_field<D: Reflect + TypePath>(
+    value: &mut dyn PartialReflect,
     applyer: &dyn Fn(&mut D),
     max_recursion: i32,
 ) {
@@ -1212,7 +1212,7 @@ fn apply_for_every_typed_field<D: Reflect>(
         return;
     }
 
-    if let Some(v) = value.as_any_mut().downcast_mut::<D>() {
+    if let Some(v) = value.try_downcast_mut::<D>() {
         applyer(v);
     } else {
         match value.reflect_mut() {
@@ -1276,34 +1276,54 @@ fn apply_for_every_typed_field<D: Reflect>(
                     );
                 }
             }
-            bevy::reflect::ReflectMut::Value(_v) => {
-                //do nothing. Value was checked before
+            bevy::reflect::ReflectMut::Opaque(op) => {
+                apply_for_every_typed_field(op, applyer, max_recursion - 1);
+            }
+            bevy::reflect::ReflectMut::Set(set) => {
+                let mut queue_to_replace = vec![];
+                for field in set.iter() {
+                    if field.represents::<D>() {
+                        queue_to_replace.push(field.clone_value());
+                    }
+                }
+                for mut field in queue_to_replace {
+                    set.remove(field.as_ref());
+                    applyer(field.as_mut().try_downcast_mut().unwrap());
+                    set.insert_boxed(field);
+                }
             }
         }
     }
 }
 
 fn auto_remap_undo_redo<T: Component + Reflect>(
-    change_chain: Res<ChangeChain>,
-    mut query: Query<&mut T>,
     mut undoredo_applied: EventReader<UndoRedoApplied<T>>,
+    mut commands: Commands,
 ) {
     for event in undoredo_applied.read() {
         println!("remapping {:?}", event.entity);
-        if let Ok(mut data) = query.get_mut(event.entity) {
-            let reflect = data.as_reflect_mut();
+        let entity_id = event.entity;
+        commands.queue(move |world: &mut World| {
+            world.resource_scope(|world: &mut World, change_chain: Mut<ChangeChain>| {
+                let mut entity = world.entity_mut(entity_id);
+                if let Some(mut data) = entity.take::<T>() {
+                    let reflect = data.as_reflect_mut();
 
-            apply_for_every_typed_field::<Entity>(
-                reflect,
-                &|v| {
-                    if let Some(e) = change_chain.entity_remap.get(v) {
-                        println!("remap {:?} to {:?}", v, e);
-                        *v = *e;
-                    }
-                },
-                MAX_REFLECT_RECURSION,
-            );
-        }
+                    apply_for_every_typed_field::<Entity>(
+                        reflect.as_partial_reflect_mut(),
+                        &|v| {
+                            if let Some(e) = change_chain.entity_remap.get(v) {
+                                println!("remap {:?} to {:?}", v, e);
+                                *v = *e;
+                            }
+                        },
+                        MAX_REFLECT_RECURSION,
+                    );
+
+                    entity.insert(data);
+                }
+            });
+        });
     }
 }
 
@@ -1438,7 +1458,7 @@ fn auto_undo_system_changed<T: Component>(
 fn auto_undo_system<T: Component + Clone>(
     mut commands: Commands,
     mut storage: ResMut<AutoUndoStorage<T>>,
-    mut query: Query<(Entity, &mut T), With<ChangedMarker<T>>>,
+    mut query: Query<(Entity, Ref<T>), With<ChangedMarker<T>>>,
     mut new_change: EventWriter<NewChange>,
 ) {
     for (e, data) in query.iter_mut() {
@@ -1464,7 +1484,7 @@ fn auto_undo_system<T: Component + Clone>(
 fn auto_undo_reflected_system<T: Component + Reflect + FromReflect>(
     mut commands: Commands,
     mut storage: ResMut<AutoUndoStorage<T>>,
-    mut query: Query<(Entity, &mut T, &mut ChangedMarker<T>)>,
+    mut query: Query<(Entity, Ref<T>, &mut ChangedMarker<T>)>,
     mut new_change: EventWriter<NewChange>,
 ) {
     for (e, data, mut marker) in query.iter_mut() {
@@ -1538,7 +1558,7 @@ mod tests {
         app.update();
         app.update();
 
-        assert!(app.world_mut().get_entity(test_id).is_some());
+        assert!(app.world_mut().get_entity(test_id).is_ok());
 
         app.world_mut().send_event(UndoRedo::Undo);
 
@@ -1550,21 +1570,20 @@ mod tests {
         app.update();
 
         assert!(app.world_mut().get::<Name>(test_id).is_none());
-        assert!(app.world_mut().get_entity(test_id).is_some());
+        assert!(app.world_mut().get_entity(test_id).is_ok());
 
         app.world_mut().send_event(UndoRedo::Undo);
         app.update();
         app.update();
 
-        assert!(app.world_mut().get_entity(test_id).is_none());
+        assert!(app.world_mut().get_entity(test_id).is_err());
     }
 
     #[test]
     fn test_undo_with_remap() {
         let mut app = configure_app();
-        app.add_plugins(HierarchyPlugin);
 
-        app.auto_reflected_undo::<Parent>();
+        app.auto_reflected_undo::<ChildOf>();
         app.auto_reflected_undo::<Children>();
 
         let test_id_1 = app.world_mut().spawn(UndoMarker).id();
@@ -1586,7 +1605,7 @@ mod tests {
         app.update();
         app.cleanup();
 
-        app.world_mut().entity_mut(test_id_1).despawn_recursive();
+        app.world_mut().entity_mut(test_id_1).despawn();
         app.world_mut().send_event(NewChange {
             change: Arc::new(RemovedEntity { entity: test_id_1 }),
         });
@@ -1600,8 +1619,8 @@ mod tests {
         app.update();
         app.update();
 
-        assert!(app.world_mut().get_entity(test_id_1).is_none());
-        assert!(app.world_mut().get_entity(test_id_2).is_none());
+        assert!(app.world_mut().get_entity(test_id_1).is_err());
+        assert!(app.world_mut().get_entity(test_id_2).is_err());
         assert_eq!(app.world_mut().entities().len(), 2);
 
         let mut query = app.world_mut().query::<&Children>();

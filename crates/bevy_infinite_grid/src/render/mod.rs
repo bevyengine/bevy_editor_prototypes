@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use bevy::{
-    asset::load_internal_asset,
+    asset::{load_internal_asset, weak_handle},
     core_pipeline::{core_2d::Transparent2d, core_3d::Transparent3d},
     ecs::{
         query::ROQueryItem,
@@ -37,7 +37,7 @@ use bevy::{
 
 use crate::InfiniteGridSettings;
 
-const GRID_SHADER_HANDLE: Handle<Shader> = Handle::weak_from_u128(15204473893972682982);
+const GRID_SHADER_HANDLE: Handle<Shader> = weak_handle!("7cd38dd1-d707-481e-b38c-0eccb706e629");
 
 pub fn render_app_builder(app: &mut App) {
     load_internal_asset!(app, GRID_SHADER_HANDLE, "grid.wgsl", Shader::from_wgsl);
@@ -142,7 +142,9 @@ struct InfiniteGridBindGroup {
 pub struct GridViewUniform {
     projection: Mat4,
     inverse_projection: Mat4,
+    /// Expected to be World from view
     view: Mat4,
+    /// Expected to be View from world
     inverse_view: Mat4,
     world_position: Vec3,
 }
@@ -403,20 +405,14 @@ fn queue_infinite_grids(
     infinite_grids: Query<&ExtractedInfiniteGrid>,
     mut transparent3d_render_phases: ResMut<ViewSortedRenderPhases<Transparent3d>>,
     mut transparent2d_render_phases: ResMut<ViewSortedRenderPhases<Transparent2d>>,
-    mut views: Query<(Entity, &RenderVisibleEntities, &ExtractedView, &Msaa)>,
+    views: Query<(&RenderVisibleEntities, &ExtractedView, &Msaa)>,
 ) {
-    let draw_function_id = transparent3d_draw_functions
-        .read()
-        .get_id::<DrawInfiniteGrid>()
-        .unwrap();
-    let draw_function_id_2d = transparent2d_draw_functions
-        .read()
-        .get_id::<DrawInfiniteGrid>()
-        .unwrap();
+    let draw_function_id = transparent3d_draw_functions.read().id::<DrawInfiniteGrid>();
+    let draw_function_id_2d = transparent2d_draw_functions.read().id::<DrawInfiniteGrid>();
 
-    for (view_entity, entities, view, msaa) in views.iter_mut() {
-        let mut phase3d = transparent3d_render_phases.get_mut(&view_entity);
-        let mut phase2d = transparent2d_render_phases.get_mut(&view_entity);
+    for (visible_entities, view, msaa) in &views {
+        let mut phase3d = transparent3d_render_phases.get_mut(&view.retained_view_entity);
+        let mut phase2d = transparent2d_render_phases.get_mut(&view.retained_view_entity);
 
         if phase3d.is_none() && phase2d.is_none() {
             continue;
@@ -432,15 +428,16 @@ fn queue_infinite_grids(
             },
         );
 
-        for &(entity, main_entity) in entities.iter::<With<InfiniteGridSettings>>() {
+        for &(entity, main_entity) in visible_entities.iter::<InfiniteGridSettings>() {
             if let Some(phase2d) = &mut phase2d {
                 phase2d.items.push(Transparent2d {
                     pipeline: pipeline_id,
                     entity: (entity, main_entity),
                     draw_function: draw_function_id_2d,
                     batch_range: 0..1,
-                    extra_index: PhaseItemExtraIndex::NONE,
+                    extra_index: PhaseItemExtraIndex::None,
                     sort_key: FloatOrd(f32::NEG_INFINITY),
+                    indexed: true,
                 });
             }
             if !infinite_grids
@@ -457,7 +454,8 @@ fn queue_infinite_grids(
                     draw_function: draw_function_id,
                     distance: f32::NEG_INFINITY,
                     batch_range: 0..1,
-                    extra_index: PhaseItemExtraIndex::NONE,
+                    extra_index: PhaseItemExtraIndex::None,
+                    indexed: true,
                 });
             }
         }

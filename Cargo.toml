@@ -27,15 +27,23 @@ unsafe_op_in_unsafe_fn = "warn"
 unused_qualifications = "warn"
 
 [workspace.dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "89d094e50f10fc56ec3c4b046c830c650f9f09d5", features = ["wayland"] }
-bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "89d094e50f10fc56ec3c4b046c830c650f9f09d5" }
-thiserror = "1"
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "d6725d3b1baa6a730fa6bfab1bb8f2a9e5f4716e", features = [
+    "wayland",
+] }
+bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "d6725d3b1baa6a730fa6bfab1bb8f2a9e5f4716e" }
+bevy_macro_utils = { git = "https://github.com/bevyengine/bevy.git", rev = "d6725d3b1baa6a730fa6bfab1bb8f2a9e5f4716e" }
+thiserror = "2.0"
 serde = { version = "1", features = ["derive"] }
 tracing-test = "0.2.5"
 tracing = "0.1.40"
 atomicow = "1.0.0"
 rfd = "0.15"
 ron = "0.8.1"
+variadics_please = "1.0"
+
+# This is a temporary workaround for https://github.com/bilelmoussaoui/ashpd/issues/264
+# Should be ok to remove once the issue is fixed, published, and `rfd` points to the new version.
+futures-util = { version = "0.3", features = ["io"] }
 
 # local crates
 
@@ -58,10 +66,14 @@ bevy_scroll_box = { path = "bevy_widgets/bevy_scroll_box" }
 bevy_footer_bar = { path = "bevy_widgets/bevy_footer_bar" }
 bevy_toolbar = { path = "bevy_widgets/bevy_toolbar" }
 bevy_tooltips = { path = "bevy_widgets/bevy_tooltips" }
+bevy_text_editing = { path = "bevy_widgets/bevy_text_editing" }
+bevy_field_forms = { path = "bevy_widgets/bevy_field_forms" }
+bevy_focus = { path = "bevy_widgets/bevy_focus" }
 
 # general crates
 bevy_editor_core = { path = "crates/bevy_editor_core" }
 bevy_asset_preview = { path = "crates/bevy_asset_preview" }
+bevy_proto_bsn = { path = "crates/bevy_proto_bsn" }
 bevy_editor = { path = "crates/bevy_editor" }
 bevy_editor_camera = { path = "crates/bevy_editor_camera" }
 bevy_editor_launcher = { path = "crates/bevy_editor_launcher" }
@@ -73,4 +85,4 @@ bevy_transform_gizmos = { path = "crates/bevy_transform_gizmos" }
 bevy_undo = { path = "crates/bevy_undo" }
 bevy_infinite_grid = { path = "crates/bevy_infinite_grid" }
 bevy_editor_cam = { path = "crates/bevy_editor_cam" }
-
+bevy_clipboard = { path = "crates/bevy_clipboard" }

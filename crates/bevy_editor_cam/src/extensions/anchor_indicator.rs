@@ -36,20 +36,20 @@ impl Plugin for AnchorIndicatorPlugin {
                             margin: UiRect::all(Val::Px(-12.)),
                             ..default()
                         },
-                        TargetCamera(trigger.entity()),
-                        PickingBehavior::IGNORE,
+                        UiTargetCamera(trigger.target()),
+                        Pickable::IGNORE,
                     ))
                     .id();
 
-                commands.entity(trigger.entity()).insert(AnchorRoot(id));
+                commands.entity(trigger.target()).insert(AnchorRoot(id));
             },
         )
         .add_observer(
             |trigger: Trigger<OnRemove, AnchorRoot>,
              mut commands: Commands,
              anchor_root_query: Query<&AnchorRoot>| {
-                if let Ok(anchor_root) = anchor_root_query.get(trigger.entity()) {
-                    commands.entity(anchor_root.0).despawn_recursive();
+                if let Ok(anchor_root) = anchor_root_query.get(trigger.target()) {
+                    commands.entity(anchor_root.0).despawn();
                 }
             },
         )

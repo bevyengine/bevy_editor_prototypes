@@ -48,8 +48,8 @@ impl Plugin for Viewport2dPanePlugin {
                  query: Query<&Bevy2dViewport>| {
                     // Despawn the viewport camera
                     commands
-                        .entity(query.get(trigger.entity()).unwrap().camera_id)
-                        .despawn_recursive();
+                        .entity(query.get(trigger.target()).unwrap().camera_id)
+                        .despawn();
                 },
             );
 
@@ -98,8 +98,8 @@ fn on_pane_creation(
                 right: Val::ZERO,
                 ..default()
             },
+            ChildOf(structure.content),
         ))
-        .set_parent(structure.content)
         .id();
 
     let camera_id = commands
@@ -110,7 +110,7 @@ fn on_pane_creation(
                 ..default()
             },
             Camera {
-                target: RenderTarget::Image(image_handle),
+                target: RenderTarget::Image(image_handle.into()),
                 clear_color: ClearColorConfig::Custom(theme.viewport.background_color),
                 ..default()
             },

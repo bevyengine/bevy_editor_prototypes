@@ -16,6 +16,9 @@ use bevy_editor_cam::prelude::{DefaultEditorCamPlugins, EditorCam};
 use bevy_editor_styles::Theme;
 use bevy_infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings};
 use bevy_pane_layout::prelude::*;
+use view_gizmo::{spawn_view_gizmo_target_texture, ViewGizmoPlugin};
+
+mod view_gizmo;
 
 /// The identifier for the 3D Viewport.
 /// This is present on any pane that is a 3D Viewport.
@@ -40,7 +43,8 @@ impl Plugin for Viewport3dPanePlugin {
         if !app.is_plugin_added::<InfiniteGridPlugin>() {
             app.add_plugins(InfiniteGridPlugin);
         }
-        app.add_plugins(DefaultEditorCamPlugins)
+
+        app.add_plugins((DefaultEditorCamPlugins, ViewGizmoPlugin))
             .add_systems(Startup, setup)
             .add_systems(
                 PreUpdate,
@@ -56,8 +60,8 @@ impl Plugin for Viewport3dPanePlugin {
                  query: Query<&Bevy3dViewport>| {
                     // Despawn the viewport camera
                     commands
-                        .entity(query.get(trigger.entity()).unwrap().camera_id)
-                        .despawn_recursive();
+                        .entity(query.get(trigger.target()).unwrap().camera_id)
+                        .despawn();
                 },
             );
 
@@ -101,7 +105,7 @@ fn render_target_picking_passthrough(
 
             let new_location = Location {
                 position: event.location.position - node_rect.min,
-                target: NormalizedRenderTarget::Image(ui_image.image.clone()),
+                target: NormalizedRenderTarget::Image(ui_image.image.clone().into()),
             };
 
             // Duplicate the event
@@ -160,20 +164,23 @@ fn on_pane_creation(
                 right: Val::ZERO,
                 ..default()
             },
+            ChildOf(structure.content),
         ))
-        .set_parent(structure.content)
+        .with_children(|parent| {
+            spawn_view_gizmo_target_texture(images, parent);
+        })
         .observe(|trigger: Trigger<Pointer<Over>>, mut commands: Commands| {
-            commands.entity(trigger.entity()).insert(Active);
+            commands.entity(trigger.target()).insert(Active);
         })
         .observe(|trigger: Trigger<Pointer<Out>>, mut commands: Commands| {
-            commands.entity(trigger.entity()).remove::<Active>();
+            commands.entity(trigger.target()).remove::<Active>();
         });
 
     let camera_id = commands
         .spawn((
             Camera3d::default(),
             Camera {
-                target: RenderTarget::Image(image_handle),
+                target: RenderTarget::Image(image_handle.into()),
                 clear_color: ClearColorConfig::Custom(theme.viewport.background_color),
                 ..default()
             },

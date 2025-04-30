@@ -83,6 +83,7 @@ fn projection_specific_render_config(
                 .remove::<TemporalJitter>()
                 .remove::<ScreenSpaceAmbientOcclusion>();
         }
+        _ => {}
     }
 }
 

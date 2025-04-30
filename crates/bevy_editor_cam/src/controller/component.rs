@@ -8,11 +8,11 @@ use std::{
 use bevy::ecs::prelude::*;
 use bevy::log::prelude::*;
 use bevy::math::{prelude::*, DMat4, DQuat, DVec2, DVec3};
+use bevy::platform_support::time::Instant;
 use bevy::reflect::prelude::*;
 use bevy::render::prelude::*;
 use bevy::time::prelude::*;
 use bevy::transform::prelude::*;
-use bevy::utils::Instant;
 use bevy::window::RequestRedraw;
 
 use super::{
@@ -389,6 +389,10 @@ impl EditorCam {
                 offset
             }
             Projection::Orthographic(ortho) => DVec2::new(-ortho.scale as f64, ortho.scale as f64),
+            Projection::Custom(_) => {
+                bevy::log::warn_once!("EditorCam does not support Projection::Custom");
+                return;
+            }
         };
 
         let pan_translation_view_space = (pan * view_offset).extend(0.0);
@@ -446,6 +450,10 @@ impl EditorCam {
                     * anchor.z.abs()
                     * 0.0015
                     * DVec3::new(1.0, 1.0, 0.0)
+            }
+            Projection::Custom(_) => {
+                bevy::log::warn_once!("EditorCam does not support Projection::Custom");
+                return;
             }
         };
 

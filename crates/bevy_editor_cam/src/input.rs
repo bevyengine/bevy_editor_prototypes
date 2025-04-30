@@ -5,10 +5,10 @@ use bevy::input::{
     prelude::*,
 };
 use bevy::math::{prelude::*, DVec2, DVec3};
+use bevy::platform_support::collections::HashMap;
 use bevy::reflect::prelude::*;
 use bevy::render::{camera::CameraProjection, prelude::*};
 use bevy::transform::prelude::*;
-use bevy::utils::hashbrown::HashMap;
 use bevy::window::PrimaryWindow;
 use bevy::{app::prelude::*, picking::pointer::PointerInput};
 use bevy::{ecs::prelude::*, picking::pointer::PointerAction};
@@ -283,8 +283,11 @@ impl EditorCamInputEvent {
                 .iter()
                 .filter(|m| m.pointer_id.eq(pointer))
                 .filter_map(|m| match m.action {
-                    PointerAction::Moved { delta } => Some(delta),
-                    PointerAction::Pressed { .. } | PointerAction::Canceled => None,
+                    PointerAction::Move { delta } => Some(delta),
+                    PointerAction::Press { .. }
+                    | PointerAction::Cancel
+                    | PointerAction::Release(_)
+                    | PointerAction::Scroll { .. } => None,
                 })
                 .sum();
 
@@ -341,5 +344,9 @@ fn screen_to_view_space(
             view_near_plane.y,
             controller.last_anchor_depth(),
         )),
+        Projection::Custom(_) => {
+            bevy::log::warn_once!("Dolly zoom does not support Projection::Custom");
+            None
+        }
     }
 }

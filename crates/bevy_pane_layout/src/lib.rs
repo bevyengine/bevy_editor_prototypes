@@ -22,7 +22,7 @@ use bevy::prelude::*;
 use bevy_editor_styles::Theme;
 
 use crate::{
-    registry::{PaneAppExt, PaneRegistryPlugin, PaneStructure},
+    registry::PaneRegistryPlugin,
     ui::{spawn_divider, spawn_pane, spawn_resize_handle},
 };
 
@@ -39,11 +39,6 @@ pub struct PaneLayoutPlugin;
 
 impl Plugin for PaneLayoutPlugin {
     fn build(&self, app: &mut App) {
-        // TODO Move these registrations to their respective crates.
-        app.register_pane("Properties", |_pane_structure: In<PaneStructure>| {
-            // Todo
-        });
-
         app.add_plugins(PaneRegistryPlugin)
             .init_resource::<DragState>()
             .add_systems(Startup, setup.in_set(PaneLayoutSet))
@@ -59,7 +54,7 @@ impl Plugin for PaneLayoutPlugin {
 fn apply_size(
     mut query: Query<(Entity, &Size, &mut Node), Changed<Size>>,
     divider_query: Query<&Divider>,
-    parent_query: Query<&Parent>,
+    parent_query: Query<&ChildOf>,
 ) {
     for (entity, size, mut style) in &mut query {
         let parent = parent_query.get(entity).unwrap().get();
@@ -114,32 +109,32 @@ fn setup(
     ));
 
     let divider = spawn_divider(&mut commands, Divider::Horizontal, 1.)
-        .set_parent(*panes_root)
+        .insert(ChildOf(*panes_root))
         .id();
 
     let sub_divider = spawn_divider(&mut commands, Divider::Vertical, 0.2)
-        .set_parent(divider)
+        .insert(ChildOf(divider))
         .id();
 
-    spawn_pane(&mut commands, &theme, 0.4, "Scene Tree").set_parent(sub_divider);
-    spawn_resize_handle(&mut commands, Divider::Vertical).set_parent(sub_divider);
-    spawn_pane(&mut commands, &theme, 0.6, "Properties").set_parent(sub_divider);
+    spawn_pane(&mut commands, &theme, 0.4, "Scene Tree").insert(ChildOf(sub_divider));
+    spawn_resize_handle(&mut commands, Divider::Vertical).insert(ChildOf(sub_divider));
+    spawn_pane(&mut commands, &theme, 0.6, "Properties").insert(ChildOf(sub_divider));
 
-    spawn_resize_handle(&mut commands, Divider::Horizontal).set_parent(divider);
+    spawn_resize_handle(&mut commands, Divider::Horizontal).insert(ChildOf(divider));
 
     let asset_browser_divider = spawn_divider(&mut commands, Divider::Vertical, 0.8)
-        .set_parent(divider)
+        .insert(ChildOf(divider))
         .id();
 
-    spawn_pane(&mut commands, &theme, 0.70, "Viewport 3D").set_parent(asset_browser_divider);
-    spawn_resize_handle(&mut commands, Divider::Vertical).set_parent(asset_browser_divider);
-    spawn_pane(&mut commands, &theme, 0.30, "Asset Browser").set_parent(asset_browser_divider);
+    spawn_pane(&mut commands, &theme, 0.70, "Viewport 3D").insert(ChildOf(asset_browser_divider));
+    spawn_resize_handle(&mut commands, Divider::Vertical).insert(ChildOf(asset_browser_divider));
+    spawn_pane(&mut commands, &theme, 0.30, "Asset Browser").insert(ChildOf(asset_browser_divider));
 }
 
 /// Removes a divider from the hierarchy when it has only one child left, replacing itself with that child.
 fn cleanup_divider_single_child(
     mut commands: Commands,
-    mut query: Query<(Entity, &Children, &Parent), (Changed<Children>, With<Divider>)>,
+    mut query: Query<(Entity, &Children, &ChildOf), (Changed<Children>, With<Divider>)>,
     mut size_query: Query<&mut Size>,
     children_query: Query<&Children>,
     resize_handle_query: Query<(), With<ResizeHandle>>,
@@ -147,8 +142,8 @@ fn cleanup_divider_single_child(
     for (entity, children, parent) in &mut query {
         let mut iter = children
             .iter()
-            .filter(|child| !resize_handle_query.contains(**child));
-        let child = *iter.next().unwrap();
+            .filter(|child| !resize_handle_query.contains(*child));
+        let child = iter.next().unwrap();
         if iter.next().is_some() {
             continue;
         }
@@ -158,12 +153,12 @@ fn cleanup_divider_single_child(
 
         // Find the index of this divider among its siblings
         let siblings = children_query.get(parent.get()).unwrap();
-        let index = siblings.iter().position(|s| *s == entity).unwrap();
+        let index = siblings.iter().position(|s| s == entity).unwrap();
 
         commands
             .entity(parent.get())
             .insert_children(index, &[child]);
-        commands.entity(entity).despawn_recursive();
+        commands.entity(entity).despawn();
     }
 }
 
@@ -202,3 +197,32 @@ pub struct PaneHeaderNode;
 /// Node to denote the content space of the Pane.
 #[derive(Component)]
 pub struct PaneContentNode;
+
+/// Adds `insert_children` method to `EntityWorldMut` and `EntityCommands`.
+trait InsertChildrenExt {
+    /// Inserts the given children at the given index.
+    fn insert_children(&mut self, index: usize, children: &[Entity]);
+}
+
+impl InsertChildrenExt for EntityWorldMut<'_> {
+    fn insert_children(&mut self, index: usize, children: &[Entity]) {
+        let prev_children = self.take::<Children>().unwrap_or_default();
+        let (prev_left, prev_right) = prev_children.split_at(index);
+
+        let parent_id = self.id();
+        self.world_scope(|world| {
+            for child in prev_left.iter().chain(children).chain(prev_right) {
+                world.entity_mut(*child).insert(ChildOf(parent_id));
+            }
+        });
+    }
+}
+
+impl InsertChildrenExt for EntityCommands<'_> {
+    fn insert_children(&mut self, index: usize, children: &[Entity]) {
+        let new_children = children.to_vec();
+        self.queue(move |mut entity: EntityWorldMut| {
+            entity.insert_children(index, &new_children);
+        });
+    }
+}

@@ -39,8 +39,8 @@ pub(crate) fn spawn_pane<'a>(
             PaneAreaNode,
             theme.pane.area_background_color,
             theme.general.border_radius,
+            ChildOf(root),
         ))
-        .set_parent(root)
         .id();
 
     // Header
@@ -68,6 +68,7 @@ pub(crate) fn spawn_pane<'a>(
                 }),
             ]),
             PaneHeaderNode,
+            ChildOf(area),
         ))
         .observe(
             move |_trigger: Trigger<Pointer<Move>>,
@@ -89,7 +90,6 @@ pub(crate) fn spawn_pane<'a>(
                     .insert(CursorIcon::System(SystemCursorIcon::Default));
             },
         )
-        .set_parent(area)
         .with_children(|parent| {
             // Drop down button for selecting the pane type.
             // Once a drop down menu is implemented, this will have that added.
@@ -126,8 +126,8 @@ pub(crate) fn spawn_pane<'a>(
                 ..default()
             },
             PaneContentNode,
+            ChildOf(area),
         ))
-        .set_parent(area)
         .id();
 
     commands.entity(root).insert(PaneStructure {
@@ -202,7 +202,7 @@ pub(crate) fn spawn_resize_handle<'a>(
     .observe(
         move |trigger: Trigger<Pointer<DragStart>>,
               mut drag_state: ResMut<DragState>,
-              parent_query: Query<&Parent>,
+              parent_query: Query<&ChildOf>,
               children_query: Query<&Children>,
               computed_node_query: Query<&ComputedNode>,
               size_query: Query<&Size>| {
@@ -212,7 +212,7 @@ pub(crate) fn spawn_resize_handle<'a>(
 
             drag_state.is_dragging = true;
 
-            let target = trigger.entity();
+            let target = trigger.target();
             let parent = parent_query.get(target).unwrap().get();
 
             let parent_node_size = computed_node_query.get(parent).unwrap().size();
@@ -223,10 +223,7 @@ pub(crate) fn spawn_resize_handle<'a>(
 
             let siblings = children_query.get(parent).unwrap();
             // Find the index of this handle among its siblings
-            let index = siblings
-                .iter()
-                .position(|entity| *entity == target)
-                .unwrap();
+            let index = siblings.iter().position(|entity| entity == target).unwrap();
 
             let size_a = size_query.get(siblings[index - 1]).unwrap().0;
             let size_b = size_query.get(siblings[index + 1]).unwrap().0;
@@ -241,21 +238,18 @@ pub(crate) fn spawn_resize_handle<'a>(
     .observe(
         move |trigger: Trigger<Pointer<Drag>>,
               mut drag_state: ResMut<DragState>,
-              parent_query: Query<&Parent>,
+              parent_query: Query<&ChildOf>,
               children_query: Query<&Children>,
               mut size_query: Query<&mut Size>| {
             if !drag_state.is_dragging {
                 return;
             }
 
-            let target = trigger.entity();
+            let target = trigger.target();
             let parent = parent_query.get(target).unwrap().get();
             let siblings = children_query.get(parent).unwrap();
             // Find the index of this handle among its siblings
-            let index = siblings
-                .iter()
-                .position(|entity| *entity == target)
-                .unwrap();
+            let index = siblings.iter().position(|entity| entity == target).unwrap();
 
             let delta = trigger.event().delta;
             let delta = match divider_parent {

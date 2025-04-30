@@ -73,21 +73,21 @@ fn menu_setup(
         |trigger: Trigger<Pointer<Over>>,
          theme: Res<Theme>,
          mut query: Query<&mut BackgroundColor>| {
-            query.get_mut(trigger.entity()).unwrap().0 = theme.button.hover_color;
+            query.get_mut(trigger.target()).unwrap().0 = theme.button.hover_color;
         },
     );
     let mut hover_out_observer = Observer::new(
         |trigger: Trigger<Pointer<Out>>,
          theme: Res<Theme>,
          mut query: Query<&mut BackgroundColor>| {
-            query.get_mut(trigger.entity()).unwrap().0 = theme.menu.background_color;
+            query.get_mut(trigger.target()).unwrap().0 = theme.menu.background_color;
         },
     );
 
     let mut click_observer = Observer::new(
-        |trigger: Trigger<Pointer<Down>>, mut query: Query<&TopBarItem>| {
+        |trigger: Trigger<Pointer<Pressed>>, mut query: Query<&TopBarItem>| {
             #[allow(clippy::match_same_arms)]
-            match query.get_mut(trigger.entity()).unwrap() {
+            match query.get_mut(trigger.target()).unwrap() {
                 TopBarItem::Logo => {
                     // TODO: Implement logo click action
                 }
@@ -125,7 +125,7 @@ fn menu_setup(
                 font_size: 12.,
                 ..default()
             },
-            PickingBehavior::IGNORE,
+            Pickable::IGNORE,
         ))
         .id();
     let file_container = commands
@@ -155,7 +155,7 @@ fn menu_setup(
                 font_size: 12.,
                 ..default()
             },
-            PickingBehavior::IGNORE,
+            Pickable::IGNORE,
         ))
         .id();
     let edit_container = commands
@@ -185,7 +185,7 @@ fn menu_setup(
                 font_size: 12.,
                 ..default()
             },
-            PickingBehavior::IGNORE,
+            Pickable::IGNORE,
         ))
         .id();
     let build_container = commands
@@ -215,7 +215,7 @@ fn menu_setup(
                 font_size: 12.,
                 ..default()
             },
-            PickingBehavior::IGNORE,
+            Pickable::IGNORE,
         ))
         .id();
     let window_container = commands
@@ -245,7 +245,7 @@ fn menu_setup(
                 font_size: 12.,
                 ..default()
             },
-            PickingBehavior::IGNORE,
+            Pickable::IGNORE,
         ))
         .id();
 
@@ -281,19 +281,33 @@ fn menu_setup(
         },))
         .id();
 
-    commands.entity(menu_container).set_parent(root.single());
+    commands
+        .entity(menu_container)
+        .insert(ChildOf(root.single()));
 
-    commands.entity(logo).set_parent(menu_container);
-    commands.entity(file_container).set_parent(menu_container);
-    commands.entity(file_text).set_parent(file_container);
-    commands.entity(edit_container).set_parent(menu_container);
-    commands.entity(edit_text).set_parent(edit_container);
-    commands.entity(build_container).set_parent(menu_container);
-    commands.entity(build_text).set_parent(build_container);
-    commands.entity(window_container).set_parent(menu_container);
-    commands.entity(window_text).set_parent(window_container);
-    commands.entity(help_container).set_parent(menu_container);
-    commands.entity(help_text).set_parent(help_container);
+    commands.entity(logo).insert(ChildOf(menu_container));
+    commands
+        .entity(file_container)
+        .insert(ChildOf(menu_container));
+    commands.entity(file_text).insert(ChildOf(file_container));
+    commands
+        .entity(edit_container)
+        .insert(ChildOf(menu_container));
+    commands.entity(edit_text).insert(ChildOf(edit_container));
+    commands
+        .entity(build_container)
+        .insert(ChildOf(menu_container));
+    commands.entity(build_text).insert(ChildOf(build_container));
+    commands
+        .entity(window_container)
+        .insert(ChildOf(menu_container));
+    commands
+        .entity(window_text)
+        .insert(ChildOf(window_container));
+    commands
+        .entity(help_container)
+        .insert(ChildOf(menu_container));
+    commands.entity(help_text).insert(ChildOf(help_container));
 
     click_observer.watch_entity(logo);
     hover_over_observer.watch_entity(file_container);

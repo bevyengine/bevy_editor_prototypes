@@ -8,10 +8,11 @@ use std::time::Duration;
 use bevy::app::prelude::*;
 use bevy::ecs::prelude::*;
 use bevy::math::prelude::*;
+use bevy::platform_support::collections::HashMap;
+use bevy::platform_support::time::Instant;
 use bevy::reflect::prelude::*;
 use bevy::render::{camera::ScalingMode, prelude::*};
 use bevy::transform::prelude::*;
-use bevy::utils::{HashMap, Instant};
 use bevy::window::RequestRedraw;
 
 use crate::prelude::{motion::CurrentMotion, EditorCam, EnabledMotion};
@@ -89,6 +90,10 @@ impl DollyZoomTrigger {
                     controller.last_anchor_depth += forward_dist;
 
                     (ZERO_FOV as f32, base)
+                }
+                Projection::Custom(_) => {
+                    bevy::log::warn_once!("Dolly zoom does not support Projection::Custom");
+                    continue;
                 }
             };
 
@@ -199,6 +204,10 @@ impl DollyZoom {
             let fov_end = match &*proj_end {
                 Projection::Perspective(perspective) => perspective.fov as f64,
                 Projection::Orthographic(_) => ZERO_FOV,
+                Projection::Custom(_) => {
+                    bevy::log::warn_once!("Dolly zoom does not support Projection::Custom");
+                    continue;
+                }
             };
             let progress = start.elapsed().as_secs_f32() / animation_duration.as_secs_f32();
             let progress = animation_curve.ease(progress);

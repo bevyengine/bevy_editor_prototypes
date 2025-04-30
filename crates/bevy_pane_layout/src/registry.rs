@@ -2,8 +2,8 @@
 
 use bevy::{
     ecs::system::{BoxedSystem, SystemId},
+    platform_support::collections::HashMap,
     prelude::*,
-    utils::HashMap,
 };
 
 use crate::{PaneLayoutSet, PaneRootNode};
@@ -75,7 +75,7 @@ pub(crate) fn on_pane_creation(
                     world.register_boxed_system(pane.creation_callback.take().unwrap())
                 });
 
-                world.run_system_with_input(*id, structure).unwrap();
+                world.run_system_with(*id, structure).unwrap();
             } else {
                 warn!(
                     "No pane found in the registry with name: '{}'",
@@ -93,7 +93,7 @@ pub trait PaneAppExt {
         &mut self,
         name: impl Into<String>,
         system: impl IntoSystem<In<PaneStructure>, (), M>,
-    );
+    ) -> &mut Self;
 }
 
 impl PaneAppExt for App {
@@ -101,9 +101,11 @@ impl PaneAppExt for App {
         &mut self,
         name: impl Into<String>,
         system: impl IntoSystem<In<PaneStructure>, (), M>,
-    ) {
+    ) -> &mut Self {
         self.world_mut()
             .get_resource_or_init::<PaneRegistry>()
             .register(name, system);
+
+        self
     }
 }

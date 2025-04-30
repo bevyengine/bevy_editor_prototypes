@@ -3,13 +3,13 @@ use bevy_editor_styles::Theme;
 
 use crate::{
     ui::{spawn_divider, spawn_pane, spawn_resize_handle},
-    Divider, PaneRootNode, RootPaneLayoutNode, Size,
+    Divider, InsertChildrenExt, PaneRootNode, RootPaneLayoutNode, Size,
 };
 
 pub(crate) fn remove_pane(
     target: In<Entity>,
     mut commands: Commands,
-    parent_query: Query<&Parent>,
+    parent_query: Query<&ChildOf>,
     children_query: Query<&Children>,
     root_query: Query<(), With<RootPaneLayoutNode>>,
     mut size_query: Query<&mut Size>,
@@ -26,10 +26,7 @@ pub(crate) fn remove_pane(
 
     // Find the index of this pane among its siblings
     let siblings = children_query.get(parent).unwrap();
-    let index = siblings
-        .iter()
-        .position(|entity| *entity == target)
-        .unwrap();
+    let index = siblings.iter().position(|entity| entity == target).unwrap();
 
     let size = size_query.get(target).unwrap().0;
 
@@ -51,11 +48,9 @@ pub(crate) fn remove_pane(
 
     // Despawn the resize handle next to this pane
     let resize_handle_index = if not_first_child { index - 1 } else { 1 };
-    commands
-        .entity(siblings[resize_handle_index])
-        .despawn_recursive();
+    commands.entity(siblings[resize_handle_index]).despawn();
     // Despawn this pane
-    commands.entity(target).despawn_recursive();
+    commands.entity(target).despawn();
 }
 
 /// Right clicking dividers the pane horizontally
@@ -69,7 +64,7 @@ pub(crate) fn split_pane(
     pane_root_query: Query<&PaneRootNode>,
     mut size_query: Query<&mut Size>,
     children_query: Query<&Children>,
-    parent_query: Query<&Parent>,
+    parent_query: Query<&ChildOf>,
 ) {
     let divider = if vertical {
         Divider::Vertical
@@ -86,10 +81,7 @@ pub(crate) fn split_pane(
 
     // Find the index of this pane among its siblings
     let siblings = children_query.get(parent).unwrap();
-    let index = siblings
-        .iter()
-        .position(|entity| *entity == target)
-        .unwrap();
+    let index = siblings.iter().position(|entity| entity == target).unwrap();
 
     // Parent has a matching divider direction
     let matching_direction = divider_query

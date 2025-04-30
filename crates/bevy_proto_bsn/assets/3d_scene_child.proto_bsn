@@ -1,0 +1,7 @@
+(
+    SceneRoot(@"alien.glb#Scene0"),
+    Transform {
+        translation: Vec3 { x: 0.4, z: 0.3 },
+        scale: Vec3 { x: 0.5, y: 0.5, z: 0.5 },
+    }
+)

@@ -8,7 +8,7 @@
 //!
 //! - Initially, this will be a standard Bevy application that simply edits scenes with `DefaultPlugins`.
 //! - Then, it will be a statically linked plugin that can be added to any Bevy game at compile time,
-//!     which transforms the user's application into an editor that runs their game.
+//!   which transforms the user's application into an editor that runs their game.
 //! - Finally, it will be a standalone application that communicates with a running Bevy game via the Bevy Remote Protocol.
 
 use bevy::app::App as BevyApp;
@@ -17,6 +17,7 @@ use bevy::prelude::*;
 pub use bevy;
 
 use bevy_context_menu::ContextMenuPlugin;
+use bevy_editor_core::EditorCorePlugin;
 use bevy_editor_styles::StylesPlugin;
 
 // Panes
@@ -49,6 +50,7 @@ impl Plugin for EditorPlugin {
 
         bevy_app
             .add_plugins((
+                EditorCorePlugin,
                 ContextMenuPlugin,
                 StylesPlugin,
                 Viewport2dPanePlugin,

@@ -1,0 +1,21 @@
+Node {
+    width: Val::Percent(100.0),
+    height: Val::Percent(100.0),
+    align_items: AlignItems::Center,
+    justify_content: JustifyContent::Center,
+    flex_direction: FlexDirection::Column
+} [
+    Text("Hello BSN!"),
+    Node { column_gap: Val::Px(35) } [
+        (
+            Text("Hello"),
+            TextColor(Color::Srgba(Srgba {
+                green: 0
+            }))
+        ),
+        (
+            Text("World"),
+            ConstructTextFont { font_size: 40, font: @"Inter-Regular.ttf" }
+        ),
+    ]
+]

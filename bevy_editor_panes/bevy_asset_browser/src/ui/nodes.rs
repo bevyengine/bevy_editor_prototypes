@@ -25,7 +25,7 @@ pub(crate) fn spawn_source_node<'a>(
 ) -> EntityCommands<'a> {
     let base_node = spawn_base_node(commands, theme)
         .observe(
-            move |trigger: Trigger<Pointer<Up>>,
+            move |trigger: Trigger<Pointer<Released>>,
                   mut commands: Commands,
                   mut location: ResMut<AssetBrowserLocation>,
                   mut asset_source_builder: ResMut<AssetSourceBuilders>,
@@ -34,7 +34,7 @@ pub(crate) fn spawn_source_node<'a>(
                 if trigger.event().button != PointerButton::Primary {
                     return;
                 }
-                let button = trigger.entity();
+                let button = trigger.target();
                 let button_children = query_children.get(button).unwrap();
                 let source_name = &query_text
                     .get(button_children[1])
@@ -58,29 +58,25 @@ pub(crate) fn spawn_source_node<'a>(
         .id();
 
     // Icon
-    commands
-        .spawn((
-            ImageNode::new(
-                asset_server.load("embedded://bevy_asset_browser/assets/source_icon.png"),
-            ),
-            Node {
-                height: Val::Px(50.0),
-                ..default()
-            },
-        ))
-        .set_parent(base_node);
+    commands.spawn((
+        ImageNode::new(asset_server.load("embedded://bevy_asset_browser/assets/source_icon.png")),
+        Node {
+            height: Val::Px(50.0),
+            ..default()
+        },
+        ChildOf(base_node),
+    ));
     // Source Name
-    commands
-        .spawn((
-            Text::new(source_id_to_string(source_id)),
-            TextFont {
-                font: theme.text.font.clone(),
-                font_size: 10.0,
-                ..default()
-            },
-            TextColor(theme.text.text_color),
-        ))
-        .set_parent(base_node);
+    commands.spawn((
+        Text::new(source_id_to_string(source_id)),
+        TextFont {
+            font: theme.text.font.clone(),
+            font_size: 10.0,
+            ..default()
+        },
+        TextColor(theme.text.text_color),
+        ChildOf(base_node),
+    ));
 
     commands.entity(base_node)
 }
@@ -95,7 +91,7 @@ pub(crate) fn spawn_folder_node<'a>(
     let base_node = {
         let mut ec = spawn_base_node(commands, theme);
         ec.observe(
-            |trigger: Trigger<Pointer<Up>>,
+            |trigger: Trigger<Pointer<Released>>,
              mut commands: Commands,
              mut location: ResMut<AssetBrowserLocation>,
              query_text: Query<&Text>,
@@ -103,7 +99,7 @@ pub(crate) fn spawn_folder_node<'a>(
                 if trigger.event().button != PointerButton::Primary {
                     return;
                 }
-                let button = trigger.entity();
+                let button = trigger.target();
                 let button_children = query_children.get(button).unwrap();
                 let folder_name = &query_text
                     .get(button_children[1])
@@ -127,29 +123,27 @@ pub(crate) fn spawn_folder_node<'a>(
     };
 
     // Icon
-    commands
-        .spawn((
-            ImageNode::new(
-                asset_server.load("embedded://bevy_asset_browser/assets/directory_icon.png"),
-            ),
-            Node {
-                height: Val::Px(50.0),
-                ..default()
-            },
-        ))
-        .set_parent(base_node);
+    commands.spawn((
+        ImageNode::new(
+            asset_server.load("embedded://bevy_asset_browser/assets/directory_icon.png"),
+        ),
+        Node {
+            height: Val::Px(50.0),
+            ..default()
+        },
+        ChildOf(base_node),
+    ));
     // Folder Name
-    commands
-        .spawn((
-            Text::new(folder_name),
-            TextFont {
-                font: theme.text.font.clone(),
-                font_size: 10.0,
-                ..default()
-            },
-            TextColor(theme.text.text_color),
-        ))
-        .set_parent(base_node);
+    commands.spawn((
+        Text::new(folder_name),
+        TextFont {
+            font: theme.text.font.clone(),
+            font_size: 10.0,
+            ..default()
+        },
+        TextColor(theme.text.text_color),
+        ChildOf(base_node),
+    ));
 
     commands.entity(base_node)
 }
@@ -182,27 +176,25 @@ pub(crate) fn spawn_file_node<'a>(
     };
 
     // Icon
-    commands
-        .spawn((
-            ImageNode::new(asset_server.load("embedded://bevy_asset_browser/assets/file_icon.png")),
-            Node {
-                height: Val::Px(50.0),
-                ..default()
-            },
-        ))
-        .set_parent(base_node);
+    commands.spawn((
+        ImageNode::new(asset_server.load("embedded://bevy_asset_browser/assets/file_icon.png")),
+        Node {
+            height: Val::Px(50.0),
+            ..default()
+        },
+        ChildOf(base_node),
+    ));
     // Folder Name
-    commands
-        .spawn((
-            Text::new(file_name),
-            TextFont {
-                font: theme.text.font.clone(),
-                font_size: 10.0,
-                ..default()
-            },
-            TextColor(theme.text.text_color),
-        ))
-        .set_parent(base_node);
+    commands.spawn((
+        Text::new(file_name),
+        TextFont {
+            font: theme.text.font.clone(),
+            font_size: 10.0,
+            ..default()
+        },
+        TextColor(theme.text.text_color),
+        ChildOf(base_node),
+    ));
 
     commands.entity(base_node)
 }

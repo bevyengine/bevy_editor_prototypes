@@ -1624,6 +1624,6 @@ mod tests {
         assert_eq!(app.world_mut().entities().len(), 2);
 
         let mut query = app.world_mut().query::<&Children>();
-        assert!(query.get_single(app.world_mut()).is_ok());
+        assert!(query.single(app.world_mut()).is_ok());
     }
 }

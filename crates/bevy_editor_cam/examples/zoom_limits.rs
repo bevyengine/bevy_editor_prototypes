@@ -99,9 +99,9 @@ fn toggle_projection(
         } else {
             Projection::Perspective(PerspectiveProjection::default())
         };
-        dolly.send(DollyZoomTrigger {
+        dolly.write(DollyZoomTrigger {
             target_projection,
-            camera: cam.single(),
+            camera: cam.single().unwrap(),
         });
     }
 }

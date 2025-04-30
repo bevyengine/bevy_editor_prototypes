@@ -8,7 +8,7 @@ use std::{
 use bevy::ecs::prelude::*;
 use bevy::log::prelude::*;
 use bevy::math::{prelude::*, DMat4, DQuat, DVec2, DVec3};
-use bevy::platform_support::time::Instant;
+use bevy::platform::time::Instant;
 use bevy::reflect::prelude::*;
 use bevy::render::prelude::*;
 use bevy::time::prelude::*;
@@ -348,7 +348,7 @@ impl EditorCam {
         };
 
         // If there is no motion, we will have already early-exited.
-        redraw.send(RequestRedraw);
+        redraw.write(RequestRedraw);
 
         let screen_to_view_space_at_depth =
             |perspective: &PerspectiveProjection, depth: f64| -> Option<DVec2> {

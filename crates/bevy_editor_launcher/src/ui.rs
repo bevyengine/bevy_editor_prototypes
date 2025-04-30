@@ -167,7 +167,7 @@ pub(crate) fn spawn_project_node<'a>(
 
             match run_project(&project) {
                 Ok(_) => {
-                    exit.send(AppExit::Success);
+                    exit.write(AppExit::Success);
                 }
                 Err(error) => {
                     error!("Failed to run project: {:?}", error);

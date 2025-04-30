@@ -37,7 +37,7 @@ fn poll_create_project_task(
     asset_server: Res<AssetServer>,
     mut project_list: ResMut<ProjectInfoList>,
 ) {
-    let (task_entity, mut task) = task_query.single_mut();
+    let (task_entity, mut task) = task_query.single_mut().unwrap();
     if let Some(result) = block_on(future::poll_once(&mut task.0)) {
         match result {
             Ok(project_info) => {

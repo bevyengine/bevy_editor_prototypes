@@ -2,7 +2,7 @@ use core::any::TypeId;
 use std::any::Any;
 
 use bevy::{
-    platform_support::collections::hash_map::Entry,
+    platform::collections::hash_map::Entry,
     prelude::{AppTypeRegistry, Component, Mut, ReflectComponent},
     reflect::{PartialReflect, TypeRegistry},
     utils::TypeIdMap,

@@ -61,7 +61,7 @@ fn properties_pane(selected_entity: &SelectedEntity, world: &World) -> Template 
 fn component_list(entity: Entity, world: &World) -> Template {
     let type_registry = world.resource::<AppTypeRegistry>().read();
     world
-        .inspect_entity(entity)
+        .inspect_entity(entity).unwrap()
         .flat_map(|component_info| {
             let (_, name) = component_info.name().rsplit_once("::").unwrap();
             let type_info = component_info

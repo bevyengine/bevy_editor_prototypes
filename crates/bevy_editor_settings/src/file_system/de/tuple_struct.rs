@@ -1,17 +1,20 @@
 use bevy::reflect::TupleStruct;
 
-use super::{tuple_utils::TupleLikeInfo, LoadStructure};
+use crate::utils::tuple_utils::TupleLikeInfo;
+
+use super::{LoadStructure, StructureLoader};
 
 pub struct LoadTupleStruct<'a> {
     pub tuple_struct_info: &'a dyn TupleLikeInfo,
-    pub table: &'a toml::value::Array,
     pub tuple_struct: &'a mut dyn TupleStruct,
 }
 
-impl LoadTupleStruct<'_> {
-    pub fn load_tuple_struct(self) {
+impl<'a> StructureLoader for LoadTupleStruct<'a> {
+    type Input = &'a toml::value::Array;
+
+    fn load(self, input: Self::Input) {
         for i in 0..self.tuple_struct_info.field_len() {
-            let Some(toml_value) = self.table.get(i) else {
+            let Some(toml_value) = input.get(i) else {
                 continue;
             };
 
@@ -24,11 +27,10 @@ impl LoadTupleStruct<'_> {
 
             LoadStructure {
                 type_info: field_mut.get_represented_type_info().unwrap(),
-                table: toml_value,
                 structure: field_mut,
                 custom_attributes: Some(field_attrs),
             }
-            .load();
+            .load(toml_value);
         }
     }
 }
@@ -48,16 +50,15 @@ mod tests {
 
     #[tracing_test::traced_test]
     #[test]
-    fn load_tuple_struct() {
+    fn load() {
         let mut tuple_struct = TupleStructTest::default();
 
         let toml_value = tuple_struct_test_toml();
         LoadTupleStruct {
             tuple_struct_info: tuple_struct.reflect_type_info().as_tuple_struct().unwrap(),
-            table: toml_value.as_array().unwrap(),
             tuple_struct: &mut tuple_struct,
         }
-        .load_tuple_struct();
+        .load(toml_value.as_array().unwrap());
         assert_eq!(tuple_struct, TupleStructTest(1, 2));
     }
 
@@ -70,16 +71,15 @@ mod tests {
 
     #[tracing_test::traced_test]
     #[test]
-    fn load_tuple_struct_struct() {
+    fn load_struct() {
         let mut tuple_struct = TupleStructStruct::default();
 
         let toml_value = tuple_struct_struct_toml();
         LoadTupleStruct {
             tuple_struct_info: tuple_struct.reflect_type_info().as_tuple_struct().unwrap(),
-            table: toml_value.as_array().unwrap(),
             tuple_struct: &mut tuple_struct,
         }
-        .load_tuple_struct();
+        .load(toml_value.as_array().unwrap());
 
         assert_eq!(tuple_struct, TupleStructStruct(TupleStructTest(1, 2)));
     }

@@ -94,7 +94,10 @@ fn main() {
         .add_systems(Startup, ui::setup)
         .add_systems(
             Update,
-            poll_create_project_task.run_if(run_if_task_is_running),
+            (
+                poll_create_project_task.run_if(run_if_task_is_running),
+                ui::handle_notification_popups,
+            ),
         )
         .configure_sets(Startup, FooterBarSet.after(ui::setup))
         .run();

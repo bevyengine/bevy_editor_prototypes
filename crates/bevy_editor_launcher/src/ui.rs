@@ -35,11 +35,7 @@ pub fn handle_notification_popups(
 }
 
 /// Spawn a notification popup with a message
-pub fn spawn_notification_popup(
-    commands: &mut Commands,
-    theme: &Theme,
-    message: &str,
-) -> Entity {
+pub fn spawn_notification_popup(commands: &mut Commands, theme: &Theme, message: &str) -> Entity {
     commands
         .spawn((
             Node {
@@ -240,15 +236,12 @@ pub(crate) fn spawn_project_node<'a>(
                     &theme,
                     &format!("Project not found: '{project_name}'"),
                 );
-                
                 // Remove project from list
                 project_list.0.retain(|p| p.path != project.path);
                 set_project_list(project_list.0.clone());
-                
                 // Remove project node from UI
                 let project_entity = trigger.target();
                 commands.entity(project_entity).despawn();
-                
                 return;
             }
 
@@ -268,11 +261,9 @@ pub(crate) fn spawn_project_node<'a>(
                                 &theme,
                                 &format!("Failed to run project: '{project_name}'"),
                             );
-                            
                             // Remove project from list
                             project_list.0.retain(|p| p.path != project.path);
                             set_project_list(project_list.0.clone());
-                            
                             // Remove project node from UI
                             let project_entity = trigger.target();
                             commands.entity(project_entity).despawn();

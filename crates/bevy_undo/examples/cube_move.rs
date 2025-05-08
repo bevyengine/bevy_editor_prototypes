@@ -109,14 +109,14 @@ fn send_undo_event(mut events: EventWriter<UndoRedo>, inputs: Res<ButtonInput<Ke
         && inputs.pressed(KeyCode::ControlLeft)
         && !inputs.pressed(KeyCode::ShiftLeft)
     {
-        events.send(UndoRedo::Undo);
+        events.write(UndoRedo::Undo);
     }
 
     if inputs.just_pressed(KeyCode::KeyZ)
         && inputs.pressed(KeyCode::ControlLeft)
         && inputs.pressed(KeyCode::ShiftLeft)
     {
-        events.send(UndoRedo::Redo);
+        events.write(UndoRedo::Redo);
     }
 }
 

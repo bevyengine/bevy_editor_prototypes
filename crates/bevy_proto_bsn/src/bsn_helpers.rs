@@ -157,7 +157,7 @@ where
                 EntityPath::None => context
                     .world
                     .get::<ChildOf>(context.id)
-                    .map(ChildOf::get)
+                    .map(ChildOf::parent)
                     .unwrap_or(context.id),
                 EntityPath::Name(name) => context
                     .construct::<ConstructEntity>(EntityPath::Name(name))?

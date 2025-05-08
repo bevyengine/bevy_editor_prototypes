@@ -49,7 +49,7 @@ fn menu_setup(
     theme: Res<Theme>,
     asset_server: Res<AssetServer>,
 ) {
-    commands.entity(root.single()).insert((
+    commands.entity(root.single().unwrap()).insert((
         Node {
             width: Val::Percent(100.0),
             height: Val::Px(30.0),
@@ -283,7 +283,7 @@ fn menu_setup(
 
     commands
         .entity(menu_container)
-        .insert(ChildOf(root.single()));
+        .insert(ChildOf(root.single().unwrap()));
 
     commands.entity(logo).insert(ChildOf(menu_container));
     commands

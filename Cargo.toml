@@ -27,23 +27,19 @@ unsafe_op_in_unsafe_fn = "warn"
 unused_qualifications = "warn"
 
 [workspace.dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "d6725d3b1baa6a730fa6bfab1bb8f2a9e5f4716e", features = [
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "e9418b3845c1ffc9624a3a4003bde66a2ad6566a", features = [
     "wayland",
 ] }
-bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "d6725d3b1baa6a730fa6bfab1bb8f2a9e5f4716e" }
-bevy_macro_utils = { git = "https://github.com/bevyengine/bevy.git", rev = "d6725d3b1baa6a730fa6bfab1bb8f2a9e5f4716e" }
+bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "e9418b3845c1ffc9624a3a4003bde66a2ad6566a" }
+bevy_macro_utils = { git = "https://github.com/bevyengine/bevy.git", rev = "e9418b3845c1ffc9624a3a4003bde66a2ad6566a" }
 thiserror = "2.0"
 serde = { version = "1", features = ["derive"] }
 tracing-test = "0.2.5"
-tracing = "0.1.40"
-atomicow = "1.0.0"
-rfd = "0.15"
-ron = "0.8.1"
+tracing = "0.1.41"
+atomicow = "1.1.0"
+rfd = "0.15.3"
+ron = "0.10.1"
 variadics_please = "1.0"
-
-# This is a temporary workaround for https://github.com/bilelmoussaoui/ashpd/issues/264
-# Should be ok to remove once the issue is fixed, published, and `rfd` points to the new version.
-futures-util = { version = "0.3", features = ["io"] }
 
 # local crates
 

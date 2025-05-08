@@ -100,9 +100,9 @@ fn toggle_projection(
         } else {
             Projection::Perspective(PerspectiveProjection::default())
         };
-        dolly.send(DollyZoomTrigger {
+        dolly.write(DollyZoomTrigger {
             target_projection,
-            camera: cam.single(),
+            camera: cam.single().unwrap(),
         });
     }
 }
@@ -111,7 +111,7 @@ fn projection_specific_render_config(
     mut commands: Commands,
     mut cam: Query<(Entity, &Projection, &mut Msaa), With<EditorCam>>,
 ) {
-    let (entity, proj, mut msaa) = cam.single_mut();
+    let (entity, proj, mut msaa) = cam.single_mut().unwrap();
     match proj {
         Projection::Perspective(_) => {
             *msaa = Msaa::Off;

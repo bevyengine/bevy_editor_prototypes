@@ -155,7 +155,7 @@ fn camera_zoom(
         return;
     }
 
-    let Ok(window) = primary_window.get_single() else {
+    let Ok(window) = primary_window.single() else {
         // Log an error message once here?
         return;
     };
@@ -232,7 +232,7 @@ fn camera_pan(
     // See https://github.com/johanhelsing/bevy_pancam/blob/main/src/lib.rs#L279
     // for why we are using the mouse position instead of the mouse delta (from
     // the MouseMotion event).
-    let Ok(window) = primary_window.get_single() else {
+    let Ok(window) = primary_window.single() else {
         // Log an error message once here?
         return;
     };

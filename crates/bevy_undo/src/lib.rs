@@ -27,7 +27,7 @@
 //! use bevy::prelude::*;
 //! use bevy_undo::*;
 //! use std::sync::Arc;
-//! use bevy::platform_support::collections::HashMap;
+//! use bevy::platform::collections::HashMap;
 //!
 //! fn main() {
 //!     App::new()
@@ -134,7 +134,7 @@
 #![allow(clippy::type_complexity)]
 use std::sync::Arc;
 
-use bevy::{platform_support::collections::HashMap, prelude::*};
+use bevy::{platform::collections::HashMap, prelude::*};
 
 const MAX_REFLECT_RECURSION: i32 = 10;
 const AUTO_UNDO_LATENCY: i32 = 2;
@@ -1283,12 +1283,12 @@ fn apply_for_every_typed_field<D: Reflect + TypePath>(
                 let mut queue_to_replace = vec![];
                 for field in set.iter() {
                     if field.represents::<D>() {
-                        queue_to_replace.push(field.clone_value());
+                        queue_to_replace.push(field.reflect_clone().unwrap());
                     }
                 }
                 for mut field in queue_to_replace {
                     set.remove(field.as_ref());
-                    applyer(field.as_mut().try_downcast_mut().unwrap());
+                    applyer(field.as_mut().downcast_mut().unwrap());
                     set.insert_boxed(field);
                 }
             }
@@ -1357,7 +1357,7 @@ fn auto_undo_add_init<T: Component + Clone>(
     for (e, data) in query.iter() {
         storage.storage.insert(e, data.clone());
         commands.entity(e).insert(OneFrameUndoIgnore::default());
-        new_changes.send(NewChange::new(AddedComponent {
+        new_changes.write(NewChange::new(AddedComponent {
             new_value: data.clone(),
             entity: e,
         }));
@@ -1380,7 +1380,7 @@ fn auto_undo_reflected_add_init<T: Component + Reflect + FromReflect>(
             .storage
             .insert(e, <T as FromReflect>::from_reflect(data).unwrap());
         commands.entity(e).insert(OneFrameUndoIgnore::default());
-        new_changes.send(NewChange {
+        new_changes.write(NewChange {
             change: Arc::new(ReflectedAddedComponent {
                 new_value: <T as FromReflect>::from_reflect(data).unwrap(),
                 entity: e,
@@ -1412,7 +1412,7 @@ fn auto_undo_remove_detect<T: Component + Clone>(
     for e in removed_query.read() {
         if !ignore_storage.storage.contains_key(&e) {
             if let Some(prev_value) = storage.storage.remove(&e) {
-                new_changes.send(NewChange {
+                new_changes.write(NewChange {
                     change: Arc::new(RemovedComponent {
                         old_value: prev_value,
                         entity: e,
@@ -1433,7 +1433,7 @@ fn auto_undo_reflected_remove_detect<T: Component + Reflect + FromReflect>(
     for e in removed_query.read() {
         if !ignore_storage.storage.contains_key(&e) {
             if let Some(prev_value) = storage.storage.remove(&e) {
-                new_changes.send(NewChange {
+                new_changes.write(NewChange {
                     change: Arc::new(ReflectedRemovedComponent {
                         old_value: prev_value,
                         entity: e,
@@ -1466,7 +1466,7 @@ fn auto_undo_system<T: Component + Clone>(
             commands.entity(e).remove::<ChangedMarker<T>>();
 
             if let Some(prev_value) = storage.storage.get(&e) {
-                new_change.send(NewChange {
+                new_change.write(NewChange {
                     change: Arc::new(ComponentChange {
                         old_value: prev_value.clone(),
                         new_value: data.clone(),
@@ -1497,7 +1497,7 @@ fn auto_undo_reflected_system<T: Component + Reflect + FromReflect>(
             commands.entity(e).remove::<ChangedMarker<T>>();
 
             if let Some(prev_value) = storage.storage.get(&e) {
-                new_change.send(NewChange {
+                new_change.write(NewChange {
                     change: Arc::new(ReflectedComponentChange {
                         old_value: <T as FromReflect>::from_reflect(prev_value).unwrap(),
                         new_value: <T as FromReflect>::from_reflect(data.as_ref()).unwrap(),
@@ -1624,6 +1624,6 @@ mod tests {
         assert_eq!(app.world_mut().entities().len(), 2);
 
         let mut query = app.world_mut().query::<&Children>();
-        assert!(query.get_single(app.world_mut()).is_ok());
+        assert!(query.single(app.world_mut()).is_ok());
     }
 }

@@ -2,7 +2,7 @@
 
 use bevy::{
     ecs::system::{BoxedSystem, SystemId},
-    platform_support::collections::HashMap,
+    platform::collections::HashMap,
     prelude::*,
 };
 

@@ -63,10 +63,12 @@ pub(super) fn save_projects(projects: Vec<ProjectInfo>) -> io::Result<()> {
     }
     let cache_value = ProjectsCache { projects };
     let file = File::create(cache_file)?;
-    ron::ser::to_writer(file, &cache_value).map_err(|error| {
-        io::Error::new(
-            io::ErrorKind::InvalidData,
-            format!("Failed to serialize project file cache: {}", error),
-        )
-    })
+    ron::Options::default()
+        .to_io_writer(file, &cache_value)
+        .map_err(|error| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("Failed to serialize project file cache: {}", error),
+            )
+        })
 }

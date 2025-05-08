@@ -2,9 +2,11 @@ use alloc::borrow::Cow;
 use bevy::{
     ecs::{
         bundle::{BundleFromComponents, DynamicBundle},
-        component::{ComponentId, Components, RequiredComponents, StorageType},
+        component::{
+            ComponentId, Components, ComponentsRegistrator, RequiredComponents, StorageType,
+        },
         system::EntityCommands,
-        world::error::EntityFetchError,
+        world::error::EntityMutableFetchError,
     },
     prelude::*,
     ptr::OwningPtr,
@@ -20,7 +22,7 @@ pub enum ConstructError {
     Custom(&'static str),
     /// Missing entity
     #[error(transparent)]
-    MissingEntity(#[from] EntityFetchError),
+    MissingEntity(#[from] EntityMutableFetchError),
     /// Missing resource
     #[error("Resource {type_name} does not exist")]
     MissingResource {
@@ -189,12 +191,12 @@ all_tuples!(
 #[allow(unsafe_code)]
 /// SAFETY: This just passes through to the inner [`Bundle`] implementation.
 unsafe impl<B: Bundle> Bundle for ConstructTuple<B> {
-    fn component_ids(components: &mut Components, ids: &mut impl FnMut(ComponentId)) {
+    fn component_ids(components: &mut ComponentsRegistrator, ids: &mut impl FnMut(ComponentId)) {
         B::component_ids(components, ids);
     }
 
     fn register_required_components(
-        components: &mut Components,
+        components: &mut ComponentsRegistrator,
         required_components: &mut RequiredComponents,
     ) {
         B::register_required_components(components, required_components);

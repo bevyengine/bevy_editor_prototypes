@@ -57,7 +57,7 @@ fn apply_size(
     parent_query: Query<&ChildOf>,
 ) {
     for (entity, size, mut style) in &mut query {
-        let parent = parent_query.get(entity).unwrap().get();
+        let parent = parent_query.get(entity).unwrap().parent();
         let Ok(e) = divider_query.get(parent) else {
             style.width = Val::Percent(100.);
             style.height = Val::Percent(100.);
@@ -152,11 +152,11 @@ fn cleanup_divider_single_child(
         size_query.get_mut(child).unwrap().0 = size;
 
         // Find the index of this divider among its siblings
-        let siblings = children_query.get(parent.get()).unwrap();
+        let siblings = children_query.get(parent.parent()).unwrap();
         let index = siblings.iter().position(|s| s == entity).unwrap();
 
         commands
-            .entity(parent.get())
+            .entity(parent.parent())
             .insert_children(index, &[child]);
         commands.entity(entity).despawn();
     }
@@ -197,32 +197,3 @@ pub struct PaneHeaderNode;
 /// Node to denote the content space of the Pane.
 #[derive(Component)]
 pub struct PaneContentNode;
-
-/// Adds `insert_children` method to `EntityWorldMut` and `EntityCommands`.
-trait InsertChildrenExt {
-    /// Inserts the given children at the given index.
-    fn insert_children(&mut self, index: usize, children: &[Entity]);
-}
-
-impl InsertChildrenExt for EntityWorldMut<'_> {
-    fn insert_children(&mut self, index: usize, children: &[Entity]) {
-        let prev_children = self.take::<Children>().unwrap_or_default();
-        let (prev_left, prev_right) = prev_children.split_at(index);
-
-        let parent_id = self.id();
-        self.world_scope(|world| {
-            for child in prev_left.iter().chain(children).chain(prev_right) {
-                world.entity_mut(*child).insert(ChildOf(parent_id));
-            }
-        });
-    }
-}
-
-impl InsertChildrenExt for EntityCommands<'_> {
-    fn insert_children(&mut self, index: usize, children: &[Entity]) {
-        let new_children = children.to_vec();
-        self.queue(move |mut entity: EntityWorldMut| {
-            entity.insert_children(index, &new_children);
-        });
-    }
-}

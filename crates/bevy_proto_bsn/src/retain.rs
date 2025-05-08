@@ -3,7 +3,7 @@ use std::fmt::Display;
 
 use bevy::{
     ecs::component::{ComponentId, ComponentInfo},
-    platform_support::{collections::HashMap, hash::FixedHasher},
+    platform::{collections::HashMap, hash::FixedHasher},
     prelude::{Component, Deref, DerefMut, Entity, EntityCommands, EntityWorldMut},
 };
 

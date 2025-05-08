@@ -198,7 +198,7 @@ impl Component for ConstructTextFont {
             });
         });
         hooks.on_remove(|mut world, context| {
-            if let Some(mut entity) = world.commands().get_entity(context.entity) {
+            if let Ok(mut entity) = world.commands().get_entity(context.entity) {
                 entity.remove::<TextFont>();
             }
         });

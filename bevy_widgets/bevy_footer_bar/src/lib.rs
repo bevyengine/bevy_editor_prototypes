@@ -33,7 +33,7 @@ fn footer_setup(
     theme: Res<Theme>,
 ) {
     commands
-        .entity(root.single())
+        .entity(root.single().unwrap())
         .insert((
             Node {
                 width: Val::Percent(100.0),

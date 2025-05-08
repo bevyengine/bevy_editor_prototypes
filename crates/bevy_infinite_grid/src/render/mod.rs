@@ -438,6 +438,7 @@ fn queue_infinite_grids(
                     extra_index: PhaseItemExtraIndex::None,
                     sort_key: FloatOrd(f32::NEG_INFINITY),
                     indexed: true,
+                    extracted_index: 0,
                 });
             }
             if !infinite_grids

@@ -164,8 +164,8 @@ pub(crate) fn register_reflect_construct(app: &mut App) {
 
     app.register_type::<bevy::picking::mesh_picking::ray_cast::RayCastBackfaces>();
     app.register_type_data::<bevy::picking::mesh_picking::ray_cast::RayCastBackfaces, ReflectConstruct>();
-    app.register_type::<bevy::picking::mesh_picking::RayCastPickable>();
-    app.register_type_data::<bevy::picking::mesh_picking::RayCastPickable, ReflectConstruct>();
+    app.register_type::<bevy::picking::mesh_picking::MeshPickingCamera>();
+    app.register_type_data::<bevy::picking::mesh_picking::MeshPickingCamera, ReflectConstruct>();
     app.register_type_data::<bevy::picking::Pickable, ReflectConstruct>();
     app.register_type_data::<bevy::picking::pointer::PointerInteraction, ReflectConstruct>();
     app.register_type_data::<bevy::picking::pointer::PointerLocation, ReflectConstruct>();

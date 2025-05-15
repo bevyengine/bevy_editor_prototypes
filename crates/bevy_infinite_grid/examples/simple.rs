@@ -91,7 +91,7 @@ mod camera_controller {
     ) {
         let dt = time.delta_secs();
 
-        if let Ok((mut transform, mut state)) = query.get_single_mut() {
+        if let Ok((mut transform, mut state)) = query.single_mut() {
             // Handle key input
             let mut axis_input = Vec3::ZERO;
             if key_input.pressed(KeyCode::KeyW) {

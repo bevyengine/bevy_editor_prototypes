@@ -3,7 +3,7 @@
 mod input;
 mod render;
 
-use bevy::{platform_support::collections::HashSet, prelude::*};
+use bevy::{platform::collections::HashSet, prelude::*};
 use bevy_clipboard::ClipboardPlugin;
 use bevy_focus::{FocusPlugin, Focusable, SetFocus};
 

@@ -62,7 +62,7 @@ pub fn keyboard_input(
     key_states: Res<ButtonInput<KeyCode>>,
     mut clipboard: ResMut<BevyClipboard>,
 ) {
-    let Ok((entity, mut text_field)) = q_text_fields.get_single_mut() else {
+    let Ok((entity, mut text_field)) = q_text_fields.single_mut() else {
         return;
     };
 

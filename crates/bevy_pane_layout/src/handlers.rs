@@ -3,7 +3,7 @@ use bevy_editor_styles::Theme;
 
 use crate::{
     ui::{spawn_divider, spawn_pane, spawn_resize_handle},
-    Divider, InsertChildrenExt, PaneRootNode, RootPaneLayoutNode, Size,
+    Divider, PaneRootNode, RootPaneLayoutNode, Size,
 };
 
 pub(crate) fn remove_pane(
@@ -17,7 +17,7 @@ pub(crate) fn remove_pane(
     // Grab the id of the pane root
     let target = parent_query.iter_ancestors(*target).nth(1).unwrap();
 
-    let parent = parent_query.get(target).unwrap().get();
+    let parent = parent_query.get(target).unwrap().parent();
 
     // Prevent the removal of the last panel
     if root_query.contains(parent) {
@@ -77,7 +77,7 @@ pub(crate) fn split_pane(
 
     let pane = pane_root_query.get(target).unwrap();
 
-    let parent = parent_query.get(target).unwrap().get();
+    let parent = parent_query.get(target).unwrap().parent();
 
     // Find the index of this pane among its siblings
     let siblings = children_query.get(parent).unwrap();

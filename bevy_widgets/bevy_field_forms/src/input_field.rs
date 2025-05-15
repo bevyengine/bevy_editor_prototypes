@@ -37,7 +37,7 @@ impl<T: Validable> Plugin for InputFieldPlugin<T> {
 /// It will not contain special style updates for validation state, because it's expected that it will be
 /// combined with other widgets to form a custom UI.
 #[derive(Component, Clone)]
-#[require(EditableTextLine(construct_editable_label))]
+#[require(EditableTextLine::controlled(""))]
 pub struct InputField<T: Validable> {
     /// The last valid value
     pub value: T,
@@ -48,10 +48,6 @@ pub struct InputField<T: Validable> {
     pub controlled: bool,
     /// Old value
     pub old_value: T,
-}
-
-fn construct_editable_label() -> EditableTextLine {
-    EditableTextLine::controlled("")
 }
 
 impl<T: Validable> Default for InputField<T> {

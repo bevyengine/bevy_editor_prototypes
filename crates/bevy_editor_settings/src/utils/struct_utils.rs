@@ -2,7 +2,7 @@ use bevy::reflect::{NamedField, StructInfo, StructVariantInfo};
 use core::slice::Iter;
 
 /// A helper trait for accessing type information from struct-like types.
-pub(super) trait StructLikeInfo {
+pub trait StructLikeInfo {
     #[allow(dead_code)]
     fn field(&self, name: &str) -> Option<&NamedField>;
     fn field_at(&self, index: usize) -> Option<&NamedField>;

@@ -3,16 +3,17 @@ use bevy::{
     reflect::{Map, MapInfo},
 };
 
-use super::LoadStructure;
+use super::{LoadStructure, StructureLoader};
 
 pub struct LoadMap<'a> {
     pub map: &'a mut dyn Map,
     pub map_info: &'a MapInfo,
-    pub table: &'a toml::value::Table,
 }
 
-impl LoadMap<'_> {
-    pub fn load_map(self) {
+impl<'a> StructureLoader for  LoadMap<'a> {
+    type Input = &'a toml::value::Table;
+
+    fn load(self, input: Self::Input) {
         if !self
             .map_info
             .key_info()
@@ -23,7 +24,7 @@ impl LoadMap<'_> {
             return;
         }
 
-        for (key, toml_value) in self.table.iter() {
+        for (key, toml_value) in input.iter() {
             let Some(value_info) = self.map_info.value_info() else {
                 warn!("Preferences: Expected Map value info");
                 return;
@@ -36,11 +37,10 @@ impl LoadMap<'_> {
 
             LoadStructure {
                 type_info: value_info,
-                table: toml_value,
                 structure: value.as_mut(),
                 custom_attributes: None,
             }
-            .load();
+            .load(toml_value);
 
             self.map.insert_boxed(Box::new(key.clone()), value);
         }
@@ -64,9 +64,8 @@ mod tests {
         LoadMap {
             map_info: map.reflect_type_info().as_map().unwrap(),
             map: &mut map,
-            table: &table,
         }
-        .load_map();
+        .load(&table);
 
         assert_eq!(map.get("key"), Some(&1));
     }

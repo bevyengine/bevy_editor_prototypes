@@ -1,17 +1,20 @@
 use bevy::reflect::Struct;
 
-use super::{struct_utils::StructLikeInfo, LoadStructure};
+use crate::utils::struct_utils::StructLikeInfo;
+
+use super::{LoadStructure, StructureLoader};
 
 pub struct LoadStruct<'a> {
     pub struct_info: &'a dyn StructLikeInfo,
-    pub table: &'a toml::Table,
     pub strct: &'a mut dyn Struct,
 }
 
-impl LoadStruct<'_> {
-    pub fn load_struct(self) {
+impl<'a> StructureLoader for LoadStruct<'a> {
+    type Input = &'a toml::Table;
+
+    fn load(self, input: Self::Input) {
         let struct_info = self.struct_info;
-        let table = self.table;
+        let table = input;
         let strct = self.strct;
         for i in 0..struct_info.field_len() {
             let field = struct_info.field_at(i).unwrap();
@@ -25,11 +28,10 @@ impl LoadStruct<'_> {
             let field_attrs = field.custom_attributes();
             LoadStructure {
                 type_info: field_mut.get_represented_type_info().unwrap(),
-                table: toml_value,
                 structure: field_mut,
                 custom_attributes: Some(field_attrs),
             }
-            .load();
+            .load(toml_value);
         }
     }
 }
@@ -66,16 +68,15 @@ mod tests {
 
     #[tracing_test::traced_test]
     #[test]
-    fn load_struct_basic_values() {
+    fn load_basic_values() {
         let mut struct_info = Values::default();
         let table = values_toml();
 
         LoadStruct {
             struct_info: struct_info.reflect_type_info().as_struct().unwrap(),
-            table: &table,
             strct: &mut struct_info,
         }
-        .load_struct();
+        .load(&table);
 
         assert_eq!(
             struct_info,
@@ -92,7 +93,7 @@ mod tests {
         values: Values,
     }
 
-    fn load_struct_with_struct_toml() -> toml::value::Table {
+    fn load_with_struct_toml() -> toml::value::Table {
         let mut table = toml::value::Table::default();
         table.insert("values".to_string(), toml::Value::Table(values_toml()));
         table
@@ -100,17 +101,16 @@ mod tests {
 
     #[tracing_test::traced_test]
     #[test]
-    fn load_struct_with_struct() {
+    fn load_with_struct() {
         let mut struct_info = StructWithStruct::default();
 
-        let table = load_struct_with_struct_toml();
+        let table = load_with_struct_toml();
 
         LoadStruct {
             struct_info: struct_info.reflect_type_info().as_struct().unwrap(),
-            table: &table,
             strct: &mut struct_info,
         }
-        .load_struct();
+        .load(&table);
 
         assert_eq!(
             struct_info,

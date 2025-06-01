@@ -60,6 +60,8 @@ It's best not to plan too far in advance!
 
 ## Stage 3: Editor-Game Interaction
 
+- [ ] create a design document laying out the possible architectures for editor <-> game communication and the tradeoffs
+- [ ] select an architecture to use for now
 - [ ] provide the editor with access to the game's code, allowing it to correctly initialize objects
   - [ ] game-specific rendering techniques display correctly in the editor's scene editing
 - [ ] users can press a button in the editor, launching the game from the very beginning
@@ -121,7 +123,6 @@ It's best not to plan too far in advance!
   - [ ] launch a prebuilt binary (for non-technical users)
   - [ ] cargo workspace apps and examples (for developers using the editor from the codebase)
     - [ ] set feature flags
-    - [ ] (stretch goal. maybe as part of a possible vscode integration) read/write `.vscode/launch.json`
   - [ ] option to launch with a default profile when the editor opens
 
 ## Uncategorized work
@@ -148,9 +149,10 @@ They haven't been forgotten, and are listed in no particular order here:
 - [ ] basic audio editing
 - [ ] graph visualization of component values
 - [ ] entity clustering with a memory usage breakdown
-- [ ] generated in-editor documentation for Component/Resource types
+- [ ] generated in-editor documentation for Component/Resource/Event types
 - [ ] go to definition support that opens the relevant code in your IDE of choice
 - [ ] event diagnostics
+- [ ] centralized design methodology ala [A4 design](https://developer.blender.org/docs/handbook/design/a4_design/)
 
-While there are also important engine features that will unblock or improve various parts of the editor (relations! BSN!),
+While there are also important engine features that will unblock or improve various parts of the editor (BSN!),
 this should not be tracked here: the emphasis is on user-facing goals, not any particular path.

@@ -4,7 +4,8 @@ Bevy's editor, like the rest of Bevy, is fundamentally designed to be modular, r
 But at the same time, a new user's initial experience should be polished, reasonably complete and ready to jump into.
 
 These goals are obviously in tension, and to thread the needle we need to think carefully about our project architecture, both organizationally and technically.
-The agreed-upon architecture is summarized below, with future extensions and critical open questions listed below.
+
+So far, we've agreed upon the following architecture:
 
 - the Bevy editor is a binary application made using `bevy`, and `bevy_ui`
 - the Bevy editor will live in the main Bevy repo, and must be updated and fixed as part of the ordinary development process
@@ -20,18 +21,22 @@ The agreed-upon architecture is summarized below, with future extensions and cri
   - UI widgets, an undo-redo model, preferences, viewport widgets, a node graph abstraction and more all great candidates for this approach
 - self-contained GUI-based development tools should be self-contained `Plugin`s which can be reused by projects without requiring the Bevy editor binary
   - for example: an asset browser, entity inspector or system visualization tools
+- the editor will not try and inspect the running process: instead, users will be encouraged to reuse modular dev tools from the editor, `bevy_dev_tools` and the broader ecosystem by compiling them into their own project under a per-project `dev_tools` feature flag
+  - we should still develop, ship and promote powerful, polished tools for these use cases!
+  - this is significantly simpler and offers more flexibility to users around customized workflows
 
   ## Open questions
 
+These questions are pressing, and need serious design work.
+
 - how do we distribute the Bevy editor?
   - do users need to have a local working copy of the Rust compiler to use the editor effectively?
-- how does the Bevy editor communicate with the Bevy game?
-  - during scene editing?
-  - while the game is running?
-- should the Bevy Editor be able to inspect users games, or should the users simply add modular dev tools to their own project?
-  - we can always add a "run project" button that calls `cargo run`, but do we want to be fancier than that?
+- how does the Bevy editor communicate with the Bevy game to enable effective scene editing with user-defined types?
+- how should undo-redo be handled?
 
 ## Extensions
+
+These questions are less pressing, but deserve investigation to ensure we can support more advanced user needs.
 
 - do we need a launcher?
   - are users able to use versions of the Bevy editor that are newer (or older) than their current project?
@@ -41,3 +46,4 @@ The agreed-upon architecture is summarized below, with future extensions and cri
   - where are they stored?
   - how are they shared between projects?
   - how are they shared between team members?
+- can the Bevy editor play nicely with a hotpatched type definitions for things like components?

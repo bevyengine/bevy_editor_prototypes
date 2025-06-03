@@ -130,8 +130,7 @@ pub fn run_project(project: &ProjectInfo) -> std::io::Result<()> {
         .args(["-c", "cargo run"])
         .spawn()
         .map_err(|error| {
-            std::io::Error::new(
-                std::io::ErrorKind::Other,
+            std::io::Error::other(
                 format!("Failed to run project: {}", error),
             )
         })?;

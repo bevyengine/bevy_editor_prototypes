@@ -8,8 +8,8 @@ use std::time::Duration;
 use bevy::app::prelude::*;
 use bevy::ecs::prelude::*;
 use bevy::math::prelude::*;
-use bevy::platform_support::collections::HashMap;
-use bevy::platform_support::time::Instant;
+use bevy::platform::collections::HashMap;
+use bevy::platform::time::Instant;
 use bevy::reflect::prelude::*;
 use bevy::render::{camera::ScalingMode, prelude::*};
 use bevy::transform::prelude::*;
@@ -58,7 +58,7 @@ impl DollyZoomTrigger {
             else {
                 continue;
             };
-            redraw.send(RequestRedraw);
+            redraw.write(RequestRedraw);
             let (fov_start, triangle_base) = match &*proj {
                 Projection::Perspective(perspective) => {
                     if let Projection::Perspective(PerspectiveProjection {
@@ -158,7 +158,7 @@ impl Default for DollyZoom {
     fn default() -> Self {
         Self {
             animation_duration: Duration::from_millis(400),
-            animation_curve: CubicSegment::new_bezier((0.25, 0.0), (0.25, 1.0)),
+            animation_curve: CubicSegment::new_bezier_easing((0.25, 0.0), (0.25, 1.0)),
             map: Default::default(),
         }
     }
@@ -236,7 +236,7 @@ impl DollyZoom {
                 controller.enabled_motion = initial_enabled.clone();
                 *complete = true;
             }
-            redraw.send(RequestRedraw);
+            redraw.write(RequestRedraw);
         }
         state.map.retain(|_, v| !v.complete);
     }

@@ -75,7 +75,7 @@ pub(crate) fn spawn_pane<'a>(
             move |_trigger: Trigger<Pointer<Move>>,
                   window_query: Query<Entity, With<Window>>,
                   mut commands: Commands| {
-                let window = window_query.single();
+                let window = window_query.single().unwrap();
                 commands
                     .entity(window)
                     .insert(CursorIcon::System(SystemCursorIcon::Pointer));
@@ -85,7 +85,7 @@ pub(crate) fn spawn_pane<'a>(
             |_trigger: Trigger<Pointer<Out>>,
              window_query: Query<Entity, With<Window>>,
              mut commands: Commands| {
-                let window = window_query.single();
+                let window = window_query.single().unwrap();
                 commands
                     .entity(window)
                     .insert(CursorIcon::System(SystemCursorIcon::Default));
@@ -225,7 +225,7 @@ pub(crate) fn spawn_resize_handle<'a>(
             drag_state.is_dragging = true;
 
             let target = trigger.target();
-            let parent = parent_query.get(target).unwrap().get();
+            let parent = parent_query.get(target).unwrap().parent();
 
             let parent_node_size = computed_node_query.get(parent).unwrap().size();
             let parent_node_size = match divider_parent {
@@ -258,7 +258,7 @@ pub(crate) fn spawn_resize_handle<'a>(
             }
 
             let target = trigger.target();
-            let parent = parent_query.get(target).unwrap().get();
+            let parent = parent_query.get(target).unwrap().parent();
             let siblings = children_query.get(parent).unwrap();
             // Find the index of this handle among its siblings
             let index = siblings.iter().position(|entity| entity == target).unwrap();
@@ -299,7 +299,7 @@ pub(crate) fn spawn_resize_handle<'a>(
         move |_trigger: Trigger<Pointer<Move>>,
               window_query: Query<Entity, With<Window>>,
               mut commands: Commands| {
-            let window = window_query.single();
+            let window = window_query.single().unwrap();
             commands
                 .entity(window)
                 .insert(CursorIcon::System(match divider_parent {
@@ -312,7 +312,7 @@ pub(crate) fn spawn_resize_handle<'a>(
         |_trigger: Trigger<Pointer<Out>>,
          window_query: Query<Entity, With<Window>>,
          mut commands: Commands| {
-            let window = window_query.single();
+            let window = window_query.single().unwrap();
             commands
                 .entity(window)
                 .insert(CursorIcon::System(SystemCursorIcon::Default));

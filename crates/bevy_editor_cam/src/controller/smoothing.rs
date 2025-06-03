@@ -6,7 +6,7 @@ use std::{
     time::Duration,
 };
 
-use bevy::platform_support::time::Instant;
+use bevy::platform::time::Instant;
 use bevy::reflect::prelude::*;
 use bevy_derive::{Deref, DerefMut};
 

@@ -1,4 +1,5 @@
 use std::io::ErrorKind;
+use std::path::Path;
 
 use bevy::{prelude::*, ui::RelativeCursorPosition};
 use bevy_editor::project::{run_project, set_project_list, templates::Templates, ProjectInfo};
@@ -12,6 +13,66 @@ use crate::ProjectInfoList;
 #[derive(Component)]
 #[require(Node)]
 pub struct ProjectList;
+
+/// Component for notification popup
+#[derive(Component)]
+pub struct NotificationPopup {
+    pub timer: Timer,
+}
+
+/// System to handle notification popups
+pub fn handle_notification_popups(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut query: Query<(Entity, &mut NotificationPopup)>,
+) {
+    for (entity, mut popup) in query.iter_mut() {
+        popup.timer.tick(time.delta());
+        if popup.timer.finished() {
+            commands.entity(entity).despawn();
+        }
+    }
+}
+
+/// Spawn a notification popup with a message
+pub fn spawn_notification_popup(commands: &mut Commands, theme: &Theme, message: &str) -> Entity {
+    commands
+        .spawn((
+            Node {
+                position_type: PositionType::Absolute,
+                left: Val::Px(0.0),
+                right: Val::Px(0.0),
+                top: Val::Px(50.0),
+                margin: UiRect::horizontal(Val::Auto),
+                padding: UiRect::all(Val::Px(12.0)),
+                width: Val::Auto,
+                height: Val::Auto,
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                ..default()
+            },
+            BackgroundColor(Color::srgba(0.1, 0.1, 0.1, 0.9)),
+            BorderRadius::all(Val::Px(8.0)),
+            NotificationPopup {
+                timer: Timer::from_seconds(3.0, TimerMode::Once),
+            },
+        ))
+        .with_child((
+            Text::new(message.to_string()),
+            TextFont {
+                font: theme.text.font.clone(),
+                font_size: 18.0,
+                ..default()
+            },
+            TextColor(Color::WHITE),
+            Outline {
+                width: Val::Px(0.5),
+                color: Color::BLACK,
+                ..default()
+            },
+        ))
+        .id()
+}
 
 pub fn setup(
     mut commands: Commands,
@@ -140,7 +201,8 @@ pub(crate) fn spawn_project_node<'a>(
          query_children: Query<&Children>,
          query_text: Query<&Text>,
          mut exit: EventWriter<AppExit>,
-         mut project_list: ResMut<ProjectInfoList>| {
+         mut project_list: ResMut<ProjectInfoList>,
+         theme: Res<Theme>| {
             let project = {
                 let text = {
                     let project_entity = trigger.target();
@@ -165,14 +227,40 @@ pub(crate) fn spawn_project_node<'a>(
                     .clone()
             };
 
+            // Check if project directory exists before trying to run it
+            if !Path::new(&project.path).exists() {
+                // Show notification popup
+                let project_name = project.name().unwrap_or_else(|| "Unknown".to_string());
+                spawn_notification_popup(
+                    &mut commands,
+                    &theme,
+                    &format!("Project not found: '{project_name}'"),
+                );
+                // Remove project from list
+                project_list.0.retain(|p| p.path != project.path);
+                set_project_list(project_list.0.clone());
+                // Remove project node from UI
+                let project_entity = trigger.target();
+                commands.entity(project_entity).despawn();
+                return;
+            }
+
+            // Project exists, try to run it
             match run_project(&project) {
                 Ok(_) => {
-                    exit.send(AppExit::Success);
+                    exit.write(AppExit::Success);
                 }
                 Err(error) => {
                     error!("Failed to run project: {:?}", error);
                     match error.kind() {
                         ErrorKind::NotFound | ErrorKind::InvalidData => {
+                            // Show notification popup
+                            let project_name = project.name().unwrap_or_else(|| "Unknown".to_string());
+                            spawn_notification_popup(
+                                &mut commands,
+                                &theme,
+                                &format!("Failed to run project: '{project_name}'"),
+                            );
                             // Remove project from list
                             project_list.0.retain(|p| p.path != project.path);
                             set_project_list(project_list.0.clone());
@@ -180,7 +268,14 @@ pub(crate) fn spawn_project_node<'a>(
                             let project_entity = trigger.target();
                             commands.entity(project_entity).despawn();
                         }
-                        _ => {}
+                        _ => {
+                            // Show generic error notification
+                            spawn_notification_popup(
+                                &mut commands,
+                                &theme,
+                                &format!("Error running project: '{error}'"),
+                            );
+                        }
                     }
                 }
             }

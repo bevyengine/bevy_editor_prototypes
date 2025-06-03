@@ -160,7 +160,7 @@ fn spawn_path_segment_ui<'a>(
                         location.path.clear();
                     }
                     LocationSegmentType::Directory => {
-                        let location_segments = query_children.get(parent.get()).unwrap();
+                        let location_segments = query_children.get(parent.parent()).unwrap();
                         // Last segment is the current directory, no need to reload
                         if *location_segments.last().unwrap() == segment {
                             return;
@@ -183,7 +183,7 @@ fn spawn_path_segment_ui<'a>(
             move |_trigger: Trigger<Pointer<Move>>,
                   window_query: Query<Entity, With<Window>>,
                   mut commands: Commands| {
-                let window = window_query.single();
+                let window = window_query.single().unwrap();
                 commands
                     .entity(window)
                     .insert(CursorIcon::System(SystemCursorIcon::Pointer));
@@ -193,7 +193,7 @@ fn spawn_path_segment_ui<'a>(
             move |_trigger: Trigger<Pointer<Out>>,
                   window_query: Query<Entity, With<Window>>,
                   mut commands: Commands| {
-                let window = window_query.single();
+                let window = window_query.single().unwrap();
                 commands
                     .entity(window)
                     .insert(CursorIcon::System(SystemCursorIcon::Default));

@@ -1,5 +1,5 @@
 use bevy::{
-    ecs::{component::HookContext, system::error_handler, world::DeferredWorld},
+    ecs::{component::HookContext, error, world::DeferredWorld},
     prelude::*,
 };
 
@@ -32,7 +32,7 @@ fn on_insert_prefab(mut world: DeferredWorld, context: HookContext) {
         |mut entity: EntityWorldMut| {
             entity.get_mut::<PrefabInstance>().unwrap().current_hash = None;
         },
-        error_handler::silent(),
+        error::ignore,
     );
 }
 
@@ -44,7 +44,7 @@ fn on_remove_prefab(mut world: DeferredWorld, context: HookContext) {
                 .retain_scene_with::<Prefab>(())
                 .unwrap();
         },
-        error_handler::silent(),
+        error::ignore,
     );
 }
 

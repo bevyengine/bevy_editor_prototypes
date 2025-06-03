@@ -157,7 +157,7 @@ fn update_view_gizmo(
     viewport_camera: Query<&Transform, (Without<ViewGizmoCamera>, With<Camera3d>, With<EditorCam>)>,
 ) {
     for mut transform in &mut view_cube_camera {
-        if let Ok(viewport_camera_transform) = viewport_camera.get_single() {
+        if let Ok(viewport_camera_transform) = viewport_camera.single() {
             transform.translation = viewport_camera_transform.back() * GIZMO_CAMERA_ZOOM;
             transform.rotation = viewport_camera_transform.rotation;
         }

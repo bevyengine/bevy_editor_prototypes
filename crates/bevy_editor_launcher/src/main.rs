@@ -37,7 +37,7 @@ fn poll_create_project_task(
     asset_server: Res<AssetServer>,
     mut project_list: ResMut<ProjectInfoList>,
 ) {
-    let (task_entity, mut task) = task_query.single_mut();
+    let (task_entity, mut task) = task_query.single_mut().unwrap();
     if let Some(result) = block_on(future::poll_once(&mut task.0)) {
         match result {
             Ok(project_info) => {
@@ -94,7 +94,10 @@ fn main() {
         .add_systems(Startup, ui::setup)
         .add_systems(
             Update,
-            poll_create_project_task.run_if(run_if_task_is_running),
+            (
+                poll_create_project_task.run_if(run_if_task_is_running),
+                ui::handle_notification_popups,
+            ),
         )
         .configure_sets(Startup, FooterBarSet.after(ui::setup))
         .run();

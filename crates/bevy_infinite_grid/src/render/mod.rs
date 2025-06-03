@@ -311,7 +311,7 @@ fn extract_infinite_grids(
             )
         })
         .collect();
-    commands.insert_or_spawn_batch(extracted);
+    commands.try_insert_batch(extracted);
 }
 
 fn extract_per_camera_settings(
@@ -322,7 +322,7 @@ fn extract_per_camera_settings(
         .iter()
         .map(|(entity, settings)| (**entity, *settings))
         .collect();
-    commands.insert_or_spawn_batch(extracted);
+    commands.try_insert_batch(extracted);
 }
 
 fn prepare_infinite_grids(
@@ -438,6 +438,7 @@ fn queue_infinite_grids(
                     extra_index: PhaseItemExtraIndex::None,
                     sort_key: FloatOrd(f32::NEG_INFINITY),
                     indexed: true,
+                    extracted_index: 0,
                 });
             }
             if !infinite_grids

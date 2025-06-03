@@ -264,7 +264,7 @@ fn insert_callback(mut world: DeferredWorld, context: HookContext) {
     let Some(mut observer) = mem::take(&mut callback.observer) else {
         return;
     };
-    if let Some(parent_id) = world.get::<ChildOf>(context.entity).map(ChildOf::get) {
+    if let Some(parent_id) = world.get::<ChildOf>(context.entity).map(ChildOf::parent) {
         observer.watch_entity(parent_id);
     }
     let mut commands = world.commands();

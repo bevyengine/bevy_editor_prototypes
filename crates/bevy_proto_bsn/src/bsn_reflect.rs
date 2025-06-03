@@ -7,7 +7,7 @@ use bevy::{
         reflect::AppTypeRegistry,
         world::{FromWorld, World},
     },
-    platform_support::hash::FixedState,
+    platform::hash::FixedState,
     reflect::{
         DynamicEnum, DynamicStruct, DynamicTuple, DynamicTupleStruct, DynamicVariant, FromType,
         NamedField, PartialReflect, Reflect, ReflectKind, StructInfo, StructVariantInfo, TypeInfo,
@@ -207,7 +207,11 @@ impl Clone for ReflectedValue {
     fn clone(&self) -> Self {
         Self {
             type_id: self.type_id,
-            instance: self.instance.as_ref().clone_value(),
+            instance: self
+                .instance
+                .as_ref()
+                .reflect_clone()
+                .expect("Failed to clone instance"),
         }
     }
 }

@@ -223,7 +223,7 @@ fn spawn_base_node<'a>(commands: &'a mut Commands, theme: &Res<Theme>) -> Entity
             move |_trigger: Trigger<Pointer<Move>>,
                   window_query: Query<Entity, With<Window>>,
                   mut commands: Commands| {
-                let window = window_query.single();
+                let window = window_query.single().unwrap();
                 commands
                     .entity(window)
                     .insert(CursorIcon::System(SystemCursorIcon::Pointer));
@@ -233,7 +233,7 @@ fn spawn_base_node<'a>(commands: &'a mut Commands, theme: &Res<Theme>) -> Entity
             move |_trigger: Trigger<Pointer<Out>>,
                   window_query: Query<Entity, With<Window>>,
                   mut commands: Commands| {
-                let window = window_query.single();
+                let window = window_query.single().unwrap();
                 commands
                     .entity(window)
                     .insert(CursorIcon::System(SystemCursorIcon::Default));

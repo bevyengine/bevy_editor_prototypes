@@ -20,8 +20,8 @@ use view_gizmo::{spawn_view_gizmo_target_texture, ViewGizmoPlugin};
 
 use crate::outline_gizmo::{spawn_gizmo_toggle_ui, OutlineGizmoPlugin};
 
-mod view_gizmo;
 mod outline_gizmo;
+mod view_gizmo;
 
 /// The identifier for the 3D Viewport.
 /// This is present on any pane that is a 3D Viewport.

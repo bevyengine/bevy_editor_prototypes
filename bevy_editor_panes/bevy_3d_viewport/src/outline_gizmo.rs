@@ -25,13 +25,16 @@ pub fn outline_gizmo_system(
     selected: Query<&Transform, With<SelectedEntity>>,
     mut gizmos: Gizmos,
 ) {
-    if !show.0 { return; }
+    if !show.0 {
+        return;
+    }
     for transform in &selected {
         gizmos.cuboid(*transform, Color::srgb(1.0, 1.0, 0.0));
     }
 }
 
 pub fn spawn_gizmo_toggle_ui(parent: &mut RelatedSpawnerCommands<ChildOf>) {
+    println!("Spawning Gizmo Toggle UI");
     parent
         .spawn((
             Node {
@@ -47,14 +50,13 @@ pub fn spawn_gizmo_toggle_ui(parent: &mut RelatedSpawnerCommands<ChildOf>) {
             BackgroundColor(Color::srgb(0.2, 0.2, 0.2)),
         ))
         .with_children(|parent| {
-            parent.spawn((
-                Text::new(""),
-                GizmoToggleText,
-            ));
+            parent.spawn((Text::new("Show Outlines"), GizmoToggleText));
         })
-        .observe(|_trigger: Trigger<Pointer<Click>>, mut show_outlines: ResMut<ShowOutlines>| {
-            show_outlines.0 = !show_outlines.0;
-        });
+        .observe(
+            |_trigger: Trigger<Pointer<Click>>, mut show_outlines: ResMut<ShowOutlines>| {
+                show_outlines.0 = !show_outlines.0;
+            },
+        );
 }
 
 // System to update the button text when ShowOutlines changes
@@ -64,7 +66,11 @@ fn update_gizmo_toggle_text(
 ) {
     if show_outlines.is_changed() {
         for mut text in &mut query {
-            text.0 = if show_outlines.0 { "Hide Outlines".into() } else { "Show Outlines".into() };
+            text.0 = if show_outlines.0 {
+                "Hide Outlines".into()
+            } else {
+                "Show Outlines".into()
+            };
         }
     }
 }

@@ -18,7 +18,7 @@ use bevy_infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings}
 use bevy_pane_layout::prelude::*;
 use view_gizmo::{spawn_view_gizmo_target_texture, ViewGizmoPlugin};
 
-use crate::outline_gizmo::{spawn_gizmo_toggle_ui, OutlineGizmoPlugin};
+use crate::outline_gizmo::OutlineGizmoPlugin;
 
 mod outline_gizmo;
 mod view_gizmo;

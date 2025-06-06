@@ -157,6 +157,8 @@ pub enum BsnValue {
     Call(String, Vec<BsnValue>),
     /// A tuple of values.
     Tuple(Vec<BsnValue>),
+    /// A list of values.
+    List(Vec<BsnValue>),
     /// An unknown expression.
     UnknownExpr(String),
 }
@@ -262,6 +264,7 @@ impl From<&Expr> for BsnValue {
             Expr::Struct(strct) => strct.into(),
             Expr::Call(call) => call.into(),
             Expr::Paren(paren) => paren.expr.as_ref().into(),
+            Expr::Array(array) => BsnValue::List(array.elems.iter().map(Into::into).collect()),
             expr => BsnValue::UnknownExpr(expr.to_token_stream().to_string()),
         }
     }
@@ -419,6 +422,7 @@ impl ToBsnString for BsnValue {
                 format!("{}({})", path, args.joined(", "))
             }
             BsnValue::Tuple(fields) => format!("({})", fields.joined(", ")),
+            BsnValue::List(values) => format!("[{}]", values.joined(", ")),
             BsnValue::UnknownExpr(expr) => expr.clone(),
         }
     }

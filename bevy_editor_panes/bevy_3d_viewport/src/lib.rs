@@ -171,7 +171,7 @@ fn on_pane_creation(
         ))
         .with_children(|parent| {
             spawn_view_gizmo_target_texture(images, parent);
-            spawn_gizmo_toggle_ui(parent);
+            
         })
         .observe(|trigger: Trigger<Pointer<Over>>, mut commands: Commands| {
             commands.entity(trigger.target()).insert(Active);

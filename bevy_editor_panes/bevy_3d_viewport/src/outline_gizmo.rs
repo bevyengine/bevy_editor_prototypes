@@ -1,9 +1,10 @@
-use bevy::{ecs::relationship::RelatedSpawnerCommands, prelude::*};
+use bevy::prelude::*;
 
 pub struct OutlineGizmoPlugin;
 impl Plugin for OutlineGizmoPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<ShowOutlines>()
+        .add_systems(Startup, spawn_gizmo_toggle_ui)
             .add_systems(Update, outline_gizmo_system)
             .add_systems(Update, update_gizmo_toggle_text);
     }
@@ -33,15 +34,17 @@ pub fn outline_gizmo_system(
     }
 }
 
-pub fn spawn_gizmo_toggle_ui(parent: &mut RelatedSpawnerCommands<ChildOf>) {
+pub fn spawn_gizmo_toggle_ui(mut commands: Commands) {
     println!("Spawning Gizmo Toggle UI");
-    parent
+    commands
         .spawn((
             Node {
                 position_type: PositionType::Absolute,
-                top: Val::Px(10.0),
-                left: Val::Px(10.0),
-                width: Val::Px(120.0),
+                top: Val::ZERO,
+                bottom: Val::ZERO,
+                left: Val::ZERO,
+                right: Val::ZERO,
+                width: Val::Px(100.0),
                 height: Val::Px(30.0),
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,

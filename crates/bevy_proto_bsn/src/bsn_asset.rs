@@ -6,7 +6,7 @@ use thiserror::Error;
 
 use bevy_proto_bsn_ast::{
     quote::ToTokens,
-    syn::{Expr, ExprCall, ExprLit, ExprStruct, Lit, Member},
+    syn::{Expr, ExprCall, ExprLit, ExprStruct, ExprUnary, Lit, Member, UnOp},
     *,
 };
 
@@ -265,6 +265,10 @@ impl From<&Expr> for BsnValue {
             Expr::Call(call) => call.into(),
             Expr::Paren(paren) => paren.expr.as_ref().into(),
             Expr::Array(array) => BsnValue::List(array.elems.iter().map(Into::into).collect()),
+            Expr::Unary(unary) => unary.try_into().unwrap_or_else(|err| {
+                error!("{err:?}");
+                BsnValue::UnknownExpr(expr.to_token_stream().to_string())
+            }),
             expr => BsnValue::UnknownExpr(expr.to_token_stream().to_string()),
         }
     }
@@ -310,6 +314,27 @@ impl From<&ExprCall> for BsnValue {
         let fields_or_params = call.args.iter().map(BsnValue::from).collect();
 
         BsnValue::Call(path, fields_or_params)
+    }
+}
+
+impl TryFrom<&ExprUnary> for BsnValue {
+    type Error = BsnLoaderError;
+
+    fn try_from(value: &ExprUnary) -> Result<Self, Self::Error> {
+        if let UnOp::Neg(_) = value.op {
+            if let Expr::Lit(lit) = value.expr.as_ref() {
+                let mut bsn_value: BsnValue = lit.into();
+                if let BsnValue::Number(ref mut f) = bsn_value {
+                    f.insert(0, '-');
+                    return Ok(bsn_value);
+                }
+            }
+        }
+
+        Err(BsnLoaderError::SyntaxError(format!(
+            "Could not parse unary expression: {}",
+            value.to_token_stream()
+        )))
     }
 }
 

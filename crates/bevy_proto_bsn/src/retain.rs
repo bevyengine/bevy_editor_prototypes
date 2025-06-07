@@ -321,7 +321,7 @@ impl RetainSceneExt for EntityWorldMut<'_> {
         // Retain the children
         let anchors = child_scenes
             .into_iter()
-            .map(|child_scene| child_scene.into_dynamic_scene())
+            .map(DynamicPatch::into_dynamic_scene)
             .collect::<Vec<_>>()
             .retain_children(self, receipt.anchors)?;
 

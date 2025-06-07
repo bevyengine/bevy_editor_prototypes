@@ -135,7 +135,7 @@ where
 
     /// Constructs an [`EntityPatch`], inserts the resulting bundle to the context entity, and recursively spawns children.
     fn construct(self, context: &mut ConstructContext) -> Result<(), ConstructError> {
-        if !self.inherit.root_count() > 0 {
+        if self.inherit.root_count() > 0 {
             // Dynamic scene
             let mut dynamic_scene = DynamicScene::default();
             self.dynamic_patch(&mut dynamic_scene);

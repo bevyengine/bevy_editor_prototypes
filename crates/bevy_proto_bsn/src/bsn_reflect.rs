@@ -9,9 +9,9 @@ use bevy::{
     },
     platform::hash::FixedState,
     reflect::{
-        DynamicEnum, DynamicStruct, DynamicTuple, DynamicTupleStruct, DynamicVariant, FromType,
-        NamedField, PartialReflect, Reflect, ReflectKind, StructInfo, StructVariantInfo, TypeInfo,
-        TypePath, TypeRegistration, TypeRegistry, TypeRegistryArc,
+        DynamicEnum, DynamicList, DynamicStruct, DynamicTuple, DynamicTupleStruct, DynamicVariant,
+        FromType, NamedField, PartialReflect, Reflect, ReflectKind, StructInfo, StructVariantInfo,
+        TypeInfo, TypePath, TypeRegistration, TypeRegistry, TypeRegistryArc,
     },
 };
 use thiserror::Error;
@@ -207,11 +207,7 @@ impl Clone for ReflectedValue {
     fn clone(&self) -> Self {
         Self {
             type_id: self.type_id,
-            instance: self
-                .instance
-                .as_ref()
-                .reflect_clone()
-                .expect("Failed to clone instance"),
+            instance: self.instance.as_ref().to_dynamic(),
         }
     }
 }
@@ -447,6 +443,7 @@ impl<'a, 'b> BsnReflector<'a, 'b> {
                 ty,
             ),
             BsnValue::Tuple(items) => self.reflect_tuple(items, ty),
+            BsnValue::List(items) => self.reflect_list(items, ty),
             _ => Err(ReflectError::UnexpectedType(
                 format!("{:?}", value),
                 ty.type_path().into(),
@@ -515,6 +512,22 @@ impl<'a, 'b> BsnReflector<'a, 'b> {
             dynamic_tuple.insert_boxed(self.reflect_value(item, ty)?.instance);
         }
         Ok(ReflectedValue::new(ty.type_id(), Box::new(dynamic_tuple)))
+    }
+
+    fn reflect_list(&self, items: &[BsnValue], ty: &TypeInfo) -> ReflectResult<ReflectedValue> {
+        if let Ok(list_info) = ty.as_list() {
+            let mut dynamic_list = DynamicList::default();
+            let item_type_info = list_info.item_info().expect("Expected typed list");
+            for item in items.iter() {
+                dynamic_list.push_box(self.reflect_value(item, item_type_info)?.instance);
+            }
+            Ok(ReflectedValue::new(ty.type_id(), Box::new(dynamic_list)))
+        } else {
+            Err(ReflectError::UnexpectedType(
+                format!("{:?}", items),
+                format!("{:?}", ty),
+            ))
+        }
     }
 
     fn reflect_path(&self, path: &str, ty: Option<&TypeInfo>) -> ReflectResult<ReflectedValue> {

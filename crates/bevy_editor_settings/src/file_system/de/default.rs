@@ -3,7 +3,8 @@ use bevy::reflect::{
     EnumInfo, ListInfo, MapInfo, PartialReflect, SetInfo, Type, TypeInfo,
 };
 
-use super::{struct_utils::StructLikeInfo, tuple_utils::TupleLikeInfo};
+use crate::utils::{struct_utils::StructLikeInfo, tuple_utils::TupleLikeInfo};
+
 
 pub fn default_data_type(type_info: &TypeInfo) -> Option<Box<dyn PartialReflect>> {
     match type_info {

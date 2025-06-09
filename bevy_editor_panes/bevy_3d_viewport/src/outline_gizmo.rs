@@ -4,7 +4,7 @@ pub struct OutlineGizmoPlugin;
 impl Plugin for OutlineGizmoPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<ShowOutlines>()
-        .add_systems(Startup, spawn_gizmo_toggle_ui)
+            .add_systems(Startup, spawn_gizmo_toggle_ui)
             .add_systems(Update, outline_gizmo_system)
             .add_systems(Update, update_gizmo_toggle_text);
     }

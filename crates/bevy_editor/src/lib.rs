@@ -24,6 +24,8 @@ use bevy_editor_styles::StylesPlugin;
 use bevy_2d_viewport::Viewport2dPanePlugin;
 use bevy_3d_viewport::Viewport3dPanePlugin;
 use bevy_asset_browser::AssetBrowserPanePlugin;
+use bevy_properties_pane::PropertiesPanePlugin;
+use bevy_scene_tree::SceneTreePlugin;
 
 use crate::load_gltf::LoadGltfPlugin;
 
@@ -58,7 +60,10 @@ impl Plugin for EditorPlugin {
                 ui::EditorUIPlugin,
                 AssetBrowserPanePlugin,
                 LoadGltfPlugin,
+                SceneTreePlugin,
+                PropertiesPanePlugin,
             ))
+            .add_systems(Startup, load_example_scene)
             .add_systems(Startup, dummy_setup);
     }
 }
@@ -87,6 +92,11 @@ impl App {
 
         bevy_app.run()
     }
+}
+
+fn load_example_scene(mut commands: Commands, asset_server: Res<AssetServer>) {
+    println!("spawning example scene");
+    commands.spawn(DynamicSceneRoot(asset_server.load("example/scene.scn.ron")));
 }
 
 /// This is temporary, until we can load maps from the asset browser

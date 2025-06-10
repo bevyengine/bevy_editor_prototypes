@@ -48,8 +48,8 @@ pub struct EditorPlugin;
 impl Plugin for EditorPlugin {
     fn build(&self, bevy_app: &mut BevyApp) {
         // Update/register this project to the editor project list
-        project::update_project_info();
-
+        // project::update_project_info();
+        println!("Loading Bevy Editor");
         bevy_app
             .add_plugins((
                 EditorCorePlugin,
@@ -63,8 +63,8 @@ impl Plugin for EditorPlugin {
                 SceneTreePlugin,
                 PropertiesPanePlugin,
             ))
-            .add_systems(Startup, load_example_scene)
-            .add_systems(Startup, dummy_setup);
+            .add_systems(Startup, load_example_scene);
+        // .add_systems(Startup, dummy_setup);
     }
 }
 

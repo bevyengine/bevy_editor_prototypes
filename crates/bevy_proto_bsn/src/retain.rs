@@ -19,7 +19,7 @@ pub enum Anchor {
 }
 
 /// An explicit identifier for an entity in a retained scene.
-#[derive(Eq, PartialEq, Hash, Clone)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone)]
 pub struct Key(String);
 
 impl<T: Display> From<T> for Key {
@@ -175,9 +175,7 @@ impl RetainScene for DynamicScene {
         });
 
         // Retain the children
-        let anchors = self
-            .children
-            .retain_children::<T>(entity, receipt.anchors)?;
+        let anchors = self.children.retain_children(entity, receipt.anchors)?;
 
         // Place the new receipt onto the entity
         entity.insert(Receipt::<T> {
@@ -192,10 +190,10 @@ impl RetainScene for DynamicScene {
 
 /// Trait implemented for collections of scenes that can be retained.
 pub trait RetainChildren {
-    /// Retains the scenes as children of `entity`, updating the [`Receipt`] in the process.
+    /// Retains the scenes as children of `entity`, returning the new [`Anchor`] map.
     ///
     /// See: [`RetainScene::retain`].
-    fn retain_children<T: Send + Sync + 'static>(
+    fn retain_children(
         self,
         entity: &mut EntityWorldMut,
         current_anchors: HashMap<Anchor, Entity>,
@@ -203,7 +201,7 @@ pub trait RetainChildren {
 }
 
 impl RetainChildren for Vec<DynamicScene> {
-    fn retain_children<T: Send + Sync + 'static>(
+    fn retain_children(
         self,
         entity: &mut EntityWorldMut,
         mut current_anchors: HashMap<Anchor, Entity>,
@@ -241,7 +239,9 @@ impl RetainChildren for Vec<DynamicScene> {
             // first (before deparenting) so that hooks still see the parent when
             // they run.
             for orphan_id in current_anchors.into_values() {
-                world.entity_mut(orphan_id).despawn();
+                if let Ok(entity) = world.get_entity_mut(orphan_id) {
+                    entity.despawn();
+                }
             }
         });
 
@@ -323,7 +323,7 @@ impl RetainSceneExt for EntityWorldMut<'_> {
             .into_iter()
             .map(DynamicPatch::into_dynamic_scene)
             .collect::<Vec<_>>()
-            .retain_children::<T>(self, receipt.anchors)?;
+            .retain_children(self, receipt.anchors)?;
 
         // Place the receipt back onto the entity
         self.insert(Receipt::<T> {

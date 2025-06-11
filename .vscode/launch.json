@@ -1,0 +1,1505 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_asset_preview'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_asset_preview"
+                ],
+                "filter": {
+                    "name": "bevy_asset_preview",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_clipboard'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_clipboard"
+                ],
+                "filter": {
+                    "name": "bevy_clipboard",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_editor'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_editor"
+                ],
+                "filter": {
+                    "name": "bevy_editor",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_2d_viewport'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_2d_viewport"
+                ],
+                "filter": {
+                    "name": "bevy_2d_viewport",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_editor_camera'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_editor_camera"
+                ],
+                "filter": {
+                    "name": "bevy_editor_camera",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'editor_camera_2d'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=editor_camera_2d",
+                    "--package=bevy_editor_camera"
+                ],
+                "filter": {
+                    "name": "editor_camera_2d",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'editor_camera_2d'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=editor_camera_2d",
+                    "--package=bevy_editor_camera"
+                ],
+                "filter": {
+                    "name": "editor_camera_2d",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_editor_styles'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_editor_styles"
+                ],
+                "filter": {
+                    "name": "bevy_editor_styles",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_infinite_grid'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_infinite_grid"
+                ],
+                "filter": {
+                    "name": "bevy_infinite_grid",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'simple'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=simple",
+                    "--package=bevy_infinite_grid"
+                ],
+                "filter": {
+                    "name": "simple",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'simple'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=simple",
+                    "--package=bevy_infinite_grid"
+                ],
+                "filter": {
+                    "name": "simple",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'simple_2d'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=simple_2d",
+                    "--package=bevy_infinite_grid"
+                ],
+                "filter": {
+                    "name": "simple_2d",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'simple_2d'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=simple_2d",
+                    "--package=bevy_infinite_grid"
+                ],
+                "filter": {
+                    "name": "simple_2d",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_pane_layout'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_pane_layout"
+                ],
+                "filter": {
+                    "name": "bevy_pane_layout",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_context_menu'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_context_menu"
+                ],
+                "filter": {
+                    "name": "bevy_context_menu",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'simple'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=simple",
+                    "--package=bevy_context_menu"
+                ],
+                "filter": {
+                    "name": "simple",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'simple'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=simple",
+                    "--package=bevy_context_menu"
+                ],
+                "filter": {
+                    "name": "simple",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_3d_viewport'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_3d_viewport"
+                ],
+                "filter": {
+                    "name": "bevy_3d_viewport",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_editor_cam'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_editor_cam"
+                ],
+                "filter": {
+                    "name": "bevy_editor_cam",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'cad'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=cad",
+                    "--package=bevy_editor_cam"
+                ],
+                "filter": {
+                    "name": "cad",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'cad'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=cad",
+                    "--package=bevy_editor_cam"
+                ],
+                "filter": {
+                    "name": "cad",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'map'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=map",
+                    "--package=bevy_editor_cam"
+                ],
+                "filter": {
+                    "name": "map",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'map'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=map",
+                    "--package=bevy_editor_cam"
+                ],
+                "filter": {
+                    "name": "map",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'minimal'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=minimal",
+                    "--package=bevy_editor_cam"
+                ],
+                "filter": {
+                    "name": "minimal",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'minimal'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=minimal",
+                    "--package=bevy_editor_cam"
+                ],
+                "filter": {
+                    "name": "minimal",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'ortho'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=ortho",
+                    "--package=bevy_editor_cam"
+                ],
+                "filter": {
+                    "name": "ortho",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'ortho'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=ortho",
+                    "--package=bevy_editor_cam"
+                ],
+                "filter": {
+                    "name": "ortho",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'pseudo_ortho'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=pseudo_ortho",
+                    "--package=bevy_editor_cam"
+                ],
+                "filter": {
+                    "name": "pseudo_ortho",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'pseudo_ortho'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=pseudo_ortho",
+                    "--package=bevy_editor_cam"
+                ],
+                "filter": {
+                    "name": "pseudo_ortho",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'split_screen'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=split_screen",
+                    "--package=bevy_editor_cam"
+                ],
+                "filter": {
+                    "name": "split_screen",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'split_screen'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=split_screen",
+                    "--package=bevy_editor_cam"
+                ],
+                "filter": {
+                    "name": "split_screen",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'zoom_limits'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=zoom_limits",
+                    "--package=bevy_editor_cam"
+                ],
+                "filter": {
+                    "name": "zoom_limits",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'zoom_limits'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=zoom_limits",
+                    "--package=bevy_editor_cam"
+                ],
+                "filter": {
+                    "name": "zoom_limits",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_asset_browser'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_asset_browser"
+                ],
+                "filter": {
+                    "name": "bevy_asset_browser",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_scroll_box'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_scroll_box"
+                ],
+                "filter": {
+                    "name": "bevy_scroll_box",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_editor_core'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_editor_core"
+                ],
+                "filter": {
+                    "name": "bevy_editor_core",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_footer_bar'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_footer_bar"
+                ],
+                "filter": {
+                    "name": "bevy_footer_bar",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_menu_bar'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_menu_bar"
+                ],
+                "filter": {
+                    "name": "bevy_menu_bar",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_properties_pane'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_properties_pane"
+                ],
+                "filter": {
+                    "name": "bevy_properties_pane",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_i_cant_believe_its_not_bsn'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_i-cant-believe-its-not-bsn"
+                ],
+                "filter": {
+                    "name": "bevy_i_cant_believe_its_not_bsn",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_scene_tree'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_scene_tree"
+                ],
+                "filter": {
+                    "name": "bevy_scene_tree",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'bevy_editor_launcher'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=bevy_editor_launcher",
+                    "--package=bevy_editor_launcher"
+                ],
+                "filter": {
+                    "name": "bevy_editor_launcher",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'bevy_editor_launcher'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=bevy_editor_launcher",
+                    "--package=bevy_editor_launcher"
+                ],
+                "filter": {
+                    "name": "bevy_editor_launcher",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'simple_editor'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=simple_editor",
+                    "--package=bevy_editor_launcher"
+                ],
+                "filter": {
+                    "name": "simple_editor",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'simple_editor'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=simple_editor",
+                    "--package=bevy_editor_launcher"
+                ],
+                "filter": {
+                    "name": "simple_editor",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_editor_settings'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_editor_settings"
+                ],
+                "filter": {
+                    "name": "bevy_editor_settings",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_localization'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_localization"
+                ],
+                "filter": {
+                    "name": "bevy_localization",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_proto_bsn'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_proto_bsn"
+                ],
+                "filter": {
+                    "name": "bevy_proto_bsn",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'bsn_asset'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=bsn_asset",
+                    "--package=bevy_proto_bsn"
+                ],
+                "filter": {
+                    "name": "bsn_asset",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'bsn_asset'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=bsn_asset",
+                    "--package=bevy_proto_bsn"
+                ],
+                "filter": {
+                    "name": "bsn_asset",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'bsn_asset_prefab'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=bsn_asset_prefab",
+                    "--package=bevy_proto_bsn"
+                ],
+                "filter": {
+                    "name": "bsn_asset_prefab",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'bsn_asset_prefab'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=bsn_asset_prefab",
+                    "--package=bevy_proto_bsn"
+                ],
+                "filter": {
+                    "name": "bsn_asset_prefab",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'bsn_edit'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=bsn_edit",
+                    "--package=bevy_proto_bsn"
+                ],
+                "filter": {
+                    "name": "bsn_edit",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'bsn_edit'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=bsn_edit",
+                    "--package=bevy_proto_bsn"
+                ],
+                "filter": {
+                    "name": "bsn_edit",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'bsn_macro'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=bsn_macro",
+                    "--package=bevy_proto_bsn"
+                ],
+                "filter": {
+                    "name": "bsn_macro",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'bsn_macro'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=bsn_macro",
+                    "--package=bevy_proto_bsn"
+                ],
+                "filter": {
+                    "name": "bsn_macro",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'bsn_retained_sheep'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=bsn_retained_sheep",
+                    "--package=bevy_proto_bsn"
+                ],
+                "filter": {
+                    "name": "bsn_retained_sheep",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'bsn_retained_sheep'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=bsn_retained_sheep",
+                    "--package=bevy_proto_bsn"
+                ],
+                "filter": {
+                    "name": "bsn_retained_sheep",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_proto_bsn_ast'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_proto_bsn_ast"
+                ],
+                "filter": {
+                    "name": "bevy_proto_bsn_ast",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_transform_gizmos'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_transform_gizmos"
+                ],
+                "filter": {
+                    "name": "bevy_transform_gizmos",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_undo'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_undo"
+                ],
+                "filter": {
+                    "name": "bevy_undo",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'cube_move'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=cube_move",
+                    "--package=bevy_undo"
+                ],
+                "filter": {
+                    "name": "cube_move",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'cube_move'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=cube_move",
+                    "--package=bevy_undo"
+                ],
+                "filter": {
+                    "name": "cube_move",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_marketplace_viewer'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_marketplace_viewer"
+                ],
+                "filter": {
+                    "name": "bevy_marketplace_viewer",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_preferences'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_preferences"
+                ],
+                "filter": {
+                    "name": "bevy_preferences",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_color_picker'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_color_picker"
+                ],
+                "filter": {
+                    "name": "bevy_color_picker",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_command_palette'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_command_palette"
+                ],
+                "filter": {
+                    "name": "bevy_command_palette",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_field_forms'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_field_forms"
+                ],
+                "filter": {
+                    "name": "bevy_field_forms",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'nickname'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=nickname",
+                    "--package=bevy_field_forms"
+                ],
+                "filter": {
+                    "name": "nickname",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'nickname'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=nickname",
+                    "--package=bevy_field_forms"
+                ],
+                "filter": {
+                    "name": "nickname",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'numeric_fields'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=numeric_fields",
+                    "--package=bevy_field_forms"
+                ],
+                "filter": {
+                    "name": "numeric_fields",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'numeric_fields'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=numeric_fields",
+                    "--package=bevy_field_forms"
+                ],
+                "filter": {
+                    "name": "numeric_fields",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_focus'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_focus"
+                ],
+                "filter": {
+                    "name": "bevy_focus",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_text_editing'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_text_editing"
+                ],
+                "filter": {
+                    "name": "bevy_text_editing",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'editable_label'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=editable_label",
+                    "--package=bevy_text_editing"
+                ],
+                "filter": {
+                    "name": "editable_label",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'editable_label'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=editable_label",
+                    "--package=bevy_text_editing"
+                ],
+                "filter": {
+                    "name": "editable_label",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'password'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=password",
+                    "--package=bevy_text_editing"
+                ],
+                "filter": {
+                    "name": "password",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'password'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=password",
+                    "--package=bevy_text_editing"
+                ],
+                "filter": {
+                    "name": "password",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_toolbar'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_toolbar"
+                ],
+                "filter": {
+                    "name": "bevy_toolbar",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'bevy_tooltips'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=bevy_tooltips"
+                ],
+                "filter": {
+                    "name": "bevy_tooltips",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

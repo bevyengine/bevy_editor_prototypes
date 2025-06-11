@@ -35,7 +35,7 @@ pub fn outline_gizmo_system(
 }
 
 pub fn spawn_gizmo_toggle_ui(mut commands: Commands) {
-    println!("Spawning Gizmo Toggle UI");
+    info!("Spawning Gizmo Toggle UI");
     commands
         .spawn((
             Node {

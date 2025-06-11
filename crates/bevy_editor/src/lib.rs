@@ -99,11 +99,13 @@ fn dummy_setup(
     commands.spawn((
         Mesh2d(meshes.add(Circle::new(50.0))),
         MeshMaterial2d(materials_2d.add(Color::WHITE)),
+        Name::new("Circle"),
     ));
 
     commands.spawn((
         Mesh3d(meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(1.5)))),
         MeshMaterial3d(materials_3d.add(Color::WHITE)),
+        Name::new("Plane"),
     ));
 
     commands.spawn((
@@ -112,5 +114,6 @@ fn dummy_setup(
             ..default()
         },
         Transform::default().looking_to(Vec3::NEG_ONE, Vec3::Y),
+        Name::new("DirectionalLight"),
     ));
 }

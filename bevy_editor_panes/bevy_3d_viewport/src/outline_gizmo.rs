@@ -40,12 +40,10 @@ pub fn spawn_gizmo_toggle_ui(mut commands: Commands) {
         .spawn((
             Node {
                 position_type: PositionType::Absolute,
-                top: Val::ZERO,
-                bottom: Val::ZERO,
-                left: Val::ZERO,
-                right: Val::ZERO,
-                width: Val::Px(100.0),
-                height: Val::Px(30.0),
+                top: Val::Px(20.0),
+                right: Val::Px(20.0),
+                width: Val::Px(150.0),
+                height: Val::Px(15.0),
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
                 ..default()

@@ -80,6 +80,7 @@ fn setup_view_gizmo(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut gizmo_assets: ResMut<Assets<GizmoAsset>>,
 ) {
+    info!("Spawning View Gizmo");
     let view_gizmo_pass_layer = RenderLayers::layer(VIEW_GIZMO_LAYER);
     let sphere = meshes.add(Sphere::new(0.2).mesh().uv(32, 18));
 

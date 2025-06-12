@@ -10,6 +10,15 @@ Want to see what we have planned? Check out [design-book/vision] for a high-leve
 Want to help? See [design-book/roadmap] for an up-to-date summary of the work that has been done and needs to be done to advance the project to the next phase.
 To avoid ballooning scope and ensure we can ship something useful and reasonably polished, please try your best to focus efforts on the next milestone that has yet to be completed, or standalone proof-of-concepts or design work for important open questions.
 
+*IMPORTANT*:
+
+When you open a folder with the launcher it will simply copy the template to the target location which references the editor's github repository and not your locally compiled editor. 
+
+Instead, for local editor dev use the below example for compiling/running changes:
+
+`cargo run --example simple_editor`
+
+
 ## Figma Designs
 
 While laying out the foundations for an editor prototype in this repository, we are also experimenting with various UI designs in a public [Figma document]. If you are interested in collaborating and sharing your own designs, head over to the document and request write permissions to join the effort.

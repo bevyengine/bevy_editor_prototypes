@@ -1,0 +1,24 @@
+(
+    entities: [
+        (
+            components: [
+                (bevy_transform::components::Transform, (
+                    translation: (1.0, 0.0, 0.0),
+                    rotation: (0.0, 0.0, 0.0, 1.0),
+                    scale: (1.0, 1.0, 1.0),
+                )),
+                (bevy_render::color::Color, (r: 0.8, g: 0.2, b: 0.2, a: 1.0)),
+            ],
+        ),
+        (
+            components: [
+                (bevy_transform::components::Transform, (
+                    translation: (0.0, 2.0, 0.0),
+                    rotation: (0.0, 0.0, 0.0, 1.0),
+                    scale: (1.0, 1.0, 1.0),
+                )),
+                (bevy_render::color::Color, (r: 0.2, g: 0.8, b: 0.2, a: 1.0)),
+            ],
+        ),
+    ],
+)

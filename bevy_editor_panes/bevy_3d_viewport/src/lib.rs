@@ -18,6 +18,9 @@ use bevy_infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings}
 use bevy_pane_layout::prelude::*;
 use view_gizmo::{spawn_view_gizmo_target_texture, ViewGizmoPlugin};
 
+use crate::outline_gizmo::OutlineGizmoPlugin;
+
+mod outline_gizmo;
 mod view_gizmo;
 
 /// The identifier for the 3D Viewport.
@@ -44,7 +47,7 @@ impl Plugin for Viewport3dPanePlugin {
             app.add_plugins(InfiniteGridPlugin);
         }
 
-        app.add_plugins((DefaultEditorCamPlugins, ViewGizmoPlugin))
+        app.add_plugins((DefaultEditorCamPlugins, ViewGizmoPlugin, OutlineGizmoPlugin))
             .add_systems(Startup, setup)
             .add_systems(
                 PreUpdate,

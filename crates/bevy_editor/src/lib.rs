@@ -46,7 +46,7 @@ pub struct EditorPlugin;
 impl Plugin for EditorPlugin {
     fn build(&self, bevy_app: &mut BevyApp) {
         // Update/register this project to the editor project list
-        // project::update_project_info();
+        project::update_project_info();
         info!("Loading Bevy Editor");
         bevy_app
             .add_plugins((

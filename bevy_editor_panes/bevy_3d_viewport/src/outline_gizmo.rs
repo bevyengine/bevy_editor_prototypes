@@ -20,14 +20,17 @@ struct GizmoToggleText;
 
 pub fn outline_gizmo_system(
     show: Res<ShowOutlines>,
-    selected: Query<&Transform, With<SelectedEntity>>,
+    query: Query<&Transform>,
+    selected_entity: Res<SelectedEntity>,
     mut gizmos: Gizmos,
 ) {
     if !show.0 {
         return;
     }
-    for transform in &selected {
-        gizmos.cuboid(*transform, Color::srgb(1.0, 1.0, 0.0));
+    if let Some(entity) = selected_entity.0 {
+        if let Ok(transform) = query.get(entity) {
+            gizmos.cuboid(*transform, Color::srgb(1.0, 0.0, 0.0));
+        }
     }
 }
 

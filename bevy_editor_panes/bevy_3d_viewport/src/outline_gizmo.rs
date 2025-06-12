@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy_editor_core::SelectedEntity;
-use bevy_editor_styles::TextStyles;
 
 pub struct OutlineGizmoPlugin;
 impl Plugin for OutlineGizmoPlugin {

@@ -47,7 +47,7 @@ impl Plugin for EditorPlugin {
     fn build(&self, bevy_app: &mut BevyApp) {
         // Update/register this project to the editor project list
         // project::update_project_info();
-        println!("Loading Bevy Editor");
+        info!("Loading Bevy Editor");
         bevy_app
             .add_plugins((
                 EditorCorePlugin,
@@ -59,8 +59,7 @@ impl Plugin for EditorPlugin {
                 AssetBrowserPanePlugin,
                 LoadGltfPlugin,
             ))
-            .add_systems(Startup, load_example_scene);
-        // .add_systems(Startup, dummy_setup);
+            .add_systems(Startup, dummy_setup);
     }
 }
 
@@ -90,7 +89,31 @@ impl App {
     }
 }
 
-fn load_example_scene(mut commands: Commands, asset_server: Res<AssetServer>) {
-    info!("spawning example scene");
-    commands.spawn(DynamicSceneRoot(asset_server.load("example/scene.scn.ron")));
+/// This is temporary, until we can load maps from the asset browser
+fn dummy_setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials_2d: ResMut<Assets<ColorMaterial>>,
+    mut materials_3d: ResMut<Assets<StandardMaterial>>,
+) {
+    commands.spawn((
+        Mesh2d(meshes.add(Circle::new(50.0))),
+        MeshMaterial2d(materials_2d.add(Color::WHITE)),
+        Name::new("Circle"),
+    ));
+
+    commands.spawn((
+        Mesh3d(meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(1.5)))),
+        MeshMaterial3d(materials_3d.add(Color::WHITE)),
+        Name::new("Plane"),
+    ));
+
+    commands.spawn((
+        DirectionalLight {
+            shadows_enabled: true,
+            ..default()
+        },
+        Transform::default().looking_to(Vec3::NEG_ONE, Vec3::Y),
+        Name::new("DirectionalLight"),
+    ));
 }

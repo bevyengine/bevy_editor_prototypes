@@ -14,7 +14,7 @@ impl Plugin for EditorCorePlugin {
 }
 
 /// The currently selected entity in the scene.
-#[derive(Resource, Default, Reflect)]
+#[derive(Component, Resource, Default, Reflect)]
 #[reflect(Resource, Default)]
 pub struct SelectedEntity(pub Option<Entity>);
 

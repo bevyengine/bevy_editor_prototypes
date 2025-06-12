@@ -1,4 +1,6 @@
 use bevy::prelude::*;
+use bevy_editor_core::SelectedEntity;
+use bevy_editor_styles::TextStyles;
 
 pub struct OutlineGizmoPlugin;
 impl Plugin for OutlineGizmoPlugin {
@@ -9,10 +11,6 @@ impl Plugin for OutlineGizmoPlugin {
             .add_systems(Update, update_gizmo_toggle_text);
     }
 }
-
-// Marker component for selected entities
-#[derive(Component)]
-pub struct SelectedEntity;
 
 #[derive(Resource, Default)]
 pub struct ShowOutlines(pub bool);
@@ -42,7 +40,7 @@ pub fn spawn_gizmo_toggle_ui(mut commands: Commands) {
                 position_type: PositionType::Absolute,
                 top: Val::Px(20.0),
                 right: Val::Px(20.0),
-                width: Val::Px(150.0),
+                width: Val::Px(100.0),
                 height: Val::Px(15.0),
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
@@ -51,7 +49,11 @@ pub fn spawn_gizmo_toggle_ui(mut commands: Commands) {
             BackgroundColor(Color::srgb(0.2, 0.2, 0.2)),
         ))
         .with_children(|parent| {
-            parent.spawn((Text::new("Show Outlines"), GizmoToggleText));
+            parent.spawn((
+                Text::new("Show Outlines"),
+                TextFont::from_font_size(10.0),
+                GizmoToggleText,
+            ));
         })
         .observe(
             |_trigger: Trigger<Pointer<Click>>, mut show_outlines: ResMut<ShowOutlines>| {

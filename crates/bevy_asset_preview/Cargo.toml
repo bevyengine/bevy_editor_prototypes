@@ -1,7 +1,0 @@
-[package]
-name = "bevy_asset_preview"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-bevy.workspace = true

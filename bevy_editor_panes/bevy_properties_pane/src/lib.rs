@@ -142,8 +142,8 @@ fn reflected_struct(struct_info: &StructInfo, reflect: &dyn Reflect) -> Template
             let value = reflect
                 .reflect_ref()
                 .as_struct()
-                .and_then(|s| Ok(s.field_at(i)))
-                .map(|v| format!("{:?}", v))
+                .map(|s| s.field_at(i))
+                .map(|v| format!("{v:?}"))
                 .unwrap_or("<unavailable>".to_string());
 
             template! {

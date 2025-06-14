@@ -51,10 +51,18 @@ fn update_properties_pane(
 fn properties_pane(selected_entity: &SelectedEntity, world: &World) -> Template {
     match selected_entity.0 {
         Some(selected_entity) => component_list(selected_entity, world),
-        None => template! {(
-            Text("Select an entity to inspect".into()),
-            TextFont::from_font_size(14.0),
-        );},
+        None => template! {
+            Node {
+                flex_direction: FlexDirection::Column,
+                ..Default::default()
+            } => [
+                (
+                    Text("Select an entity to inspect".into()),
+                    TextFont::from_font_size(14.0),
+                );
+            ];
+
+        },
     }
 }
 
@@ -69,55 +77,94 @@ fn component_list(entity: Entity, world: &World) -> Template {
                 .type_id()
                 .and_then(|type_id| type_registry.get_type_info(type_id));
 
+            // Get the reflected component value from the world
+            let reflect: Option<&dyn Reflect> = component_info.type_id().and_then(|type_id| {
+                let registration = type_registry.get(type_id)?;
+                let reflect_component = registration.data::<ReflectComponent>()?;
+                let entity_ref = world.get_entity(entity);
+                reflect_component.reflect(entity_ref.unwrap())
+            });
+
             template! {
                 Node {
                     flex_direction: FlexDirection::Column,
+                    margin: UiRect::all(Val::Px(4.0)),
+
                     ..Default::default()
                 } => [
-                    (
-                        Text(name.into()),
-                        TextFont::from_font_size(12.0),
-                    );
-                    @{ component(type_info) };
+                    // Collapsible header for the component
+                    Node {
+                        flex_direction: FlexDirection::Row,
+                        align_items: AlignItems::Center,
+                        ..Default::default()
+                    } => [
+                        (
+                            Text(format!("⯆ {name}")),
+                            TextFont::from_font_size(14.0),
+                            TextColor(Color::WHITE),
+                        );
+                    ];
+                    // Component fields
+                    @{ match reflect {
+                        Some(reflect) => component(type_info, reflect),
+                        None => template! {
+                            Node {
+                                flex_direction: FlexDirection::Row,
+                                ..Default::default()
+                            } => [
+                                (
+                                    Text("<unavailable>".into()),
+                                    TextFont::from_font_size(10.0),
+                                    TextColor(Color::srgb(1.0, 0.0, 0.0)),
+                                );
+                            ];
+                        },
+                    } };
                 ];
             }
         })
         .collect()
 }
 
-fn component(type_info: Option<&TypeInfo>) -> Template {
+fn component(type_info: Option<&TypeInfo>, reflect: &dyn Reflect) -> Template {
     match type_info {
-        Some(type_info) => reflected_component(type_info),
-        None => template! {(
-            Text("Reflect not implemented".into()),
-            TextFont::from_font_size(10.0),
-            TextColor(tailwind::NEUTRAL_300.into()),
-        );},
+        Some(TypeInfo::Struct(struct_info)) => reflected_struct(struct_info, reflect),
+        Some(TypeInfo::TupleStruct(tuple_struct_info)) => reflected_tuple_struct(tuple_struct_info),
+        Some(TypeInfo::Enum(enum_info)) => reflected_enum(enum_info),
+        _ => template! {},
     }
 }
-
-fn reflected_component(type_info: &TypeInfo) -> Template {
-    match type_info {
-        TypeInfo::Struct(struct_info) => reflected_struct(struct_info),
-        TypeInfo::TupleStruct(tuple_struct_info) => reflected_tuple_struct(tuple_struct_info),
-        TypeInfo::Tuple(_tuple_info) => todo!(),
-        TypeInfo::List(_list_info) => todo!(),
-        TypeInfo::Array(_array_info) => todo!(),
-        TypeInfo::Map(_map_info) => todo!(),
-        TypeInfo::Set(_set_info) => todo!(),
-        TypeInfo::Enum(enum_info) => reflected_enum(enum_info),
-        TypeInfo::Opaque(_opaque_info) => todo!(),
-    }
-}
-
-fn reflected_struct(struct_info: &StructInfo) -> Template {
+fn reflected_struct(struct_info: &StructInfo, reflect: &dyn Reflect) -> Template {
     let fields = struct_info
         .iter()
-        .flat_map(|field| {
-            template! {(
-                Text(field.name().into()),
-                TextFont::from_font_size(10.0),
-            );}
+        .enumerate()
+        .flat_map(|(i, field)| {
+            let value = reflect
+                .reflect_ref()
+                .as_struct()
+                .map(|s| s.field_at(i))
+                .map(|v| format!("{v:?}"))
+                .unwrap_or("<unavailable>".to_string());
+
+            template! {
+                Node {
+                    flex_direction: FlexDirection::Row,
+                    margin: UiRect::vertical(Val::Px(2.0)),
+                    ..Default::default()
+                } => [
+                    (
+                        Text(field.name().to_string()),
+                        TextFont::from_font_size(12.0),
+                        TextColor(Color::srgb(0.8, 0.8, 0.8)),
+                    );
+                    (
+                        // Value (use reflection to get value as string)
+                        Text(value),
+                        TextFont::from_font_size(10.0),
+                        TextColor(Color::WHITE),
+                    );
+                ];
+            }
         })
         .collect::<Template>();
 

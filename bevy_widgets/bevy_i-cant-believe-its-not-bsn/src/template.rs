@@ -70,7 +70,7 @@ impl Fragment {
     /// It does not modify components of children that already exist, only initializes newly
     /// created ones.
     ///
-    /// If build_entity is false it does not build the given entity, only its children.
+    /// If `build_entity` is false it does not build the given entity, only its children.
     ///
     /// It may modify the entity itself and some or all of its children.
     /// A [`Receipt`] is stored on the entity to track what was built, enabling incremental updates.
@@ -423,7 +423,7 @@ pub trait TemplateEntityCommandsExt {
     /// not modify components of children that already exist, only initializes newly
     /// created ones.
     ///
-    /// If build_entity is false it does not build the entity, only its children.
+    /// If `build_entity` is false it does not build the entity, only its children.
     fn build_nonexistent<F>(&mut self, fragment: F, build_entity: bool) -> &mut Self
     where
         F: TryInto<Fragment>;

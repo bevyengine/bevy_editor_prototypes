@@ -7,7 +7,25 @@ use bevy::ecs::{
 };
 
 // -----------------------------------------------------------------------------
-// Templates and fragments
+// Fragments and templates
+
+/// An anchor is an identifier for a built fragment.
+#[derive(Hash, Eq, PartialEq, Clone)]
+pub enum Anchor {
+    /// The fragment is static and using an automatic incrementing ID.
+    Auto(u64),
+    /// The fragment has been explicitly named.
+    Named(String),
+}
+
+/// Receipts allow templates to intelligently update existing ecs structures.
+#[derive(Default, Component, Clone)]
+pub struct Receipt {
+    /// The components it inserted.
+    components: HashSet<ComponentId>,
+    /// The receipts of all the children, organized by name.
+    anchors: HashMap<Anchor, Entity>,
+}
 
 /// A fragment is a tree of bundles with optional names. This is typically built
 /// using the [`template!`](crate::template!) macro.
@@ -21,18 +39,101 @@ pub struct Fragment {
     pub children: Template,
 }
 
+impl Fragment {
+    /// Builds this fragment on the given entity.
+    ///
+    /// It may modify the entity itself and some or all of its children.
+    /// A [`Receipt`] is stored on the entity to track what was built, enabling incremental updates.
+    pub fn build(self, entity: Entity, world: &mut World) {
+        // Clone the receipt for the targeted entity.
+        let receipt = world
+            .get::<Receipt>(entity)
+            .map(ToOwned::to_owned)
+            .unwrap_or_default();
+
+        // Build the bundle. Insert new components, replace existing ones and remove components
+        // that are no longer needed.
+        let components = self.bundle.inner.build(entity, world, receipt.components);
+
+        // Build the children.
+        let anchors = self.children.build(entity, world, receipt.anchors);
+
+        // Place the new receipt onto the entity.
+        world.entity_mut(entity).insert(Receipt {
+            components,
+            anchors,
+        });
+    }
+
+    /// Builds only the nonexistent parts of this fragment on the given entity.
+    ///
+    /// It does not modify components of children that already exist, only initializes newly
+    /// created ones.
+    ///
+    /// If build_entity is false it does not build the given entity, only its children.
+    ///
+    /// It may modify the entity itself and some or all of its children.
+    /// A [`Receipt`] is stored on the entity to track what was built, enabling incremental updates.
+    pub fn build_nonexistent(self, entity: Entity, world: &mut World, build_entity: bool) {
+        // Clone the receipt for the targeted entity.
+        let receipt = world
+            .get::<Receipt>(entity)
+            .map(ToOwned::to_owned)
+            .unwrap_or_default();
+
+        let components = if build_entity {
+            // Build the bundle. Insert new components, replace existing ones and remove components
+            // that are no longer needed.
+            self.bundle.inner.build(entity, world, receipt.components)
+        } else {
+            receipt.components
+        };
+
+        // Build the nonexistent children.
+        let anchors = self
+            .children
+            .build_nonexistent(entity, world, receipt.anchors);
+
+        // Place the new receipt onto the entity.
+        world.entity_mut(entity).insert(Receipt {
+            components,
+            anchors,
+        });
+    }
+}
+
+impl Default for Fragment {
+    fn default() -> Fragment {
+        Fragment {
+            name: None,
+            bundle: BoxedBundle::from(()),
+            children: Template::default(),
+        }
+    }
+}
+
 /// A template is a list of fragments. Each fragment in the list is expected to
 /// have either a unique name, or no specific name.
 pub type Template = Vec<Fragment>;
 
-/// An extension trait for building templates. Required because `Template` is
+/// An extension trait for building templates. Required because [`Template`] is
 /// just a type alias.
 pub trait BuildTemplate {
-    /// Builds the template on a node. The fragments in the template become the
-    /// children of the node.
+    /// Builds the template on an entity. The fragments in the template become its children.
     fn build(
         self,
-        entity_id: Entity,
+        entity: Entity,
+        world: &mut World,
+        current_anchors: HashMap<Anchor, Entity>,
+    ) -> HashMap<Anchor, Entity>;
+
+    /// Builds only the nonexistent parts of the template on an entity.
+    ///
+    /// It does not modify components of children that already exist, only initializes newly
+    /// created ones.
+    fn build_nonexistent(
+        self,
+        entity: Entity,
         world: &mut World,
         current_anchors: HashMap<Anchor, Entity>,
     ) -> HashMap<Anchor, Entity>;
@@ -41,61 +142,94 @@ pub trait BuildTemplate {
 impl BuildTemplate for Template {
     fn build(
         self,
-        entity_id: Entity,
+        entity: Entity,
         world: &mut World,
-        mut current_anchors: HashMap<Anchor, Entity>,
+        current_anchors: HashMap<Anchor, Entity>,
     ) -> HashMap<Anchor, Entity> {
-        // Get or create an entity for each fragment.
-        let mut i = 0;
-        let fragments: Vec<_> = self
-            .into_iter()
-            .map(|fragment| {
-                // Compute the anchor for this fragment, using it's name if supplied
-                // or an auto-incrementing counter if not.
-                let anchor = match fragment.name {
-                    Some(ref name) => Anchor::Named(name.clone()),
-                    None => {
-                        let anchor = Anchor::Auto(i);
-                        i += 1;
-                        anchor
-                    }
-                };
-
-                // Find the existing child entity based on the anchor, or spawn a
-                // new one.
-                let entity_id = current_anchors
-                    .remove(&anchor)
-                    .unwrap_or_else(|| world.spawn_empty().id());
-
-                // Store the fragment, it's anchor, and it's entity id.
-                (fragment, anchor, entity_id)
-            })
-            .collect();
-
-        // Clear any remaining orphans from the previous template. We do this
-        // first (before deparenting) so that hooks still see the parent when
-        // they run.
-        for orphan_id in current_anchors.into_values() {
-            world.entity_mut(orphan_id).despawn();
-        }
-
-        // Position the entities as children.
-        let mut entity = world.entity_mut(entity_id);
-        let child_entities: Vec<_> = fragments.iter().map(|(_, _, entity)| *entity).collect();
-        entity.remove::<Children>();
-        entity.add_children(&child_entities);
-
-        // Build the children and produce the receipts. It's important that this
-        // happens *after* the entities are positioned as children to make hooks
-        // work correctly.
-        fragments
-            .into_iter()
-            .map(|(fragment, anchor, entity_id)| {
-                fragment.build(entity_id, world);
-                (anchor, entity_id)
-            })
-            .collect()
+        build_template_base(self, entity, world, current_anchors, false)
     }
+
+    fn build_nonexistent(
+        self,
+        entity: Entity,
+        world: &mut World,
+        current_anchors: HashMap<Anchor, Entity>,
+    ) -> HashMap<Anchor, Entity> {
+        build_template_base(self, entity, world, current_anchors, true)
+    }
+}
+
+fn build_template_base(
+    template: Template,
+    entity: Entity,
+    world: &mut World,
+    mut current_anchors: HashMap<Anchor, Entity>,
+    build_nonexistent_only: bool,
+) -> HashMap<Anchor, Entity> {
+    // Get or create an entity for each fragment.
+    let mut i = 0;
+    let fragments: Vec<_> = template
+        .into_iter()
+        .map(|fragment| {
+            let mut new = false;
+
+            // Compute the anchor for this fragment, using it's name if supplied
+            // or an auto-incrementing counter if not.
+            let anchor = match fragment.name {
+                Some(ref name) => Anchor::Named(name.clone()),
+                None => {
+                    let anchor = Anchor::Auto(i);
+                    i += 1;
+                    anchor
+                }
+            };
+
+            // Find the existing child entity based on the anchor, or spawn a
+            // new one.
+            let entity = {
+                if let Some(existing_entity) = current_anchors.remove(&anchor) {
+                    existing_entity
+                } else {
+                    let new_entity = world.spawn_empty().id();
+                    new = true;
+
+                    new_entity
+                }
+            };
+
+            // Store the fragment, it's anchor, and it's entity id.
+            (fragment, anchor, entity, new)
+        })
+        .collect();
+
+    // Clear any remaining orphans from the previous template. We do this
+    // first (before deparenting) so that hooks still see the parent when
+    // they run.
+    for orphan in current_anchors.into_values() {
+        world.entity_mut(orphan).despawn();
+    }
+
+    // Position the entities as children.
+    let mut entity = world.entity_mut(entity);
+    let child_entities: Vec<_> = fragments.iter().map(|(_, _, entity, _)| *entity).collect();
+    entity.remove::<Children>();
+    entity.add_children(&child_entities);
+
+    // Build the children and produce the receipts. It's important that this
+    // happens *after* the entities are positioned as children to make hooks
+    // work correctly.
+    fragments
+        .into_iter()
+        .map(|(fragment, anchor, entity, new)| {
+            if build_nonexistent_only {
+                fragment.build_nonexistent(entity, world, new);
+            } else {
+                fragment.build(entity, world);
+            }
+
+            (anchor, entity)
+        })
+        .collect()
 }
 
 /// An error returned when converting a template into a fragment.
@@ -114,16 +248,6 @@ impl TryInto<Fragment> for Template {
             0 => Err(TemplateIntoFragmentError::Empty),
             1 => Ok(self.pop().unwrap()),
             n => Err(TemplateIntoFragmentError::MultipleFragments(n)),
-        }
-    }
-}
-
-impl Default for Fragment {
-    fn default() -> Fragment {
-        Fragment {
-            name: None,
-            bundle: BoxedBundle::from(()),
-            children: Template::default(),
         }
     }
 }
@@ -154,7 +278,7 @@ where
         world: &mut World,
         current_components: HashSet<ComponentId>,
     ) -> HashSet<ComponentId> {
-        // Collect set of component ids present in the bundle
+        // Collect set of component ids present in the bundle.
         let mut new_components = HashSet::new();
         B::get_component_ids(world.components(), &mut |maybe_id| {
             if let Some(id) = maybe_id {
@@ -162,11 +286,11 @@ where
             }
         });
 
-        // Insert the bundle
+        // Insert the bundle.
         let mut entity = world.entity_mut(entity_id);
         entity.insert(*self);
 
-        // Remove the components in the previous bundle but not this one
+        // Remove the components in the previous bundle but not this one.
         for component_id in current_components.difference(&new_components) {
             entity.remove_by_id(*component_id);
         }
@@ -279,55 +403,6 @@ fn remove_callback(mut world: DeferredWorld, context: HookContext) {
 }
 
 // -----------------------------------------------------------------------------
-// Building fragments
-
-/// An anchor is an identifier for a built fragment.
-#[derive(Hash, Eq, PartialEq, Clone)]
-pub enum Anchor {
-    /// The fragment is static and using an automatic incrementing ID.
-    Auto(u64),
-    /// The fragment has been explicitly named.
-    Named(String),
-}
-
-/// Receipts allow templates to intelligently update existing ecs structures.
-#[derive(Default, Component, Clone)]
-pub struct Receipt {
-    /// The components it inserted.
-    components: HashSet<ComponentId>,
-    /// The receipts of all the children, organized by name.
-    anchors: HashMap<Anchor, Entity>,
-}
-
-impl Fragment {
-    /// Builds the fragment on an entity. This accesses the entity itself, and
-    /// also some or all of it's children. The receipt is stored as a component
-    /// on the entity, and used when the entity is built again.
-    pub fn build(self, entity_id: Entity, world: &mut World) {
-        // Clone the receipt for the targeted entity.
-        let receipt = world
-            .get::<Receipt>(entity_id)
-            .map(ToOwned::to_owned)
-            .unwrap_or_default();
-
-        // Build the bundle
-        let components = self
-            .bundle
-            .inner
-            .build(entity_id, world, receipt.components);
-
-        // Build the children
-        let anchors = self.children.build(entity_id, world, receipt.anchors);
-
-        // Place the new receipt onto the entity
-        world.entity_mut(entity_id).insert(Receipt {
-            components,
-            anchors,
-        });
-    }
-}
-
-// -----------------------------------------------------------------------------
 // Commands
 
 /// An extension trait for `EntityCommands` which allows templates to be built
@@ -344,12 +419,26 @@ pub trait TemplateEntityCommandsExt {
     where
         F: TryInto<Fragment>;
 
+    /// Builds only the nonexistent parts of this fragment directly on entity. It does
+    /// not modify components of children that already exist, only initializes newly
+    /// created ones.
+    ///
+    /// If build_entity is false it does not build the entity, only its children.
+    fn build_nonexistent<F>(&mut self, fragment: F, build_entity: bool) -> &mut Self
+    where
+        F: TryInto<Fragment>;
+
     /// Builds the fragments in the template as children of the entity. If the
     /// template is empty this will remove all children.
     ///
     /// To build a fragment directly on the entity, see
     /// [`build`](TemplateEntityCommandsExt::build).
     fn build_children(&mut self, template: Template) -> &mut Self;
+
+    /// Builds only the nonexistent parts of template as children of the entity. It does
+    /// not modify components on entities that already exist, only initializes newly created ones.
+    /// If the template is empty, all current children will be removed.
+    fn build_nonexistent_children(&mut self, template: Template) -> &mut Self;
 }
 
 impl TemplateEntityCommandsExt for EntityCommands<'_> {
@@ -358,9 +447,23 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
         F: TryInto<Fragment>,
     {
         if let Ok(fragment) = fragment.try_into() {
-            // Build the fragment
+            // Build the fragment.
             self.queue(|entity: EntityWorldMut| {
                 fragment.build(entity.id(), entity.into_world_mut());
+            })
+        } else {
+            self
+        }
+    }
+
+    fn build_nonexistent<F>(&mut self, fragment: F, build_entity: bool) -> &mut Self
+    where
+        F: TryInto<Fragment>,
+    {
+        if let Ok(fragment) = fragment.try_into() {
+            // Build the fragment.
+            self.queue(move |entity: EntityWorldMut| {
+                fragment.build_nonexistent(entity.id(), entity.into_world_mut(), build_entity);
             })
         } else {
             self
@@ -379,6 +482,26 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
 
             // Build the children.
             let anchors = children.build(entity_id, world, receipt.anchors);
+
+            // Place the new receipt onto the parent.
+            world
+                .entity_mut(entity_id)
+                .insert(Receipt { anchors, ..receipt });
+        })
+    }
+
+    fn build_nonexistent_children(&mut self, children: Template) -> &mut Self {
+        self.queue(|entity: EntityWorldMut| {
+            let (entity_id, world) = (entity.id(), entity.into_world_mut());
+
+            // Access the receipt for the parent.
+            let receipt = world
+                .get::<Receipt>(entity_id)
+                .map(ToOwned::to_owned)
+                .unwrap_or_default();
+
+            // Build the nonexistent children.
+            let anchors = children.build_nonexistent(entity_id, world, receipt.anchors);
 
             // Place the new receipt onto the parent.
             world

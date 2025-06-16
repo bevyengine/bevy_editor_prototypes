@@ -65,34 +65,34 @@ impl Fragment {
         });
     }
 
-    /// Builds only the nonexistent parts of this fragment on the given entity.
+    /// Builds this fragment on the given entity, preserving the components of enitites
+    /// that already exist (based on their anchor), unless they are not part of the template, in
+    /// which case they will be despawned.
     ///
-    /// It does not modify components of children that already exist, only initializes newly
-    /// created ones.
-    ///
-    /// If `build_entity` is false it does not build the given entity, only its children.
+    /// If `preserve_entity` is true the components of the given entity are preserved, if false
+    /// only its children's.
     ///
     /// It may modify the entity itself and some or all of its children.
     /// A [`Receipt`] is stored on the entity to track what was built, enabling incremental updates.
-    pub fn build_nonexistent(self, entity: Entity, world: &mut World, build_entity: bool) {
+    pub fn build_preserving(self, entity: Entity, world: &mut World, preserve_entity: bool) {
         // Clone the receipt for the targeted entity.
         let receipt = world
             .get::<Receipt>(entity)
             .map(ToOwned::to_owned)
             .unwrap_or_default();
 
-        let components = if build_entity {
+        let components = if preserve_entity {
+            receipt.components
+        } else {
             // Build the bundle. Insert new components, replace existing ones and remove components
             // that are no longer needed.
             self.bundle.inner.build(entity, world, receipt.components)
-        } else {
-            receipt.components
         };
 
-        // Build the nonexistent children.
+        // Build the children preserving components on entities that already exist.
         let anchors = self
             .children
-            .build_nonexistent(entity, world, receipt.anchors);
+            .build_preserving(entity, world, receipt.anchors);
 
         // Place the new receipt onto the entity.
         world.entity_mut(entity).insert(Receipt {
@@ -127,11 +127,11 @@ pub trait BuildTemplate {
         current_anchors: HashMap<Anchor, Entity>,
     ) -> HashMap<Anchor, Entity>;
 
-    /// Builds only the nonexistent parts of the template on an entity.
-    ///
-    /// It does not modify components of children that already exist, only initializes newly
-    /// created ones.
-    fn build_nonexistent(
+    /// Builds the template on an entity, preserving the components of enitites
+    /// that already exist (based on their anchor), unless they are not part of the template, in
+    /// which case they will be despawned. The fragments in the template become the entity's
+    /// children.
+    fn build_preserving(
         self,
         entity: Entity,
         world: &mut World,
@@ -149,7 +149,7 @@ impl BuildTemplate for Template {
         build_template_base(self, entity, world, current_anchors, false)
     }
 
-    fn build_nonexistent(
+    fn build_preserving(
         self,
         entity: Entity,
         world: &mut World,
@@ -164,7 +164,7 @@ fn build_template_base(
     entity: Entity,
     world: &mut World,
     mut current_anchors: HashMap<Anchor, Entity>,
-    build_nonexistent_only: bool,
+    preserving: bool,
 ) -> HashMap<Anchor, Entity> {
     // Get or create an entity for each fragment.
     let mut i = 0;
@@ -192,12 +192,12 @@ fn build_template_base(
                 } else {
                     let new_entity = world.spawn_empty().id();
                     new = true;
-
                     new_entity
                 }
             };
 
-            // Store the fragment, it's anchor, and it's entity id.
+            // Store the fragment, it's anchor, it's entity id and a boolean indicating whether the
+            // entity was newly created.
             (fragment, anchor, entity, new)
         })
         .collect();
@@ -221,8 +221,8 @@ fn build_template_base(
     fragments
         .into_iter()
         .map(|(fragment, anchor, entity, new)| {
-            if build_nonexistent_only {
-                fragment.build_nonexistent(entity, world, new);
+            if preserving {
+                fragment.build_preserving(entity, world, new);
             } else {
                 fragment.build(entity, world);
             }
@@ -414,17 +414,27 @@ pub trait TemplateEntityCommandsExt {
     /// fragment.
     ///
     /// To build the fragments in a template as children of the entity, see
-    /// [`build_children`](TemplateEntityCommandsExt::build_children).
+    /// [`build_children`](TemplateEntityCommandsExt::build_children)
+    /// To build the fragment preserving components, see
+    /// [`build_preserving`](TemplateEntityCommandsExt::build_preserving)
     fn build<F>(&mut self, fragment: F) -> &mut Self
     where
         F: TryInto<Fragment>;
 
-    /// Builds only the nonexistent parts of this fragment directly on entity. It does
-    /// not modify components of children that already exist, only initializes newly
-    /// created ones.
+    /// Builds the fragment directly on the entity, preserving the components of enitites
+    /// that already exist (based on their anchor), unless they are not part of the template, in
+    /// which case they will be despawned. The fragments in the template become the entity's
+    /// children.
     ///
-    /// If `build_entity` is false it does not build the entity, only its children.
-    fn build_nonexistent<F>(&mut self, fragment: F, build_entity: bool) -> &mut Self
+    /// If `preserve_entity` is true the components of the entity are preserved, if false
+    /// only its children's.
+    ///
+    /// Accepts anything that implements `TryInto<Fragment>` and does nothing on a failure. This is
+    /// implemented for `Template` and is `Ok` when template has exactly one fragment.
+    ///
+    /// To build the fragment without preserving components see
+    /// [`build`](TemplateEntityCommandsExt::build)
+    fn build_preserving<F>(&mut self, fragment: F, preserve_entity: bool) -> &mut Self
     where
         F: TryInto<Fragment>;
 
@@ -432,13 +442,18 @@ pub trait TemplateEntityCommandsExt {
     /// template is empty this will remove all children.
     ///
     /// To build a fragment directly on the entity, see
-    /// [`build`](TemplateEntityCommandsExt::build).
+    /// [`build`](TemplateEntityCommandsExt::build)
+    /// To build the template preserving components see
+    /// [`build_children_preserving`](TemplateEntityCommandsExt::build_children_preserving)
     fn build_children(&mut self, template: Template) -> &mut Self;
 
-    /// Builds only the nonexistent parts of template as children of the entity. It does
-    /// not modify components on entities that already exist, only initializes newly created ones.
-    /// If the template is empty, all current children will be removed.
-    fn build_nonexistent_children(&mut self, template: Template) -> &mut Self;
+    /// Builds the fragments in the template as children of the entity, preserving the components
+    /// of enitites that already exist (based on their anchor), unless they are not part of the template,
+    /// in which case they will be despawned.
+    ///
+    /// To build the template without preserving components see
+    /// [`build_children`](TemplateEntityCommandsExt::build_children)
+    fn build_children_preserving(&mut self, template: Template) -> &mut Self;
 }
 
 impl TemplateEntityCommandsExt for EntityCommands<'_> {
@@ -456,14 +471,14 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
         }
     }
 
-    fn build_nonexistent<F>(&mut self, fragment: F, build_entity: bool) -> &mut Self
+    fn build_preserving<F>(&mut self, fragment: F, preserve_entity: bool) -> &mut Self
     where
         F: TryInto<Fragment>,
     {
         if let Ok(fragment) = fragment.try_into() {
-            // Build the fragment.
+            // Build the fragment preserving components on entities that already exist.
             self.queue(move |entity: EntityWorldMut| {
-                fragment.build_nonexistent(entity.id(), entity.into_world_mut(), build_entity);
+                fragment.build_preserving(entity.id(), entity.into_world_mut(), preserve_entity);
             })
         } else {
             self
@@ -490,7 +505,7 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
         })
     }
 
-    fn build_nonexistent_children(&mut self, children: Template) -> &mut Self {
+    fn build_children_preserving(&mut self, children: Template) -> &mut Self {
         self.queue(|entity: EntityWorldMut| {
             let (entity_id, world) = (entity.id(), entity.into_world_mut());
 
@@ -500,8 +515,8 @@ impl TemplateEntityCommandsExt for EntityCommands<'_> {
                 .map(ToOwned::to_owned)
                 .unwrap_or_default();
 
-            // Build the nonexistent children.
-            let anchors = children.build_nonexistent(entity_id, world, receipt.anchors);
+            // Build the children preserving components on entities that already exist.
+            let anchors = children.build_preserving(entity_id, world, receipt.anchors);
 
             // Place the new receipt onto the parent.
             world

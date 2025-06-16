@@ -222,7 +222,6 @@ fn build_template_base(
         .into_iter()
         .map(|(fragment, anchor, entity, new)| {
             if preserving {
-                println!("HERE");
                 fragment.build_preserving(entity, world, !new);
             } else {
                 fragment.build(entity, world);

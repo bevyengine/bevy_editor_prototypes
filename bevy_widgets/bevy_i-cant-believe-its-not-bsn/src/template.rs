@@ -222,7 +222,8 @@ fn build_template_base(
         .into_iter()
         .map(|(fragment, anchor, entity, new)| {
             if preserving {
-                fragment.build_preserving(entity, world, new);
+                println!("HERE");
+                fragment.build_preserving(entity, world, !new);
             } else {
                 fragment.build(entity, world);
             }
@@ -868,4 +869,163 @@ macro_rules! b {
     ($( $item:expr ),* ) => {
         bevy_i_cant_believe_its_not_bsn::BoxedBundle::from( ( $( $item ),* ) )
     };
+}
+
+// -----------------------------------------------------------------------------
+// Tests
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[derive(Component, Debug, PartialEq, Eq)]
+    enum A {
+        Type1,
+        Type2,
+    }
+
+    #[test]
+    fn build_overwriting() {
+        let mut world = World::new();
+        let entity = world.spawn_empty().id();
+
+        let fragment1 = Fragment {
+            name: None,
+            bundle: A::Type1.into(),
+            children: Vec::new(),
+        };
+
+        fragment1.build(entity, &mut world);
+
+        // After building fragment1, entity has A::Type1 as a component.
+        assert_eq!(*world.entity(entity).get::<A>().unwrap(), A::Type1);
+
+        let fragment2 = Fragment {
+            name: None,
+            bundle: A::Type2.into(),
+            children: vec![Fragment {
+                name: None,
+                bundle: A::Type1.into(),
+                children: Vec::new(),
+            }],
+        };
+
+        fragment2.build(entity, &mut world);
+
+        let children = world.entity(entity).get::<Children>().unwrap();
+        let child = children.iter().next().unwrap();
+
+        // fragment2 overwrites the entity to have A::Type2 instead of A::Type1.
+        assert_eq!(*world.entity(entity).get::<A>().unwrap(), A::Type2);
+
+        // The child is spawned correctly with A::Type1.
+        assert_eq!(*world.entity(child).get::<A>().unwrap(), A::Type1);
+
+        let fragment3 = Fragment {
+            name: None,
+            bundle: A::Type2.into(),
+            children: Vec::new(),
+        };
+
+        fragment3.build(entity, &mut world);
+
+        // fragment3 does not contain the child, hence the child is despawned.
+        assert!(world.entity(entity).get::<Children>().is_none())
+    }
+
+    #[test]
+    fn build_preserving() {
+        let mut world = World::new();
+        let entity = world.spawn_empty().id();
+
+        let fragment1 = Fragment {
+            name: None,
+            bundle: A::Type1.into(),
+            children: Vec::new(),
+        };
+
+        // Since we pass in false to `preserve_entity` it will overwrite the entity.
+        //
+        // In this case this is equivalent to calling build, however it would not be if
+        // entity had children.
+        fragment1.build_preserving(entity, &mut world, false);
+
+        // After building fragment1, entity has A::Type1 as a component.
+        assert_eq!(*world.entity(entity).get::<A>().unwrap(), A::Type1);
+
+        let fragment2 = Fragment {
+            name: None,
+            bundle: A::Type2.into(),
+            children: vec![Fragment {
+                name: None,
+                bundle: A::Type1.into(),
+                children: Vec::new(),
+            }],
+        };
+
+        // Now we pass in true to `preserve_entity` to preserve the component of the already
+        // existing entity.
+        fragment2.build_preserving(entity, &mut world, true);
+
+        let children = world.entity(entity).get::<Children>().unwrap();
+        let child = children.iter().next().unwrap();
+
+        // The entity preserves its component A::Type1 despite fragment2 having A::Type2 for it.
+        assert_eq!(*world.entity(entity).get::<A>().unwrap(), A::Type1);
+
+        // The child is spawned correctly with A::Type1.
+        assert_eq!(*world.entity(child).get::<A>().unwrap(), A::Type1);
+
+        let fragment3 = Fragment {
+            name: None,
+            bundle: A::Type2.into(),
+            children: Vec::new(),
+        };
+
+        fragment3.build_preserving(entity, &mut world, true);
+
+        // fragment3 does not contain the child, hence the child is despawned.
+        assert!(world.entity(entity).get::<Children>().is_none())
+    }
+
+    #[test]
+    fn build_preserving_propagation() {
+        let mut world = World::new();
+        let entity = world.spawn_empty().id();
+
+        let fragment1 = Fragment {
+            name: None,
+            bundle: A::Type1.into(),
+            children: vec![Fragment {
+                name: None,
+                bundle: A::Type1.into(),
+                children: Vec::new(),
+            }],
+        };
+
+        fragment1.build(entity, &mut world);
+
+        let fragment2 = Fragment {
+            name: None,
+            bundle: A::Type2.into(),
+            children: vec![Fragment {
+                name: None,
+                bundle: A::Type2.into(),
+                children: Vec::new(),
+            }],
+        };
+
+        // Since we pass in false to `preserve_entity` it will overwrite the entity. However the
+        // children will be preserved.
+        fragment2.build_preserving(entity, &mut world, false);
+
+        let children = world.entity(entity).get::<Children>().unwrap();
+        let child = children.iter().next().unwrap();
+
+        // fragment2 overwrites the entity to have A::Type2 instead of A::Type1.
+        assert_eq!(*world.entity(entity).get::<A>().unwrap(), A::Type2);
+
+        // The child preserves its component A::Type1 despite fragment2 having A::Type2 for it.
+        assert_eq!(*world.entity(child).get::<A>().unwrap(), A::Type1);
+    }
 }

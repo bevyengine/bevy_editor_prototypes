@@ -1,12 +1,15 @@
 //! Palette plugin for the Bevy Editor. This plugin provides a color palette for the editor's UI.
 use bevy::{asset::embedded_asset, prelude::*};
 
+pub mod icons;
+
 /// The Pallet Plugin.
 pub struct StylesPlugin;
 
 impl Plugin for StylesPlugin {
     fn build(&self, app: &mut App) {
         embedded_asset!(app, "assets/fonts/Inter-Regular.ttf");
+        embedded_asset!(app, "assets/fonts/Lucide.ttf");
         app.init_resource::<Theme>();
     }
 }
@@ -22,6 +25,8 @@ pub struct Theme {
     pub button: ButtonStyles,
     /// The text styles for the editor.
     pub text: TextStyles,
+    /// The icon styles for the editor.
+    pub icon: IconStyles,
     /// The styles for panes in the editor.
     pub pane: PaneStyles,
     /// The styles for menus in the editor.
@@ -61,6 +66,12 @@ pub struct TextStyles {
     /// The color of high priority text.
     pub high_priority: Color,
     /// The font for the text.
+    pub font: Handle<Font>,
+}
+
+/// The icon styles for the editor.
+pub struct IconStyles {
+    /// The font for the icons.
     pub font: Handle<Font>,
 }
 
@@ -135,6 +146,9 @@ impl FromWorld for Theme {
                 high_priority: Color::oklch(0.48, 0.1926, 0.2243),
                 font: asset_server
                     .load("embedded://bevy_editor_styles/assets/fonts/Inter-Regular.ttf"),
+            },
+            icon: IconStyles {
+                font: asset_server.load("embedded://bevy_editor_styles/assets/fonts/Lucide.ttf"),
             },
             pane: PaneStyles {
                 header_background_color: BackgroundColor(Color::oklch(0.3407, 0.0, 0.0)),

@@ -1,6 +1,6 @@
 use bevy::{prelude::*, window::SystemCursorIcon, winit::cursor::CursorIcon};
 use bevy_context_menu::{ContextMenu, ContextMenuOption};
-use bevy_editor_styles::{icons::EditorIcon, Theme};
+use bevy_editor_styles::{icons, Theme};
 
 use crate::{
     handlers::*, registry::PaneStructure, Divider, DragState, PaneAreaNode, PaneContentNode,
@@ -102,7 +102,7 @@ pub(crate) fn spawn_pane<'a>(
                     // Drop down button for selecting the pane type.
                     // Once a drop down menu is implemented, this will have that added.
                     parent.spawn((
-                        Text::new(EditorIcon::ChevronDown),
+                        Text::new(icons::CHEVRON_DOWN),
                         TextFont {
                             font: theme.icon.font.clone(),
                             font_size: 16.0,
@@ -120,7 +120,7 @@ pub(crate) fn spawn_pane<'a>(
                 });
 
             parent.spawn((
-                Text::new(EditorIcon::GripVertical),
+                Text::new(icons::GRIP_VERTICAL),
                 TextFont {
                     font: theme.icon.font.clone(),
                     font_size: 16.0,

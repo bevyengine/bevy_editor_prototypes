@@ -9,7 +9,7 @@ pub struct StylesPlugin;
 impl Plugin for StylesPlugin {
     fn build(&self, app: &mut App) {
         embedded_asset!(app, "assets/fonts/Inter-Regular.ttf");
-        embedded_asset!(app, "assets/fonts/Lucide.ttf");
+        embedded_asset!(app, "assets/icons/Lucide.ttf");
         app.init_resource::<Theme>();
     }
 }
@@ -148,7 +148,7 @@ impl FromWorld for Theme {
                     .load("embedded://bevy_editor_styles/assets/fonts/Inter-Regular.ttf"),
             },
             icon: IconStyles {
-                font: asset_server.load("embedded://bevy_editor_styles/assets/fonts/Lucide.ttf"),
+                font: asset_server.load("embedded://bevy_editor_styles/assets/icons/Lucide.ttf"),
             },
             pane: PaneStyles {
                 header_background_color: BackgroundColor(Color::oklch(0.3407, 0.0, 0.0)),

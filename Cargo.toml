@@ -28,8 +28,9 @@ unused_qualifications = "warn"
 
 [workspace.dependencies]
 bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "e9418b3845c1ffc9624a3a4003bde66a2ad6566a", features = [
-    "wayland",
+    "wayland"
 ] }
+bevy_remote = { git = "https://github.com/bevyengine/bevy.git", rev = "e9418b3845c1ffc9624a3a4003bde66a2ad6566a" }
 bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "e9418b3845c1ffc9624a3a4003bde66a2ad6566a" }
 bevy_macro_utils = { git = "https://github.com/bevyengine/bevy.git", rev = "e9418b3845c1ffc9624a3a4003bde66a2ad6566a" }
 thiserror = "2.0"
@@ -50,6 +51,7 @@ bevy_asset_browser = { path = "bevy_editor_panes/bevy_asset_browser" }
 bevy_marketplace_viewer = { path = "bevy_editor_panes/bevy_marketplace_viewer" }
 bevy_preferences = { path = "bevy_editor_panes/bevy_preferences" }
 bevy_properties_pane = { path = "bevy_editor_panes/bevy_properties_pane" }
+bevy_component_viewer = { path = "bevy_editor_panes/bevy_component_viewer" }
 bevy_scene_tree = { path = "bevy_editor_panes/bevy_scene_tree" }
 
 # bevy_widgets

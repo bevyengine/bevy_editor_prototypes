@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+use bevy_component_viewer::ComponentViewerPlugin;
 use bevy_editor_styles::Theme;
 use bevy_footer_bar::{FooterBarNode, FooterBarPlugin, FooterBarSet};
 use bevy_menu_bar::{MenuBarNode, MenuBarPlugin, MenuBarSet};
@@ -23,6 +24,7 @@ impl Plugin for EditorUIPlugin {
                 FooterBarPlugin,
                 SceneTreePlugin,
                 PropertiesPanePlugin,
+                ComponentViewerPlugin,
             ));
     }
 }

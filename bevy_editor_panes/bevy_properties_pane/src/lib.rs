@@ -72,10 +72,13 @@ fn component_list(entity: Entity, world: &World) -> Template {
         .inspect_entity(entity)
         .unwrap()
         .flat_map(|component_info| {
-            let (_, name) = component_info.name().rsplit_once("::").unwrap();
             let type_info = component_info
                 .type_id()
                 .and_then(|type_id| type_registry.get_type_info(type_id));
+            let name = type_info.map_or_else(
+                || "<unknown>".to_string(),
+                |type_info| type_info.type_path_table().short_path().to_string(),
+            );
 
             // Get the reflected component value from the world
             let reflect: Option<&dyn Reflect> = component_info.type_id().and_then(|type_id| {

@@ -247,7 +247,7 @@ pub enum UndoSet {
 ///     }
 /// }
 /// ```
-#[derive(Event)]
+#[derive(Event, BufferedEvent)]
 pub struct UndoRedoApplied<T> {
     /// The entity that was modified.
     pub entity: Entity,
@@ -485,7 +485,7 @@ pub enum ChangeResult {
     SuccessWithRemap(Vec<(Entity, Entity)>),
 }
 /// Represents an undo or redo operation to be performed on the change chain.
-#[derive(Event)]
+#[derive(Event, BufferedEvent)]
 pub enum UndoRedo {
     /// Requests to undo the last change in the change chain.
     Undo,
@@ -495,7 +495,7 @@ pub enum UndoRedo {
 }
 
 /// Represents a new change to be added to the change chain.
-#[derive(Event, Clone)]
+#[derive(Event, BufferedEvent, Clone)]
 pub struct NewChange {
     /// The change to be added to the change chain, wrapped in an Arc for shared ownership.
     pub change: Arc<dyn EditorChange + Send + Sync>,

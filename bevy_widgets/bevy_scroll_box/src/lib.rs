@@ -171,7 +171,7 @@ fn spawn_scroll_bar<'a>(
             ChildOf(scrollbar),
         ))
         .observe(
-            |trigger: Trigger<Pointer<Drag>>,
+            |trigger: On<Pointer<Drag>>,
              query_handle: Query<&ScrollBarHandle>,
              query_parent: Query<&ChildOf>,
              mut query_scrollbox: Query<(&mut ScrollBox, &RelativeCursorPosition, &Children)>,
@@ -247,7 +247,7 @@ fn on_scroll(
         {
             // Only scroll the ScrollBox that the cursor is over
             // TODO: Get the scrollbox with the highest z-index
-            if !cursor_pos.mouse_over() {
+            if !cursor_pos.cursor_over() {
                 continue;
             }
 

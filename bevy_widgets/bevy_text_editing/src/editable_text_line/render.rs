@@ -2,7 +2,7 @@ use super::*;
 use bevy::prelude::*;
 
 pub fn render_system(
-    trigger: Trigger<RenderWidget>,
+    trigger: On<RenderWidget>,
     mut commands: Commands,
     q_editable_texts: Query<(&EditableTextLine, &EditableTextInner)>,
     mut q_texts: Query<&mut Text>,
@@ -102,7 +102,7 @@ pub(crate) fn set_cursor_pos(
 pub(crate) fn check_cursor_overflow(
     mut commands: Commands,
     mut q_text_fields: Query<(Entity, &EditableTextLine, &mut EditableTextInner)>,
-    q_transforms: Query<&GlobalTransform>,
+    q_transforms: Query<&UiGlobalTransform>,
     mut q_nodes: Query<&mut Node>,
     q_computed_nodes: Query<&ComputedNode>,
 ) {
@@ -137,14 +137,13 @@ pub(crate) fn check_cursor_overflow(
             //     cursor_transform.translation().x - text_field_transform.translation().x
             // );
 
-            if (cursor_transform.translation().x - text_field_transform.translation().x)
+            if (cursor_transform.translation.x - text_field_transform.translation.x)
                 > text_field_node.size().x / 2.0 - padding
             {
                 //Debug info ith all values
                 info!(
                     "{} {}",
-                    cursor_transform.translation().x,
-                    text_field_transform.translation().x
+                    cursor_transform.translation.x, text_field_transform.translation.x
                 );
                 info!(
                     "{} {}",
@@ -152,17 +151,17 @@ pub(crate) fn check_cursor_overflow(
                     text_field_node.size().x / 2.0
                 );
 
-                inner.text_shift += cursor_transform.translation().x
-                    - text_field_transform.translation().x
+                inner.text_shift += cursor_transform.translation.x
+                    - text_field_transform.translation.x
                     - text_field_node.size().x / 2.0
                     + padding;
                 canvas_node.left = Val::Px(-inner.text_shift);
                 commands.trigger_targets(RenderWidget::default(), entity);
-            } else if (cursor_transform.translation().x - text_field_transform.translation().x)
+            } else if (cursor_transform.translation.x - text_field_transform.translation.x)
                 < -text_field_node.size().x / 2.0 + padding
             {
-                inner.text_shift += cursor_transform.translation().x
-                    - text_field_transform.translation().x
+                inner.text_shift += cursor_transform.translation.x
+                    - text_field_transform.translation.x
                     + text_field_node.size().x / 2.0
                     - padding;
                 canvas_node.left = Val::Px(-inner.text_shift);

@@ -57,7 +57,7 @@ impl Plugin for DefaultInputPlugin {
                     EditorCamInputEvent::send_pointer_inputs,
                 )
                     .chain()
-                    .after(bevy::picking::PickSet::Last)
+                    .after(bevy::picking::PickingSystems::Last)
                     .before(EditorCam::update_camera_positions),
             )
             .register_type::<CameraPointerMap>()
@@ -152,7 +152,7 @@ pub fn default_camera_inputs(
 pub struct CameraPointerMap(HashMap<PointerId, Entity>);
 
 /// Events used when implementing input systems for the [`EditorCam`].
-#[derive(Debug, Clone, Reflect, Event)]
+#[derive(Debug, Clone, Reflect, Event, BufferedEvent)]
 pub enum EditorCamInputEvent {
     /// Send this event to start moving the camera. The anchor and inputs will be computed
     /// automatically until the [`EditorCamInputEvent::End`] event is received.
@@ -210,7 +210,7 @@ impl EditorCamInputEvent {
                         .map(|world_space_hit| {
                             // Convert the world space hit to view (camera) space
                             cam_transform
-                                .compute_matrix()
+                                .to_matrix()
                                 .as_dmat4()
                                 .inverse()
                                 .transform_point3(world_space_hit.into())

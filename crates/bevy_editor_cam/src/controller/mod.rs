@@ -26,7 +26,7 @@ impl Plugin for MinimalEditorCamPlugin {
                 projections::update_perspective,
             )
                 .chain()
-                .after(bevy::picking::PickSet::Last),
+                .after(bevy::picking::PickingSystems::Last),
         )
         .register_type::<component::EditorCam>();
     }

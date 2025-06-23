@@ -3,9 +3,8 @@
 mod input;
 mod render;
 
-use bevy::{platform::collections::HashSet, prelude::*};
+use bevy::{input_focus::InputDispatchPlugin, platform::collections::HashSet, prelude::*};
 use bevy_clipboard::ClipboardPlugin;
-use bevy_focus::{FocusPlugin, Focusable, SetFocus};
 
 use crate::{
     cursor::{Cursor, CursorPlugin},
@@ -24,23 +23,18 @@ impl Plugin for EditableTextLinePlugin {
         if !app.is_plugin_added::<CursorPlugin>() {
             app.add_plugins(CursorPlugin);
         }
-        if !app.is_plugin_added::<FocusPlugin>() {
-            app.add_plugins(FocusPlugin);
+        if !app.is_plugin_added::<InputDispatchPlugin>() {
+            app.add_plugins(InputDispatchPlugin);
         }
         if !app.is_plugin_added::<ClipboardPlugin>() {
             app.add_plugins(ClipboardPlugin);
         }
 
-        app.add_event::<SetText>();
-        app.add_event::<TextChanged>();
-        app.add_event::<RenderWidget>();
-        app.add_event::<SetCursorPosition>();
-
         app.add_systems(
             PreUpdate,
             (
                 spawn_system,
-                keyboard_input,
+                detect_focus_loss,
                 check_cursor_overflow,
                 set_cursor_pos,
                 propagate_text_font,
@@ -50,7 +44,7 @@ impl Plugin for EditableTextLinePlugin {
         app.add_observer(set_text_trigger);
         app.add_observer(on_click);
         app.add_observer(render_system);
-        app.add_observer(on_focus_lost);
+        app.add_observer(on_key_input);
         app.add_observer(on_set_cursor_position);
     }
 }
@@ -88,7 +82,7 @@ impl Plugin for EditableTextLinePlugin {
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component, Default)]
-#[require(Node, Focusable)]
+#[require(Node)]
 pub struct EditableTextLine {
     /// Text content
     pub text: String,
@@ -232,7 +226,7 @@ pub struct EditableTextInner {
 }
 
 /// Event for rendering editable text line
-#[derive(Event, Default, Clone)]
+#[derive(Event, EntityEvent, Default, Clone)]
 pub struct RenderWidget {
     /// Make cursor immediately visible and reset cursor blinking timer
     pub show_cursor: bool,
@@ -384,7 +378,7 @@ fn spawn_system(
 }
 
 fn set_text_trigger(
-    trigger: Trigger<SetText>,
+    trigger: On<SetText>,
     mut commands: Commands,
     mut q_texts: Query<&mut EditableTextLine>,
 ) {

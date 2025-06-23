@@ -66,7 +66,7 @@ struct Password {
 struct ShowPassword(pub Entity);
 
 fn update_password(
-    trigger: Trigger<TextChanged>,
+    trigger: On<TextChanged>,
     mut commands: Commands,
     mut q_passwords: Query<&mut Password>,
 ) {

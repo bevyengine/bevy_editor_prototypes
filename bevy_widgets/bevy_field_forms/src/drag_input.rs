@@ -69,7 +69,7 @@ impl<T: Draggable> Default for DragInput<T> {
 }
 
 fn on_drag<T: Draggable>(
-    trigger: Trigger<Pointer<Drag>>,
+    trigger: On<Pointer<Drag>>,
     mut commands: Commands,
     mut q_drag_inputs: Query<(&mut DragInput<T>, &mut InputField<T>)>,
 ) {

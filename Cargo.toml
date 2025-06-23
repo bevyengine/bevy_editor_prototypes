@@ -27,11 +27,11 @@ unsafe_op_in_unsafe_fn = "warn"
 unused_qualifications = "warn"
 
 [workspace.dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "e9418b3845c1ffc9624a3a4003bde66a2ad6566a", features = [
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "efd17f133df3cee681de2835cc749af1ae869192", features = [
     "wayland",
 ] }
-bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "e9418b3845c1ffc9624a3a4003bde66a2ad6566a" }
-bevy_macro_utils = { git = "https://github.com/bevyengine/bevy.git", rev = "e9418b3845c1ffc9624a3a4003bde66a2ad6566a" }
+bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "efd17f133df3cee681de2835cc749af1ae869192" }
+bevy_macro_utils = { git = "https://github.com/bevyengine/bevy.git", rev = "efd17f133df3cee681de2835cc749af1ae869192" }
 thiserror = "2.0"
 serde = { version = "1", features = ["derive"] }
 tracing-test = "0.2.5"
@@ -64,7 +64,6 @@ bevy_toolbar = { path = "bevy_widgets/bevy_toolbar" }
 bevy_tooltips = { path = "bevy_widgets/bevy_tooltips" }
 bevy_text_editing = { path = "bevy_widgets/bevy_text_editing" }
 bevy_field_forms = { path = "bevy_widgets/bevy_field_forms" }
-bevy_focus = { path = "bevy_widgets/bevy_focus" }
 
 # general crates
 bevy_editor_core = { path = "crates/bevy_editor_core" }

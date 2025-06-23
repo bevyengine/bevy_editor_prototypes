@@ -3,17 +3,18 @@ use crate::text_change::TextChange;
 use super::*;
 use bevy::{
     input::keyboard::{Key, KeyboardInput},
+    input_focus::{FocusedInput, InputFocus},
     prelude::*,
 };
 use bevy_clipboard::BevyClipboard;
-use bevy_focus::{Focus, LostFocus};
 
 pub fn on_click(
-    click: Trigger<Pointer<Click>>,
+    click: On<Pointer<Click>>,
     mut commands: Commands,
     mut q_editable_texts: Query<(&mut EditableTextLine, &mut EditableTextInner)>,
-    q_texts: Query<(&ComputedNode, &GlobalTransform)>,
+    q_texts: Query<(&ComputedNode, &UiGlobalTransform)>,
     key_states: Res<ButtonInput<KeyCode>>,
+    mut input_focus: ResMut<InputFocus>,
 ) {
     let entity = click.target();
     let Ok((mut text_line, mut inner)) = q_editable_texts.get_mut(entity) else {
@@ -30,7 +31,7 @@ pub fn on_click(
 
     let click_pos = click.pointer_location.position;
 
-    let self_pos = global_transform.translation();
+    let self_pos = global_transform.translation;
 
     let self_size = node.size();
 
@@ -51,18 +52,24 @@ pub fn on_click(
     text_line.cursor_position = Some(CharPosition(cursor_pos));
     inner.skip_cursor_overflow_check = true;
 
-    commands.trigger_targets(SetFocus, entity);
+    input_focus.set(entity);
     commands.trigger_targets(RenderWidget::show_cursor(), entity);
 }
 
-pub fn keyboard_input(
+pub fn on_key_input(
+    trigger: On<FocusedInput<KeyboardInput>>,
     mut commands: Commands,
-    mut q_text_fields: Query<(Entity, &mut EditableTextLine), With<Focus>>,
-    mut events: EventReader<KeyboardInput>,
+    mut q_text_fields: Query<(Entity, &mut EditableTextLine)>,
     key_states: Res<ButtonInput<KeyCode>>,
     mut clipboard: ResMut<BevyClipboard>,
 ) {
-    let Ok((entity, mut text_field)) = q_text_fields.single_mut() else {
+    let input = &trigger.event().input;
+    if !input.state.is_pressed() {
+        // If the key is released, we don't need to process it
+        return;
+    }
+
+    let Ok((entity, mut text_field)) = q_text_fields.get_mut(trigger.target()) else {
         return;
     };
 
@@ -71,27 +78,25 @@ pub fn keyboard_input(
     };
     current_cursor.0 = current_cursor.0.clamp(0, text_field.text.chars().count());
 
-    let mut need_render = false;
     let mut text_change = TextChange::nop_change();
 
     // check for Ctrl-C, Ctrl-V, Ctrl-A etc
-    if key_states.pressed(KeyCode::ControlLeft) {
-        if key_states.just_pressed(KeyCode::KeyC) {
-            need_render = true;
-            events.clear(); // clear events that were triggered by pasting
+    #[cfg(target_os = "macos")]
+    let modifier_keys = [KeyCode::SuperLeft, KeyCode::SuperRight];
+    #[cfg(not(target_os = "macos"))]
+    let modifier_keys = [KeyCode::ControlLeft, KeyCode::ControlRight];
 
-            if let Some(selected_text) = text_field.get_selected_text() {
-                if let Err(e) = clipboard.set_text(selected_text) {
-                    warn!("Clipboard error: {}", e);
+    if key_states.any_pressed(modifier_keys) {
+        // Process modifier key combinations
+        match &input.key_code {
+            KeyCode::KeyC => {
+                if let Some(selected_text) = text_field.get_selected_text() {
+                    if let Err(e) = clipboard.set_text(selected_text) {
+                        warn!("Clipboard error: {}", e);
+                    }
                 }
             }
-        } else if key_states.pressed(KeyCode::KeyC) {
-            events.clear(); // clear events that were triggered by pasting (for example it can be holded and we need to process it only once)
-        } else if key_states.just_pressed(KeyCode::KeyV) {
-            need_render = true;
-            events.clear(); // clear events that were triggered by pasting
-
-            match clipboard.get_text() {
+            KeyCode::KeyV => match clipboard.get_text() {
                 Ok(mut text) => {
                     if let Some(allowed_chars) = &text_field.allowed_chars {
                         text.retain(|c| allowed_chars.contains(&c));
@@ -109,191 +114,175 @@ pub fn keyboard_input(
                 Err(e) => {
                     warn!("Clipboard error: {}", e);
                 }
-            }
-        } else if key_states.pressed(KeyCode::KeyV) {
-            events.clear(); // clear events that were triggered by pasting (for example it can be holded and we need to process it only once)
-        } else if key_states.just_pressed(KeyCode::KeyX) {
-            need_render = true;
-            events.clear(); // clear events that were triggered by cut
-            if let Some(selected_text) = text_field.get_selected_text() {
-                if let Err(e) = clipboard.set_text(selected_text) {
-                    warn!("Clipboard error: {}", e);
+            },
+            KeyCode::KeyX => {
+                if let Some(selected_text) = text_field.get_selected_text() {
+                    if let Err(e) = clipboard.set_text(selected_text) {
+                        warn!("Clipboard error: {}", e);
+                    }
+                }
+                if let Some(selected_range) = text_field.selection_range() {
+                    text_change = TextChange::remove_change(selected_range);
+                    current_cursor = selected_range.0;
+                    text_field.selection_start = None;
                 }
             }
-            if let Some(selected_range) = text_field.selection_range() {
-                text_change = TextChange::remove_change(selected_range);
-                current_cursor = selected_range.0;
-                text_field.selection_start = None;
+            KeyCode::KeyA => {
+                text_field.selection_start = Some(CharPosition(0));
+                current_cursor = CharPosition(text_field.text.chars().count());
             }
-        } else if key_states.pressed(KeyCode::KeyX) {
-            events.clear(); // clear events that were triggered by pasting (for example it can be holded and we need to process it only once)
-        } else if key_states.just_pressed(KeyCode::KeyA) {
-            // Select all text
-            need_render = true;
-            text_field.selection_start = Some(CharPosition(0));
-            current_cursor = CharPosition(text_field.text.chars().count());
-            events.clear();
-        } else if key_states.pressed(KeyCode::KeyA) {
-            events.clear(); // clear events that were triggered by pasting (for example it can be holded and we need to process it only once)
+            _ => {
+                return;
+            }
+        }
+    } else {
+        // Process regular (non-modifier) key press
+        match &input.logical_key {
+            Key::Space => {
+                if let Some(allowed_chars) = &text_field.allowed_chars {
+                    if !allowed_chars.contains(&' ') {
+                        return;
+                    }
+                }
+
+                if let Some((start, end)) = text_field.selection_range() {
+                    text_change = TextChange::new((start, end), " ");
+                    current_cursor = start + CharPosition(1);
+                } else {
+                    text_change = TextChange::insert_change(current_cursor, " ");
+                    current_cursor = CharPosition(current_cursor.0 + 1);
+                }
+
+                text_field.selection_start = None; // clear selection if we write any text
+            }
+            Key::Backspace => {
+                if let Some((start, end)) = text_field.selection_range() {
+                    text_change = TextChange::remove_change((start, end));
+                    current_cursor = start;
+                } else if current_cursor > CharPosition(0) {
+                    text_change = TextChange::remove_change((
+                        current_cursor - CharPosition(1),
+                        current_cursor,
+                    ));
+                    current_cursor = current_cursor - 1;
+                }
+                text_field.selection_start = None; // clear selection if we write any text
+            }
+            Key::Delete => {
+                if let Some((start, end)) = text_field.selection_range() {
+                    text_change = TextChange::remove_change((start, end));
+                    current_cursor = start;
+                } else if current_cursor < CharPosition(text_field.text.chars().count()) {
+                    text_change = TextChange::remove_change((
+                        current_cursor,
+                        current_cursor + CharPosition(1),
+                    ));
+                }
+                text_field.selection_start = None; // clear selection if we write any text
+            }
+            Key::Character(c) => {
+                let mut chars = c.chars().collect::<Vec<_>>();
+                if let Some(allowed_chars) = &text_field.allowed_chars {
+                    chars.retain(|c| allowed_chars.contains(c));
+                }
+
+                if let Some((start, end)) = text_field.selection_range() {
+                    text_change = TextChange::new((start, end), chars.iter().collect::<String>());
+                    current_cursor = start + CharPosition(chars.len());
+                } else {
+                    text_change =
+                        TextChange::insert_change(current_cursor, chars.iter().collect::<String>());
+                    current_cursor = current_cursor + CharPosition(chars.len());
+                }
+                text_field.selection_start = None; // clear selection if we write any text
+            }
+            Key::ArrowLeft => {
+                if current_cursor > 0 {
+                    if key_states.pressed(KeyCode::ShiftLeft) {
+                        if text_field.selection_start.is_none() {
+                            text_field.selection_start = Some(current_cursor);
+                        }
+                    } else {
+                        text_field.selection_start = None;
+                    }
+                    current_cursor = current_cursor - 1;
+                } else {
+                    return;
+                }
+            }
+            Key::ArrowRight => {
+                if current_cursor < CharPosition(text_field.text.chars().count()) {
+                    if key_states.pressed(KeyCode::ShiftLeft) {
+                        if text_field.selection_start.is_none() {
+                            text_field.selection_start = Some(current_cursor);
+                        }
+                    } else {
+                        text_field.selection_start = None;
+                    }
+
+                    current_cursor = current_cursor + 1;
+                } else {
+                    return;
+                }
+            }
+            _ => {}
         }
     }
 
-    if !need_render {
-        for event in events.read() {
-            if !event.state.is_pressed() {
-                continue;
-            }
-            match &event.logical_key {
-                Key::Space => {
-                    need_render = true;
+    let old_cursor_position = text_field.cursor_position;
+    // cursor position changed hided in if to pervert infinite change triggering
+    text_field.cursor_position = Some(current_cursor);
+    commands.trigger_targets(RenderWidget::show_cursor(), entity);
 
-                    if let Some(allowed_chars) = &text_field.allowed_chars {
-                        if !allowed_chars.contains(&' ') {
-                            continue;
-                        }
-                    }
+    if text_field.text != text_change.new_text {
+        // Send the text change event with the new text
+        let mut new_text = text_field.text.clone();
+        text_change.apply(&mut new_text);
+        commands.trigger_targets(
+            TextChanged {
+                change: text_change.clone(),
+                new_text,
+                old_cursor_position,
+                new_cursor_position: Some(current_cursor),
+            },
+            entity,
+        );
 
-                    if let Some((start, end)) = text_field.selection_range() {
-                        text_change = TextChange::new((start, end), " ");
-                        current_cursor = start + CharPosition(1);
-                    } else {
-                        text_change = TextChange::insert_change(current_cursor, " ");
-                        current_cursor = CharPosition(current_cursor.0 + 1);
-                    }
-
-                    text_field.selection_start = None; // clear selection if we write any text
-                }
-                Key::Backspace => {
-                    need_render = true;
-
-                    if let Some((start, end)) = text_field.selection_range() {
-                        text_change = TextChange::remove_change((start, end));
-                        current_cursor = start;
-                    } else if current_cursor > CharPosition(0) {
-                        text_change = TextChange::remove_change((
-                            current_cursor - CharPosition(1),
-                            current_cursor,
-                        ));
-                        current_cursor = current_cursor - 1;
-                    }
-                    text_field.selection_start = None; // clear selection if we write any text
-                }
-                Key::Delete => {
-                    need_render = true;
-                    if let Some((start, end)) = text_field.selection_range() {
-                        text_change = TextChange::remove_change((start, end));
-                        current_cursor = start;
-                    } else if current_cursor < CharPosition(text_field.text.chars().count()) {
-                        text_change = TextChange::remove_change((
-                            current_cursor,
-                            current_cursor + CharPosition(1),
-                        ));
-                    }
-                    text_field.selection_start = None; // clear selection if we write any text
-                }
-                Key::Character(c) => {
-                    if key_states.pressed(KeyCode::ControlLeft) {
-                        continue; // ignore control characters
-                    }
-                    let mut chars = c.chars().collect::<Vec<_>>();
-                    if let Some(allowed_chars) = &text_field.allowed_chars {
-                        chars.retain(|c| allowed_chars.contains(c));
-                    }
-                    need_render = true;
-
-                    if let Some((start, end)) = text_field.selection_range() {
-                        text_change =
-                            TextChange::new((start, end), chars.iter().collect::<String>());
-                        current_cursor = start + CharPosition(chars.len());
-                    } else {
-                        text_change = TextChange::insert_change(
-                            current_cursor,
-                            chars.iter().collect::<String>(),
-                        );
-                        current_cursor = current_cursor + CharPosition(chars.len());
-                    }
-                    text_field.selection_start = None; // clear selection if we write any text
-                }
-                Key::ArrowLeft => {
-                    if current_cursor > 0 {
-                        if key_states.pressed(KeyCode::ShiftLeft) {
-                            if text_field.selection_start.is_none() {
-                                text_field.selection_start = Some(current_cursor);
-                            }
-                        } else {
-                            text_field.selection_start = None;
-                        }
-                        current_cursor = current_cursor - 1;
-                        need_render = true;
-                    }
-                }
-                Key::ArrowRight => {
-                    if current_cursor < CharPosition(text_field.text.chars().count()) {
-                        if key_states.pressed(KeyCode::ShiftLeft) {
-                            if text_field.selection_start.is_none() {
-                                text_field.selection_start = Some(current_cursor);
-                            }
-                        } else {
-                            text_field.selection_start = None;
-                        }
-
-                        current_cursor = current_cursor + 1;
-                        need_render = true;
-                    }
-                }
-                _ => {}
-            }
-        }
-    }
-
-    if need_render {
-        let old_cursor_position = text_field.cursor_position;
-        // cursor position changed hided in if to pervert infinite change triggering
-        text_field.cursor_position = Some(current_cursor);
-        commands.trigger_targets(RenderWidget::show_cursor(), entity);
-
-        if text_field.text != text_change.new_text {
-            // Send the text change event with the new text
-            let mut new_text = text_field.text.clone();
-            text_change.apply(&mut new_text);
-            commands.trigger_targets(
-                TextChanged {
-                    change: text_change.clone(),
-                    new_text,
-                    old_cursor_position,
-                    new_cursor_position: Some(current_cursor),
-                },
-                entity,
-            );
-
-            // If the text field is not controlled, apply the text change to the text field
-            if !text_field.controlled_widget {
-                text_change.apply(&mut text_field.text);
-            }
+        // If the text field is not controlled, apply the text change to the text field
+        if !text_field.controlled_widget {
+            text_change.apply(&mut text_field.text);
         }
     }
 }
 
-pub fn on_focus_lost(
-    trigger: Trigger<LostFocus>,
+pub fn detect_focus_loss(
+    input_focus: Res<InputFocus>,
     mut commands: Commands,
     mut q_editable_texts: Query<&mut EditableTextLine>,
+    mut previous_focus: Local<Option<Entity>>,
 ) {
-    let entity = trigger.target();
-    let Ok(mut text_field) = q_editable_texts.get_mut(entity) else {
+    if !input_focus.is_changed() {
+        return;
+    }
+
+    let Some(previous_focus_entity) = previous_focus.take() else {
         return;
     };
 
-    text_field.cursor_position = None;
-    text_field.selection_start = None;
+    if let Ok(mut text_field) = q_editable_texts.get_mut(previous_focus_entity) {
+        text_field.cursor_position = None;
+        text_field.selection_start = None;
 
-    info!("Focus lost from {:?}", entity);
+        info!("Focus lost from {:?}", previous_focus_entity);
 
-    commands.trigger_targets(RenderWidget::default(), entity);
+        commands.trigger_targets(RenderWidget::default(), previous_focus_entity);
+    }
+
+    *previous_focus = input_focus.0;
 }
 
 pub fn on_set_cursor_position(
-    trigger: Trigger<SetCursorPosition>,
+    trigger: On<SetCursorPosition>,
     mut commands: Commands,
     mut q_editable_texts: Query<&mut EditableTextLine>,
 ) {

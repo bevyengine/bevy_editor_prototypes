@@ -17,7 +17,7 @@ impl Plugin for ContextMenuPlugin {
 }
 
 fn on_secondary_button_down_entity_with_context_menu(
-    mut trigger: Trigger<Pointer<Released>>,
+    mut trigger: On<Pointer<Release>>,
     mut commands: Commands,
     query: Query<&ContextMenu>,
     theme: Res<Theme>,
@@ -45,11 +45,9 @@ fn on_secondary_button_down_entity_with_context_menu(
             },
             ZIndex(10),
         ))
-        .observe(
-            |trigger: Trigger<Pointer<Pressed>>, mut commands: Commands| {
-                commands.entity(trigger.target()).despawn();
-            },
-        )
+        .observe(|trigger: On<Pointer<Press>>, mut commands: Commands| {
+            commands.entity(trigger.target()).despawn();
+        })
         .id();
 
     spawn_context_menu(
@@ -59,7 +57,7 @@ fn on_secondary_button_down_entity_with_context_menu(
         event.pointer_location.position,
         target,
     )
-    .observe(|mut trigger: Trigger<Pointer<Pressed>>| {
+    .observe(|mut trigger: On<Pointer<Press>>| {
         // Prevent the context menu root from despawning the context menu when clicking on the menu
         trigger.propagate(false);
     })

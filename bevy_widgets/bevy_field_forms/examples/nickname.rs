@@ -51,7 +51,7 @@ fn setup(mut commands: Commands) {
                     ..default()
                 },
                 BorderRadius::all(Val::Px(5.0)),
-                BorderColor(Color::WHITE),
+                BorderColor::all(Color::WHITE),
                 InputField::new(CharacterName(String::new())),
                 SimpleBorderHighlight::default(),
                 CharacterValidator {
@@ -94,7 +94,7 @@ struct CharacterValidator {
 }
 
 fn on_validation_changed(
-    trigger: Trigger<ValidationChanged>,
+    trigger: On<ValidationChanged>,
     mut commands: Commands,
     q_character_validator: Query<&CharacterValidator>,
 ) {

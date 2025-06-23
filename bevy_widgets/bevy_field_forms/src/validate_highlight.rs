@@ -1,8 +1,10 @@
 //! This module provides a simple border highlight for input fields
 
 use crate::input_field::*;
-use bevy::prelude::*;
-use bevy_focus::{Focus, LostFocus};
+use bevy::{
+    input_focus::{InputFocus, IsFocused, IsFocusedHelper},
+    prelude::*,
+};
 
 /// A plugin that adds an observer to highlight the border of a text field based on its validation state based on the `SimpleBorderHighlight` component.
 pub struct SimpleBorderHighlightPlugin;
@@ -10,10 +12,8 @@ pub struct SimpleBorderHighlightPlugin;
 impl Plugin for SimpleBorderHighlightPlugin {
     fn build(&self, app: &mut App) {
         app.add_observer(on_validation_changed);
-        app.add_observer(on_focus_added);
-        app.add_observer(on_focus_lost);
 
-        app.add_systems(PreUpdate, on_interaction_changed);
+        app.add_systems(PreUpdate, (on_interaction_changed, on_focus_changed));
     }
 }
 
@@ -46,75 +46,76 @@ impl Default for SimpleBorderHighlight {
 }
 
 fn on_validation_changed(
-    trigger: Trigger<ValidationChanged>,
+    trigger: On<ValidationChanged>,
     mut commands: Commands,
-    mut q_highlights: Query<(&mut SimpleBorderHighlight, &Interaction, Option<&Focus>)>,
+    mut q_highlights: Query<(&mut SimpleBorderHighlight, &Interaction)>,
+    is_focused_helper: IsFocusedHelper,
 ) {
     let entity = trigger.target();
-    let Ok((mut highlight, interaction, focus)) = q_highlights.get_mut(entity) else {
+    let Ok((mut highlight, interaction)) = q_highlights.get_mut(entity) else {
         return;
     };
 
     match &trigger.0 {
         ValidationState::Valid | ValidationState::Unchecked => {
-            if focus.is_some() {
+            if is_focused_helper.is_focus_within(entity) {
                 commands
                     .entity(entity)
-                    .insert(BorderColor(highlight.focused_color));
+                    .insert(BorderColor::all(highlight.focused_color));
             } else if *interaction == Interaction::Hovered {
                 commands
                     .entity(entity)
-                    .insert(BorderColor(highlight.hovered_color));
+                    .insert(BorderColor::all(highlight.hovered_color));
             } else {
                 commands
                     .entity(entity)
-                    .insert(BorderColor(highlight.normal_color));
+                    .insert(BorderColor::all(highlight.normal_color));
             }
         }
         ValidationState::Invalid(_) => {
             commands
                 .entity(entity)
-                .insert(BorderColor(highlight.invalid_color));
+                .insert(BorderColor::all(highlight.invalid_color));
         }
     }
 
     highlight.last_validation_state = trigger.0.clone();
 }
 
-fn on_focus_added(
-    trigger: Trigger<OnInsert, Focus>,
+fn on_focus_changed(
+    input_focus: Res<InputFocus>,
+    is_focused_helper: IsFocusedHelper,
+    q_highlights: Query<(Entity, &SimpleBorderHighlight)>,
     mut commands: Commands,
-    q_highlights: Query<&SimpleBorderHighlight>,
+    mut previous_focus: Local<Option<Entity>>,
 ) {
-    let entity = trigger.target();
-    let Ok(highlight) = q_highlights.get(entity) else {
+    if input_focus.0 == *previous_focus {
         return;
-    };
+    }
 
-    info!("Focus added to {:?}", entity);
+    if let Some(previous_entity) = previous_focus.take() {
+        // If the previous focus is set, we need to trigger the validation change for it
+        if let Ok((_, highlight)) = q_highlights.get(previous_entity) {
+            info!("Focus lost from {:?}", previous_entity);
+            commands.trigger_targets(
+                ValidationChanged(highlight.last_validation_state.clone()),
+                previous_entity,
+            );
+        }
+    }
 
-    commands.trigger_targets(
-        ValidationChanged(highlight.last_validation_state.clone()),
-        entity,
-    );
-}
+    for (entity, highlight) in q_highlights.iter() {
+        if is_focused_helper.is_focus_within(entity) {
+            info!("Focus added to {:?}", entity);
 
-fn on_focus_lost(
-    trigger: Trigger<LostFocus>,
-    mut commands: Commands,
-    q_highlights: Query<&SimpleBorderHighlight>,
-) {
-    let entity = trigger.target();
-    let Ok(highlight) = q_highlights.get(entity) else {
-        return;
-    };
+            commands.trigger_targets(
+                ValidationChanged(highlight.last_validation_state.clone()),
+                entity,
+            );
+        }
+    }
 
-    info!("Focus lost from {:?}", entity);
-
-    commands.trigger_targets(
-        ValidationChanged(highlight.last_validation_state.clone()),
-        entity,
-    );
+    *previous_focus = input_focus.0;
 }
 
 fn on_interaction_changed(

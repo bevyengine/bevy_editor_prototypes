@@ -43,7 +43,7 @@ impl Plugin for Viewport2dPanePlugin {
                 update_render_target_size.after(ui_layout_system),
             )
             .add_observer(
-                |trigger: Trigger<OnRemove, Bevy2dViewport>,
+                |trigger: On<Remove, Bevy2dViewport>,
                  mut commands: Commands,
                  query: Query<&Bevy2dViewport>| {
                     // Despawn the viewport camera
@@ -121,13 +121,13 @@ fn on_pane_creation(
     commands
         .entity(image_id)
         .observe(
-            move |_trigger: Trigger<Pointer<Move>>, mut query: Query<&mut EditorCamera2d>| {
+            move |_trigger: On<Pointer<Move>>, mut query: Query<&mut EditorCamera2d>| {
                 let mut editor_camera = query.get_mut(camera_id).unwrap();
                 editor_camera.enabled = true;
             },
         )
         .observe(
-            move |_trigger: Trigger<Pointer<Out>>, mut query: Query<&mut EditorCamera2d>| {
+            move |_trigger: On<Pointer<Out>>, mut query: Query<&mut EditorCamera2d>| {
                 query.get_mut(camera_id).unwrap().enabled = false;
             },
         );
@@ -143,8 +143,8 @@ fn update_render_target_size(
     content: Query<&PaneContentNode>,
     children_query: Query<&Children>,
     pos_query: Query<
-        (&ComputedNode, &GlobalTransform),
-        Or<(Changed<ComputedNode>, Changed<GlobalTransform>)>,
+        (&ComputedNode, &UiGlobalTransform),
+        Or<(Changed<ComputedNode>, Changed<UiGlobalTransform>)>,
     >,
     mut images: ResMut<Assets<Image>>,
 ) {
@@ -160,7 +160,7 @@ fn update_render_target_size(
         // TODO Convert to physical pixels
         let content_node_size = computed_node.size();
 
-        let node_position = global_transform.translation().xy();
+        let node_position = global_transform.translation;
         let rect = Rect::from_center_size(node_position, computed_node.size());
 
         let (camera, mut editor_camera) = camera_query.get_mut(viewport.camera_id).unwrap();

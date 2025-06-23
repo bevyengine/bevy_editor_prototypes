@@ -4,13 +4,8 @@ use core::marker::PhantomData;
 use bevy::{
     color::Color,
     ecs::{
-        bundle::Bundle,
-        component::{Component, HookContext},
-        entity::Entity,
-        event::Event,
-        hierarchy::ChildOf,
-        observer::Observer,
-        system::IntoObserverSystem,
+        bundle::Bundle, component::Component, entity::Entity, event::Event, hierarchy::ChildOf,
+        lifecycle::HookContext, observer::Observer, system::IntoObserverSystem,
         world::DeferredWorld,
     },
     ui::{UiRect, Val},
@@ -47,14 +42,14 @@ pub fn rgba8(red: u8, green: u8, blue: u8, alpha: u8) -> Color {
 /// # use bevy::prelude::*;
 /// pbsn! {
 ///     {Name::new("MyEntity")} [
-///         On(|trigger: Trigger<Pointer<Click>>| {
+///         Obs(|trigger: On<Pointer<Click>>| {
 ///             // Do something when "MyEntity" is clicked.
 ///         }),
-///         On(|trigger: Trigger<Pointer<Drag>>| {
+///         Obs(|trigger: On<Pointer<Drag>>| {
 ///             // Do something when "MyEntity" is dragged.
 ///         }),
 ///         {Name::new("MyChild")} [
-///             On(|trigger: Trigger<Pointer<Click>>| {
+///             Obs(|trigger: On<Pointer<Click>>| {
 ///                 // Do something when "MyEntity" is clicked.
 ///             }, @"MyEntity"),
 ///         ]
@@ -64,7 +59,7 @@ pub fn rgba8(red: u8, green: u8, blue: u8, alpha: u8) -> Color {
 #[derive(Component)]
 #[component(on_insert = insert_callback::<E, B, M, S>)]
 #[component(on_remove = remove_callback)]
-pub struct On<E, B, M, S>
+pub struct Obs<E, B, M, S>
 where
     E: Event,
     B: Bundle,
@@ -83,7 +78,7 @@ where
     M: Sync + Send + 'static,
     S: IntoObserverSystem<E, B, M> + Sync + Send + 'static,
 {
-    let mut callback = world.get_mut::<On<E, B, M, S>>(context.entity).unwrap();
+    let mut callback = world.get_mut::<Obs<E, B, M, S>>(context.entity).unwrap();
     let Some(mut observer) = core::mem::take(&mut callback.observer) else {
         return;
     };
@@ -138,7 +133,7 @@ where
     }
 }
 
-impl<E, B, M, S> Construct for On<E, B, M, S>
+impl<E, B, M, S> Construct for Obs<E, B, M, S>
 where
     E: Event,
     B: Bundle,

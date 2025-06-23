@@ -1,7 +1,10 @@
 //! Crate for a Bevy Editor Component Viewer pane. This has yet to be blessed, but I thought it might be nice to specifically view components
 //!
 //! This crate provides a plugin and UI for viewing and interacting with components in a Bevy application.
-use bevy::{color::palettes::tailwind, input::common_conditions::input_just_pressed, prelude::*};
+use bevy::{
+    color::palettes::tailwind, input::common_conditions::input_just_pressed, prelude::*,
+    tasks::IoTaskPool,
+};
 use bevy_pane_layout::prelude::{PaneAppExt, PaneStructure};
 use bevy_remote::{
     builtin_methods::{BrpQuery, BrpQueryFilter, BrpQueryParams, BRP_QUERY_METHOD},
@@ -41,38 +44,44 @@ fn setup_pane(pane: In<PaneStructure>, mut commands: Commands) {
 }
 
 /// Connects to a remote Bevy application via HTTP REST and sends a request to query components.
-fn connect_to_remote(_commands: Commands) -> Result<()> {
-    //connects to a remote bevy app on a pre-definted websocket port
-    let components = vec!["bevy_transform::components::transform::Transform".to_string()];
-    let url = format!("http://{}:{}/", DEFAULT_ADDR, DEFAULT_PORT);
-    info!("Connecting to remote at {}", url);
-    let req = BrpRequest {
-        jsonrpc: String::from("2.0"),
-        method: String::from(BRP_QUERY_METHOD),
-        id: Some(serde_json::to_value(1)?),
-        params: Some(
-            serde_json::to_value(BrpQueryParams {
-                data: BrpQuery {
-                    components: components,
-                    option: Vec::default(),
-                    has: Vec::default(),
+fn connect_to_remote(_commands: Commands) {
+    let task_pool = IoTaskPool::get();
+    task_pool
+        .spawn(async move {
+            let components = vec!["bevy_transform::components::transform::Transform".to_string()];
+            let url = format!("http://{}:{}/", DEFAULT_ADDR, DEFAULT_PORT);
+            info!("Connecting to remote at {}", url);
+            let req = BrpRequest {
+                jsonrpc: String::from("2.0"),
+                method: String::from(BRP_QUERY_METHOD),
+                id: Some(serde_json::to_value(1).expect("Failed to serialize id")),
+                params: Some(
+                    serde_json::to_value(BrpQueryParams {
+                        data: BrpQuery {
+                            components: components,
+                            option: Vec::default(),
+                            has: Vec::default(),
+                        },
+                        strict: false,
+                        filter: BrpQueryFilter::default(),
+                    })
+                    .expect("Unable to convert query parameters to a valid JSON value"),
+                ),
+            };
+
+            // For some reason it fails here, with no return or error/response code?
+            info!("Sending request: {:#?}", req);
+            let res = ureq::post(&url).send_json(req);
+
+            match res {
+                Ok(mut response) => match response.body_mut().read_json::<serde_json::Value>() {
+                    Ok(json) => info!("Received response: {:#?}", json),
+                    Err(e) => error!("Failed to parse JSON response: {}", e),
                 },
-                strict: false,
-                filter: BrpQueryFilter::default(),
-            })
-            .expect("Unable to convert query parameters to a valid JSON value"),
-        ),
-    };
-
-    // For some reason it fails here, with no return or error/response code?
-    info!("Sending request: {:#?}", req);
-    let res = ureq::post(&url)
-        .send_json(req)?
-        .body_mut()
-        .read_json::<serde_json::Value>()?;
-
-    info!("Received response: {:#?}", res);
-    Ok(())
+                Err(e) => error!("Failed to send request: {}", e),
+            }
+        })
+        .detach();
 }
 
 // fn update_remote_component_viewer_pane(

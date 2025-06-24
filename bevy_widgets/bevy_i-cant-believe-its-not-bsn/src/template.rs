@@ -1,9 +1,9 @@
 use std::collections::{HashMap, HashSet};
 use std::mem;
 
-use bevy::ecs::component::HookContext;
 use bevy::ecs::{
-    component::ComponentId, prelude::*, system::IntoObserverSystem, world::DeferredWorld,
+    component::ComponentId, lifecycle::HookContext, prelude::*, system::IntoObserverSystem,
+    world::DeferredWorld,
 };
 
 // -----------------------------------------------------------------------------
@@ -211,10 +211,10 @@ where
 /// # use bevy::prelude::*;
 /// template!{
 ///     Name::new("MyEntity") => [
-///         on(|trigger: Trigger<Pointer<Click>>| {
+///         on(|trigger: On<Pointer<Click>>| {
 ///             // Do something when "MyEntity" is clicked.
 ///         });
-///         on(|trigger: Trigger<Pointer<Drag>>| {
+///         on(|trigger: On<Pointer<Drag>>| {
 ///             // Do something when "MyEntity" is dragged.
 ///         });
 ///     ];

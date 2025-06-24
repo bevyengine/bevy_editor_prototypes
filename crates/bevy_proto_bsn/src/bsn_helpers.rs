@@ -4,13 +4,8 @@ use core::marker::PhantomData;
 use bevy::{
     color::Color,
     ecs::{
-        bundle::Bundle,
-        component::{Component, HookContext},
-        entity::Entity,
-        event::Event,
-        hierarchy::ChildOf,
-        observer::Observer,
-        system::IntoObserverSystem,
+        bundle::Bundle, component::Component, entity::Entity, event::Event, hierarchy::ChildOf,
+        lifecycle::HookContext, observer::Observer, system::IntoObserverSystem,
         world::DeferredWorld,
     },
     ui::{UiRect, Val},
@@ -47,14 +42,14 @@ pub fn rgba8(red: u8, green: u8, blue: u8, alpha: u8) -> Color {
 /// # use bevy::prelude::*;
 /// pbsn! {
 ///     {Name::new("MyEntity")} [
-///         On(|trigger: Trigger<Pointer<Click>>| {
+///         Obs(|trigger: On<Pointer<Click>>| {
 ///             // Do something when "MyEntity" is clicked.
 ///         }),
-///         On(|trigger: Trigger<Pointer<Drag>>| {
+///         Obs(|trigger: On<Pointer<Drag>>| {
 ///             // Do something when "MyEntity" is dragged.
 ///         }),
 ///         {Name::new("MyChild")} [
-///             On(|trigger: Trigger<Pointer<Click>>| {
+///             Obs(|trigger: On<Pointer<Click>>| {
 ///                 // Do something when "MyEntity" is clicked.
 ///             }, @"MyEntity"),
 ///         ]
@@ -64,7 +59,7 @@ pub fn rgba8(red: u8, green: u8, blue: u8, alpha: u8) -> Color {
 #[derive(Component)]
 #[component(on_insert = insert_callback::<E, B, M, S>)]
 #[component(on_remove = remove_callback)]
-pub struct On<E, B, M, S>
+pub struct Obs<E, B, M, S>
 where
     E: Event,
     B: Bundle,
@@ -83,7 +78,7 @@ where
     M: Sync + Send + 'static,
     S: IntoObserverSystem<E, B, M> + Sync + Send + 'static,
 {
-    let mut callback = world.get_mut::<On<E, B, M, S>>(context.entity).unwrap();
+    let mut callback = world.get_mut::<Obs<E, B, M, S>>(context.entity).unwrap();
     let Some(mut observer) = core::mem::take(&mut callback.observer) else {
         return;
     };
@@ -101,8 +96,8 @@ fn remove_callback(mut world: DeferredWorld, context: HookContext) {
     commands.entity(context.entity).remove::<Observer>();
 }
 
-/// Props for constructing observers in bsn-macros. See [`On`].
-pub struct OnProps<E, B, M, S>(
+/// Props for constructing observers in bsn-macros. See [`Obs`].
+pub struct ObsProps<E, B, M, S>(
     pub Option<S>,
     pub ConstructProp<ConstructEntity>,
     PhantomData<(E, B, M)>,
@@ -112,7 +107,7 @@ where
     B: Bundle,
     S: IntoObserverSystem<E, B, M>;
 
-impl<E, B, M, S> Default for OnProps<E, B, M, S>
+impl<E, B, M, S> Default for ObsProps<E, B, M, S>
 where
     E: Event,
     B: Bundle,
@@ -127,7 +122,7 @@ where
     }
 }
 
-impl<E, B, M, S> Clone for OnProps<E, B, M, S>
+impl<E, B, M, S> Clone for ObsProps<E, B, M, S>
 where
     E: Event,
     B: Bundle,
@@ -138,14 +133,14 @@ where
     }
 }
 
-impl<E, B, M, S> Construct for On<E, B, M, S>
+impl<E, B, M, S> Construct for Obs<E, B, M, S>
 where
     E: Event,
     B: Bundle,
     M: Sync + Send + 'static,
     S: IntoObserverSystem<E, B, M> + Sync + Send + 'static,
 {
-    type Props = OnProps<E, B, M, S>;
+    type Props = ObsProps<E, B, M, S>;
 
     fn construct(
         context: &mut crate::ConstructContext,

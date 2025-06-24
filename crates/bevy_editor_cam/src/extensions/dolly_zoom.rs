@@ -37,7 +37,7 @@ impl Plugin for DollyZoomPlugin {
 const ZERO_FOV: f64 = 1e-3;
 
 /// Triggers a dolly zoom on the specified camera.
-#[derive(Debug, Event)]
+#[derive(Debug, Event, BufferedEvent)]
 pub struct DollyZoomTrigger {
     /// The new projection.
     pub target_projection: Projection,

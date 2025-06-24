@@ -1,7 +1,7 @@
 //! Demonstrates a pseudo ortho camera - a camera that uses a very narrow perspective projection.
 //! This might be useful if certain features are not supported in ortho.
 
-use bevy::prelude::*;
+use bevy::{prelude::*, render::view::Hdr};
 use bevy_editor_cam::prelude::*;
 
 fn main() {
@@ -23,10 +23,8 @@ fn setup(
             fov: 0.001,
             ..default()
         }),
-        Camera {
-            hdr: true,
-            ..Default::default()
-        },
+        Camera::default(),
+        Hdr,
         // This component makes the camera controllable with this plugin:
         EditorCam::default(),
     ));

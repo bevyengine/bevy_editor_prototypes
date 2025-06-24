@@ -28,7 +28,7 @@ pub fn handle_notification_popups(
 ) {
     for (entity, mut popup) in query.iter_mut() {
         popup.timer.tick(time.delta());
-        if popup.timer.finished() {
+        if popup.timer.is_finished() {
             commands.entity(entity).despawn();
         }
     }
@@ -145,7 +145,7 @@ pub fn setup(
                             Val::Px(20.0),
                             Val::Px(20.0),
                         ),
-                        BorderColor(theme.button.background_color.0),
+                        BorderColor::all(theme.button.background_color.0),
                     ))
                     .with_child((
                         Node {
@@ -155,18 +155,16 @@ pub fn setup(
                         },
                         ImageNode::new(asset_server.load("plus.png")),
                     ))
-                    .observe(
-                        |_trigger: Trigger<Pointer<Released>>, mut commands: Commands| {
-                            let new_project_path = rfd::FileDialog::new().pick_folder();
-                            if let Some(path) = new_project_path {
-                                crate::spawn_create_new_project_task(
-                                    &mut commands,
-                                    Templates::Blank,
-                                    path,
-                                );
-                            }
-                        },
-                    );
+                    .observe(|_trigger: On<Pointer<Release>>, mut commands: Commands| {
+                        let new_project_path = rfd::FileDialog::new().pick_folder();
+                        if let Some(path) = new_project_path {
+                            crate::spawn_create_new_project_task(
+                                &mut commands,
+                                Templates::Blank,
+                                path,
+                            );
+                        }
+                    });
             });
         }),
     )
@@ -196,7 +194,7 @@ pub(crate) fn spawn_project_node<'a>(
     ));
 
     root_ec.observe(
-        |trigger: Trigger<Pointer<Released>>,
+        |trigger: On<Pointer<Release>>,
          mut commands: Commands,
          query_children: Query<&Children>,
          query_text: Query<&Text>,

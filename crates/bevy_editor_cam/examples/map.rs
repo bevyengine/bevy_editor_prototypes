@@ -1,8 +1,7 @@
 //! Editor camera example with a city map to traverse.
 
 use bevy::{
-    color::palettes,
-    core_pipeline::{bloom::Bloom, experimental::taa::TemporalAntiAliasing},
+    anti_aliasing::taa::TemporalAntiAliasing, color::palettes, core_pipeline::bloom::Bloom,
     pbr::ScreenSpaceAmbientOcclusion,
 };
 use bevy::{prelude::*, render::camera::TemporalJitter};

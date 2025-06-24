@@ -25,7 +25,7 @@ pub(crate) fn spawn_source_node<'a>(
 ) -> EntityCommands<'a> {
     let base_node = spawn_base_node(commands, theme)
         .observe(
-            move |trigger: Trigger<Pointer<Released>>,
+            move |trigger: On<Pointer<Release>>,
                   mut commands: Commands,
                   mut location: ResMut<AssetBrowserLocation>,
                   mut asset_source_builder: ResMut<AssetSourceBuilders>,
@@ -91,7 +91,7 @@ pub(crate) fn spawn_folder_node<'a>(
     let base_node = {
         let mut ec = spawn_base_node(commands, theme);
         ec.observe(
-            |trigger: Trigger<Pointer<Released>>,
+            |trigger: On<Pointer<Release>>,
              mut commands: Commands,
              mut location: ResMut<AssetBrowserLocation>,
              query_text: Query<&Text>,
@@ -220,7 +220,7 @@ fn spawn_base_node<'a>(commands: &'a mut Commands, theme: &Res<Theme>) -> Entity
     // Hover effect
     base_node_ec
         .observe(
-            move |_trigger: Trigger<Pointer<Move>>,
+            move |_trigger: On<Pointer<Move>>,
                   window_query: Query<Entity, With<Window>>,
                   mut commands: Commands| {
                 let window = window_query.single().unwrap();
@@ -230,7 +230,7 @@ fn spawn_base_node<'a>(commands: &'a mut Commands, theme: &Res<Theme>) -> Entity
             },
         )
         .observe(
-            move |_trigger: Trigger<Pointer<Out>>,
+            move |_trigger: On<Pointer<Out>>,
                   window_query: Query<Entity, With<Window>>,
                   mut commands: Commands| {
                 let window = window_query.single().unwrap();

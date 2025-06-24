@@ -1,6 +1,6 @@
 //! This example demonstrates how to use the `ValidatedInputFieldPlugin` to create a validated input field for a character name.
 
-use bevy::{platform::collections::HashSet, prelude::*};
+use bevy::{input_focus::tab_navigation::TabGroup, platform::collections::HashSet, prelude::*};
 use bevy_field_forms::{
     input_field::{InputField, InputFieldPlugin, Validable, ValidationChanged, ValidationState},
     validate_highlight::SimpleBorderHighlight,
@@ -32,15 +32,18 @@ fn setup(mut commands: Commands) {
         .id();
 
     commands
-        .spawn(Node {
-            display: Display::Flex,
-            flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
-            justify_content: JustifyContent::Center,
-            width: Val::Percent(100.0),
-            height: Val::Percent(100.0),
-            ..default()
-        })
+        .spawn((
+            Node {
+                display: Display::Flex,
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                ..default()
+            },
+            TabGroup::default(),
+        ))
         .with_children(move |cmd| {
             cmd.spawn(Text::new("Nickname:"));
             cmd.spawn((
@@ -51,7 +54,7 @@ fn setup(mut commands: Commands) {
                     ..default()
                 },
                 BorderRadius::all(Val::Px(5.0)),
-                BorderColor(Color::WHITE),
+                BorderColor::all(Color::WHITE),
                 InputField::new(CharacterName(String::new())),
                 SimpleBorderHighlight::default(),
                 CharacterValidator {
@@ -94,7 +97,7 @@ struct CharacterValidator {
 }
 
 fn on_validation_changed(
-    trigger: Trigger<ValidationChanged>,
+    trigger: On<ValidationChanged>,
     mut commands: Commands,
     q_character_validator: Query<&CharacterValidator>,
 ) {

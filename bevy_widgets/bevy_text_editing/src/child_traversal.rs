@@ -3,9 +3,9 @@
 //! It includes:
 //! - `FirstChildTraversalPlugin`: A plugin that sets up the necessary systems for child traversal.
 //! - `FirstChildTraversal`: A marker component for entities that should use first-child traversal.
-//! - `CachedFirsChild`: A component that caches the first child of an entity for efficient traversal.
+//! - `CachedFirstChild`: A component that caches the first child of an entity for efficient traversal.
 //!
-//! The module also implements the `Traversal` trait for `CachedFirsChild`, allowing for easy
+//! The module also implements the `Traversal` trait for `CachedFirstChild`, allowing for easy
 //! integration with Bevy's event system.
 
 use bevy::{ecs::traversal::Traversal, prelude::*};
@@ -25,10 +25,10 @@ pub struct FirstChildTraversal;
 
 /// State for caching the first child of an entity to make Traverse trait easier to implement
 #[derive(Component, Debug)]
-pub struct CachedFirsChild(pub Entity);
+pub struct CachedFirstChild(pub Entity);
 
-impl<D> Traversal<D> for &'static CachedFirsChild {
-    fn traverse(item: Self::Item<'_>, _: &D) -> Option<Entity> {
+impl<D> Traversal<D> for &'static CachedFirstChild {
+    fn traverse(item: Self::Item<'_, '_>, _: &D) -> Option<Entity> {
         Some(item.0)
     }
 }
@@ -47,7 +47,7 @@ fn auto_update_cache(
         if let Some(first_child) = children.first() {
             commands
                 .entity(entity)
-                .insert(CachedFirsChild(*first_child));
+                .insert(CachedFirstChild(*first_child));
         }
     }
 }

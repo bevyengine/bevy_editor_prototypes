@@ -3,12 +3,19 @@
 mod input;
 mod render;
 
-use bevy::{input_focus::InputDispatchPlugin, platform::collections::HashSet, prelude::*};
+use bevy::{
+    input_focus::{
+        tab_navigation::{TabIndex, TabNavigationPlugin},
+        InputDispatchPlugin,
+    },
+    platform::collections::HashSet,
+    prelude::*,
+};
 use bevy_clipboard::ClipboardPlugin;
 
 use crate::{
     cursor::{Cursor, CursorPlugin},
-    CharPosition, SetCursorPosition, SetText, TextChanged, TEXT_SELECTION_COLOR,
+    CharPosition, HasFocus, SetCursorPosition, SetText, TextChanged, TEXT_SELECTION_COLOR,
 };
 
 use input::*;
@@ -26,6 +33,9 @@ impl Plugin for EditableTextLinePlugin {
         if !app.is_plugin_added::<InputDispatchPlugin>() {
             app.add_plugins(InputDispatchPlugin);
         }
+        if !app.is_plugin_added::<TabNavigationPlugin>() {
+            app.add_plugins(TabNavigationPlugin);
+        }
         if !app.is_plugin_added::<ClipboardPlugin>() {
             app.add_plugins(ClipboardPlugin);
         }
@@ -34,7 +44,7 @@ impl Plugin for EditableTextLinePlugin {
             PreUpdate,
             (
                 spawn_system,
-                detect_focus_loss,
+                update_has_focus,
                 check_cursor_overflow,
                 set_cursor_pos,
                 propagate_text_font,
@@ -82,7 +92,7 @@ impl Plugin for EditableTextLinePlugin {
 
 #[derive(Component, Reflect, Default)]
 #[reflect(Component, Default)]
-#[require(Node)]
+#[require(Node, HasFocus, TabIndex)]
 pub struct EditableTextLine {
     /// Text content
     pub text: String,

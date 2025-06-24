@@ -56,3 +56,9 @@ impl EntityEvent for SetCursorPosition {
     type Traversal = &'static CachedFirstChild;
     const AUTO_PROPAGATE: bool = true;
 }
+
+/// A component holding a boolean for whether an entity has focus.
+#[derive(Component, Copy, Clone, Default, Eq, PartialEq, Debug, Reflect)]
+#[reflect(Component, Default, PartialEq, Debug, Clone)]
+#[component(immutable)]
+pub struct HasFocus(pub bool);

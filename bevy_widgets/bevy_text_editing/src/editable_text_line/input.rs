@@ -14,7 +14,6 @@ pub fn on_click(
     mut q_editable_texts: Query<(&mut EditableTextLine, &mut EditableTextInner)>,
     q_texts: Query<(&ComputedNode, &UiGlobalTransform)>,
     key_states: Res<ButtonInput<KeyCode>>,
-    mut input_focus: ResMut<InputFocus>,
 ) {
     let entity = click.target();
     let Ok((mut text_line, mut inner)) = q_editable_texts.get_mut(entity) else {
@@ -52,7 +51,6 @@ pub fn on_click(
     text_line.cursor_position = Some(CharPosition(cursor_pos));
     inner.skip_cursor_overflow_check = true;
 
-    input_focus.set(entity);
     commands.trigger_targets(RenderWidget::show_cursor(), entity);
 }
 
@@ -255,30 +253,42 @@ pub fn on_key_input(
     }
 }
 
-pub fn detect_focus_loss(
+pub fn update_has_focus(
     input_focus: Res<InputFocus>,
-    mut commands: Commands,
+    q_has_focus: Query<(Entity, &HasFocus)>,
     mut q_editable_texts: Query<&mut EditableTextLine>,
-    mut previous_focus: Local<Option<Entity>>,
+    mut commands: Commands,
 ) {
     if !input_focus.is_changed() {
         return;
     }
 
-    let Some(previous_focus_entity) = previous_focus.take() else {
-        return;
-    };
+    for (entity, has_focus) in q_has_focus.iter() {
+        if input_focus.0 == Some(entity) {
+            if !has_focus.0 {
+                // Gained focus
+                commands.entity(entity).insert(HasFocus(true));
 
-    if let Ok(mut text_field) = q_editable_texts.get_mut(previous_focus_entity) {
-        text_field.cursor_position = None;
-        text_field.selection_start = None;
+                if let Ok(mut text_field) = q_editable_texts.get_mut(entity) {
+                    if text_field.cursor_position.is_none() {
+                        text_field.cursor_position = Some(CharPosition(0));
+                        commands.trigger_targets(RenderWidget::show_cursor(), entity);
+                    }
+                }
+            }
+        } else if has_focus.0 {
+            // Lost focus
+            commands.entity(entity).insert(HasFocus(false));
 
-        info!("Focus lost from {:?}", previous_focus_entity);
+            if let Ok(mut text_field) = q_editable_texts.get_mut(entity) {
+                // Reset cursor position and selection start when focus is lost
+                text_field.cursor_position = None;
+                text_field.selection_start = None;
 
-        commands.trigger_targets(RenderWidget::default(), previous_focus_entity);
+                commands.trigger_targets(RenderWidget::default(), entity);
+            }
+        }
     }
-
-    *previous_focus = input_focus.0;
 }
 
 pub fn on_set_cursor_position(

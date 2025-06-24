@@ -1,19 +1,18 @@
 //! This module provides a simple border highlight for input fields
 
 use crate::input_field::*;
-use bevy::{
-    input_focus::{InputFocus, IsFocused, IsFocusedHelper},
-    prelude::*,
-};
+use bevy::prelude::*;
+use bevy_text_editing::HasFocus;
 
 /// A plugin that adds an observer to highlight the border of a text field based on its validation state based on the `SimpleBorderHighlight` component.
 pub struct SimpleBorderHighlightPlugin;
 
 impl Plugin for SimpleBorderHighlightPlugin {
     fn build(&self, app: &mut App) {
+        app.add_observer(on_focus_changed);
         app.add_observer(on_validation_changed);
 
-        app.add_systems(PreUpdate, (on_interaction_changed, on_focus_changed));
+        app.add_systems(PreUpdate, on_interaction_changed);
     }
 }
 
@@ -48,17 +47,16 @@ impl Default for SimpleBorderHighlight {
 fn on_validation_changed(
     trigger: On<ValidationChanged>,
     mut commands: Commands,
-    mut q_highlights: Query<(&mut SimpleBorderHighlight, &Interaction)>,
-    is_focused_helper: IsFocusedHelper,
+    mut q_highlights: Query<(&mut SimpleBorderHighlight, &Interaction, &HasFocus)>,
 ) {
     let entity = trigger.target();
-    let Ok((mut highlight, interaction)) = q_highlights.get_mut(entity) else {
+    let Ok((mut highlight, interaction, has_focus)) = q_highlights.get_mut(entity) else {
         return;
     };
 
     match &trigger.0 {
         ValidationState::Valid | ValidationState::Unchecked => {
-            if is_focused_helper.is_focus_within(entity) {
+            if has_focus.0 {
                 commands
                     .entity(entity)
                     .insert(BorderColor::all(highlight.focused_color));
@@ -83,39 +81,19 @@ fn on_validation_changed(
 }
 
 fn on_focus_changed(
-    input_focus: Res<InputFocus>,
-    is_focused_helper: IsFocusedHelper,
-    q_highlights: Query<(Entity, &SimpleBorderHighlight)>,
+    trigger: On<Insert, HasFocus>,
+    q_highlights: Query<&SimpleBorderHighlight>,
     mut commands: Commands,
-    mut previous_focus: Local<Option<Entity>>,
 ) {
-    if input_focus.0 == *previous_focus {
+    let entity = trigger.target();
+    let Ok(highlight) = q_highlights.get(entity) else {
         return;
-    }
+    };
 
-    if let Some(previous_entity) = previous_focus.take() {
-        // If the previous focus is set, we need to trigger the validation change for it
-        if let Ok((_, highlight)) = q_highlights.get(previous_entity) {
-            info!("Focus lost from {:?}", previous_entity);
-            commands.trigger_targets(
-                ValidationChanged(highlight.last_validation_state.clone()),
-                previous_entity,
-            );
-        }
-    }
-
-    for (entity, highlight) in q_highlights.iter() {
-        if is_focused_helper.is_focus_within(entity) {
-            info!("Focus added to {:?}", entity);
-
-            commands.trigger_targets(
-                ValidationChanged(highlight.last_validation_state.clone()),
-                entity,
-            );
-        }
-    }
-
-    *previous_focus = input_focus.0;
+    commands.trigger_targets(
+        ValidationChanged(highlight.last_validation_state.clone()),
+        entity,
+    );
 }
 
 fn on_interaction_changed(

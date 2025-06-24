@@ -1,6 +1,6 @@
 //! This example demonstrates how to use the `ValidatedInputFieldPlugin` to create a validated input field for a character name.
 
-use bevy::{platform::collections::HashSet, prelude::*};
+use bevy::{input_focus::tab_navigation::TabGroup, platform::collections::HashSet, prelude::*};
 use bevy_field_forms::{
     input_field::{InputField, InputFieldPlugin, Validable, ValidationChanged, ValidationState},
     validate_highlight::SimpleBorderHighlight,
@@ -32,15 +32,18 @@ fn setup(mut commands: Commands) {
         .id();
 
     commands
-        .spawn(Node {
-            display: Display::Flex,
-            flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
-            justify_content: JustifyContent::Center,
-            width: Val::Percent(100.0),
-            height: Val::Percent(100.0),
-            ..default()
-        })
+        .spawn((
+            Node {
+                display: Display::Flex,
+                flex_direction: FlexDirection::Column,
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                ..default()
+            },
+            TabGroup::default(),
+        ))
         .with_children(move |cmd| {
             cmd.spawn(Text::new("Nickname:"));
             cmd.spawn((

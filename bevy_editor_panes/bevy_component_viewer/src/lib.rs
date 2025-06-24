@@ -1,13 +1,10 @@
 //! Crate for a Bevy Editor Component Viewer pane. This has yet to be blessed, but I thought it might be nice to specifically view components
 //!
 //! This crate provides a plugin and UI for viewing and interacting with components in a Bevy application.
+use bevy::tasks::futures_lite::future;
+use bevy::tasks::Task;
 use bevy::{
-    color::palettes::tailwind,
-    input::common_conditions::input_just_pressed,
-    platform::collections::HashMap,
-    prelude::*,
-    tasks::{futures_lite, IoTaskPool},
-    transform,
+    color::palettes::tailwind, platform::collections::HashMap, prelude::*, tasks::IoTaskPool,
 };
 use bevy_editor_core::SelectedEntity;
 use bevy_i_cant_believe_its_not_bsn::{template, Template, TemplateEntityCommandsExt};
@@ -74,9 +71,6 @@ struct PollTimer(Timer);
 fn setup_poll_timer(mut commands: Commands) {
     commands.insert_resource(PollTimer(Timer::from_seconds(0.1, TimerMode::Repeating)));
 }
-
-use bevy::tasks::Task;
-use futures_lite::future;
 
 #[derive(Resource, Default)]
 struct TransformTaskHandle(Option<Task<HashMap<Entity, TransformData>>>);

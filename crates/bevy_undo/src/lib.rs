@@ -42,10 +42,10 @@
 //!     mut undo_redo: EventWriter<UndoRedo>,
 //! ) {
 //!     if keys.just_pressed(KeyCode::KeyZ) {
-//!         undo_redo.send(UndoRedo::Undo);
+//!         undo_redo.write(UndoRedo::Undo);
 //!     }
 //!     if keys.just_pressed(KeyCode::KeyY) {
-//!         undo_redo.send(UndoRedo::Redo);
+//!         undo_redo.write(UndoRedo::Redo);
 //!     }
 //! }
 //!
@@ -59,7 +59,7 @@
 //!         transform.translation.x += 1.0;
 //!
 //!         // Register custom change
-//!         new_changes.send(NewChange::new(CustomTransformChange {
+//!         new_changes.write(NewChange::new(CustomTransformChange {
 //!             entity: entity,
 //!             old_transform,
 //!             new_transform: transform.clone(),

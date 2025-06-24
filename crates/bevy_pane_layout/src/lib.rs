@@ -112,11 +112,12 @@ fn setup(
         .insert(ChildOf(*panes_root))
         .id();
 
-    let sub_divider = spawn_divider(&mut commands, Divider::Vertical, 0.2)
+    let sub_divider = spawn_divider(&mut commands, Divider::Vertical, 0.3)
         .insert(ChildOf(divider))
         .id();
 
     spawn_pane(&mut commands, &theme, 0.4, "Scene Tree").insert(ChildOf(sub_divider));
+    spawn_pane(&mut commands, &theme, 0.4, "Components").insert(ChildOf(sub_divider));
     spawn_resize_handle(&mut commands, Divider::Vertical).insert(ChildOf(sub_divider));
     spawn_pane(&mut commands, &theme, 0.6, "Properties").insert(ChildOf(sub_divider));
 

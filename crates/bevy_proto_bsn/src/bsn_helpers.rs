@@ -96,8 +96,8 @@ fn remove_callback(mut world: DeferredWorld, context: HookContext) {
     commands.entity(context.entity).remove::<Observer>();
 }
 
-/// Props for constructing observers in bsn-macros. See [`On`].
-pub struct OnProps<E, B, M, S>(
+/// Props for constructing observers in bsn-macros. See [`Obs`].
+pub struct ObsProps<E, B, M, S>(
     pub Option<S>,
     pub ConstructProp<ConstructEntity>,
     PhantomData<(E, B, M)>,
@@ -107,7 +107,7 @@ where
     B: Bundle,
     S: IntoObserverSystem<E, B, M>;
 
-impl<E, B, M, S> Default for OnProps<E, B, M, S>
+impl<E, B, M, S> Default for ObsProps<E, B, M, S>
 where
     E: Event,
     B: Bundle,
@@ -122,7 +122,7 @@ where
     }
 }
 
-impl<E, B, M, S> Clone for OnProps<E, B, M, S>
+impl<E, B, M, S> Clone for ObsProps<E, B, M, S>
 where
     E: Event,
     B: Bundle,
@@ -140,7 +140,7 @@ where
     M: Sync + Send + 'static,
     S: IntoObserverSystem<E, B, M> + Sync + Send + 'static,
 {
-    type Props = OnProps<E, B, M, S>;
+    type Props = ObsProps<E, B, M, S>;
 
     fn construct(
         context: &mut crate::ConstructContext,

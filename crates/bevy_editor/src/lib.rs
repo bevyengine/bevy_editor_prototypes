@@ -129,10 +129,13 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     // unnamed object
-    commands.spawn(MyObject {
-        vec3: Vec3::new(1.0, 2.0, 3.0),
-        color: Color::from(tailwind::BLUE_500),
-    });
+    commands.spawn((
+        Name::new("MyObject1"),
+        MyObject {
+            vec3: Vec3::new(1.0, 2.0, 3.0),
+            color: Color::from(tailwind::BLUE_500),
+        },
+    ));
 
     // cube
     let cube_handle = meshes.add(Cuboid::new(1.0, 1.0, 1.0));

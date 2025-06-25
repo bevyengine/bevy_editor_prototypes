@@ -22,10 +22,6 @@ impl<T: Validable> Plugin for InputFieldPlugin<T> {
             app.add_plugins(EditableTextLinePlugin);
         }
 
-        app.add_event::<ValidationChanged>();
-        app.add_event::<ValueChanged<T>>();
-        app.add_event::<SetValue<T>>();
-
         app.add_systems(PostUpdate, on_value_changed::<T>);
         app.add_systems(PreUpdate, on_created::<T>);
 
@@ -104,19 +100,19 @@ pub enum ValidationState {
 }
 
 /// Event that is emitted when the validation state changes
-#[derive(Event)]
+#[derive(Event, EntityEvent)]
 pub struct ValidationChanged(pub ValidationState);
 
 /// Event that is emitted when the value changes
-#[derive(Event)]
+#[derive(Event, EntityEvent)]
 pub struct ValueChanged<T: Validable>(pub T);
 
 /// This event is used to set the value of the validated input field.
-#[derive(Event)]
+#[derive(Event, EntityEvent)]
 pub struct SetValue<T: Validable>(pub T);
 
 fn on_text_changed<T: Validable>(
-    mut trigger: Trigger<TextChanged>,
+    mut trigger: On<TextChanged>,
     mut commands: Commands,
     mut q_validated_input_fields: Query<&mut InputField<T>>,
 ) {

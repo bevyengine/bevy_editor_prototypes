@@ -157,7 +157,7 @@ impl EditorCam {
     pub fn anchor_world_space(&self, camera_transform: &GlobalTransform) -> Option<DVec3> {
         self.anchor_view_space().map(|anchor_view_space| {
             camera_transform
-                .compute_matrix()
+                .to_matrix()
                 .as_dmat4()
                 .transform_point3(anchor_view_space)
         });
@@ -476,7 +476,7 @@ impl EditorCam {
 
         let orbit = orbit * DVec2::new(-1.0, 1.0);
         let anchor_world = cam_transform
-            .compute_matrix()
+            .to_matrix()
             .as_dmat4()
             .transform_point3(*anchor);
         let orbit_dir = orbit.normalize().extend(0.0);

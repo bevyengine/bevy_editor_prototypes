@@ -31,7 +31,7 @@ use bevy::{
         renderer::{RenderDevice, RenderQueue},
         sync_world::RenderEntity,
         view::{ExtractedView, RenderVisibleEntities, ViewTarget, VisibleEntities},
-        Extract, ExtractSchedule, Render, RenderApp, RenderSet,
+        Extract, ExtractSchedule, Render, RenderApp, RenderSystems,
     },
 };
 
@@ -60,7 +60,7 @@ pub fn render_app_builder(app: &mut App) {
         .add_systems(
             Render,
             (prepare_infinite_grids, prepare_grid_view_uniforms)
-                .in_set(RenderSet::PrepareResources),
+                .in_set(RenderSystems::PrepareResources),
         )
         .add_systems(
             Render,
@@ -68,9 +68,9 @@ pub fn render_app_builder(app: &mut App) {
                 prepare_bind_groups_for_infinite_grids,
                 prepare_grid_view_bind_groups,
             )
-                .in_set(RenderSet::PrepareBindGroups),
+                .in_set(RenderSystems::PrepareBindGroups),
         )
-        .add_systems(Render, queue_infinite_grids.in_set(RenderSet::Queue));
+        .add_systems(Render, queue_infinite_grids.in_set(RenderSystems::Queue));
 }
 
 #[derive(Component)]
@@ -174,8 +174,8 @@ impl<const I: usize, P: PhaseItem> RenderCommand<P> for SetGridViewBindGroup<I> 
     #[inline]
     fn render<'w>(
         _item: &P,
-        (view_uniform, bind_group): ROQueryItem<'w, Self::ViewQuery>,
-        _entity: Option<ROQueryItem<'w, Self::ItemQuery>>,
+        (view_uniform, bind_group): ROQueryItem<'w, '_, Self::ViewQuery>,
+        _entity: Option<ROQueryItem<'w, '_, Self::ItemQuery>>,
         _param: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut bevy::render::render_phase::TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
@@ -194,8 +194,8 @@ impl<const I: usize, P: PhaseItem> RenderCommand<P> for SetInfiniteGridBindGroup
     #[inline]
     fn render<'w>(
         _item: &P,
-        camera_settings_offset: ROQueryItem<'w, Self::ViewQuery>,
-        base_offsets: Option<ROQueryItem<'w, Self::ItemQuery>>,
+        camera_settings_offset: ROQueryItem<'w, '_, Self::ViewQuery>,
+        base_offsets: Option<ROQueryItem<'w, '_, Self::ItemQuery>>,
         bind_group: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut bevy::render::render_phase::TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
@@ -226,8 +226,8 @@ impl<P: PhaseItem> RenderCommand<P> for FinishDrawInfiniteGrid {
     #[inline]
     fn render<'w>(
         _item: &P,
-        _view: ROQueryItem<'w, Self::ViewQuery>,
-        _entity: Option<ROQueryItem<'w, Self::ItemQuery>>,
+        _view: ROQueryItem<'w, '_, Self::ViewQuery>,
+        _entity: Option<ROQueryItem<'w, '_, Self::ItemQuery>>,
         _param: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut bevy::render::render_phase::TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
@@ -246,7 +246,7 @@ fn prepare_grid_view_uniforms(
     view_uniforms.uniforms.clear();
     for (entity, camera) in views.iter() {
         let projection = camera.clip_from_view;
-        let view = camera.world_from_view.compute_matrix();
+        let view = camera.world_from_view.to_matrix();
         let inverse_view = view.inverse();
         commands.entity(entity).insert(GridViewUniformOffset {
             offset: view_uniforms.uniforms.push(&GridViewUniform {

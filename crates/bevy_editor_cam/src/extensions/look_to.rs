@@ -32,7 +32,7 @@ impl Plugin for LookToPlugin {
 
 /// Send this event to rotate the camera about its anchor until it is looking in the given direction
 /// with the given up direction. Animation speed is configured with the [`LookTo`] resource.
-#[derive(Debug, Event)]
+#[derive(Debug, Event, BufferedEvent)]
 pub struct LookToTrigger {
     /// The new direction to face.
     pub target_facing_direction: Dir3,

@@ -57,19 +57,19 @@ pub(crate) fn spawn_option<'a>(
             theme.context_menu.option_border_radius,
         ))
         .observe(
-            |trigger: Trigger<Pointer<Over>>,
+            |trigger: On<Pointer<Over>>,
              theme: Res<Theme>,
              mut query: Query<&mut BackgroundColor>| {
                 *query.get_mut(trigger.target()).unwrap() = theme.context_menu.hover_color;
             },
         )
         .observe(
-            |trigger: Trigger<Pointer<Out>>, mut query: Query<&mut BackgroundColor>| {
+            |trigger: On<Pointer<Out>>, mut query: Query<&mut BackgroundColor>| {
                 query.get_mut(trigger.target()).unwrap().0 = Color::NONE;
             },
         )
         .observe(
-            move |_trigger: Trigger<Pointer<Over>>,
+            move |_trigger: On<Pointer<Over>>,
                   window_query: Query<Entity, With<Window>>,
                   mut commands: Commands| {
                 let window = window_query.single().unwrap();
@@ -79,7 +79,7 @@ pub(crate) fn spawn_option<'a>(
             },
         )
         .observe(
-            |_trigger: Trigger<Pointer<Out>>,
+            |_trigger: On<Pointer<Out>>,
              window_query: Query<Entity, With<Window>>,
              mut commands: Commands| {
                 let window = window_query.single().unwrap();
@@ -89,7 +89,7 @@ pub(crate) fn spawn_option<'a>(
             },
         )
         .observe(
-            move |trigger: Trigger<Pointer<Released>>,
+            move |trigger: On<Pointer<Release>>,
                   mut commands: Commands,
                   child_of_query: Query<&ChildOf>,
                   mut query: Query<&mut ContextMenu>| {

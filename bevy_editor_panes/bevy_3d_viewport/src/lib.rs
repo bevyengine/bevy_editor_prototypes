@@ -2,7 +2,7 @@
 use bevy::{
     picking::{
         pointer::{Location, PointerId, PointerInput, PointerLocation},
-        PickSet,
+        PickingSystems,
     },
     prelude::*,
     render::{
@@ -51,14 +51,14 @@ impl Plugin for Viewport3dPanePlugin {
             .add_systems(Startup, setup)
             .add_systems(
                 PreUpdate,
-                render_target_picking_passthrough.in_set(PickSet::Last),
+                render_target_picking_passthrough.in_set(PickingSystems::Last),
             )
             .add_systems(
                 PostUpdate,
                 update_render_target_size.after(ui_layout_system),
             )
             .add_observer(
-                |trigger: Trigger<OnRemove, Bevy3dViewport>,
+                |trigger: On<Remove, Bevy3dViewport>,
                  mut commands: Commands,
                  query: Query<&Bevy3dViewport>| {
                     // Despawn the viewport camera
@@ -82,7 +82,7 @@ fn render_target_picking_passthrough(
     viewports: Query<(Entity, &Bevy3dViewport)>,
     content: Query<&PaneContentNode>,
     children_query: Query<&Children>,
-    node_query: Query<(&ComputedNode, &GlobalTransform, &ImageNode), With<Active>>,
+    node_query: Query<(&ComputedNode, &UiGlobalTransform, &ImageNode), With<Active>>,
     mut pointers: Query<(&PointerId, &mut PointerLocation)>,
     mut pointer_input_reader: EventReader<PointerInput>,
 ) {
@@ -104,7 +104,7 @@ fn render_target_picking_passthrough(
                 continue;
             };
             let node_rect =
-                Rect::from_center_size(global_transform.translation().xy(), computed_node.size());
+                Rect::from_center_size(global_transform.translation, computed_node.size());
 
             let new_location = Location {
                 position: event.location.position - node_rect.min,
@@ -172,10 +172,10 @@ fn on_pane_creation(
         .with_children(|parent| {
             spawn_view_gizmo_target_texture(images, parent);
         })
-        .observe(|trigger: Trigger<Pointer<Over>>, mut commands: Commands| {
+        .observe(|trigger: On<Pointer<Over>>, mut commands: Commands| {
             commands.entity(trigger.target()).insert(Active);
         })
-        .observe(|trigger: Trigger<Pointer<Out>>, mut commands: Commands| {
+        .observe(|trigger: On<Pointer<Out>>, mut commands: Commands| {
             commands.entity(trigger.target()).remove::<Active>();
         });
 

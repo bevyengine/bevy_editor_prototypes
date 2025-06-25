@@ -72,7 +72,7 @@ pub(crate) fn spawn_pane<'a>(
             ChildOf(area),
         ))
         .observe(
-            move |_trigger: Trigger<Pointer<Move>>,
+            move |_trigger: On<Pointer<Move>>,
                   window_query: Query<Entity, With<Window>>,
                   mut commands: Commands| {
                 let window = window_query.single().unwrap();
@@ -82,7 +82,7 @@ pub(crate) fn spawn_pane<'a>(
             },
         )
         .observe(
-            |_trigger: Trigger<Pointer<Out>>,
+            |_trigger: On<Pointer<Out>>,
              window_query: Query<Entity, With<Window>>,
              mut commands: Commands| {
                 let window = window_query.single().unwrap();
@@ -212,7 +212,7 @@ pub(crate) fn spawn_resize_handle<'a>(
         ResizeHandle,
     ))
     .observe(
-        move |trigger: Trigger<Pointer<DragStart>>,
+        move |trigger: On<Pointer<DragStart>>,
               mut drag_state: ResMut<DragState>,
               parent_query: Query<&ChildOf>,
               children_query: Query<&Children>,
@@ -248,7 +248,7 @@ pub(crate) fn spawn_resize_handle<'a>(
         },
     )
     .observe(
-        move |trigger: Trigger<Pointer<Drag>>,
+        move |trigger: On<Pointer<Drag>>,
               mut drag_state: ResMut<DragState>,
               parent_query: Query<&ChildOf>,
               children_query: Query<&Children>,
@@ -284,19 +284,19 @@ pub(crate) fn spawn_resize_handle<'a>(
         },
     )
     .observe(
-        move |_trigger: Trigger<Pointer<DragEnd>>, mut drag_state: ResMut<DragState>| {
+        move |_trigger: On<Pointer<DragEnd>>, mut drag_state: ResMut<DragState>| {
             drag_state.is_dragging = false;
             drag_state.offset = 0.;
         },
     )
     .observe(
-        |_trigger: Trigger<Pointer<Cancel>>, mut drag_state: ResMut<DragState>| {
+        |_trigger: On<Pointer<Cancel>>, mut drag_state: ResMut<DragState>| {
             drag_state.is_dragging = false;
             drag_state.offset = 0.;
         },
     )
     .observe(
-        move |_trigger: Trigger<Pointer<Move>>,
+        move |_trigger: On<Pointer<Move>>,
               window_query: Query<Entity, With<Window>>,
               mut commands: Commands| {
             let window = window_query.single().unwrap();
@@ -309,7 +309,7 @@ pub(crate) fn spawn_resize_handle<'a>(
         },
     )
     .observe(
-        |_trigger: Trigger<Pointer<Out>>,
+        |_trigger: On<Pointer<Out>>,
          window_query: Query<Entity, With<Window>>,
          mut commands: Commands| {
             let window = window_query.single().unwrap();

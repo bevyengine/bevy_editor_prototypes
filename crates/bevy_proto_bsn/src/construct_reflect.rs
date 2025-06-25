@@ -85,16 +85,20 @@ pub(crate) fn register_reflect_construct(app: &mut App) {
     app.register_type_data::<bevy::audio::PlaybackSettings, ReflectConstruct>();
     app.register_type_data::<bevy::audio::SpatialListener, ReflectConstruct>();
 
+    app.register_type_data::<bevy::anti_aliasing::contrast_adaptive_sharpening::ContrastAdaptiveSharpening, ReflectConstruct>();
+    app.register_type::<bevy::anti_aliasing::contrast_adaptive_sharpening::DenoiseCas>();
+    app.register_type_data::<bevy::anti_aliasing::contrast_adaptive_sharpening::DenoiseCas, ReflectConstruct>();
+    app.register_type_data::<bevy::anti_aliasing::fxaa::Fxaa, ReflectConstruct>();
+    app.register_type_data::<bevy::anti_aliasing::smaa::Smaa, ReflectConstruct>();
+    app.register_type_data::<bevy::anti_aliasing::taa::TemporalAntiAliasing, ReflectConstruct>();
+
     app.register_type::<bevy::core_pipeline::auto_exposure::AutoExposure>();
     app.register_type_data::<bevy::core_pipeline::auto_exposure::AutoExposure, ReflectConstruct>();
     app.register_type_data::<bevy::core_pipeline::bloom::Bloom, ReflectConstruct>();
-    app.register_type_data::<bevy::core_pipeline::contrast_adaptive_sharpening::ContrastAdaptiveSharpening, ReflectConstruct>();
-    app.register_type::<bevy::core_pipeline::contrast_adaptive_sharpening::DenoiseCas>();
-    app.register_type_data::<bevy::core_pipeline::contrast_adaptive_sharpening::DenoiseCas, ReflectConstruct>();
     app.register_type_data::<bevy::core_pipeline::core_2d::Camera2d, ReflectConstruct>();
     app.register_type_data::<bevy::core_pipeline::core_3d::Camera3d, ReflectConstruct>();
     app.register_type_data::<bevy::core_pipeline::dof::DepthOfField, ReflectConstruct>();
-    app.register_type_data::<bevy::core_pipeline::fxaa::Fxaa, ReflectConstruct>();
+
     app.register_type::<bevy::core_pipeline::motion_blur::MotionBlur>();
     app.register_type_data::<bevy::core_pipeline::motion_blur::MotionBlur, ReflectConstruct>();
     app.register_type_data::<bevy::core_pipeline::oit::OrderIndependentTransparencySettings, ReflectConstruct>();
@@ -103,7 +107,6 @@ pub(crate) fn register_reflect_construct(app: &mut App) {
     app.register_type_data::<bevy::core_pipeline::prepass::MotionVectorPrepass, ReflectConstruct>();
     app.register_type_data::<bevy::core_pipeline::prepass::NormalPrepass, ReflectConstruct>();
     app.register_type_data::<bevy::core_pipeline::Skybox, ReflectConstruct>();
-    app.register_type_data::<bevy::core_pipeline::smaa::Smaa, ReflectConstruct>();
 
     app.register_type_data::<bevy::ecs::name::Name, ReflectConstruct>();
 
@@ -250,6 +253,8 @@ pub(crate) fn register_reflect_construct(app: &mut App) {
     app.register_type_data::<bevy::ui::Outline, ReflectConstruct>();
     app.register_type_data::<bevy::ui::ScrollPosition, ReflectConstruct>();
     app.register_type_data::<bevy::ui::TextShadow, ReflectConstruct>();
+    app.register_type::<bevy::ui::UiTransform>();
+    app.register_type::<bevy::ui::UiGlobalTransform>();
     app.register_type_data::<bevy::ui::ZIndex, ReflectConstruct>();
     app.register_type_data::<bevy::ui::widget::Button, ReflectConstruct>();
     app.register_type_data::<bevy::ui::widget::ImageNode, ReflectConstruct>();

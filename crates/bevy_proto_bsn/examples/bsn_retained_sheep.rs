@@ -63,7 +63,7 @@ fn counter(num: usize, name: &'static str) -> impl Scene {
                 {visible_if(num < 100)}
             ) [
                 // Observes parent entity.
-                On(|_: Trigger<Pointer<Released>>, mut commands: Commands| {
+                Obs(|_: On<Pointer<Release>>, mut commands: Commands| {
                     commands.spawn(Sheep);
                 })
             ],
@@ -75,7 +75,7 @@ fn counter(num: usize, name: &'static str) -> impl Scene {
                 {visible_if(num > 0)},
             ),
             // Observes named entity "DecreaseButton"
-            On(|_: Trigger<Pointer<Released>>, sheep: Query<Entity, With<Sheep>>, mut commands: Commands| {
+            Obs(|_: On<Pointer<Release>>, sheep: Query<Entity, With<Sheep>>, mut commands: Commands| {
                 if let Some(sheep) = sheep.iter().next() {
                     commands.entity(sheep).despawn();
                 }

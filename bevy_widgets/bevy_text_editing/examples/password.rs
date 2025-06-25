@@ -10,7 +10,7 @@
 //! cargo run --example password
 //! ```
 
-use bevy::prelude::*;
+use bevy::{input_focus::tab_navigation::TabGroup, prelude::*};
 use bevy_text_editing::*;
 
 fn main() {
@@ -43,15 +43,18 @@ fn setup(mut commands: Commands) {
         .id();
 
     commands
-        .spawn(Node {
-            width: Val::Percent(100.0),
-            height: Val::Percent(100.0),
-            display: Display::Flex,
-            flex_direction: FlexDirection::Column,
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            ..Default::default()
-        })
+        .spawn((
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                display: Display::Flex,
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..Default::default()
+            },
+            TabGroup::default(),
+        ))
         .add_child(password_id)
         .with_child(Text::new("Password:"))
         .add_child(show_password_id);
@@ -66,7 +69,7 @@ struct Password {
 struct ShowPassword(pub Entity);
 
 fn update_password(
-    trigger: Trigger<TextChanged>,
+    trigger: On<TextChanged>,
     mut commands: Commands,
     mut q_passwords: Query<&mut Password>,
 ) {

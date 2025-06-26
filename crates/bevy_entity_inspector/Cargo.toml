@@ -1,19 +1,18 @@
 [package]
-name = "bevy_component_viewer"
+name = "bevy_entity_inspector"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 bevy.workspace = true
 bevy_editor_core.workspace = true
-bevy_remote.workspace = true
 bevy_pane_layout.workspace = true
-bevy_editor_styles.workspace = true
+bevy_remote.workspace = true
+bevy_transform.workspace = true
 bevy_i-cant-believe-its-not-bsn.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-
-ureq = {version = "3.0.12", features = ["json"]}
+ureq.workspace = true
 
 [lints]
 workspace = true

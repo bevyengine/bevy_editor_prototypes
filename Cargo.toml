@@ -28,7 +28,7 @@ unused_qualifications = "warn"
 
 [workspace.dependencies]
 bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "e9418b3845c1ffc9624a3a4003bde66a2ad6566a", features = [
-    "wayland"
+    "wayland", "serialize"
 ] }
 bevy_remote = { git = "https://github.com/bevyengine/bevy.git", rev = "e9418b3845c1ffc9624a3a4003bde66a2ad6566a" }
 bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "e9418b3845c1ffc9624a3a4003bde66a2ad6566a" }
@@ -42,6 +42,7 @@ rfd = "0.15.3"
 ron = "0.10.1"
 variadics_please = "1.0"
 serde_json = "1.0.140"
+ureq = {version = "3.0.12", features = ["json"]}
 
 # local crates
 
@@ -52,7 +53,6 @@ bevy_asset_browser = { path = "bevy_editor_panes/bevy_asset_browser" }
 bevy_marketplace_viewer = { path = "bevy_editor_panes/bevy_marketplace_viewer" }
 bevy_preferences = { path = "bevy_editor_panes/bevy_preferences" }
 bevy_properties_pane = { path = "bevy_editor_panes/bevy_properties_pane" }
-bevy_component_viewer = { path = "bevy_editor_panes/bevy_component_viewer" }
 bevy_scene_tree = { path = "bevy_editor_panes/bevy_scene_tree" }
 
 # bevy_widgets
@@ -68,6 +68,7 @@ bevy_tooltips = { path = "bevy_widgets/bevy_tooltips" }
 bevy_text_editing = { path = "bevy_widgets/bevy_text_editing" }
 bevy_field_forms = { path = "bevy_widgets/bevy_field_forms" }
 bevy_focus = { path = "bevy_widgets/bevy_focus" }
+bevy_transform = { path = "bevy_widgets/bevy_transform" }
 
 # general crates
 bevy_editor_core = { path = "crates/bevy_editor_core" }

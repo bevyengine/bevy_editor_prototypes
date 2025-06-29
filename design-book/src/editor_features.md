@@ -112,7 +112,7 @@ Blocked Features
 
 Features needed
 
-- Collections/Relations (Any relation based in 1+ entites being stored on another entity)
+- Collections/Relations (Any relation based in 1+ entities being stored on another entity)
   - Parent/Child
 - Entity Visibility control
   - Isolate
@@ -126,7 +126,7 @@ Features needed
 
 Nice to have
 
-- Set Color of collection Icon for orginization
+- Set Color of collection Icon for organization
 - Show Active (Expand Tree to show currently selected entity in scene view)
 - Collapse all
 - Expand all

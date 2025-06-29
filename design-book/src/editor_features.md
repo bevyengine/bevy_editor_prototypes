@@ -56,7 +56,7 @@ Nice to have
 - Snapping to specialized empties to assist kitbashing
 - Fast blockout tool (Blender add mesh interactively tool)
 - Mass placement tools
-- Object paining tools (a type of mass placement)
+- Object painting tools (a type of mass placement)
 
 Blocked Features
 

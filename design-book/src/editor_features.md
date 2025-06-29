@@ -1,6 +1,6 @@
 # Editor Features
 
-This is a ongoing list of features that the various panels of the editor needs, features that'd be nice to have, and features that are blocked by not having certain things
+This is a ongoing list of features that the various panels of the editor needs, features that'd be nice to have, and features that are blocked by not having certain things. This list should be added to and updated as the editor progresses, helping to guide the roadmap with future plans.
 
 ## 3D Scene View
 

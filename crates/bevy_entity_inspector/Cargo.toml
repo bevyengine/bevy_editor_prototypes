@@ -5,7 +5,10 @@ edition = "2024"
 
 [dependencies]
 bevy.workspace = true
+bevy_editor.workspace = true
+bevy_context_menu.workspace = true
 bevy_editor_core.workspace = true
+bevy_editor_styles.workspace = true
 bevy_pane_layout.workspace = true
 bevy_remote.workspace = true
 bevy_transform.workspace = true
@@ -16,3 +19,8 @@ ureq.workspace = true
 
 [lints]
 workspace = true
+
+[[example]]
+name = "cube_server"
+path = "examples/cube_server.rs"
+doc-scrape-examples = true

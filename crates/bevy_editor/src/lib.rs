@@ -35,7 +35,7 @@ use crate::load_gltf::LoadGltfPlugin;
 
 mod load_gltf;
 pub mod project;
-mod ui;
+pub mod ui;
 
 /// The plugin that handle the bare minimum to run the application
 pub struct RuntimePlugin;

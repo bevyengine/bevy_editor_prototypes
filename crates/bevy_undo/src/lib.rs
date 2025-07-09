@@ -1313,7 +1313,7 @@ fn auto_remap_undo_redo<T: Component + Reflect>(
                         reflect.as_partial_reflect_mut(),
                         &|v| {
                             if let Some(e) = change_chain.entity_remap.get(v) {
-                                println!("remap {:?} to {:?}", v, e);
+                                println!("remap {v:?} to {e:?}");
                                 *v = *e;
                             }
                         },

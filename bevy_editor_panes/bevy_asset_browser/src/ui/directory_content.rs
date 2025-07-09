@@ -156,7 +156,7 @@ pub(crate) fn create_new_folder(
             updated_content.push(Entry::Folder(folder_name));
             commands.insert_resource(DirectoryContent(updated_content));
         }
-        Err(e) => eprintln!("Failed to create directory: {}", e),
+        Err(e) => eprintln!("Failed to create directory: {e}"),
     }
 }
 
@@ -190,7 +190,7 @@ pub(crate) fn delete_folder(
             });
             commands.insert_resource(DirectoryContent(updated_content));
         }
-        Err(e) => eprintln!("Failed to delete directory: {}", e),
+        Err(e) => eprintln!("Failed to delete directory: {e}"),
     }
 }
 
@@ -211,7 +211,7 @@ pub(crate) fn create_new_script(
             updated_content.push(Entry::File(file_name));
             commands.insert_resource(DirectoryContent(updated_content));
         }
-        Err(e) => eprintln!("Failed to create script: {}", e),
+        Err(e) => eprintln!("Failed to create script: {e}"),
     }
 }
 
@@ -226,7 +226,7 @@ pub(crate) fn open_in_file_manager(
     path.push(location.path.as_path());
     match io::open_in_file_manager(path) {
         Ok(_) => {}
-        Err(e) => eprintln!("Failed to open in file manager: {}", e),
+        Err(e) => eprintln!("Failed to open in file manager: {e}"),
     }
 }
 
@@ -253,7 +253,7 @@ pub(crate) fn reveal_in_file_manager(
     path.push(file_name.clone());
     match io::open_in_file_manager(path) {
         Ok(_) => {}
-        Err(e) => eprintln!("Failed to reveal in file manager: {}", e),
+        Err(e) => eprintln!("Failed to reveal in file manager: {e}"),
     }
 }
 
@@ -287,6 +287,6 @@ pub(crate) fn delete_file(
             });
             commands.insert_resource(DirectoryContent(updated_content));
         }
-        Err(e) => eprintln!("Failed to delete file: {}", e),
+        Err(e) => eprintln!("Failed to delete file: {e}"),
     }
 }

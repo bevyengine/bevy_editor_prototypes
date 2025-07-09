@@ -28,7 +28,7 @@ pub struct PropertyPanelProps {
 impl Default for PropertyPanelProps {
     fn default() -> Self {
         Self {
-            width: Val::Percent(35.0), // Take 35% of the width
+            width: Val::Percent(60.0), // Take 60% of the width (complement to 40% tree)
             show_headers: true,
             alternating_rows: true,
         }

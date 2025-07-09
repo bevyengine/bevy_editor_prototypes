@@ -6,7 +6,6 @@
 use crate::events::{EntityInspectorRows, InspectorNodeData};
 use crate::reflection::{extract_crate_and_type, extract_reflect_fields};
 use crate::ui::{TreeConfig, TreeNode, TreeState};
-use bevy::platform::collections::HashMap;
 use bevy::prelude::*;
 
 /// Type of tree node for visual styling

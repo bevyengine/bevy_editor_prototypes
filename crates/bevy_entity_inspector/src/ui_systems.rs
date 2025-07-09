@@ -289,9 +289,7 @@ fn spawn_inspector_ui_internal(
     let inspector_panel = commands
         .spawn((
             Node {
-                width: Val::Auto,
-                min_width: Val::Px(600.0),
-                max_width: Val::Px(1200.0),
+                width: Val::Percent(100.0), // Take full width available
                 height: Val::Percent(100.0),
                 flex_direction: FlexDirection::Row, // Horizontal layout
                 border: UiRect::all(Val::Px(1.0)),
@@ -323,11 +321,11 @@ fn spawn_inspector_ui_internal(
         background_color: theme.background_color,
     };
 
-    // Create left panel for tree (65% width)
+    // Create left panel for tree (40% width)
     let tree_panel = commands
         .spawn((
             Node {
-                width: Val::Percent(65.0),
+                width: Val::Percent(40.0),
                 height: Val::Percent(100.0),
                 flex_direction: FlexDirection::Column,
                 padding: UiRect::all(Val::Px(8.0)),
@@ -374,10 +372,10 @@ pub fn setup_inspector_camera(mut commands: Commands) {
 pub fn handle_tree_selection(
     mut selection_events: EventReader<crate::ui::tree::TreeNodeSelected>,
     mut tree_state: ResMut<TreeState>,
-    _inspector_data: Res<EntityInspectorRows>,
+    inspector_data: Res<EntityInspectorRows>,
     content_query: Query<Entity, With<crate::ui::property_panel::PropertyPanelContent>>,
     children_query: Query<&Children>,
-    _theme: Res<crate::theme::InspectorTheme>,
+    theme: Res<crate::theme::InspectorTheme>,
     mut commands: Commands,
 ) {
     for selection_event in selection_events.read() {
@@ -397,16 +395,321 @@ pub fn handle_tree_selection(
 
             // Rebuild content with new selection
             commands.entity(content_entity).with_children(|parent| {
-                // For now, just add a simple text indicator
-                parent.spawn((
-                    Text::new(format!("Selected: {}", selection_event.node_id)),
-                    TextFont {
-                        font_size: 12.0,
-                        ..default()
-                    },
-                    TextColor(Color::srgb(0.9, 0.9, 0.9)),
-                ));
+                // Parse the node ID to understand what was selected
+                match parse_node_selection(&selection_event.node_id, &inspector_data) {
+                    Some(SelectedContent::Entity(entity_name)) => {
+                        // Show entity summary
+                        parent.spawn((
+                            Text::new(format!(
+                                "Entity: {}",
+                                if entity_name.is_empty() {
+                                    "Unnamed"
+                                } else {
+                                    &entity_name
+                                }
+                            )),
+                            TextFont {
+                                font_size: 16.0,
+                                ..default()
+                            },
+                            TextColor(theme.text_color),
+                            Node {
+                                margin: UiRect::bottom(Val::Px(12.0)),
+                                ..default()
+                            },
+                        ));
+
+                        // Count components
+                        let entity_count = inspector_data.rows.len();
+                        let component_count: usize = inspector_data
+                            .rows
+                            .values()
+                            .map(|row| row.components.len())
+                            .sum();
+
+                        parent.spawn((
+                            Text::new(format!(
+                                "Total Entities: {}\nTotal Components: {}",
+                                entity_count, component_count
+                            )),
+                            TextFont {
+                                font_size: 12.0,
+                                ..default()
+                            },
+                            TextColor(Color::srgb(0.8, 0.8, 0.8)),
+                        ));
+                    }
+                    Some(SelectedContent::Component {
+                        entity_id,
+                        component_name,
+                    }) => {
+                        // Show component fields directly - get the actual component data from inspector_data
+                        // Component header
+                        parent.spawn((
+                            Text::new(format!("Component: {}", component_name)),
+                            TextFont {
+                                font_size: 16.0,
+                                ..default()
+                            },
+                            TextColor(theme.text_color),
+                            Node {
+                                margin: UiRect::bottom(Val::Px(12.0)),
+                                ..default()
+                            },
+                        ));
+
+                        // Find the component data in inspector_data
+                        let mut found_component = false;
+                        for (entity, row) in &inspector_data.rows {
+                            let current_entity_id = format!("{:?}", entity);
+                            if entity_id.contains(&current_entity_id)
+                                || current_entity_id.contains(&entity_id)
+                            {
+                                // Look for the component by name
+                                for (component_type, component_data) in &row.components {
+                                    let (_, type_name) =
+                                        crate::reflection::extract_crate_and_type(component_type);
+                                    if type_name == component_name {
+                                        found_component = true;
+
+                                        // Extract and display all fields
+                                        let fields = crate::reflection::extract_reflect_fields(
+                                            component_data.as_ref(),
+                                        );
+
+                                        if fields.is_empty() {
+                                            parent.spawn((
+                                                Text::new("No reflectable fields"),
+                                                TextFont {
+                                                    font_size: 12.0,
+                                                    ..default()
+                                                },
+                                                TextColor(Color::srgb(0.6, 0.6, 0.6)),
+                                            ));
+                                        } else {
+                                            for (field_name, field_value) in fields {
+                                                // Create a container for each field
+                                                parent
+                                                    .spawn((
+                                                        Node {
+                                                            width: Val::Percent(100.0),
+                                                            padding: UiRect::all(Val::Px(4.0)),
+                                                            margin: UiRect::bottom(Val::Px(2.0)),
+                                                            ..default()
+                                                        },
+                                                        BackgroundColor(Color::srgba(
+                                                            1.0, 1.0, 1.0, 0.05,
+                                                        )),
+                                                    ))
+                                                    .with_children(|field_parent| {
+                                                        // Field name
+                                                        field_parent.spawn((
+                                                            Text::new(format!("{}:", field_name)),
+                                                            TextFont {
+                                                                font_size: 12.0,
+                                                                ..default()
+                                                            },
+                                                            TextColor(Color::srgb(0.8, 0.9, 1.0)), // Light blue for field names
+                                                            Node {
+                                                                margin: UiRect::bottom(Val::Px(
+                                                                    2.0,
+                                                                )),
+                                                                ..default()
+                                                            },
+                                                        ));
+
+                                                        // Field value
+                                                        field_parent.spawn((
+                                                            Text::new(field_value),
+                                                            TextFont {
+                                                                font_size: 12.0,
+                                                                ..default()
+                                                            },
+                                                            TextColor(Color::srgb(0.9, 0.9, 0.9)), // White for values
+                                                        ));
+                                                    });
+                                            }
+                                        }
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                        }
+
+                        if !found_component {
+                            parent.spawn((
+                                Text::new(format!("Component {} not found", component_name)),
+                                TextFont {
+                                    font_size: 12.0,
+                                    ..default()
+                                },
+                                TextColor(Color::srgb(0.8, 0.4, 0.4)),
+                            ));
+                        }
+                    }
+                    Some(SelectedContent::Field {
+                        field_name,
+                        field_value,
+                    }) => {
+                        // Show field details
+                        parent.spawn((
+                            Text::new(format!("Field: {}", field_name)),
+                            TextFont {
+                                font_size: 16.0,
+                                ..default()
+                            },
+                            TextColor(theme.text_color),
+                            Node {
+                                margin: UiRect::bottom(Val::Px(12.0)),
+                                ..default()
+                            },
+                        ));
+
+                        parent.spawn((
+                            Text::new(format!("Value: {}", field_value)),
+                            TextFont {
+                                font_size: 12.0,
+                                ..default()
+                            },
+                            TextColor(Color::srgb(0.9, 0.9, 0.9)),
+                        ));
+                    }
+                    Some(SelectedContent::CrateGroup(crate_name)) => {
+                        // Show crate group summary
+                        parent.spawn((
+                            Text::new(format!("Crate: {}", crate_name)),
+                            TextFont {
+                                font_size: 16.0,
+                                ..default()
+                            },
+                            TextColor(theme.text_color),
+                            Node {
+                                margin: UiRect::bottom(Val::Px(12.0)),
+                                ..default()
+                            },
+                        ));
+
+                        parent.spawn((
+                            Text::new("Select a component to view its properties"),
+                            TextFont {
+                                font_size: 12.0,
+                                ..default()
+                            },
+                            TextColor(Color::srgb(0.7, 0.7, 0.7)),
+                        ));
+                    }
+                    None => {
+                        // Fallback content
+                        parent.spawn((
+                            Text::new(format!("Selected: {}", selection_event.node_id)),
+                            TextFont {
+                                font_size: 12.0,
+                                ..default()
+                            },
+                            TextColor(Color::srgb(0.9, 0.9, 0.9)),
+                        ));
+                    }
+                }
             });
         }
     }
+}
+
+/// Types of content that can be selected in the tree
+enum SelectedContent {
+    Entity(String),
+    Component {
+        entity_id: String,
+        component_name: String,
+    },
+    Field {
+        field_name: String,
+        field_value: String,
+    },
+    CrateGroup(String),
+}
+
+/// Parses a node ID to determine what content should be shown
+fn parse_node_selection(
+    node_id: &str,
+    inspector_data: &EntityInspectorRows,
+) -> Option<SelectedContent> {
+    // Parse node ID format: entity_<entity_id> or entity_<entity_id>_<crate>_<component> or entity_<entity_id>_<crate>_<component>_field_<field>
+
+    if node_id.starts_with("entity_") {
+        let parts: Vec<&str> = node_id.split('_').collect();
+
+        if parts.len() >= 2 {
+            // Extract entity from "entity_<entity_bits>"
+            let entity_part = &parts[1..].join("_"); // Rejoin since entity IDs can contain underscores
+
+            // Try to find the actual entity in inspector data
+            for (entity, row) in &inspector_data.rows {
+                let entity_id_str = format!("{:?}", entity); // This gives us something like "Entity { index: X, generation: Y }"
+
+                if entity_part.contains(
+                    &entity_id_str
+                        .replace("Entity { index: ", "")
+                        .replace(", generation: ", "v")
+                        .replace(" }", ""),
+                ) || entity_part == &entity_id_str
+                {
+                    // Determine what level of the tree was selected
+                    if node_id == format!("entity_{:?}", entity) {
+                        // Entity root selected
+                        return Some(SelectedContent::Entity(row.name.clone()));
+                    }
+
+                    // Look for component selection pattern: entity_<entity>_<crate>_<component>
+                    for (component_type, component_data) in &row.components {
+                        let (crate_name, type_name) =
+                            crate::reflection::extract_crate_and_type(component_type);
+                        let expected_component_id =
+                            format!("entity_{:?}_{}_{}", entity, crate_name, type_name);
+
+                        if node_id == expected_component_id {
+                            // Component selected - this is what we want to show fields for
+                            return Some(SelectedContent::Component {
+                                entity_id: format!("{:?}", entity),
+                                component_name: type_name,
+                            });
+                        }
+
+                        // Check for field selection
+                        if node_id.starts_with(&format!("{}_field_", expected_component_id)) {
+                            let field_part = node_id
+                                .strip_prefix(&format!("{}_field_", expected_component_id))
+                                .unwrap();
+                            let fields =
+                                crate::reflection::extract_reflect_fields(component_data.as_ref());
+
+                            for (field_name, field_value) in fields {
+                                if field_part == field_name {
+                                    return Some(SelectedContent::Field {
+                                        field_name,
+                                        field_value,
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    // Check for crate group selection: entity_<entity>_<crate>
+                    let component_types: Vec<_> = row.components.keys().cloned().collect();
+                    for component_type in component_types {
+                        let (crate_name, _) =
+                            crate::reflection::extract_crate_and_type(&component_type);
+                        let expected_crate_id = format!("entity_{:?}_{}", entity, crate_name);
+
+                        if node_id == expected_crate_id {
+                            return Some(SelectedContent::CrateGroup(crate_name));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    None
 }

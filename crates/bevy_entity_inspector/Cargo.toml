@@ -3,9 +3,9 @@ name = "bevy_entity_inspector"
 version = "0.1.0"
 edition = "2021"
 description = "A modular entity inspector for Bevy with reflection support"
-authors = ["Bevy Contributors"]
+authors = ["Joe Buehler"]
 license = "MIT OR Apache-2.0"
-keywords = ["bevy", "inspector", "reflection", "ui", "debug"]
+keywords = ["bevy", "inspector", "editor", "reflection", "ui", "debug"]
 categories = ["game-development", "gui"]
 
 [features]

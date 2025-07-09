@@ -70,7 +70,7 @@ use bevy_remote::{
     BrpRequest,
 };
 
-use crate::{EntityInspectorRow, EntityInspectorRows, InspectorEvent};
+use crate::events::{EntityInspectorRow, EntityInspectorRows, InspectorEvent};
 use serde::de::IntoDeserializer;
 
 /// Plugin for entity inspector remote functionality.

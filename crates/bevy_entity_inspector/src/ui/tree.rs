@@ -283,13 +283,14 @@ pub fn update_tree_node_style(
 pub fn handle_tree_node_interactions(
     tree_node_query: Query<(&Interaction, &TreeNodeWidget), (Changed<Interaction>, With<Button>)>,
     mut tree_state: ResMut<TreeState>,
+    mut selection_events: EventWriter<TreeNodeSelected>,
 ) {
     for (interaction, node_widget) in tree_node_query.iter() {
         if *interaction == Interaction::Pressed {
             let node_id = &node_widget.node_id;
 
-            // Toggle expansion state if the node has children
             if let Some(node) = tree_state.nodes.get_mut(node_id) {
+                // Toggle expansion state if the node has children
                 if !node.children.is_empty() {
                     node.is_expanded = !node.is_expanded;
                     info!(
@@ -298,9 +299,14 @@ pub fn handle_tree_node_interactions(
                     );
                 }
 
-                // Update selected node
+                // Always update selected node for any clickable node
                 tree_state.selected_node = Some(node_id.clone());
                 info!("Selected node: {}", node_id);
+
+                // Emit selection event for property panel updates
+                selection_events.write(TreeNodeSelected {
+                    node_id: node_id.clone(),
+                });
             }
         }
     }
@@ -399,55 +405,34 @@ pub fn build_tree_node_recursive(
         })
         .id();
 
-    // Create the main clickable node row - only make it a button if it has children
-    let node_row = if has_children {
-        commands
-            .spawn((
-                Button,
-                Node {
-                    width: Val::Auto,
-                    min_width: Val::Percent(100.0),
-                    height: Val::Auto,
-                    min_height: Val::Px(config.node_height),
-                    flex_direction: FlexDirection::Row,
-                    align_items: AlignItems::Center,
-                    padding: UiRect::left(Val::Px(node.depth as f32 * config.indent_size)),
-                    ..default()
-                },
-                TreeNodeWidget {
-                    node_id: node.id.clone(),
-                },
-                BackgroundColor(if tree_state.selected_node.as_ref() == Some(&node.id) {
-                    config.selected_color
-                } else {
-                    Color::NONE
-                }),
-                BorderRadius::all(Val::Px(2.0)),
-            ))
-            .id()
-    } else {
-        // For leaf nodes (non-expandable), create a regular node with reduced opacity background
-        commands
-            .spawn((
-                Node {
-                    width: Val::Auto,
-                    min_width: Val::Percent(100.0),
-                    height: Val::Auto,
-                    min_height: Val::Px(config.node_height),
-                    flex_direction: FlexDirection::Row,
-                    align_items: AlignItems::Center,
-                    padding: UiRect::left(Val::Px(node.depth as f32 * config.indent_size)),
-                    ..default()
-                },
-                TreeNodeWidget {
-                    node_id: node.id.clone(),
-                },
+    // Create the main clickable node row - make all nodes clickable for selection
+    let node_row = commands
+        .spawn((
+            Button, // All nodes are now buttons for selection
+            Node {
+                width: Val::Auto,
+                min_width: Val::Percent(100.0),
+                height: Val::Auto,
+                min_height: Val::Px(config.node_height),
+                flex_direction: FlexDirection::Row,
+                align_items: AlignItems::Center,
+                padding: UiRect::left(Val::Px(node.depth as f32 * config.indent_size)),
+                ..default()
+            },
+            TreeNodeWidget {
+                node_id: node.id.clone(),
+            },
+            BackgroundColor(if tree_state.selected_node.as_ref() == Some(&node.id) {
+                config.selected_color
+            } else if has_children {
+                Color::NONE
+            } else {
                 // Slightly different background for non-expandable components
-                BackgroundColor(Color::srgba(0.1, 0.1, 0.1, 0.3)),
-                BorderRadius::all(Val::Px(2.0)),
-            ))
-            .id()
-    };
+                Color::srgba(0.1, 0.1, 0.1, 0.3)
+            }),
+            BorderRadius::all(Val::Px(2.0)),
+        ))
+        .id();
 
     // Add disclosure triangle or spacer for visual indication
     if has_children {

@@ -397,15 +397,15 @@ impl ToBsnString for BsnEntity {
         } else {
             format!(" [{}]", self.children.joined(", "))
         };
-        format!("{}{}", components, children)
+        format!("{components}{children}")
     }
 }
 
 impl ToBsnString for BsnKey {
     fn to_bsn_string(&self) -> String {
         match self {
-            BsnKey::Static(key) => format!("{}: ", key),
-            BsnKey::Dynamic(key) => format!("{{{}}}: ", key),
+            BsnKey::Static(key) => format!("{key}: "),
+            BsnKey::Dynamic(key) => format!("{{{key}}}: "),
         }
     }
 }
@@ -437,8 +437,8 @@ impl ToBsnString for BsnValue {
         match self {
             BsnValue::Bool(b) => b.to_string(),
             BsnValue::Number(n) => n.clone(),
-            BsnValue::String(s) => format!("\"{}\"", s),
-            BsnValue::Char(c) => format!("'{}'", c),
+            BsnValue::String(s) => format!("\"{s}\""),
+            BsnValue::Char(c) => format!("'{c}'"),
             BsnValue::Path(p) => p.clone(),
             BsnValue::StructLike(path, fields) => {
                 format!("{} {{ {} }}", path, fields.joined(", "))

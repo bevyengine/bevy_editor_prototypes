@@ -42,7 +42,7 @@ mod derive_construct;
 ///             // A button with a click observer
 ///             (Button, Node { padding: px_all(5.0) }, BackgroundColor(css::LIGHT_SALMON)) [
 ///                 Text("Click me!"),
-///                 On(|_: Trigger<Pointer<Click>>| {
+///                 On(|_: On<Pointer<Click>>| {
 ///                     info!("Button clicked!");
 ///                 }),
 ///             ],

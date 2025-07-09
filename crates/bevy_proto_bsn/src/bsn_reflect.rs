@@ -325,7 +325,7 @@ impl<'a, 'b> BsnReflector<'a, 'b> {
                 };
 
                 let Some(props_type) = self.registry.get(reflect_construct.props_type) else {
-                    return Err(ReflectError::UnknownType(format!("props for {}", path)));
+                    return Err(ReflectError::UnknownType(format!("props for {path}")));
                 };
 
                 let props = match props {
@@ -349,10 +349,9 @@ impl<'a, 'b> BsnReflector<'a, 'b> {
                     props,
                 })
             }
-            BsnComponent::BracedExpr(expr) => Err(ReflectError::ExpressionNotSupported(format!(
-                "{{{}}}",
-                expr
-            ))),
+            BsnComponent::BracedExpr(expr) => {
+                Err(ReflectError::ExpressionNotSupported(format!("{{{expr}}}",)))
+            }
         }
     }
 
@@ -445,7 +444,7 @@ impl<'a, 'b> BsnReflector<'a, 'b> {
             BsnValue::Tuple(items) => self.reflect_tuple(items, ty),
             BsnValue::List(items) => self.reflect_list(items, ty),
             _ => Err(ReflectError::UnexpectedType(
-                format!("{:?}", value),
+                format!("{value:?}"),
                 ty.type_path().into(),
             )),
         }
@@ -501,7 +500,7 @@ impl<'a, 'b> BsnReflector<'a, 'b> {
         let tuple_info = ty.as_tuple().unwrap();
         if tuple_info.field_len() != items.len() {
             return Err(ReflectError::UnexpectedType(
-                format!("{:?}", items),
+                format!("{items:?}"),
                 format!("Tuple with {} fields", tuple_info.field_len()),
             ));
         }
@@ -524,8 +523,8 @@ impl<'a, 'b> BsnReflector<'a, 'b> {
             Ok(ReflectedValue::new(ty.type_id(), Box::new(dynamic_list)))
         } else {
             Err(ReflectError::UnexpectedType(
-                format!("{:?}", items),
-                format!("{:?}", ty),
+                format!("{items:?}"),
+                format!("{ty:?}"),
             ))
         }
     }

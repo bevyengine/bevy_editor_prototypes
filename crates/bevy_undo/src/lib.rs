@@ -42,10 +42,10 @@
 //!     mut undo_redo: EventWriter<UndoRedo>,
 //! ) {
 //!     if keys.just_pressed(KeyCode::KeyZ) {
-//!         undo_redo.send(UndoRedo::Undo);
+//!         undo_redo.write(UndoRedo::Undo);
 //!     }
 //!     if keys.just_pressed(KeyCode::KeyY) {
-//!         undo_redo.send(UndoRedo::Redo);
+//!         undo_redo.write(UndoRedo::Redo);
 //!     }
 //! }
 //!
@@ -59,7 +59,7 @@
 //!         transform.translation.x += 1.0;
 //!
 //!         // Register custom change
-//!         new_changes.send(NewChange::new(CustomTransformChange {
+//!         new_changes.write(NewChange::new(CustomTransformChange {
 //!             entity: entity,
 //!             old_transform,
 //!             new_transform: transform.clone(),
@@ -247,7 +247,7 @@ pub enum UndoSet {
 ///     }
 /// }
 /// ```
-#[derive(Event)]
+#[derive(Event, BufferedEvent)]
 pub struct UndoRedoApplied<T> {
     /// The entity that was modified.
     pub entity: Entity,
@@ -485,7 +485,7 @@ pub enum ChangeResult {
     SuccessWithRemap(Vec<(Entity, Entity)>),
 }
 /// Represents an undo or redo operation to be performed on the change chain.
-#[derive(Event)]
+#[derive(Event, BufferedEvent)]
 pub enum UndoRedo {
     /// Requests to undo the last change in the change chain.
     Undo,
@@ -495,7 +495,7 @@ pub enum UndoRedo {
 }
 
 /// Represents a new change to be added to the change chain.
-#[derive(Event, Clone)]
+#[derive(Event, BufferedEvent, Clone)]
 pub struct NewChange {
     /// The change to be added to the change chain, wrapped in an Arc for shared ownership.
     pub change: Arc<dyn EditorChange + Send + Sync>,
@@ -1313,7 +1313,7 @@ fn auto_remap_undo_redo<T: Component + Reflect>(
                         reflect.as_partial_reflect_mut(),
                         &|v| {
                             if let Some(e) = change_chain.entity_remap.get(v) {
-                                println!("remap {:?} to {:?}", v, e);
+                                println!("remap {v:?} to {e:?}");
                                 *v = *e;
                             }
                         },

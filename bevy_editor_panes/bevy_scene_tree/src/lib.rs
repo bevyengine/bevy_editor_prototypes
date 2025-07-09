@@ -34,7 +34,7 @@ fn setup_pane(pane: In<PaneStructure>, mut commands: Commands) {
             BackgroundColor(tailwind::NEUTRAL_600.into()),
         ))
         .observe(
-            |mut trigger: Trigger<Pointer<Click>>, mut selected_entity: ResMut<SelectedEntity>| {
+            |mut trigger: On<Pointer<Click>>, mut selected_entity: ResMut<SelectedEntity>| {
                 selected_entity.0 = None;
                 trigger.propagate(false);
             },
@@ -63,7 +63,7 @@ fn scene_tree_row_for_entity(
     selected_entity: &SelectedEntity,
 ) -> Template {
     let set_selected_entity_on_click =
-        move |mut trigger: Trigger<Pointer<Click>>, mut selected_entity: ResMut<SelectedEntity>| {
+        move |mut trigger: On<Pointer<Click>>, mut selected_entity: ResMut<SelectedEntity>| {
             if selected_entity.0 == Some(entity) {
                 selected_entity.0 = None;
             } else {

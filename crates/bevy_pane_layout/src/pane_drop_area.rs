@@ -102,7 +102,7 @@ mod tests {
     const EPSILON: f32 = 0.0001;
 
     fn assert_approx_eq(a: f32, b: f32) {
-        assert!((a - b).abs() < EPSILON, "{} ≈ {}", a, b);
+        assert!((a - b).abs() < EPSILON, "{a} ≈ {b}");
     }
 
     #[test]
@@ -172,9 +172,7 @@ mod tests {
             assert_eq!(
                 get_pane_drop_area(&pane_rect, position),
                 *expected,
-                "{:?} -> {:?}",
-                position,
-                expected
+                "{position:?} -> {expected:?}"
             );
         }
     }

@@ -58,7 +58,7 @@ pub fn spawn_gizmo_toggle_ui(mut commands: Commands) {
             ));
         })
         .observe(
-            |_trigger: Trigger<Pointer<Click>>, mut show_outlines: ResMut<ShowOutlines>| {
+            |_trigger: On<Pointer<Click>>, mut show_outlines: ResMut<ShowOutlines>| {
                 show_outlines.0 = !show_outlines.0;
             },
         );

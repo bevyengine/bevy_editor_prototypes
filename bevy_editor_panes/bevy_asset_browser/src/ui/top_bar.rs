@@ -144,7 +144,7 @@ fn spawn_path_segment_ui<'a>(
             ));
         })
         .observe(
-            move |trigger: Trigger<Pointer<Released>>,
+            move |trigger: On<Pointer<Release>>,
                   mut commands: Commands,
                   mut location: ResMut<AssetBrowserLocation>,
                   query_children: Query<&Children>,
@@ -180,7 +180,7 @@ fn spawn_path_segment_ui<'a>(
             },
         )
         .observe(
-            move |_trigger: Trigger<Pointer<Move>>,
+            move |_trigger: On<Pointer<Move>>,
                   window_query: Query<Entity, With<Window>>,
                   mut commands: Commands| {
                 let window = window_query.single().unwrap();
@@ -190,7 +190,7 @@ fn spawn_path_segment_ui<'a>(
             },
         )
         .observe(
-            move |_trigger: Trigger<Pointer<Out>>,
+            move |_trigger: On<Pointer<Out>>,
                   window_query: Query<Entity, With<Window>>,
                   mut commands: Commands| {
                 let window = window_query.single().unwrap();

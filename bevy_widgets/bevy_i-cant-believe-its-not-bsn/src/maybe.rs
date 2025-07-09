@@ -1,7 +1,8 @@
 use core::marker::PhantomData;
 
 use bevy::ecs::{
-    component::{ComponentHooks, HookContext, Immutable, StorageType},
+    component::{Immutable, StorageType},
+    lifecycle::{ComponentHook, HookContext},
     prelude::*,
     world::DeferredWorld,
 };
@@ -60,8 +61,8 @@ impl<B: Bundle> Component for Maybe<B> {
 
     type Mutability = Immutable;
 
-    fn register_component_hooks(hooks: &mut ComponentHooks) {
-        hooks.on_add(maybe_hook::<B>);
+    fn on_add() -> Option<ComponentHook> {
+        Some(maybe_hook::<B>)
     }
 }
 

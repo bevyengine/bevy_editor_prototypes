@@ -21,7 +21,7 @@ pub struct TextEventMirror;
 /// Mirror propagating `TextChanged` event into `SetText` down to the text field.
 /// Allow to easy create controlled text widgets with filters on top of this text widget.
 fn on_text_changed(
-    mut trigger: Trigger<TextChanged>,
+    mut trigger: On<TextChanged>,
     mut commands: Commands,
     q_mirrors: Query<Entity, With<TextEventMirror>>,
 ) {

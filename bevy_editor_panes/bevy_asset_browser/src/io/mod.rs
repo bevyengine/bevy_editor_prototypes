@@ -14,7 +14,7 @@ pub fn create_new_folder(mut parent: PathBuf) -> std::io::Result<String> {
         // increment name and rename last part of the path
         index += 1;
         parent.pop();
-        parent.push(format!("New Folder {}", index));
+        parent.push(format!("New Folder {index}"));
     }
     create_dir_all(&parent)?;
     Ok(parent
@@ -36,7 +36,7 @@ pub fn create_new_script(mut parent: PathBuf) -> std::io::Result<String> {
         // increment name and rename last part of the path
         index += 1;
         parent.pop();
-        parent.push(format!("script_{}.rs", index));
+        parent.push(format!("script_{index}.rs"));
     }
     std::fs::write(
         &parent,

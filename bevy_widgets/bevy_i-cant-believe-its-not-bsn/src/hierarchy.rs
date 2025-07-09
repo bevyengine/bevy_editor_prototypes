@@ -1,7 +1,8 @@
 use core::marker::PhantomData;
 
 use bevy::ecs::{
-    component::{ComponentHooks, HookContext, Immutable, StorageType},
+    component::{Immutable, StorageType},
+    lifecycle::{ComponentHook, HookContext},
     prelude::*,
     world::DeferredWorld,
 };
@@ -43,8 +44,8 @@ impl<B: Bundle> Component for WithChild<B> {
 
     type Mutability = Immutable;
 
-    fn register_component_hooks(hooks: &mut ComponentHooks) {
-        hooks.on_add(with_child_hook::<B>);
+    fn on_add() -> Option<ComponentHook> {
+        Some(with_child_hook::<B>)
     }
 }
 
@@ -146,8 +147,8 @@ impl<B: Bundle, I: IntoIterator<Item = B> + Send + Sync + 'static> Component
 
     type Mutability = Immutable;
 
-    fn register_component_hooks(hooks: &mut ComponentHooks) {
-        hooks.on_add(with_children_hook::<B, I>);
+    fn on_add() -> Option<ComponentHook> {
+        Some(with_children_hook::<B, I>)
     }
 }
 

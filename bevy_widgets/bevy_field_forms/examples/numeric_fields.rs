@@ -1,6 +1,6 @@
 //! This example demonstrates how to use the `ValidatedInputFieldPlugin` to create a validated input field for a character name.
 
-use bevy::prelude::*;
+use bevy::{input_focus::tab_navigation::TabGroup, prelude::*};
 use bevy_field_forms::{
     drag_input::{DragInput, Draggable},
     input_field::{InputField, Validable},
@@ -20,18 +20,21 @@ fn setup(mut commands: Commands) {
     commands.spawn(Camera2d);
 
     commands
-        .spawn(Node {
-            display: Display::Grid,
-            grid_template_columns: vec![
-                RepeatedGridTrack::min_content(1),
-                RepeatedGridTrack::auto(1),
-                RepeatedGridTrack::min_content(1),
-                RepeatedGridTrack::auto(1),
-            ],
-            align_items: AlignItems::Center,
-            justify_content: JustifyContent::Center,
-            ..default()
-        })
+        .spawn((
+            Node {
+                display: Display::Grid,
+                grid_template_columns: vec![
+                    RepeatedGridTrack::min_content(1),
+                    RepeatedGridTrack::auto(1),
+                    RepeatedGridTrack::min_content(1),
+                    RepeatedGridTrack::auto(1),
+                ],
+                align_items: AlignItems::Center,
+                justify_content: JustifyContent::Center,
+                ..default()
+            },
+            TabGroup::default(),
+        ))
         .with_children(move |cmd| {
             spawn_numeric_field::<i8>(cmd, "i8");
             spawn_numeric_field::<u8>(cmd, "u8");
@@ -50,7 +53,7 @@ fn setup(mut commands: Commands) {
 
 fn spawn_numeric_field<T: Validable + Draggable>(cmd: &mut ChildSpawnerCommands, label: &str) {
     cmd.spawn((
-        Text::new(format!("{}:", label)),
+        Text::new(format!("{label}:")),
         Node {
             margin: UiRect::all(Val::Px(5.0)),
             ..default()

@@ -1,5 +1,5 @@
 use bevy::{
-    ecs::{component::HookContext, error, world::DeferredWorld},
+    ecs::{error, lifecycle::HookContext, world::DeferredWorld},
     prelude::*,
 };
 

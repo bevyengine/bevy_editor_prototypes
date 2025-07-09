@@ -1,6 +1,6 @@
 use bevy::{prelude::*, window::SystemCursorIcon, winit::cursor::CursorIcon};
 use bevy_context_menu::{ContextMenu, ContextMenuOption};
-use bevy_editor_styles::Theme;
+use bevy_editor_styles::{icons, Theme};
 
 use crate::{
     handlers::*, registry::PaneStructure, Divider, DragState, PaneAreaNode, PaneContentNode,
@@ -51,6 +51,7 @@ pub(crate) fn spawn_pane<'a>(
                 width: Val::Percent(100.),
                 height: Val::Px(27.),
                 align_items: AlignItems::Center,
+                justify_content: JustifyContent::SpaceBetween,
                 flex_shrink: 0.,
                 ..default()
             },
@@ -71,7 +72,7 @@ pub(crate) fn spawn_pane<'a>(
             ChildOf(area),
         ))
         .observe(
-            move |_trigger: Trigger<Pointer<Move>>,
+            move |_trigger: On<Pointer<Move>>,
                   window_query: Query<Entity, With<Window>>,
                   mut commands: Commands| {
                 let window = window_query.single().unwrap();
@@ -81,7 +82,7 @@ pub(crate) fn spawn_pane<'a>(
             },
         )
         .observe(
-            |_trigger: Trigger<Pointer<Out>>,
+            |_trigger: On<Pointer<Out>>,
              window_query: Query<Entity, With<Window>>,
              mut commands: Commands| {
                 let window = window_query.single().unwrap();
@@ -91,27 +92,38 @@ pub(crate) fn spawn_pane<'a>(
             },
         )
         .with_children(|parent| {
-            // Drop down button for selecting the pane type.
-            // Once a drop down menu is implemented, this will have that added.
-            parent.spawn((
-                Node {
-                    width: Val::Px(31.),
-                    height: Val::Px(19.),
-                    margin: UiRect::right(Val::Px(5.)),
+            parent
+                .spawn(Node {
+                    align_items: AlignItems::Center,
+                    flex_shrink: 0.0,
                     ..default()
-                },
-                theme.button.background_color,
-                theme.button.border_radius,
-            ));
+                })
+                .with_children(|parent| {
+                    // Drop down button for selecting the pane type.
+                    // Once a drop down menu is implemented, this will have that added.
+                    parent.spawn((
+                        Text::new(icons::CHEVRON_DOWN),
+                        TextFont {
+                            font: theme.icon.font.clone(),
+                            font_size: 16.0,
+                            ..default()
+                        },
+                    ));
+                    parent.spawn((
+                        Text::new(format!(" {name}")),
+                        TextFont {
+                            font: theme.text.font.clone(),
+                            font_size: 14.0,
+                            ..default()
+                        },
+                    ));
+                });
+
             parent.spawn((
-                Text::new(name),
+                Text::new(icons::GRIP_VERTICAL),
                 TextFont {
-                    font: theme.text.font.clone(),
-                    font_size: 14.,
-                    ..default()
-                },
-                Node {
-                    flex_shrink: 0.,
+                    font: theme.icon.font.clone(),
+                    font_size: 16.0,
                     ..default()
                 },
             ));
@@ -200,7 +212,7 @@ pub(crate) fn spawn_resize_handle<'a>(
         ResizeHandle,
     ))
     .observe(
-        move |trigger: Trigger<Pointer<DragStart>>,
+        move |trigger: On<Pointer<DragStart>>,
               mut drag_state: ResMut<DragState>,
               parent_query: Query<&ChildOf>,
               children_query: Query<&Children>,
@@ -236,7 +248,7 @@ pub(crate) fn spawn_resize_handle<'a>(
         },
     )
     .observe(
-        move |trigger: Trigger<Pointer<Drag>>,
+        move |trigger: On<Pointer<Drag>>,
               mut drag_state: ResMut<DragState>,
               parent_query: Query<&ChildOf>,
               children_query: Query<&Children>,
@@ -272,19 +284,19 @@ pub(crate) fn spawn_resize_handle<'a>(
         },
     )
     .observe(
-        move |_trigger: Trigger<Pointer<DragEnd>>, mut drag_state: ResMut<DragState>| {
+        move |_trigger: On<Pointer<DragEnd>>, mut drag_state: ResMut<DragState>| {
             drag_state.is_dragging = false;
             drag_state.offset = 0.;
         },
     )
     .observe(
-        |_trigger: Trigger<Pointer<Cancel>>, mut drag_state: ResMut<DragState>| {
+        |_trigger: On<Pointer<Cancel>>, mut drag_state: ResMut<DragState>| {
             drag_state.is_dragging = false;
             drag_state.offset = 0.;
         },
     )
     .observe(
-        move |_trigger: Trigger<Pointer<Move>>,
+        move |_trigger: On<Pointer<Move>>,
               window_query: Query<Entity, With<Window>>,
               mut commands: Commands| {
             let window = window_query.single().unwrap();
@@ -297,7 +309,7 @@ pub(crate) fn spawn_resize_handle<'a>(
         },
     )
     .observe(
-        |_trigger: Trigger<Pointer<Out>>,
+        |_trigger: On<Pointer<Out>>,
          window_query: Query<Entity, With<Window>>,
          mut commands: Commands| {
             let window = window_query.single().unwrap();

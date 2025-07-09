@@ -53,7 +53,7 @@ fn setup(mut commands: Commands) {
 
 fn spawn_numeric_field<T: Validable + Draggable>(cmd: &mut ChildSpawnerCommands, label: &str) {
     cmd.spawn((
-        Text::new(format!("{}:", label)),
+        Text::new(format!("{label}:")),
         Node {
             margin: UiRect::all(Val::Px(5.0)),
             ..default()

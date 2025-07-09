@@ -112,7 +112,7 @@ impl EditorCam {
             smoothing: smoothness,
             sensitivity,
             momentum,
-            last_anchor_depth: initial_anchor_depth.abs() * -1.0, // ensure depth is correct sign
+            last_anchor_depth: -initial_anchor_depth.abs(), // ensure depth is correct sign
             ..Default::default()
         }
     }
@@ -120,7 +120,7 @@ impl EditorCam {
     /// Set the initial anchor depth of the camera controller.
     pub fn with_initial_anchor_depth(self, initial_anchor_depth: f64) -> Self {
         Self {
-            last_anchor_depth: initial_anchor_depth.abs() * -1.0, // ensure depth is correct sign
+            last_anchor_depth: -initial_anchor_depth.abs(), // ensure depth is correct sign
             ..self
         }
     }
@@ -139,7 +139,7 @@ impl EditorCam {
     /// again, but has no hit to anchor onto, the anchor doesn't suddenly change distance, which is
     /// what would happen if we used a fixed value.
     fn maybe_update_anchor(&mut self, anchor: Option<DVec3>) -> DVec3 {
-        let anchor = anchor.unwrap_or(DVec3::new(0.0, 0.0, self.last_anchor_depth.abs() * -1.0));
+        let anchor = anchor.unwrap_or(DVec3::new(0.0, 0.0, -self.last_anchor_depth.abs()));
         self.last_anchor_depth = anchor.z;
         anchor
     }
@@ -568,7 +568,7 @@ impl EditorCam {
 
     /// The last known anchor depth. This value will always be negative.
     pub fn last_anchor_depth(&self) -> f64 {
-        self.last_anchor_depth.abs() * -1.0
+        -self.last_anchor_depth.abs()
     }
 }
 

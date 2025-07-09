@@ -114,13 +114,13 @@ impl Construct for ConstructEntity {
                     Some((entity, _)) => {
                         if matching_entities.next().is_some() {
                             return Err(ConstructError::InvalidProps {
-                                message: format!("multiple entities with name '{}'", name).into(),
+                                message: format!("multiple entities with name '{name}'").into(),
                             });
                         }
                         Ok(ConstructEntity(entity))
                     }
                     None => Err(ConstructError::InvalidProps {
-                        message: format!("no entity with name '{}'", name).into(),
+                        message: format!("no entity with name '{name}'").into(),
                     }),
                 }
             }

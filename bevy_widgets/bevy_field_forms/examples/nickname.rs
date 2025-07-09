@@ -80,7 +80,7 @@ impl Validable for CharacterName {
                 .chars()
                 .filter(|c| !allowed_chars.contains(c))
                 .collect();
-            Err(format!("Invalid character name. The following characters are not allowed: '{}'. Only letters, numbers, and underscores can be used.", invalid_chars))
+            Err(format!("Invalid character name. The following characters are not allowed: '{invalid_chars}'. Only letters, numbers, and underscores can be used."))
         }
     }
 }

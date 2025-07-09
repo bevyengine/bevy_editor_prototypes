@@ -149,7 +149,7 @@ impl ConstructEntityCommandsExt for EntityCommands<'_> {
                 let mut context = ConstructContext { id, world };
                 match T::construct(&mut context, props) {
                     Ok(c) => world.entity_mut(id).insert(c),
-                    Err(e) => panic!("construction failed: {}", e),
+                    Err(e) => panic!("construction failed: {e}"),
                 };
             });
         });

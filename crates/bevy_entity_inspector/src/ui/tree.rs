@@ -1,6 +1,5 @@
 //! Tree view UI components for displaying hierarchical data
 
-use crate::TreeNodeType;
 use bevy::{
     core_widgets::{ControlOrientation, CoreScrollbar, CoreScrollbarPlugin, CoreScrollbarThumb},
     ecs::{relationship::RelatedSpawner, spawn::SpawnWith},
@@ -39,6 +38,7 @@ pub struct TreeState {
     pub selected_node: Option<String>,
 }
 
+/// Properties for tree nodes, used to control selection and interaction
 #[derive(Default)]
 pub struct TreeNodeProps {
     /// Whether the node is selectable
@@ -50,39 +50,55 @@ pub struct TreeNodeProps {
 /// Component markers for tree UI elements
 #[derive(Component)]
 pub struct TreeNodeWidget {
+    /// Unique identifier for the tree node
     pub node_id: String,
 }
 
+/// Component for tree node labels, used for text display
 #[derive(Component)]
 pub struct TreeLabel {
+    /// Unique identifier for the node this label belongs to
     pub node_id: String,
 }
 
+/// Container for the tree view, used to apply styles and scrolling
 #[derive(Component)]
 pub struct TreeContainer;
 
 /// Tree-related events
 #[derive(Event, BufferedEvent)]
 pub struct TreeNodeSelected {
+    /// ID of the node that was selected
     pub node_id: String,
 }
 
+/// Event fired when a tree node is expanded or collapsed
 #[derive(Event, BufferedEvent)]
 pub struct TreeNodeExpanded {
+    /// ID of the node that was expanded or collapsed
     pub node_id: String,
+    /// Whether the node is now expanded
     pub is_expanded: bool,
 }
 
 /// Configuration for tree appearance
 #[derive(Resource)]
 pub struct TreeConfig {
+    /// Size of indentation for child nodes
     pub indent_size: f32,
+    /// Height of each tree node
     pub node_height: f32,
+    /// Size of disclosure triangle
     pub triangle_size: f32,
+    /// Font size for node text
     pub font_size: f32,
+    /// Color of node text
     pub text_color: Color,
+    /// Color of selected node background
     pub selected_color: Color,
+    /// Color of hovered node background
     pub hover_color: Color,
+    /// Background color of the tree container
     pub background_color: Color,
 }
 
@@ -103,10 +119,15 @@ impl Default for TreeConfig {
 
 /// Theme tokens for tree components
 pub mod tree_tokens {
+    /// Tree node styles
     pub const TREE_NODE_TEXT: &str = "tree_node_text";
+    /// Tree node selected style
     pub const TREE_NODE_SELECTED: &str = "tree_node_selected";
+    /// Tree node hover style
     pub const TREE_NODE_HOVER: &str = "tree_node_hover";
+    /// Tree background style
     pub const TREE_BACKGROUND: &str = "tree_background";
+    /// Tree border style
     pub const TREE_BORDER: &str = "tree_border";
 }
 
@@ -287,7 +308,7 @@ pub fn handle_tree_node_interactions(
 
 /// System to handle tree expansion changes - simplified observer pattern
 pub fn handle_tree_expansion_changes(
-    mut tree_state: ResMut<TreeState>,
+    tree_state: ResMut<TreeState>,
     tree_container_query: Query<Entity, With<TreeContainer>>,
     children_query: Query<&Children>,
     tree_config: Res<TreeConfig>,

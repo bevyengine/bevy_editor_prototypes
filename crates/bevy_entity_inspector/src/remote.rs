@@ -281,7 +281,6 @@ fn poll_remote_entity_rows(
                                             // Store the raw JSON as a debug representation
                                             debug!("Component '{}' is registered but lacks ReflectDeserialize data, storing raw JSON", comp_name);
                                             // Create a simple dynamic representation from the JSON
-                                            let json_string = serde_json::to_string_pretty(comp_val).unwrap_or_else(|_| format!("{:?}", comp_val));
                                             let dynamic_struct = bevy::reflect::DynamicStruct::default();
                                             comp_map.insert(component_display_name, Box::new(dynamic_struct) as Box<dyn PartialReflect>);
                                         }

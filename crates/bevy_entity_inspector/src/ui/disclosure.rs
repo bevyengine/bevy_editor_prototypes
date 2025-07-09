@@ -5,7 +5,9 @@ use bevy::{ecs::event::BufferedEvent, prelude::*};
 /// Component representing a collapsible disclosure triangle
 #[derive(Component, Clone, Debug)]
 pub struct DisclosureTriangle {
+    /// Whether the disclosure triangle is currently expanded
     pub is_expanded: bool,
+    /// Target ID for the disclosure triangle, used to identify which section it controls
     pub target_id: String,
 }
 
@@ -23,11 +25,14 @@ pub struct DisclosureProps {
 /// Event fired when a disclosure triangle is toggled
 #[derive(Event, BufferedEvent)]
 pub struct DisclosureToggled {
+    /// Target ID of the disclosure triangle that was toggled
     pub target_id: String,
+    /// New expanded state after the toggle
     pub is_expanded: bool,
 }
 
 /// Creates a modern disclosure triangle widget using standard Bevy UI
+#[allow(dead_code)]
 pub fn create_disclosure_triangle(commands: &mut Commands, props: DisclosureProps) -> Entity {
     let triangle_char = if props.is_expanded { "v" } else { ">" };
 
@@ -104,6 +109,7 @@ pub fn handle_disclosure_clicks(
 }
 
 /// Legacy function for spawning disclosure triangles (for backward compatibility)
+#[allow(dead_code)]
 pub fn spawn_disclosure_triangle(
     commands: &mut Commands,
     target_id: String,

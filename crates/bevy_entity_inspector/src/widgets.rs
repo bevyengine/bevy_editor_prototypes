@@ -127,20 +127,29 @@ pub struct InspectorFieldProps {
 /// Type of inspector field for styling purposes
 #[derive(Default, Clone, Copy)]
 pub enum InspectorFieldType {
+    /// Text field, default type
     #[default]
     Text,
+    /// Numeric field
     Number,
+    /// Boolean field
     Boolean,
+    /// Vector field
     Vector,
+    /// Color field
     Color,
+    /// Entity field
     Entity,
+    /// Component field
     Component,
 }
 
 /// Component that marks an inspector field
 #[derive(Component)]
 pub struct InspectorField {
+    /// Name of the field
     pub name: String,
+    /// Type of the field (for styling)
     pub field_type: InspectorFieldType,
 }
 

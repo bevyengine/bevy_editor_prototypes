@@ -1,3 +1,12 @@
+//! Bevy Entity Inspector Integration Tests
+//! This file contains integration tests for the Bevy Entity Inspector plugin.
+//! These tests ensure that the plugin can be added to a Bevy app with and without the remote feature enabled.
+//!
+//! To run these tests, use the following command:
+//! ```bash
+//! cargo test --features "remote"
+//! ```
+
 use bevy::prelude::*;
 use bevy_entity_inspector::InspectorPlugin;
 

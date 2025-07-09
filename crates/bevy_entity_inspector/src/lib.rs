@@ -120,14 +120,14 @@ pub mod theme;
 pub mod ui;
 pub mod widgets;
 
-use theme::*;
-use ui::*;
-use widgets::*;
-
 // Re-export commonly used types
 pub use theme::{create_dark_inspector_theme, create_light_inspector_theme, InspectorTheme};
 pub use ui::{build_tree_node_recursive, tree_container, TreeConfig, TreeNode, TreeState};
 pub use widgets::{InspectorField, InspectorFieldType, InspectorPanel};
+
+use crate::ui::build_tree_view;
+use crate::ui::TreeContainer;
+use crate::ui::TreePlugin;
 
 /// Events for entity inspector updates.
 ///
@@ -509,7 +509,7 @@ impl InspectorTreeBuilder {
                 let mut crate_children = Vec::new();
 
                 // Add components to this crate group
-                for (type_name, full_component_name, component_reflect) in components {
+                for (type_name, _full_component_name, component_reflect) in components {
                     let component_node_id = format!("{}_{}", crate_group_id, type_name);
                     crate_children.push(component_node_id.clone());
 
@@ -1065,7 +1065,7 @@ fn spawn_inspector_ui_internal(
     };
 
     // Build the tree view
-    let tree_entity = ui::build_tree_view(commands, &tree_builder.tree_state, &tree_config);
+    let tree_entity = build_tree_view(commands, &tree_builder.tree_state, &tree_config);
 
     // Add tree to panel
     commands.entity(inspector_panel).add_child(tree_entity);

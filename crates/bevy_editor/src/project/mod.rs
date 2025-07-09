@@ -122,14 +122,14 @@ pub fn run_project(project: &ProjectInfo) -> std::io::Result<()> {
         .current_dir(&project.path)
         .args(["/C", "cargo", "run"])
         .spawn()
-        .map_err(|error| std::io::Error::other(format!("Failed to run project: {}", error)))?;
+        .map_err(|error| std::io::Error::other(format!("Failed to run project: {error}")))?;
 
     #[cfg(not(target_os = "windows"))]
     std::process::Command::new("sh")
         .current_dir(&project.path)
         .args(["-c", "cargo run"])
         .spawn()
-        .map_err(|error| std::io::Error::other(format!("Failed to run project: {}", error)))?;
+        .map_err(|error| std::io::Error::other(format!("Failed to run project: {error}")))?;
 
     info!("Project started successfully");
     Ok(())

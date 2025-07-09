@@ -47,7 +47,7 @@ pub(super) fn load_projects() -> io::Result<Vec<ProjectInfo>> {
     let cache_value: ProjectsCache = ron::de::from_reader(file).map_err(|error| {
         io::Error::new(
             io::ErrorKind::InvalidData,
-            format!("Couldn't parse project cache file: {}", error),
+            format!("Couldn't parse project cache file: {error}"),
         )
     })?;
 
@@ -68,7 +68,7 @@ pub(super) fn save_projects(projects: Vec<ProjectInfo>) -> io::Result<()> {
         .map_err(|error| {
             io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("Failed to serialize project file cache: {}", error),
+                format!("Failed to serialize project file cache: {error}"),
             )
         })
 }

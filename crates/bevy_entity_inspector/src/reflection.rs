@@ -1,7 +1,5 @@
 //! Reflection utilities for the entity inspector.
 //!
-//! This module provides helper functions for working with Bevy's reflection system
-//! to extract and format component data for display in the inspector.
 //!
 //! # Related Documentation
 //!
@@ -15,8 +13,8 @@ use bevy::reflect::*;
 /// Extracts crate name and type name from a component type path.
 ///
 /// Component names from the reflection system often include full module paths like:
-/// - "bevy_transform::components::transform::Transform"
-/// - "my_game::components::player::Player"
+/// - "`bevy_transform::components::transform::Transform`"
+/// - "`my_game::components::player::Player`"
 /// - "Transform" (for local/simple names)
 ///
 /// This function extracts the crate name and the final type name for display purposes.
@@ -27,9 +25,9 @@ use bevy::reflect::*;
 ///
 /// # Returns
 ///
-/// A tuple of (crate_name, type_name) where:
-/// - For "bevy_transform::components::transform::Transform" -> ("bevy_transform", "Transform")
-/// - For "my_game::player::Player" -> ("my_game", "Player")
+/// A tuple of (`crate_name`, `type_name`) where:
+/// - For "`bevy_transform::components::transform::Transform`" -> ("`bevy_transform`", "Transform")
+/// - For "`my_game::player::Player`" -> ("`my_game`", "Player")
 /// - For "Transform" -> ("Local", "Transform")
 ///
 /// # Examples
@@ -75,13 +73,13 @@ pub fn extract_crate_and_type(component_name: &str) -> (String, String) {
 ///
 /// # Returns
 ///
-/// A vector of (field_name, field_value) tuples representing the structure's contents.
+/// A vector of (`field_name`, `field_value`) tuples representing the structure's contents.
 ///
 /// # Supported Types
 ///
 /// - **[Struct](https://docs.rs/bevy/latest/bevy/reflect/trait.Struct.html)**: Named fields with their values
-/// - **[TupleStruct](https://docs.rs/bevy/latest/bevy/reflect/trait.TupleStruct.html)**: Indexed fields (field_0, field_1, etc.)
-/// - **[Tuple](https://docs.rs/bevy/latest/bevy/reflect/trait.Tuple.html)**: Indexed items (item_0, item_1, etc.)
+/// - **[TupleStruct](https://docs.rs/bevy/latest/bevy/reflect/trait.TupleStruct.html)**: Indexed fields (`field_0`, `field_1`, etc.)
+/// - **[Tuple](https://docs.rs/bevy/latest/bevy/reflect/trait.Tuple.html)**: Indexed items (`item_0`, `item_1`, etc.)
 /// - **[List](https://docs.rs/bevy/latest/bevy/reflect/trait.List.html)/[Array](https://docs.rs/bevy/latest/bevy/reflect/trait.Array.html)**: Indexed elements with bracket notation ([0], [1], etc.)
 /// - **[Map](https://docs.rs/bevy/latest/bevy/reflect/trait.Map.html)**: Key-value pairs
 /// - **[Enum](https://docs.rs/bevy/latest/bevy/reflect/trait.Enum.html)**: Variant name and field data
@@ -110,9 +108,9 @@ pub fn extract_reflect_fields(reflect: &dyn PartialReflect) -> Vec<(String, Stri
         ReflectRef::Struct(s) => {
             for i in 0..s.field_len() {
                 if let Some(field) = s.field_at(i) {
-                    let default_field_name = format!("field_{}", i);
+                    let default_field_name = format!("field_{i}");
                     let name = s.name_at(i).unwrap_or(&default_field_name);
-                    let value = format!("{:?}", field);
+                    let value = format!("{field:?}");
                     fields.push((name.to_string(), value));
                 }
             }
@@ -120,8 +118,8 @@ pub fn extract_reflect_fields(reflect: &dyn PartialReflect) -> Vec<(String, Stri
         ReflectRef::TupleStruct(ts) => {
             for i in 0..ts.field_len() {
                 if let Some(field) = ts.field(i) {
-                    let name = format!("field_{}", i);
-                    let value = format!("{:?}", field);
+                    let name = format!("field_{i}");
+                    let value = format!("{field:?}");
                     fields.push((name, value));
                 }
             }
@@ -129,8 +127,8 @@ pub fn extract_reflect_fields(reflect: &dyn PartialReflect) -> Vec<(String, Stri
         ReflectRef::Tuple(t) => {
             for i in 0..t.field_len() {
                 if let Some(field) = t.field(i) {
-                    let name = format!("item_{}", i);
-                    let value = format!("{:?}", field);
+                    let name = format!("item_{i}");
+                    let value = format!("{field:?}");
                     fields.push((name, value));
                 }
             }
@@ -138,8 +136,8 @@ pub fn extract_reflect_fields(reflect: &dyn PartialReflect) -> Vec<(String, Stri
         ReflectRef::List(l) => {
             for i in 0..l.len() {
                 if let Some(item) = l.get(i) {
-                    let name = format!("[{}]", i);
-                    let value = format!("{:?}", item);
+                    let name = format!("[{i}]");
+                    let value = format!("{item:?}");
                     fields.push((name, value));
                 }
             }
@@ -147,16 +145,16 @@ pub fn extract_reflect_fields(reflect: &dyn PartialReflect) -> Vec<(String, Stri
         ReflectRef::Array(a) => {
             for i in 0..a.len() {
                 if let Some(item) = a.get(i) {
-                    let name = format!("[{}]", i);
-                    let value = format!("{:?}", item);
+                    let name = format!("[{i}]");
+                    let value = format!("{item:?}");
                     fields.push((name, value));
                 }
             }
         }
         ReflectRef::Map(m) => {
             for (key, value) in m.iter() {
-                let name = format!("{:?}", key);
-                let value = format!("{:?}", value);
+                let name = format!("{key:?}");
+                let value = format!("{value:?}");
                 fields.push((name, value));
             }
         }
@@ -164,15 +162,15 @@ pub fn extract_reflect_fields(reflect: &dyn PartialReflect) -> Vec<(String, Stri
             fields.push(("variant".to_string(), e.variant_name().to_string()));
             for i in 0..e.field_len() {
                 if let Some(field) = e.field_at(i) {
-                    let default_field_name = format!("field_{}", i);
+                    let default_field_name = format!("field_{i}");
                     let name = e.name_at(i).unwrap_or(&default_field_name);
-                    fields.push((name.to_string(), format!("{:?}", field)));
+                    fields.push((name.to_string(), format!("{field:?}")));
                 }
             }
         }
         _ => {
             // For primitive values and any other cases, just show the value itself
-            fields.push(("value".to_string(), format!("{:?}", reflect)));
+            fields.push(("value".to_string(), format!("{reflect:?}")));
         }
     }
 

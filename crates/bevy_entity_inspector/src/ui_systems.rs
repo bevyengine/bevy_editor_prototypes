@@ -438,8 +438,7 @@ pub fn handle_tree_selection(
 
                         parent.spawn((
                             Text::new(format!(
-                                "Total Entities: {}\nTotal Components: {}",
-                                entity_count, component_count
+                                "Total Entities: {entity_count}\nTotal Components: {component_count}"
                             )),
                             TextFont {
                                 font_size: 12.0,
@@ -455,7 +454,7 @@ pub fn handle_tree_selection(
                         // Show component fields directly - get the actual component data from inspector_data
                         // Component header
                         parent.spawn((
-                            Text::new(format!("Component: {}", component_name)),
+                            Text::new(format!("Component: {component_name}")),
                             TextFont {
                                 font_size: 16.0,
                                 ..default()
@@ -470,7 +469,7 @@ pub fn handle_tree_selection(
                         // Find the component data in inspector_data
                         let mut found_component = false;
                         for (entity, row) in &inspector_data.rows {
-                            let current_entity_id = format!("{:?}", entity);
+                            let current_entity_id = format!("{entity:?}");
                             if entity_id.contains(&current_entity_id)
                                 || current_entity_id.contains(&entity_id)
                             {
@@ -513,7 +512,7 @@ pub fn handle_tree_selection(
                                                     .with_children(|field_parent| {
                                                         // Field name
                                                         field_parent.spawn((
-                                                            Text::new(format!("{}:", field_name)),
+                                                            Text::new(format!("{field_name}:")),
                                                             TextFont {
                                                                 font_size: 12.0,
                                                                 ..default()
@@ -548,7 +547,7 @@ pub fn handle_tree_selection(
 
                         if !found_component {
                             parent.spawn((
-                                Text::new(format!("Component {} not found", component_name)),
+                                Text::new(format!("Component {component_name} not found")),
                                 TextFont {
                                     font_size: 12.0,
                                     ..default()
@@ -563,7 +562,7 @@ pub fn handle_tree_selection(
                     }) => {
                         // Show field details
                         parent.spawn((
-                            Text::new(format!("Field: {}", field_name)),
+                            Text::new(format!("Field: {field_name}")),
                             TextFont {
                                 font_size: 16.0,
                                 ..default()
@@ -576,7 +575,7 @@ pub fn handle_tree_selection(
                         ));
 
                         parent.spawn((
-                            Text::new(format!("Value: {}", field_value)),
+                            Text::new(format!("Value: {field_value}")),
                             TextFont {
                                 font_size: 12.0,
                                 ..default()
@@ -587,7 +586,7 @@ pub fn handle_tree_selection(
                     Some(SelectedContent::CrateGroup(crate_name)) => {
                         // Show crate group summary
                         parent.spawn((
-                            Text::new(format!("Crate: {}", crate_name)),
+                            Text::new(format!("Crate: {crate_name}")),
                             TextFont {
                                 font_size: 16.0,
                                 ..default()
@@ -655,7 +654,7 @@ fn parse_node_selection(
 
             // Try to find the actual entity in inspector data
             for (entity, row) in &inspector_data.rows {
-                let entity_id_str = format!("{:?}", entity); // This gives us something like "Entity { index: X, generation: Y }"
+                let entity_id_str = format!("{entity:?}"); // This gives us something like "Entity { index: X, generation: Y }"
 
                 if entity_part.contains(
                     &entity_id_str
@@ -665,7 +664,7 @@ fn parse_node_selection(
                 ) || entity_part == &entity_id_str
                 {
                     // Determine what level of the tree was selected
-                    if node_id == format!("entity_{:?}", entity) {
+                    if node_id == format!("entity_{entity:?}") {
                         // Entity root selected
                         return Some(SelectedContent::Entity(row.name.clone()));
                     }
@@ -675,20 +674,20 @@ fn parse_node_selection(
                         let (crate_name, type_name) =
                             crate::reflection::extract_crate_and_type(component_type);
                         let expected_component_id =
-                            format!("entity_{:?}_{}_{}", entity, crate_name, type_name);
+                            format!("entity_{entity:?}_{crate_name}_{type_name}");
 
                         if node_id == expected_component_id {
                             // Component selected - this is what we want to show fields for
                             return Some(SelectedContent::Component {
-                                entity_id: format!("{:?}", entity),
+                                entity_id: format!("{entity:?}"),
                                 component_name: type_name,
                             });
                         }
 
                         // Check for field selection
-                        if node_id.starts_with(&format!("{}_field_", expected_component_id)) {
+                        if node_id.starts_with(&format!("{expected_component_id}_field_")) {
                             let field_part = node_id
-                                .strip_prefix(&format!("{}_field_", expected_component_id))
+                                .strip_prefix(&format!("{expected_component_id}_field_"))
                                 .unwrap();
                             let fields =
                                 crate::reflection::extract_reflect_fields(component_data.as_ref());
@@ -709,7 +708,7 @@ fn parse_node_selection(
                     for component_type in component_types {
                         let (crate_name, _) =
                             crate::reflection::extract_crate_and_type(&component_type);
-                        let expected_crate_id = format!("entity_{:?}_{}", entity, crate_name);
+                        let expected_crate_id = format!("entity_{entity:?}_{crate_name}");
 
                         if node_id == expected_crate_id {
                             return Some(SelectedContent::CrateGroup(crate_name));

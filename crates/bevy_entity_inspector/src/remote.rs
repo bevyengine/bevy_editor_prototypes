@@ -9,7 +9,7 @@
 //! - **Automatic Discovery**: Connects to remote Bevy applications on default port
 //! - **Efficient Polling**: Only updates when actual changes are detected
 //! - **Hash-based Change Detection**: Uses content hashing to detect entity/component changes
-//! - **Component Name Simplification**: Displays components as "crate::Type" for clarity
+//! - **Component Name Simplification**: Displays components as "`crate::Type`" for clarity
 //! - **Graceful Degradation**: Handles components without reflection support
 //! - **Event Integration**: Emits granular [`InspectorEvent`](crate::events::InspectorEvent)s for UI updates
 //!
@@ -107,14 +107,14 @@ pub struct EntityInspectorRemotePlugin {
     /// The address of the remote application to connect to.
     ///
     /// Should include the protocol, host, port, and path.
-    /// Example: "http://127.0.0.1:15702/"
+    /// Example: "<http://127.0.0.1:15702>/"
     pub remote_url: String,
 }
 
 impl Default for EntityInspectorRemotePlugin {
     fn default() -> Self {
         EntityInspectorRemotePlugin {
-            remote_url: format!("http://{}:{}/", DEFAULT_ADDR, DEFAULT_PORT),
+            remote_url: format!("http://{DEFAULT_ADDR}:{DEFAULT_PORT}/"),
         }
     }
 }
@@ -260,7 +260,7 @@ fn poll_remote_entity_rows(
                                     let component_display_name = if let Some(crate_and_rest) = comp_name.split_once("::") {
                                         let crate_name = crate_and_rest.0;
                                         let type_name = comp_name.split("::").last().unwrap_or(comp_name);
-                                        format!("{}::{}", crate_name, type_name)
+                                        format!("{crate_name}::{type_name}")
                                     } else {
                                         // If there's no "::" separator, just use the original name
                                         comp_name.to_string()
@@ -271,7 +271,7 @@ fn poll_remote_entity_rows(
                                     {
                                         if let Some(reflect_deserialize) = reg.data::<ReflectDeserialize>() {
                                             if let Ok(reflected) = reflect_deserialize
-                                                .deserialize((&comp_val).into_deserializer())
+                                                .deserialize(comp_val.into_deserializer())
                                             {
                                                 comp_map.insert(component_display_name, reflected.to_dynamic());
                                             }
@@ -350,7 +350,7 @@ fn poll_remote_entity_rows(
 /// # Performance
 ///
 /// - Only processes tasks when they're complete (non-blocking)
-/// - Uses efficient HashMap operations for change detection
+/// - Uses efficient `HashMap` operations for change detection
 /// - Batches all changes into a single update cycle
 /// - Clears change tracking immediately after event emission
 fn update_remote_entity_rows(

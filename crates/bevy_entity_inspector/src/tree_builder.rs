@@ -44,20 +44,12 @@ pub struct InspectorTreeNode {
 }
 
 /// Builder for creating inspector tree structures from entity data
+#[derive(Default)]
 pub struct InspectorTreeBuilder {
     /// The current state of the tree, including nodes and root nodes
     pub tree_state: TreeState,
     /// Configuration for the tree view
     pub config: TreeConfig,
-}
-
-impl Default for InspectorTreeBuilder {
-    fn default() -> Self {
-        Self {
-            tree_state: TreeState::default(),
-            config: TreeConfig::default(),
-        }
-    }
 }
 
 impl InspectorTreeBuilder {
@@ -87,11 +79,11 @@ impl InspectorTreeBuilder {
         );
 
         for (entity, row) in &inspector_data.rows {
-            let entity_id = format!("entity_{:?}", entity);
+            let entity_id = format!("entity_{entity:?}");
             let entity_label = if row.name.is_empty() {
-                format!("Entity {:?}", entity)
+                format!("Entity {entity:?}")
             } else {
-                format!("{} ({:?})", row.name, entity)
+                format!("{} ({entity:?})", row.name)
             };
 
             info!(
@@ -116,14 +108,14 @@ impl InspectorTreeBuilder {
 
             // Create crate group nodes
             for (crate_name, components) in components_by_crate {
-                let crate_group_id = format!("{}_{}", entity_id, crate_name);
+                let crate_group_id = format!("{entity_id}_{crate_name}");
                 entity_children.push(crate_group_id.clone());
 
                 let mut crate_children = Vec::new();
 
                 // Add components to this crate group
                 for (type_name, _full_component_name, component_reflect) in components {
-                    let component_node_id = format!("{}_{}", crate_group_id, type_name);
+                    let component_node_id = format!("{crate_group_id}_{type_name}");
                     crate_children.push(component_node_id.clone());
 
                     // Extract fields from the component
@@ -132,12 +124,12 @@ impl InspectorTreeBuilder {
 
                     // Add fields as children of the component
                     for (field_name, field_value) in fields {
-                        let field_node_id = format!("{}_field_{}", component_node_id, field_name);
+                        let field_node_id = format!("{component_node_id}_field_{field_name}");
                         component_children.push(field_node_id.clone());
 
                         let field_node = TreeNode {
                             id: field_node_id,
-                            label: format!("{}: {}", field_name, field_value),
+                            label: format!("{field_name}: {field_value}"),
                             is_expanded: false,
                             children: Vec::new(),
                             parent: Some(component_node_id.clone()),

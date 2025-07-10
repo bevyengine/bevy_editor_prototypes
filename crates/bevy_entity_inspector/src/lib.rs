@@ -8,7 +8,7 @@
 //!
 //! - **Event-Driven Updates**: Efficient, granular updates using an [`InspectorEvent`] system instead of polling
 //! - **Tree-Based UI**: Hierarchical display of entities and their components with expand/collapse functionality
-//! - **Component Grouping**: Components are automatically grouped by crate using [`extract_crate_and_type`] for better organization (e.g., "bevy_transform", "my_game")
+//! - **Component Grouping**: Components are automatically grouped by crate using [`extract_crate_and_type`] for better organization (e.g., "`bevy_transform`", "`my_game`")
 //! - **Visual Styling**: Different node types ([`TreeNodeType`]) have distinct visual styling with reduced opacity for non-expandable items
 //! - **Reflection Support**: Automatic component introspection using Bevy's [reflection system] and [`extract_reflect_fields`]
 //! - **Remote Inspection** (optional): Connect to remote Bevy applications via [`bevy_remote`]
@@ -39,12 +39,10 @@
 //! use bevy::prelude::*;
 //! use bevy_entity_inspector::InspectorPlugin;
 //!
-//! fn main() {
-//!     App::new()
-//!         .add_plugins(DefaultPlugins)
-//!         .add_plugins(InspectorPlugin)
-//!         .run();
-//! }
+//! App::new()
+//!     .add_plugins(DefaultPlugins)
+//!     .add_plugins(InspectorPlugin)
+//!     .run();
 //! ```
 //!
 //! ### Remote Inspection
@@ -55,12 +53,10 @@
 //! use bevy::prelude::*;
 //! use bevy_entity_inspector::InspectorPlugin;
 //!
-//! fn main() {
-//!     App::new()
-//!         .add_plugins(DefaultPlugins)
-//!         .add_plugins(InspectorPlugin)
-//!         .run();
-//! }
+//! App::new()
+//!     .add_plugins(DefaultPlugins)
+//!     .add_plugins(InspectorPlugin)
+//!     .run();
 //! ```
 //!
 //! Then run your target application with the [`bevy_remote`] plugin enabled.
@@ -73,13 +69,11 @@
 //! use bevy::prelude::*;
 //! use bevy_entity_inspector::{InspectorPlugin, create_dark_inspector_theme};
 //!
-//! fn main() {
-//!     App::new()
-//!         .add_plugins(DefaultPlugins)
-//!         .add_plugins(InspectorPlugin)
-//!         .insert_resource(create_dark_inspector_theme())
-//!         .run();
-//! }
+//! App::new()
+//!     .add_plugins(DefaultPlugins)
+//!     .add_plugins(InspectorPlugin)
+//!     .insert_resource(create_dark_inspector_theme())
+//!     .run();
 //! ```
 //!
 //! [Bevy app]: https://docs.rs/bevy/latest/bevy/app/struct.App.html
@@ -158,7 +152,7 @@ use crate::ui_systems::{handle_tree_selection, setup_inspector_camera, spawn_ins
 /// # Features
 ///
 /// - **Event-Driven Architecture**: Efficient updates using [`InspectorEvent`] system
-/// - **Component Grouping**: Automatic grouping by crate (e.g., "bevy_transform", "my_game")
+/// - **Component Grouping**: Automatic grouping by crate (e.g., "`bevy_transform`", "`my_game`")
 /// - **Remote Inspection**: Optional remote inspection via [`bevy_remote`] (with "remote" feature)
 /// - **Reflection Support**: Automatic component introspection using Bevy's [reflection system]
 /// - **Modern UI**: Clean, themeable interface with expand/collapse functionality using [`InspectorTheme`]

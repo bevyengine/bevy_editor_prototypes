@@ -123,7 +123,7 @@ pub struct EntityInspectorRow {
 
     /// The reflected components of the entity.
     ///
-    /// Maps component type names (in format "crate::Type") to their
+    /// Maps component type names (in format "`crate::Type`") to their
     /// reflected data using Bevy's [`PartialReflect`](https://docs.rs/bevy/latest/bevy/reflect/trait.PartialReflect.html) trait.
     /// Components without [`ReflectDeserialize`](https://docs.rs/bevy/latest/bevy/reflect/serde/trait.ReflectDeserialize.html) support
     /// are stored as placeholder [`DynamicStruct`](https://docs.rs/bevy/latest/bevy/reflect/struct.DynamicStruct.html) instances.
@@ -169,7 +169,7 @@ impl Default for EntityInspectorRow {
 /// # Performance
 ///
 /// Change detection uses efficient hash-based comparison for remote data,
-/// and simple HashMap key comparison for local data. The system is designed
+/// and simple `HashMap` key comparison for local data. The system is designed
 /// to scale well with large numbers of entities.
 #[derive(Resource, Debug)]
 pub struct EntityInspectorRows {

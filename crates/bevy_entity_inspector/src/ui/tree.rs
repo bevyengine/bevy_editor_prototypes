@@ -24,7 +24,7 @@ use std::collections::HashMap;
 /// This component stores the complete hierarchical information for displaying inspector data
 /// in a tree format. Each node represents a different level of the entity hierarchy:
 /// - **Entity nodes**: Root level, showing entity names or IDs
-/// - **Crate group nodes**: Group components by their crate (e.g., "bevy_transform")
+/// - **Crate group nodes**: Group components by their crate (e.g., "`bevy_transform`")
 /// - **Component nodes**: Individual components within a crate group
 /// - **Field nodes**: Individual fields/properties within a component
 ///
@@ -32,7 +32,7 @@ use std::collections::HashMap;
 ///
 /// Values are populated by [`crate::tree_builder::InspectorTreeBuilder`] when processing
 /// [`crate::events::EntityInspectorRows`] data:
-/// - `id`: Generated hierarchically (e.g., "entity_42", "entity_42_bevy_transform", "entity_42_bevy_transform_Transform")
+/// - `id`: Generated hierarchically (e.g., "`entity_42`", "`entity_42_bevy_transform`", "`entity_42_bevy_transform_Transform`")
 /// - `label`: Human-readable display text extracted from component names, field names, or entity names
 /// - `is_expanded`: Defaults to `false`, controlled by user interaction
 /// - `children`: Populated automatically based on reflection data structure

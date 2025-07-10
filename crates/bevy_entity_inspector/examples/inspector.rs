@@ -10,7 +10,7 @@
 //! - With remote data source: `cargo run --example inspector --features remote`
 //! - Basic inspector (empty until data source is configured): `cargo run --example inspector`
 //!
-//! For remote mode, first start the cube_server example:
+//! For remote mode, first start the `cube_server` example:
 //! `cargo run --example cube_server --features remote`
 //!
 //! # Related Documentation

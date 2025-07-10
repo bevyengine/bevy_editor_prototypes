@@ -434,7 +434,7 @@ pub fn build_tree_node_recursive(
         ))
         .id();
 
-    // Add disclosure triangle or spacer for visual indication
+    // Add disclosure triangle for visual indication
     if has_children {
         let triangle_char = if node.is_expanded { "▼" } else { "▶" };
         let triangle = commands

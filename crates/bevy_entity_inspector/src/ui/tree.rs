@@ -461,7 +461,7 @@ pub fn tree_node(node: &TreeNode, props: TreeNodeProps, config: &TreeConfig) -> 
 ///
 /// # Returns
 ///
-/// A complex bundle using [`Children::spawn`] that creates the multi-entity
+/// A complex bundle using Bevy's spawn system that creates the multi-entity
 /// container structure. The actual [`TreeContainer`] marker is on a child entity,
 /// not the returned root entity.
 ///

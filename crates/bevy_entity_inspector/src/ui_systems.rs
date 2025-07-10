@@ -23,7 +23,7 @@ pub struct InspectorTreeContainer;
 /// Event-driven system that handles entity inspector changes.
 ///
 /// This system is the heart of the inspector's event-driven architecture. It processes
-/// [`InspectorEvent`](crate::events::InspectorEvent)s emitted by data sources and updates the tree UI accordingly.
+/// [`InspectorEvent`]s emitted by data sources and updates the tree UI accordingly.
 /// The system is designed to minimize unnecessary UI rebuilds by categorizing events
 /// and applying appropriate update strategies.
 ///
@@ -44,7 +44,7 @@ pub struct InspectorTreeContainer;
 ///
 /// # System Parameters
 ///
-/// - `events`: [`EventReader`](https://docs.rs/bevy/latest/bevy/ecs/event/struct.EventReader.html) for incoming [`InspectorEvent`](crate::events::InspectorEvent)s
+/// - `events`: [`EventReader`](https://docs.rs/bevy/latest/bevy/ecs/event/struct.EventReader.html) for incoming [`InspectorEvent`]s
 /// - `inspector_data`: Current entity data for tree reconstruction
 /// - `tree_state`: UI tree state with expansion/selection information
 /// - `tree_container_query`: Query to find tree container entities for UI updates

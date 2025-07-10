@@ -80,7 +80,7 @@ pub fn extract_crate_and_type(component_name: &str) -> (String, String) {
 /// - **[Struct](https://docs.rs/bevy/latest/bevy/reflect/trait.Struct.html)**: Named fields with their values
 /// - **[TupleStruct](https://docs.rs/bevy/latest/bevy/reflect/trait.TupleStruct.html)**: Indexed fields (`field_0`, `field_1`, etc.)
 /// - **[Tuple](https://docs.rs/bevy/latest/bevy/reflect/trait.Tuple.html)**: Indexed items (`item_0`, `item_1`, etc.)
-/// - **[List](https://docs.rs/bevy/latest/bevy/reflect/trait.List.html)/[Array](https://docs.rs/bevy/latest/bevy/reflect/trait.Array.html)**: Indexed elements with bracket notation ([0], [1], etc.)
+/// - **[List](https://docs.rs/bevy/latest/bevy/reflect/trait.List.html)/[Array](https://docs.rs/bevy/latest/bevy/reflect/trait.Array.html)**: Indexed elements with bracket notation (`\[0\]`, `\[1\]`, etc.)
 /// - **[Map](https://docs.rs/bevy/latest/bevy/reflect/trait.Map.html)**: Key-value pairs
 /// - **[Enum](https://docs.rs/bevy/latest/bevy/reflect/trait.Enum.html)**: Variant name and field data
 ///

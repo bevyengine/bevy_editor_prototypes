@@ -1,4 +1,4 @@
-//! Remote inspection functionality for connecting to remote Bevy applications.
+//! Remote in/// - **Event Integration**: Emits granular [`InspectorEvent`]s for UI updatespection functionality for connecting to remote Bevy applications.
 //!
 //! This module provides the ability to inspect entities in remote Bevy applications
 //! via the [`bevy_remote`](https://docs.rs/bevy_remote/latest/bevy_remote/) protocol. It implements efficient polling with hash-based

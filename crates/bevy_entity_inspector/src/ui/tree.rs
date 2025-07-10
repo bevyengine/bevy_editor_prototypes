@@ -1,4 +1,15 @@
-//! Tree view UI components for displaying hierarchical data
+//! Tree view UI components for displaying hierarchical data.
+//!
+//! This module provides a comprehensive tree view system for displaying hierarchical
+//! entity data in the inspector. It includes selection handling, expansion states,
+//! and visual styling for different node types.
+//!
+//! # Related Documentation
+//!
+//! - [Bevy UI Guide](https://docs.rs/bevy/latest/bevy/ui/index.html) - Core UI system documentation
+//! - [`TreeNode`] - Individual tree node component with metadata
+//! - [`TreeState`] - Global tree state resource for tracking nodes and selection
+//! - [`crate::TreeNodeType`] - Node type enum for visual styling
 
 use bevy::{
     core_widgets::{ControlOrientation, CoreScrollbar, CoreScrollbarPlugin, CoreScrollbarThumb},

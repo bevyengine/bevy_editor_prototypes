@@ -1,4 +1,15 @@
-//! Disclosure triangle UI components for collapsible tree nodes
+//! Disclosure triangle UI components for collapsible tree nodes.
+//!
+//! This module provides interactive disclosure triangles (expand/collapse arrows)
+//! used in tree views to show and hide child nodes. The triangles emit events
+//! when clicked and can be styled using the inspector theme.
+//!
+//! # Related Documentation
+//!
+//! - [Bevy Interaction](https://docs.rs/bevy/latest/bevy/ui/enum.Interaction.html) - UI interaction system for click handling
+//! - [`DisclosureTriangle`] - Main component for disclosure triangles
+//! - [`DisclosureToggled`] - Event emitted when triangles are clicked
+//! - [`crate::theme::InspectorTheme`] - Theming system for consistent styling
 
 use bevy::{ecs::event::BufferedEvent, prelude::*};
 

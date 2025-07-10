@@ -1,4 +1,14 @@
-//! Theme configuration for the entity inspector
+//! Theme configuration for the entity inspector.
+//!
+//! This module provides theming support for customizing the visual appearance
+//! of the inspector interface, including colors, fonts, and spacing.
+//!
+//! # Related Documentation
+//!
+//! - [Bevy Color](https://docs.rs/bevy/latest/bevy/color/index.html) - Color system used for theming
+//! - [`InspectorTheme`] - Main theme configuration resource
+//! - [`create_dark_inspector_theme`] - Pre-configured dark theme
+//! - [`create_light_inspector_theme`] - Pre-configured light theme
 
 use bevy::prelude::*;
 

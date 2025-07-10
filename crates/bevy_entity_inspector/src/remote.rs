@@ -1,7 +1,7 @@
 //! Remote inspection functionality for connecting to remote Bevy applications.
 //!
 //! This module provides the ability to inspect entities in remote Bevy applications
-//! via the `bevy_remote` protocol. It implements efficient polling with hash-based
+//! via the [`bevy_remote`](https://docs.rs/bevy_remote/latest/bevy_remote/) protocol. It implements efficient polling with hash-based
 //! change detection to minimize network traffic and UI updates.
 //!
 //! # Features
@@ -11,11 +11,11 @@
 //! - **Hash-based Change Detection**: Uses content hashing to detect entity/component changes
 //! - **Component Name Simplification**: Displays components as "crate::Type" for clarity
 //! - **Graceful Degradation**: Handles components without reflection support
-//! - **Event Integration**: Emits granular `InspectorEvent`s for UI updates
+//! - **Event Integration**: Emits granular [`InspectorEvent`](crate::events::InspectorEvent)s for UI updates
 //!
 //! # Protocol
 //!
-//! Uses the `bevy_remote` HTTP protocol to query entity data. The system sends
+//! Uses the [`bevy_remote`](https://docs.rs/bevy_remote/latest/bevy_remote/) HTTP protocol to query entity data. The system sends
 //! BRP (Bevy Remote Protocol) requests to fetch all entities with all components,
 //! then processes the JSON response to extract component data.
 //!
@@ -23,7 +23,7 @@
 //!
 //! - **Configurable Polling Rate**: Default 1 second, adjustable via timer
 //! - **Change Detection**: Only processes updates when entity data actually changes
-//! - **Async Processing**: Uses Bevy's task system for non-blocking network requests
+//! - **Async Processing**: Uses Bevy's [task system](https://docs.rs/bevy/latest/bevy/tasks/index.html) for non-blocking network requests
 //! - **Memory Efficient**: Reuses data structures and avoids unnecessary allocations
 //!
 //! # Setup

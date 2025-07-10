@@ -1,4 +1,18 @@
-//! UI components and widgets for the entity inspector
+//! UI components and widgets for the entity inspector.
+//!
+//! This module organizes all UI-related functionality for the inspector,
+//! including tree views, property panels, and interactive widgets.
+//!
+//! # Modules
+//!
+//! - [`disclosure`] - Expandable/collapsible disclosure triangles
+//! - [`property_panel`] - Right-side property display panel
+//! - [`tree`] - Main tree view for entity hierarchy
+//!
+//! # Related Documentation
+//!
+//! - [Bevy UI Guide](https://docs.rs/bevy/latest/bevy/ui/index.html) - Core UI system documentation
+//! - [`InspectorWidgetsPlugin`] - Plugin that enables all UI widgets
 
 use bevy::prelude::*;
 

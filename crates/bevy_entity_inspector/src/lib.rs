@@ -1,34 +1,39 @@
 //! A modular entity inspector for Bevy with reflection support.
 //!
 //! This crate provides a tree-based UI for inspecting entities and their components
-//! in a Bevy application. It uses Bevy's reflection system to dynamically display
+//! in a [Bevy] application. It uses Bevy's [reflection system] to dynamically display
 //! component data without requiring compile-time knowledge of component types.
 //!
 //! ## Features
 //!
-//! - **Event-Driven Updates**: Efficient, granular updates using an event system instead of polling
+//! - **Event-Driven Updates**: Efficient, granular updates using an [`InspectorEvent`] system instead of polling
 //! - **Tree-Based UI**: Hierarchical display of entities and their components with expand/collapse functionality
-//! - **Component Grouping**: Components are automatically grouped by crate for better organization (e.g., "bevy_transform", "my_game")
-//! - **Visual Styling**: Different node types (entities, crate groups, components, fields) have distinct visual styling with reduced opacity for non-expandable items
-//! - **Reflection Support**: Automatic component introspection using Bevy's reflection system
-//! - **Remote Inspection** (optional): Connect to remote Bevy applications via `bevy_remote`
-//! - **Modern UI**: Clean, themeable interface with hover effects and visual feedback
+//! - **Component Grouping**: Components are automatically grouped by crate using [`extract_crate_and_type`] for better organization (e.g., "bevy_transform", "my_game")
+//! - **Visual Styling**: Different node types ([`TreeNodeType`]) have distinct visual styling with reduced opacity for non-expandable items
+//! - **Reflection Support**: Automatic component introspection using Bevy's [reflection system] and [`extract_reflect_fields`]
+//! - **Remote Inspection** (optional): Connect to remote Bevy applications via [`bevy_remote`]
+//! - **Modern UI**: Clean, themeable interface with hover effects and visual feedback using [`InspectorTheme`]
 //! - **Change Detection**: Only updates UI when actual changes occur, eliminating unnecessary rebuilds
+//!
+//! [Bevy]: https://bevyengine.org
+//! [reflection system]: https://docs.rs/bevy/latest/bevy/reflect/index.html
+//! [`bevy_remote`]: https://docs.rs/bevy_remote/latest/bevy_remote/
+//! [Bevy app]: https://docs.rs/bevy/latest/bevy/app/struct.App.html
 //!
 //! ## Architecture
 //!
 //! The inspector uses an event-driven architecture that replaces the previous hash-based change detection:
 //!
-//! - `InspectorEvent` enum defines granular change types (entity added/removed/updated, component changes)
-//! - `EntityInspectorRows` tracks entity data and change state with efficient diff detection
-//! - `TreeState` manages the UI tree structure and expansion states
+//! - [`InspectorEvent`] enum defines granular change types (entity added/removed/updated, component changes)
+//! - [`EntityInspectorRows`] tracks entity data and change state with efficient diff detection
+//! - [`TreeState`] manages the UI tree structure and expansion states
 //! - Remote polling emits events only when actual changes are detected
 //!
 //! ## Usage
 //!
 //! ### Basic Inspector
 //!
-//! Add the `InspectorPlugin` to your Bevy app:
+//! Add the [`InspectorPlugin`] to your [Bevy app]:
 //!
 //! ```rust,no_run
 //! use bevy::prelude::*;
@@ -44,7 +49,7 @@
 //!
 //! ### Remote Inspection
 //!
-//! To inspect entities in a remote Bevy application:
+//! To inspect entities in a remote Bevy application using [`bevy_remote`]:
 //!
 //! ```rust,no_run
 //! use bevy::prelude::*;
@@ -58,9 +63,11 @@
 //! }
 //! ```
 //!
-//! Then run your target application with the `bevy_remote` plugin enabled.
+//! Then run your target application with the [`bevy_remote`] plugin enabled.
 //!
 //! ### Custom Theming
+//!
+//! Customize the inspector appearance using [`InspectorTheme`]:
 //!
 //! ```rust,no_run
 //! use bevy::prelude::*;
@@ -75,6 +82,8 @@
 //! }
 //! ```
 //!
+//! [Bevy app]: https://docs.rs/bevy/latest/bevy/app/struct.App.html
+//!
 //! ## Performance
 //!
 //! The event-driven system provides significant performance improvements:
@@ -85,7 +94,8 @@
 //!
 //! ## Component Grouping
 //!
-//! Components are automatically grouped by their crate name for better organization:
+//! Components are automatically grouped by their crate name for better organization.
+//! This grouping is handled by [`extract_crate_and_type`] and displayed using [`TreeNodeType`]:
 //!
 //! ```text
 //! Entity (42)
@@ -143,16 +153,16 @@ use crate::ui_systems::{handle_tree_selection, setup_inspector_camera, spawn_ins
 ///
 /// This plugin provides a complete entity inspection system with a tree-based UI
 /// that displays entities and their components in a hierarchical view. Components
-/// are automatically grouped by crate name for better organization.
+/// are automatically grouped by crate name using [`extract_crate_and_type`] for better organization.
 ///
 /// # Features
 ///
-/// - **Event-Driven Architecture**: Efficient updates using `InspectorEvent` system
+/// - **Event-Driven Architecture**: Efficient updates using [`InspectorEvent`] system
 /// - **Component Grouping**: Automatic grouping by crate (e.g., "bevy_transform", "my_game")
-/// - **Remote Inspection**: Optional remote inspection via `bevy_remote` (with "remote" feature)
-/// - **Reflection Support**: Automatic component introspection using Bevy's reflection system
-/// - **Modern UI**: Clean, themeable interface with expand/collapse functionality
-/// - **Performance Optimized**: Only updates when actual changes occur
+/// - **Remote Inspection**: Optional remote inspection via [`bevy_remote`] (with "remote" feature)
+/// - **Reflection Support**: Automatic component introspection using Bevy's [reflection system]
+/// - **Modern UI**: Clean, themeable interface with expand/collapse functionality using [`InspectorTheme`]
+/// - **Performance Optimized**: Only updates when actual changes occur via [`EntityInspectorRows`] change tracking
 ///
 /// # Usage
 ///
@@ -169,10 +179,10 @@ use crate::ui_systems::{handle_tree_selection, setup_inspector_camera, spawn_ins
 /// # Performance
 ///
 /// The plugin is designed for minimal performance impact:
-/// - Events only emitted when actual changes occur
-/// - UI updates are batched and optimized
-/// - Tree state preserved during rebuilds
-/// - Async network operations (for remote inspection)
+/// - Events only emitted when actual changes occur via [`InspectorEvent`]
+/// - UI updates are batched and optimized by [`handle_inspector_events`]
+/// - Tree state preserved during rebuilds using [`TreeState`]
+/// - Async network operations for remote inspection (with "remote" feature)
 pub struct InspectorPlugin;
 
 impl Plugin for InspectorPlugin {

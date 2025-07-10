@@ -1,4 +1,15 @@
-//! Modern inspector widgets using standard Bevy UI patterns
+//! Modern inspector widgets using standard Bevy UI patterns.
+//!
+//! This module provides reusable UI components for building inspector interfaces
+//! using Bevy's native UI system. All widgets follow consistent styling and
+//! theming patterns.
+//!
+//! # Related Documentation
+//!
+//! - [Bevy UI Guide](https://docs.rs/bevy/latest/bevy/ui/index.html) - Core UI system documentation
+//! - [Node Documentation](https://docs.rs/bevy/latest/bevy/ui/struct.Node.html) - Layout system for UI elements
+//! - [`crate::theme::InspectorTheme`] - Theming system for consistent styling
+//! - [`InspectorPanel`] - Main panel component marker
 
 use crate::theme::*;
 use bevy::prelude::*;

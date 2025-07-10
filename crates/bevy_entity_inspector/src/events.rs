@@ -2,6 +2,13 @@
 //!
 //! This module contains the event system that drives the inspector's updates,
 //! as well as the core data structures for representing entity data.
+//!
+//! # Related Documentation
+//!
+//! - [Bevy Events](https://docs.rs/bevy/latest/bevy/ecs/event/index.html) - Core event system used by this inspector
+//! - [Bevy Reflection](https://docs.rs/bevy/latest/bevy/reflect/index.html) - Reflection system for component introspection
+//! - [`InspectorEvent`] - Main event enum for inspector state changes
+//! - [`EntityInspectorRows`] - Central data store with change tracking
 
 use bevy::ecs::event::BufferedEvent;
 use bevy::platform::collections::HashMap;
@@ -13,6 +20,17 @@ use bevy::prelude::*;
 /// Instead of polling or hash-based detection, the inspector emits specific events when
 /// entities or components change, allowing the UI to update only what's necessary.
 ///
+/// For more details on Bevy's event system, see the [Events Guide](https://docs.rs/bevy/latest/bevy/ecs/event/index.html).
+///
+/// # Design: Single Enum vs Multiple Event Types
+///
+/// This is designed as a single enum rather than multiple distinct event types for several reasons:
+/// - **Serde compatibility**: A single enum serializes more cleanly for remote inspection
+/// - **Discoverability**: All related events are grouped together in one place
+/// - **Shared handling**: All variants currently trigger UI rebuilds, so they can be processed uniformly
+/// - **Future extensibility**: Easy to add new event types while maintaining backward compatibility
+/// - **Type safety**: Ensures all inspector events go through the same processing pipeline
+///
 /// # Event Types
 ///
 /// - **Entity Events**: `EntityAdded`, `EntityRemoved`, `EntityUpdated` - Fired when entities are created, destroyed, or modified
@@ -22,7 +40,7 @@ use bevy::prelude::*;
 /// # Usage
 ///
 /// These events are typically emitted by data source plugins (like the remote inspection plugin)
-/// and consumed by the main event handler to update the tree UI.
+/// and consumed by the main event handler (see [`crate::ui_systems::handle_inspector_events`]) to update the tree UI.
 #[derive(Event, BufferedEvent, Debug, Clone)]
 pub enum InspectorEvent {
     /// Entity was added to the inspector.
@@ -79,10 +97,14 @@ pub enum InspectorNodeData {
 /// Contains all the information needed to display an entity in the inspector tree,
 /// including its display name, reflected component data, and change detection hash.
 ///
+/// This structure leverages Bevy's [reflection system](https://docs.rs/bevy/latest/bevy/reflect/index.html)
+/// to store component data in a format that can be displayed in the UI without knowing
+/// the specific component types at compile time.
+///
 /// # Fields
 ///
-/// - `name`: Display name for the entity (extracted from `Name` component if available)
-/// - `components`: Map of component type names to their reflected data
+/// - `name`: Display name for the entity (extracted from [`Name`](https://docs.rs/bevy/latest/bevy/core/struct.Name.html) component if available)
+/// - `components`: Map of component type names to their reflected data using [`PartialReflect`](https://docs.rs/bevy/latest/bevy/reflect/trait.PartialReflect.html)
 /// - `data_hash`: Optional hash of raw component data for efficient change detection
 ///
 /// # Change Detection
@@ -102,8 +124,9 @@ pub struct EntityInspectorRow {
     /// The reflected components of the entity.
     ///
     /// Maps component type names (in format "crate::Type") to their
-    /// reflected data. Components without `ReflectDeserialize` support
-    /// are stored as placeholder `DynamicStruct` instances.
+    /// reflected data using Bevy's [`PartialReflect`](https://docs.rs/bevy/latest/bevy/reflect/trait.PartialReflect.html) trait.
+    /// Components without [`ReflectDeserialize`](https://docs.rs/bevy/latest/bevy/reflect/serde/trait.ReflectDeserialize.html) support
+    /// are stored as placeholder [`DynamicStruct`](https://docs.rs/bevy/latest/bevy/reflect/struct.DynamicStruct.html) instances.
     pub components: HashMap<String, Box<dyn PartialReflect>>,
 
     /// Hash of the raw component data for change detection.

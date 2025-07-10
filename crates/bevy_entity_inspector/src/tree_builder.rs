@@ -2,6 +2,13 @@
 //!
 //! This module contains the logic for building tree structures from entity data,
 //! including component grouping by crate and tree node creation.
+//!
+//! # Related Documentation
+//!
+//! - [`crate::events::EntityInspectorRows`] - Input data structure for tree building
+//! - [`crate::reflection::extract_crate_and_type`] - Component name parsing utility
+//! - [`crate::ui::TreeNode`] - Core tree node structure
+//! - [`TreeNodeType`] - Enum for different node types and styling
 
 use crate::events::{EntityInspectorRows, InspectorNodeData};
 use crate::reflection::{extract_crate_and_type, extract_reflect_fields};

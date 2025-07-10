@@ -2,6 +2,13 @@
 //!
 //! This module provides a property panel that displays the reflected component data
 //! for the currently selected entity or component in a clean, organized format.
+//!
+//! # Related Documentation
+//!
+//! - [Bevy UI Guide](https://docs.rs/bevy/latest/bevy/ui/index.html) - Core UI system documentation
+//! - [`crate::events::EntityInspectorRows`] - Data source for property information
+//! - [`crate::theme::InspectorTheme`] - Theming system for consistent styling
+//! - [`PropertyPanel`] - Main component marker for the property panel
 
 use crate::events::EntityInspectorRows;
 use crate::theme::InspectorTheme;

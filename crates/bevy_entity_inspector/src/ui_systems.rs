@@ -2,6 +2,13 @@
 //!
 //! This module contains the systems responsible for managing the inspector UI,
 //! including event handling, tree rebuilding, and UI spawning.
+//!
+//! # Related Documentation
+//!
+//! - [Bevy Systems](https://docs.rs/bevy/latest/bevy/ecs/system/index.html) - Core system documentation
+//! - [`crate::events::InspectorEvent`] - Events processed by these systems
+//! - [`crate::ui::TreeState`] - UI state management
+//! - [`handle_inspector_events`] - Main event processing system
 
 use crate::events::{EntityInspectorRows, InspectorEvent};
 use crate::ui::{TreeConfig, TreeContainer, TreeState};
@@ -16,9 +23,11 @@ pub struct InspectorTreeContainer;
 /// Event-driven system that handles entity inspector changes.
 ///
 /// This system is the heart of the inspector's event-driven architecture. It processes
-/// `InspectorEvent`s emitted by data sources and updates the tree UI accordingly.
+/// [`InspectorEvent`](crate::events::InspectorEvent)s emitted by data sources and updates the tree UI accordingly.
 /// The system is designed to minimize unnecessary UI rebuilds by categorizing events
 /// and applying appropriate update strategies.
+///
+/// For more information on Bevy systems, see the [Systems Guide](https://docs.rs/bevy/latest/bevy/ecs/system/index.html).
 ///
 /// # Event Processing
 ///
@@ -35,7 +44,7 @@ pub struct InspectorTreeContainer;
 ///
 /// # System Parameters
 ///
-/// - `events`: Reader for incoming `InspectorEvent`s
+/// - `events`: [`EventReader`](https://docs.rs/bevy/latest/bevy/ecs/event/struct.EventReader.html) for incoming [`InspectorEvent`](crate::events::InspectorEvent)s
 /// - `inspector_data`: Current entity data for tree reconstruction
 /// - `tree_state`: UI tree state with expansion/selection information
 /// - `tree_container_query`: Query to find tree container entities for UI updates

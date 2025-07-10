@@ -19,97 +19,348 @@ use bevy::{
 };
 use std::collections::HashMap;
 
-/// A node in the tree structure
+/// A node in the tree structure representing entities, crate groups, components, or fields.
+///
+/// This component stores the complete hierarchical information for displaying inspector data
+/// in a tree format. Each node represents a different level of the entity hierarchy:
+/// - **Entity nodes**: Root level, showing entity names or IDs
+/// - **Crate group nodes**: Group components by their crate (e.g., "bevy_transform")
+/// - **Component nodes**: Individual components within a crate group
+/// - **Field nodes**: Individual fields/properties within a component
+///
+/// # Field Population
+///
+/// Values are populated by [`crate::tree_builder::InspectorTreeBuilder`] when processing
+/// [`crate::events::EntityInspectorRows`] data:
+/// - `id`: Generated hierarchically (e.g., "entity_42", "entity_42_bevy_transform", "entity_42_bevy_transform_Transform")
+/// - `label`: Human-readable display text extracted from component names, field names, or entity names
+/// - `is_expanded`: Defaults to `false`, controlled by user interaction
+/// - `children`: Populated automatically based on reflection data structure
+/// - `parent`: Set during tree construction to maintain hierarchy
+/// - `depth`: Calculated based on position in hierarchy (entity=0, crate=1, component=2, field=3)
+/// - `node_type`: Determined by the data type being represented
+///
+/// # Label vs ID Difference
+///
+/// - **`id`**: Technical identifier for tree management, unique across entire tree
+///   - Example: `"entity_42_bevy_transform_Transform_translation"`
+/// - **`label`**: User-friendly display text shown in UI
+///   - Example: `"translation: Vec3(0.0, 1.0, 0.0)"`
+///
+/// The `id` is used for tree state management, event routing, and parent-child relationships,
+/// while `label` is purely for display purposes and may contain formatted values.
 #[derive(Component, Clone, Debug)]
 pub struct TreeNode {
-    /// Unique identifier for the node
+    /// Unique hierarchical identifier for tree state management.
+    ///
+    /// Format: `"entity_{id}_{crate}_{component}_{field}"` where each level
+    /// is appended as you go deeper in the hierarchy. Used internally for
+    /// tracking expansion state, selection, and parent-child relationships.
     pub id: String,
-    /// Display label for the node
+
+    /// Human-readable display text shown in the UI.
+    ///
+    /// Contains the formatted display name that users see, such as:
+    /// - Entity: `"Player (42)"` or `"Entity 42"`
+    /// - Crate group: `"bevy_transform"`
+    /// - Component: `"Transform"`
+    /// - Field: `"translation: Vec3(0.0, 1.0, 0.0)"`
+    ///
+    /// This differs from `id` by being display-focused and may include
+    /// formatted values, spaces, and special characters.
     pub label: String,
-    /// Whether the node is expanded (showing children)
+
+    /// Whether this node is currently expanded to show its children.
+    ///
+    /// Controlled by user clicks on disclosure triangles. When `true`,
+    /// child nodes are visible in the tree. When `false`, children are
+    /// hidden. Automatically set to `false` for leaf nodes (fields).
     pub is_expanded: bool,
-    /// IDs of child nodes
+
+    /// List of child node IDs in display order.
+    ///
+    /// Populated automatically during tree construction based on:
+    /// - Entity children: Crate groups containing that entity's components
+    /// - Crate children: Components belonging to that crate
+    /// - Component children: Fields extracted via [`crate::reflection::extract_reflect_fields`]
+    /// - Field children: None (fields are leaf nodes)
+    ///
+    /// Order is maintained for consistent display (crate alphabetical, then component alphabetical).
     pub children: Vec<String>,
-    /// ID of parent node, if any
+
+    /// ID of the parent node in the hierarchy.
+    ///
+    /// `None` for root-level entity nodes. For all other nodes, contains
+    /// the ID of their immediate parent. Used for tree navigation and
+    /// maintaining hierarchical relationships during UI updates.
     pub parent: Option<String>,
-    /// Depth level in the tree (0 for root nodes)
+
+    /// Nesting depth in the tree hierarchy (0-based).
+    ///
+    /// Determines visual indentation and helps with styling:
+    /// - `0`: Entity nodes (root level)
+    /// - `1`: Crate group nodes
+    /// - `2`: Component nodes  
+    /// - `3`: Field nodes (leaf level)
+    ///
+    /// Used to calculate left padding: `depth * indent_size`.
     pub depth: usize,
-    /// Type of node for visual styling
+
+    /// Classification for visual styling and behavior.
+    ///
+    /// Determines text color, opacity, and other visual properties.
+    /// See [`crate::TreeNodeType`] for details on each type's appearance.
     pub node_type: crate::TreeNodeType,
 }
 
-/// Global state for the tree view
+/// Global state for the tree view, managing all nodes and selection.
+///
+/// This resource serves as the central data store for the entire tree UI,
+/// maintaining both the hierarchical structure and interactive state.
+/// It's updated by [`crate::tree_builder::InspectorTreeBuilder`] when
+/// entity data changes, and by interaction systems when users click nodes.
+///
+/// # State Management
+///
+/// The tree state is rebuilt when:
+/// - New [`crate::events::InspectorEvent`]s indicate entity/component changes
+/// - User interactions trigger expansion/collapse via [`handle_tree_node_interactions`]
+/// - Full refresh is requested
+///
+/// Selection and expansion states are preserved across rebuilds to maintain
+/// user context and avoid UI flickering.
 #[derive(Resource, Default, Clone)]
 pub struct TreeState {
-    /// Map of node ID to node data
+    /// Hierarchical map of all tree nodes by their unique ID.
+    ///
+    /// Contains every node in the tree, from root entities down to individual
+    /// component fields. The key is the node's `id` field, allowing fast
+    /// lookups during rendering and interaction handling.
     pub nodes: HashMap<String, TreeNode>,
-    /// IDs of root-level nodes
+
+    /// Ordered list of top-level entity node IDs.
+    ///
+    /// These are the entities that appear at the root level of the tree.
+    /// Order determines display sequence and is typically sorted for
+    /// consistent presentation (entities with components first, then alphabetical).
     pub root_nodes: Vec<String>,
-    /// Currently selected node ID
+
+    /// ID of the currently selected node for property panel display.
+    ///
+    /// When a user clicks any tree node, this is updated to that node's ID,
+    /// triggering [`TreeNodeSelected`] events that update the property panel.
+    /// `None` indicates no selection (property panel shows placeholder content).
     pub selected_node: Option<String>,
 }
 
-/// Properties for tree nodes, used to control selection and interaction
+/// Configuration parameters for tree node creation and styling.
+///
+/// Used when programmatically creating tree nodes to control their
+/// interactive behavior and visual state. This is separate from the
+/// persistent state stored in [`TreeNode`] itself.
 #[derive(Default)]
 pub struct TreeNodeProps {
-    /// Whether the node is selectable
+    /// Whether this node should respond to selection clicks.
+    ///
+    /// When `true`, clicking the node will update [`TreeState::selected_node`]
+    /// and emit [`TreeNodeSelected`] events. All nodes are typically selectable
+    /// in the inspector to allow property panel updates.
     pub selectable: bool,
-    /// Whether the node is currently selected
+
+    /// Whether this node should be visually highlighted as selected.
+    ///
+    /// Controls the initial background color when creating the node.
+    /// This is usually determined by comparing the node's ID with
+    /// [`TreeState::selected_node`] during UI construction.
     pub selected: bool,
 }
 
-/// Component markers for tree UI elements
+/// Component marker for interactive tree node UI elements.
+///
+/// This component is attached to the clickable [`Button`] entity that represents
+/// a tree node in the UI. It stores the node's ID to enable event routing and
+/// state synchronization between the UI element and the logical tree data.
+///
+/// # Purpose
+///
+/// - **Event Routing**: When a tree node is clicked, this component helps identify
+///   which logical tree node was selected
+/// - **State Sync**: Links UI interaction state with tree data state
+/// - **Selection Management**: Enables updating both visual styling and logical selection
+///
+/// Used by [`handle_tree_node_interactions`] to process click events and
+/// [`update_tree_node_style`] to apply selection/hover styling.
 #[derive(Component)]
 pub struct TreeNodeWidget {
-    /// Unique identifier for the tree node
+    /// Reference to the logical tree node's unique identifier.
+    ///
+    /// This must match a key in [`TreeState::nodes`] to enable proper
+    /// event handling and state synchronization. When this UI element
+    /// is clicked, the corresponding [`TreeNode`] will be found using this ID.
     pub node_id: String,
 }
 
-/// Component for tree node labels, used for text display
+/// Component marker for tree node text display elements.
+///
+/// Attached to the [`Text`] entity that shows the node's label text.
+/// This separation allows for independent styling and interaction handling
+/// between the clickable button area and the text content.
+///
+/// # Purpose
+///
+/// - **Text Styling**: Enables targeted styling of text elements separate from button styling
+/// - **Content Updates**: Allows updating text content without affecting button interaction
+/// - **Accessibility**: Maintains semantic separation between interactive and display elements
 #[derive(Component)]
 pub struct TreeLabel {
-    /// Unique identifier for the node this label belongs to
+    /// Reference to the tree node this label represents.
+    ///
+    /// Links the text element back to its logical tree node for
+    /// potential text updates or styling based on node state.
     pub node_id: String,
 }
 
-/// Container for the tree view, used to apply styles and scrolling
+/// Component marker for the scrollable tree container.
+///
+/// This marks the main scrollable area that contains all tree nodes.
+/// It's separate from the outer frame that contains scrollbars, allowing
+/// for proper scroll behavior and content management.
+///
+/// # Purpose
+///
+/// - **Content Management**: Identifies where tree nodes should be spawned
+/// - **Scroll Behavior**: Enables proper scrolling when content overflows
+/// - **Layout Isolation**: Separates tree content from scrollbar UI elements
+///
+/// Used by [`handle_tree_expansion_changes`] to find where to spawn new
+/// tree nodes when the tree structure is rebuilt.
 #[derive(Component)]
 pub struct TreeContainer;
 
-/// Tree-related events
+/// Event emitted when a tree node is selected by user interaction.
+///
+/// This event is fired whenever a user clicks on any tree node, regardless
+/// of whether it's an entity, crate group, component, or field. The selection
+/// triggers updates to both the tree visual state and the property panel content.
+///
+/// # Event Flow
+///
+/// 1. User clicks a tree node button
+/// 2. [`handle_tree_node_interactions`] detects the click
+/// 3. [`TreeState::selected_node`] is updated
+/// 4. This event is emitted with the selected node's ID
+/// 5. Property panel systems listen for this event to update their content
+///
+/// # Property Panel Integration
+///
+/// The property panel uses this event to determine what component data to display:
+/// - **Entity selection**: Shows all components for that entity
+/// - **Component selection**: Shows detailed fields for that specific component
+/// - **Field selection**: Shows the parent component with the selected field highlighted
 #[derive(Event, BufferedEvent)]
 pub struct TreeNodeSelected {
-    /// ID of the node that was selected
+    /// ID of the tree node that was selected.
+    ///
+    /// This corresponds to a key in [`TreeState::nodes`] and can be used
+    /// to retrieve the full node data including its type, depth, and content.
     pub node_id: String,
 }
 
-/// Event fired when a tree node is expanded or collapsed
+/// Event fired when a tree node's expansion state changes.
+///
+/// Currently not actively used but provides infrastructure for future
+/// expansion-specific functionality like lazy loading, animation, or
+/// state persistence across sessions.
+///
+/// # Future Use Cases
+///
+/// - **Lazy Loading**: Load component data only when nodes are expanded
+/// - **Animations**: Trigger expand/collapse animations
+/// - **State Persistence**: Remember expansion states across app restarts
+/// - **Performance**: Defer expensive reflection operations until needed
 #[derive(Event, BufferedEvent)]
 pub struct TreeNodeExpanded {
-    /// ID of the node that was expanded or collapsed
+    /// ID of the node whose expansion state changed.
     pub node_id: String,
-    /// Whether the node is now expanded
+    /// New expansion state after the change.
     pub is_expanded: bool,
 }
 
-/// Configuration for tree appearance
+/// Visual and layout configuration for the tree view appearance.
+///
+/// This resource controls all aspects of tree rendering including spacing,
+/// colors, and sizing. It can be modified at runtime to change the tree's
+/// appearance or replaced entirely to switch between light/dark themes.
+///
+/// # Theming Integration
+///
+/// While this provides tree-specific configuration, it works alongside
+/// [`crate::theme::InspectorTheme`] for overall inspector theming.
+/// Consider using [`crate::theme::InspectorTheme`] for broader styling
+/// consistency across all inspector components.
+///
+/// # Visual Hierarchy
+///
+/// The configuration supports visual hierarchy through:
+/// - **Indentation**: `indent_size` creates nested structure
+/// - **Colors**: Different node types get different `text_color` variations
+/// - **Interactive Feedback**: `selected_color` and `hover_color` for user feedback
 #[derive(Resource)]
 pub struct TreeConfig {
-    /// Size of indentation for child nodes
+    /// Horizontal indentation per tree depth level in pixels.
+    ///
+    /// Each level deeper in the hierarchy adds this amount of left padding.
+    /// For example, with `indent_size: 20.0`:
+    /// - Entities (depth 0): 0px padding
+    /// - Crate groups (depth 1): 20px padding  
+    /// - Components (depth 2): 40px padding
+    /// - Fields (depth 3): 60px padding
     pub indent_size: f32,
-    /// Height of each tree node
+
+    /// Height of each tree node row in pixels.
+    ///
+    /// Consistent height for all tree nodes regardless of content.
+    /// Affects vertical spacing and click target size. Should be
+    /// large enough to accommodate text and provide comfortable clicking.
     pub node_height: f32,
-    /// Size of disclosure triangle
+
+    /// Size of disclosure triangle indicators in pixels.
+    ///
+    /// Controls both the font size of the triangle characters (▶/▼)
+    /// and the size of their container area. Affects visual prominence
+    /// of expandable vs non-expandable nodes.
     pub triangle_size: f32,
-    /// Font size for node text
+
+    /// Font size for tree node text labels.
+    ///
+    /// Applied to all tree text content. Should balance readability
+    /// with information density, especially for deeply nested structures.
     pub font_size: f32,
-    /// Color of node text
+
+    /// Default text color for tree node labels.
+    ///
+    /// Individual node types may override this color in the rendering
+    /// logic for visual hierarchy (entities, crate groups, components, fields).
     pub text_color: Color,
-    /// Color of selected node background
+
+    /// Background color for the currently selected tree node.
+    ///
+    /// Provides clear visual feedback about which node is selected
+    /// and will be displayed in the property panel. Should contrast
+    /// well with `text_color` for accessibility.
     pub selected_color: Color,
-    /// Color of hovered node background
+
+    /// Background color for tree nodes under mouse hover.
+    ///
+    /// Provides interactive feedback before clicking. Should be
+    /// subtle enough not to distract but visible enough to indicate
+    /// interactivity. Often a lighter version of `selected_color`.
     pub hover_color: Color,
-    /// Background color of the tree container
+
+    /// Background color for the entire tree container.
+    ///
+    /// Sets the overall tree panel background. Should provide good
+    /// contrast with node colors and fit the overall inspector theme.
     pub background_color: Color,
 }
 
@@ -142,7 +393,27 @@ pub mod tree_tokens {
     pub const TREE_BORDER: &str = "tree_border";
 }
 
-/// Creates a tree node widget
+/// Creates a tree node widget bundle with interaction and styling components.
+///
+/// This function constructs the UI bundle for a single tree node, including
+/// the layout, interaction area, and visual styling. The resulting bundle
+/// can be spawned as an entity to create an interactive tree node.
+///
+/// # Parameters
+///
+/// - `node`: The logical tree node data containing ID, label, hierarchy info
+/// - `props`: Display properties controlling selection state and interactivity
+/// - `config`: Visual configuration for sizing, colors, and spacing
+///
+/// # Returns
+///
+/// A bundle containing [`Node`], [`TreeNodeWidget`], [`BackgroundColor`], and [`BorderRadius`]
+/// components that together create a styled, interactive tree node UI element.
+///
+/// # Usage
+///
+/// Typically called by [`build_tree_node_recursive`] during tree construction,
+/// but can also be used for custom tree node creation.
 pub fn tree_node(node: &TreeNode, props: TreeNodeProps, config: &TreeConfig) -> impl Bundle {
     let node_id = node.id.clone();
     let _has_children = !node.children.is_empty();
@@ -168,7 +439,36 @@ pub fn tree_node(node: &TreeNode, props: TreeNodeProps, config: &TreeConfig) -> 
     )
 }
 
-/// Creates a tree container widget with scrolling support and visible scrollbars
+/// Creates a scrollable tree container with visible scrollbars and grid layout.
+///
+/// This function builds the complete tree container infrastructure including:
+/// - A grid-based frame that positions the scroll area and scrollbars
+/// - A scrollable content area marked with [`TreeContainer`] for tree nodes
+/// - Vertical and horizontal scrollbars with interactive thumbs
+/// - Proper spacing and visual styling
+///
+/// # Architecture
+///
+/// The container uses a CSS Grid layout with:
+/// - Row 1, Column 1: Main scrollable tree content area
+/// - Row 1, Column 2: Vertical scrollbar
+/// - Row 2, Column 1: Horizontal scrollbar  
+/// - Row 2, Column 2: (Empty corner space)
+///
+/// # Parameters
+///
+/// - `config`: Visual configuration for colors and styling
+///
+/// # Returns
+///
+/// A complex bundle using [`Children::spawn`] that creates the multi-entity
+/// container structure. The actual [`TreeContainer`] marker is on a child entity,
+/// not the returned root entity.
+///
+/// # Usage
+///
+/// Called once during tree UI setup to create the container where tree nodes
+/// will be spawned by [`handle_tree_expansion_changes`].
 pub fn tree_container(config: &TreeConfig) -> impl Bundle {
     let background_color = config.background_color;
 

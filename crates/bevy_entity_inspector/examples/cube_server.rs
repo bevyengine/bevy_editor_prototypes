@@ -2,8 +2,8 @@
 
 use bevy::math::ops::cos;
 use bevy::{input::common_conditions::input_just_pressed, prelude::*};
-use bevy_remote::RemotePlugin;
 use bevy_remote::http::RemoteHttpPlugin;
+use bevy_remote::RemotePlugin;
 use serde::{Deserialize, Serialize};
 
 fn main() {

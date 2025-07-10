@@ -85,7 +85,7 @@ use serde::de::IntoDeserializer;
 ///
 /// ```rust,no_run
 /// use bevy_entity_inspector::remote::EntityInspectorRemotePlugin;
-/// 
+///
 /// let plugin = EntityInspectorRemotePlugin {
 ///     remote_url: "http://localhost:8080/".to_string(),
 /// };
@@ -105,7 +105,7 @@ use serde::de::IntoDeserializer;
 /// - Graceful error handling for network issues
 pub struct EntityInspectorRemotePlugin {
     /// The address of the remote application to connect to.
-    /// 
+    ///
     /// Should include the protocol, host, port, and path.
     /// Example: "http://127.0.0.1:15702/"
     pub remote_url: String,
@@ -126,7 +126,7 @@ impl Default for EntityInspectorRemotePlugin {
 #[derive(Resource, Debug, Clone)]
 pub struct RemoteConfig {
     /// The URL of the remote application.
-    /// 
+    ///
     /// Used by the polling system to send BRP requests.
     /// Must be a valid HTTP/HTTPS URL.
     pub remote_url: String,
@@ -149,7 +149,7 @@ impl Plugin for EntityInspectorRemotePlugin {
 struct PollTimer(Timer);
 
 /// Sets up the polling timer with default frequency.
-/// 
+///
 /// Configures the timer to poll every 1 second. This can be adjusted
 /// based on performance requirements and network conditions.
 fn setup_poll_timer(mut commands: Commands) {
@@ -199,7 +199,7 @@ fn poll_remote_entity_rows(
 ) {
     if timer.0.tick(time.delta()).just_finished() {
         info!("Polling timer finished, checking if we should start new task");
-        
+
         if task_handle.0.is_none() {
             info!("Starting remote polling to {}", remote_config.remote_url);
             let url = remote_config.remote_url.clone();
@@ -265,7 +265,6 @@ fn poll_remote_entity_rows(
                                         // If there's no "::" separator, just use the original name
                                         comp_name.to_string()
                                     };
-                                    
                                     // Try to reflect using the type registry
                                     if let Some(reg) =
                                         type_registry_arc.read().get_with_type_path(comp_name)
@@ -291,7 +290,6 @@ fn poll_remote_entity_rows(
                                         comp_map.insert(component_display_name, Box::new(dynamic_struct) as Box<dyn PartialReflect>);
                                     }
                                 }
-                                
                                 // Calculate hash of the raw component data for change detection
                                 let mut hasher = DefaultHasher::new();
                                 // Sort the component data to ensure consistent hashing
@@ -303,7 +301,6 @@ fn poll_remote_entity_rows(
                                     serde_json::to_string(comp_val).unwrap_or_default().hash(&mut hasher);
                                 }
                                 let data_hash = hasher.finish();
-                                
                                 rows.insert(
                                     entity,
                                     EntityInspectorRow {
@@ -363,7 +360,10 @@ fn update_remote_entity_rows(
 ) {
     if let Some(mut task) = task_handle.0.take() {
         if let Some(result) = future::block_on(future::poll_once(&mut task)) {
-            info!("Remote polling task completed with {} entities", result.len());
+            info!(
+                "Remote polling task completed with {} entities",
+                result.len()
+            );
             // Use the new change tracking to detect what changed
             rows.update_rows(result);
 

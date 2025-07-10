@@ -12,7 +12,9 @@ bevy_editor.workspace = true
 bevy_scroll_box.workspace = true
 bevy_footer_bar.workspace = true
 bevy_editor_styles.workspace = true
+bevy_remote.workspace = true
 
 rfd.workspace = true
 serde.workspace = true
 ron.workspace = true
+serde_json.workspace = true

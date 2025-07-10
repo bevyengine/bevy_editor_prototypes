@@ -1,0 +1,30 @@
+[package]
+name = "bevy_entity_inspector"
+version = "0.1.0"
+edition = "2021"
+description = "A modular entity inspector for Bevy with reflection support"
+authors = ["Joe Buehler"]
+license = "MIT OR Apache-2.0"
+keywords = ["bevy", "inspector", "editor", "reflection", "ui", "debug"]
+categories = ["game-development", "gui"]
+
+[features]
+default = ["remote"]
+remote = ["dep:bevy_remote", "dep:serde", "dep:serde_json", "dep:ureq"]
+
+[dependencies]
+bevy = { git = "https://github.com/bevyengine/bevy.git", branch = "main", features = ["wayland", "serialize"] }
+
+# Optional remote functionality dependencies
+bevy_remote = { git = "https://github.com/bevyengine/bevy.git", branch = "main", optional = true }
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+ureq = { workspace = true, optional = true }
+
+[lints]
+workspace = true
+
+[[example]]
+name = "cube_server"
+path = "examples/cube_server.rs"
+required-features = ["remote"]

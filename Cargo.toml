@@ -30,6 +30,7 @@ unused_qualifications = "warn"
 bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "a3d406dd497205253e34ace757ab0076d50eec14", features = [
     "wayland",
 ] }
+bevy_render = { git = "https://github.com/bevyengine/bevy.git", rev = "a3d406dd497205253e34ace757ab0076d50eec14" }
 bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "a3d406dd497205253e34ace757ab0076d50eec14" }
 bevy_macro_utils = { git = "https://github.com/bevyengine/bevy.git", rev = "a3d406dd497205253e34ace757ab0076d50eec14" }
 thiserror = "2.0"

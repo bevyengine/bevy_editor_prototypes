@@ -1,6 +1,16 @@
 use bevy::prelude::*;
 use bevy_editor_core::SelectedEntity;
 use bevy_render::primitives::Aabb;
+use bevy::ecs::system::SystemParam;
+
+#[derive(SystemParam)]
+pub struct OutlineGizmoQueries<'w, 's> {
+    pub mesh_query: Query<'w, 's, (&'static GlobalTransform, &'static Mesh3d, Option<&'static Aabb>)>,
+    pub sprite_query: Query<'w, 's, (&'static GlobalTransform, &'static Sprite), Without<Mesh3d>>,
+    pub aabb_query: Query<'w, 's, (&'static GlobalTransform, &'static Aabb), (Without<Mesh3d>, Without<Sprite>)>,
+    pub children_query: Query<'w, 's, &'static Children>,
+    pub transform_query: Query<'w, 's, &'static GlobalTransform, (Without<Mesh3d>, Without<Sprite>, Without<Aabb>)>,
+}
 
 pub struct OutlineGizmoPlugin;
 impl Plugin for OutlineGizmoPlugin {
@@ -46,12 +56,7 @@ pub fn outline_gizmo_system(
     show: Res<ShowOutlines>,
     selected_entity: Res<SelectedEntity>,
     mut gizmos: Gizmos,
-    mesh_query: Query<(&GlobalTransform, &Mesh3d, Option<&Aabb>)>,
-    sprite_query: Query<(&GlobalTransform, &Sprite), Without<Mesh3d>>,
-    aabb_query: Query<(&GlobalTransform, &Aabb), (Without<Mesh3d>, Without<Sprite>)>,
-    children_query: Query<&Children>,
-    // Fallback query for any entity with just a transform
-    transform_query: Query<&GlobalTransform, (Without<Mesh3d>, Without<Sprite>, Without<Aabb>)>,
+    queries: OutlineGizmoQueries,
     meshes: Res<Assets<Mesh>>,
 ) {
     if !show.0 {
@@ -65,17 +70,17 @@ pub fn outline_gizmo_system(
     // Calculate the bounding box for the entity (including children)
     if let Some(world_aabb) = calculate_world_aabb(
         entity,
-        &mesh_query,
-        &sprite_query,
-        &aabb_query,
-        &children_query,
-        &transform_query,
+        &queries.mesh_query,
+        &queries.sprite_query,
+        &queries.aabb_query,
+        &queries.children_query,
+        &queries.transform_query,
         &meshes,
     ) {
         draw_world_aabb_outline(&mut gizmos, &world_aabb);
     } else {
         // Fallback to simple transform-based outline
-        if let Ok(global_transform) = transform_query.get(entity) {
+        if let Ok(global_transform) = queries.transform_query.get(entity) {
             draw_fallback_outline(&mut gizmos, global_transform);
         }
     }
@@ -190,7 +195,7 @@ fn get_entity_aabb(
     None
 }
 
-/// Transform a local AABB to world space using GlobalTransform
+/// Transform a local AABB to world space using `GlobalTransform`
 fn transform_aabb(local_aabb: &Aabb, global_transform: &GlobalTransform) -> Aabb {
     let (scale, rotation, translation) = global_transform.to_scale_rotation_translation();
 

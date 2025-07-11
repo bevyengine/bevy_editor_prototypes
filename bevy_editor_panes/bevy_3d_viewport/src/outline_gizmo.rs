@@ -46,12 +46,9 @@ pub fn outline_gizmo_system(
     show: Res<ShowOutlines>,
     selected_entity: Res<SelectedEntity>,
     mut gizmos: Gizmos,
-    // Comprehensive queries for different entity types
     mesh_query: Query<(&GlobalTransform, &Mesh3d, Option<&Aabb>)>,
     sprite_query: Query<(&GlobalTransform, &Sprite), Without<Mesh3d>>,
-    // Query for entities with computed AABBs (like from rendering system)
     aabb_query: Query<(&GlobalTransform, &Aabb), (Without<Mesh3d>, Without<Sprite>)>,
-    // Query for entities with children that might contribute to bounds
     children_query: Query<&Children>,
     // Fallback query for any entity with just a transform
     transform_query: Query<&GlobalTransform, (Without<Mesh3d>, Without<Sprite>, Without<Aabb>)>,

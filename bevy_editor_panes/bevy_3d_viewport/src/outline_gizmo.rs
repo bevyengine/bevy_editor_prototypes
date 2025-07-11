@@ -1,15 +1,29 @@
+use bevy::ecs::system::SystemParam;
 use bevy::prelude::*;
 use bevy_editor_core::SelectedEntity;
 use bevy_render::primitives::Aabb;
-use bevy::ecs::system::SystemParam;
 
 #[derive(SystemParam)]
 pub struct OutlineGizmoQueries<'w, 's> {
-    pub mesh_query: Query<'w, 's, (&'static GlobalTransform, &'static Mesh3d, Option<&'static Aabb>)>,
+    pub mesh_query: Query<
+        'w,
+        's,
+        (
+            &'static GlobalTransform,
+            &'static Mesh3d,
+            Option<&'static Aabb>,
+        ),
+    >,
     pub sprite_query: Query<'w, 's, (&'static GlobalTransform, &'static Sprite), Without<Mesh3d>>,
-    pub aabb_query: Query<'w, 's, (&'static GlobalTransform, &'static Aabb), (Without<Mesh3d>, Without<Sprite>)>,
+    pub aabb_query: Query<
+        'w,
+        's,
+        (&'static GlobalTransform, &'static Aabb),
+        (Without<Mesh3d>, Without<Sprite>),
+    >,
     pub children_query: Query<'w, 's, &'static Children>,
-    pub transform_query: Query<'w, 's, &'static GlobalTransform, (Without<Mesh3d>, Without<Sprite>, Without<Aabb>)>,
+    pub transform_query:
+        Query<'w, 's, &'static GlobalTransform, (Without<Mesh3d>, Without<Sprite>, Without<Aabb>)>,
 }
 
 pub struct OutlineGizmoPlugin;

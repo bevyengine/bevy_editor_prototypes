@@ -4,7 +4,7 @@ use bevy_editor_core::SelectedEntity;
 use bevy_render::primitives::Aabb;
 
 #[derive(SystemParam)]
-pub struct OutlineGizmoQueries<'w, 's> {
+pub struct SelectionBoxQueries<'w, 's> {
     pub mesh_query: Query<
         'w,
         's,
@@ -26,8 +26,8 @@ pub struct OutlineGizmoQueries<'w, 's> {
         Query<'w, 's, &'static GlobalTransform, (Without<Mesh3d>, Without<Sprite>, Without<Aabb>)>,
 }
 
-pub struct OutlineGizmoPlugin;
-impl Plugin for OutlineGizmoPlugin {
+pub struct SelectionBoxPlugin;
+impl Plugin for SelectionBoxPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<ShowOutlines>()
             .add_systems(Startup, spawn_gizmo_toggle_ui)
@@ -70,7 +70,7 @@ pub fn outline_gizmo_system(
     show: Res<ShowOutlines>,
     selected_entity: Res<SelectedEntity>,
     mut gizmos: Gizmos,
-    queries: OutlineGizmoQueries,
+    queries: SelectionBoxQueries,
     meshes: Res<Assets<Mesh>>,
 ) {
     if !show.0 {

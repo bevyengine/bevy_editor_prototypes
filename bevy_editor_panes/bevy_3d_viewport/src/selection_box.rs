@@ -29,22 +29,22 @@ pub struct SelectionBoxQueries<'w, 's> {
 pub struct SelectionBoxPlugin;
 impl Plugin for SelectionBoxPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<ShowOutlines>()
-            .add_systems(Startup, spawn_gizmo_toggle_ui)
-            .add_systems(Update, outline_gizmo_system)
-            .add_systems(Update, update_gizmo_toggle_text);
+        app.init_resource::<ShowSelectionBox>()
+            .add_systems(Startup, spawn_selection_box_toggle_ui)
+            .add_systems(Update, selection_box_system)
+            .add_systems(Update, update_selection_box_toggle_text);
     }
 }
 
 #[derive(Resource, Default)]
-pub struct ShowOutlines(pub bool);
+pub struct ShowSelectionBox(pub bool);
 
 // Marker for the toggle button text
 #[derive(Component)]
-struct GizmoToggleText;
+struct SelectionBoxToggleText;
 
 /// Draw an outline for a world-space AABB
-fn draw_world_aabb_outline(gizmos: &mut Gizmos, aabb: &Aabb) {
+fn draw_selection_box(gizmos: &mut Gizmos, aabb: &Aabb) {
     let min = aabb.min();
     let max = aabb.max();
     let center = (min + max) * 0.5;
@@ -57,7 +57,7 @@ fn draw_world_aabb_outline(gizmos: &mut Gizmos, aabb: &Aabb) {
 }
 
 /// Fallback outline for entities without proper bounds
-fn draw_fallback_outline(gizmos: &mut Gizmos, global_transform: &GlobalTransform) {
+fn draw_fallback_selection_box(gizmos: &mut Gizmos, global_transform: &GlobalTransform) {
     let translation = global_transform.translation();
     let default_size = Vec3::splat(1.0);
 
@@ -66,8 +66,8 @@ fn draw_fallback_outline(gizmos: &mut Gizmos, global_transform: &GlobalTransform
     gizmos.cuboid(outline_transform, Color::srgb(0.5, 0.5, 0.5)); // Gray outline
 }
 
-pub fn outline_gizmo_system(
-    show: Res<ShowOutlines>,
+pub fn selection_box_system(
+    show: Res<ShowSelectionBox>,
     selected_entity: Res<SelectedEntity>,
     mut gizmos: Gizmos,
     queries: SelectionBoxQueries,
@@ -91,11 +91,11 @@ pub fn outline_gizmo_system(
         &queries.transform_query,
         &meshes,
     ) {
-        draw_world_aabb_outline(&mut gizmos, &world_aabb);
+        draw_selection_box(&mut gizmos, &world_aabb);
     } else {
-        // Fallback to simple transform-based outline
+        // Fallback to simple transform-based selection box
         if let Ok(global_transform) = queries.transform_query.get(entity) {
-            draw_fallback_outline(&mut gizmos, global_transform);
+            draw_fallback_selection_box(&mut gizmos, global_transform);
         }
     }
 }
@@ -249,8 +249,8 @@ fn transform_aabb(local_aabb: &Aabb, global_transform: &GlobalTransform) -> Aabb
     Aabb::from_min_max(world_min, world_max)
 }
 
-pub fn spawn_gizmo_toggle_ui(mut commands: Commands) {
-    info!("Spawning Gizmo Toggle UI");
+pub fn spawn_selection_box_toggle_ui(mut commands: Commands) {
+    info!("Spawning Selection Box Toggle UI");
     commands
         .spawn((
             Node {
@@ -267,29 +267,29 @@ pub fn spawn_gizmo_toggle_ui(mut commands: Commands) {
         ))
         .with_children(|parent| {
             parent.spawn((
-                Text::new("Show Outlines"),
+                Text::new("Show Selection Box"),
                 TextFont::from_font_size(10.0),
-                GizmoToggleText,
+                SelectionBoxToggleText,
             ));
         })
         .observe(
-            |_trigger: On<Pointer<Click>>, mut show_outlines: ResMut<ShowOutlines>| {
-                show_outlines.0 = !show_outlines.0;
+            |_trigger: On<Pointer<Click>>, mut show_selection: ResMut<ShowSelectionBox>| {
+                show_selection.0 = !show_selection.0;
             },
         );
 }
 
-// System to update the button text when ShowOutlines changes
-fn update_gizmo_toggle_text(
-    show_outlines: Res<ShowOutlines>,
-    mut query: Query<&mut Text, With<GizmoToggleText>>,
+// System to update the button text when ShowSelectionBox changes
+fn update_selection_box_toggle_text(
+    show_selection: Res<ShowSelectionBox>,
+    mut query: Query<&mut Text, With<SelectionBoxToggleText>>,
 ) {
-    if show_outlines.is_changed() {
+    if show_selection.is_changed() {
         for mut text in &mut query {
-            text.0 = if show_outlines.0 {
-                "Hide Outlines".into()
+            text.0 = if show_selection.0 {
+                "Hide Selection Box".into()
             } else {
-                "Show Outlines".into()
+                "Show Selection Box".into()
             };
         }
     }

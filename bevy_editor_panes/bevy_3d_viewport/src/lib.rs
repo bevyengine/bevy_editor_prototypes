@@ -18,9 +18,9 @@ use bevy_infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings}
 use bevy_pane_layout::prelude::*;
 use view_gizmo::{spawn_view_gizmo_target_texture, ViewGizmoPlugin};
 
-use crate::outline_gizmo::SelectionBoxPlugin;
+use crate::selection_box::SelectionBoxPlugin;
 
-mod outline_gizmo;
+mod selection_box;
 mod view_gizmo;
 
 /// The identifier for the 3D Viewport.

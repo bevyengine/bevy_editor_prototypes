@@ -139,12 +139,7 @@ pub fn setup(
                             border: UiRect::all(Val::Px(5.0)),
                             ..default()
                         },
-                        BorderRadius::new(
-                            Val::Px(20.0),
-                            Val::Px(20.0),
-                            Val::Px(20.0),
-                            Val::Px(20.0),
-                        ),
+                        BorderRadius::all(Val::Px(20.0)),
                         BorderColor::all(theme.button.background_color.0),
                     ))
                     .with_child((

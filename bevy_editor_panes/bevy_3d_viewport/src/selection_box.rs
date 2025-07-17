@@ -211,8 +211,6 @@ fn get_entity_aabb(
 
 /// Transform a local AABB to world space using `GlobalTransform`
 fn transform_aabb(local_aabb: &Aabb, global_transform: &GlobalTransform) -> Aabb {
-    let (scale, rotation, translation) = global_transform.to_scale_rotation_translation();
-
     // Get the 8 corners of the AABB
     let min = local_aabb.min();
     let max = local_aabb.max();
@@ -225,23 +223,14 @@ fn transform_aabb(local_aabb: &Aabb, global_transform: &GlobalTransform) -> Aabb
         Vec3::new(max.x, min.y, max.z),
         Vec3::new(min.x, max.y, max.z),
         Vec3::new(max.x, max.y, max.z),
-    ];
-
-    // Transform all corners to world space
-    let transformed_corners: Vec<Vec3> = corners
-        .iter()
-        .map(|&corner| {
-            let scaled = corner * scale;
-            let rotated = rotation * scaled;
-            rotated + translation
-        })
-        .collect();
+    ]
+    .map(|corner| global_transform.transform_point(corner));
 
     // Find the min/max of transformed corners
-    let mut world_min = transformed_corners[0];
-    let mut world_max = transformed_corners[0];
+    let mut world_min = corners[0];
+    let mut world_max = corners[0];
 
-    for &corner in &transformed_corners[1..] {
+    for &corner in &corners[1..] {
         world_min = world_min.min(corner);
         world_max = world_max.max(corner);
     }

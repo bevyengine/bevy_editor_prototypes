@@ -33,8 +33,12 @@ bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "a3d406dd49720525
 bevy_render = { git = "https://github.com/bevyengine/bevy.git", rev = "a3d406dd497205253e34ace757ab0076d50eec14" }
 bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "a3d406dd497205253e34ace757ab0076d50eec14" }
 bevy_macro_utils = { git = "https://github.com/bevyengine/bevy.git", rev = "a3d406dd497205253e34ace757ab0076d50eec14" }
+bevy_remote = { git = "https://github.com/bevyengine/bevy.git", rev = "a3d406dd497205253e34ace757ab0076d50eec14" }
+
 thiserror = "2.0"
 serde = { version = "1", features = ["derive"] }
+serde_json = "1.0.140"
+ureq = {version = "3.0.12", features = ["json"]}
 tracing-test = "0.2.5"
 tracing = "0.1.41"
 atomicow = "1.1.0"
@@ -65,6 +69,8 @@ bevy_toolbar = { path = "bevy_widgets/bevy_toolbar" }
 bevy_tooltips = { path = "bevy_widgets/bevy_tooltips" }
 bevy_text_editing = { path = "bevy_widgets/bevy_text_editing" }
 bevy_field_forms = { path = "bevy_widgets/bevy_field_forms" }
+bevy_focus = { path = "bevy_widgets/bevy_focus" }
+bevy_transform = { path = "bevy_widgets/bevy_transform" }
 
 # general crates
 bevy_editor_core = { path = "crates/bevy_editor_core" }

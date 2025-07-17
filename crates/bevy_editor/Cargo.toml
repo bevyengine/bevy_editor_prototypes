@@ -10,6 +10,7 @@ bevy_menu_bar.workspace = true
 bevy_footer_bar.workspace = true
 bevy_context_menu.workspace = true
 bevy_editor_styles.workspace = true
+bevy_remote.workspace = true
 
 serde.workspace = true
 ron.workspace = true

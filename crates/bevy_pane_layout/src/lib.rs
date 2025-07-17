@@ -102,7 +102,9 @@ fn setup(
             padding: UiRect::all(Val::Px(1.)),
             flex_grow: 1.,
             width: Val::Percent(100.),
-
+            height: Val::Percent(100.),
+            // Prevent children from expanding the height of this node.
+            min_height: Val::Px(0.),
             ..default()
         },
         theme.general.background_color,

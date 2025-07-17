@@ -1,7 +1,9 @@
 //! 3D Viewport for Bevy
 use bevy::{
+    asset::uuid::Uuid,
     picking::{
-        pointer::{Location, PointerId, PointerInput, PointerLocation},
+        input::{mouse_pick_events, touch_pick_events},
+        pointer::{Location, PointerId, PointerInput},
         PickingSystems,
     },
     prelude::*,
@@ -50,8 +52,11 @@ impl Plugin for Viewport3dPanePlugin {
         app.add_plugins((DefaultEditorCamPlugins, ViewGizmoPlugin, SelectionBoxPlugin))
             .add_systems(Startup, setup)
             .add_systems(
-                PreUpdate,
-                render_target_picking_passthrough.in_set(PickingSystems::Last),
+                First,
+                render_target_picking_passthrough
+                    .in_set(PickingSystems::Input)
+                    .after(touch_pick_events)
+                    .after(mouse_pick_events),
             )
             .add_systems(
                 PostUpdate,
@@ -72,23 +77,24 @@ impl Plugin for Viewport3dPanePlugin {
     }
 }
 
+/// A viewport is considered active while the mouse is hovering over it.
 #[derive(Component)]
 struct Active;
 
-// TODO This does not properly handle multiple windows.
-/// Copies picking events and moves pointers through render-targets.
+// FIXME: This system makes a lot of assumptions and is therefore rather fragile. Does not handle multiple windows.
+/// Sends copies of [`PointerAction`]s from the window pointer to pointers belonging to the viewport panes.
 fn render_target_picking_passthrough(
-    mut commands: Commands,
     viewports: Query<(Entity, &Bevy3dViewport)>,
     content: Query<&PaneContentNode>,
     children_query: Query<&Children>,
     node_query: Query<(&ComputedNode, &UiGlobalTransform, &ImageNode), With<Active>>,
-    mut pointers: Query<(&PointerId, &mut PointerLocation)>,
     mut pointer_input_reader: EventReader<PointerInput>,
+    // Using commands to output PointerInput events to avoid clashing with the EventReader
+    mut commands: Commands,
 ) {
     for event in pointer_input_reader.read() {
-        // Ignore the events we send to the render-targets
-        if !matches!(event.location.target, NormalizedRenderTarget::Window(..)) {
+        // Ignore the events sent from this system by only copying events that come directly from the mouse.
+        if event.pointer_id != PointerId::Mouse {
             continue;
         }
         for (pane_root, _viewport) in &viewports {
@@ -98,33 +104,21 @@ fn render_target_picking_passthrough(
                 .unwrap();
 
             let image_id = children_query.get(content_node_id).unwrap()[0];
-
             let Ok((computed_node, global_transform, ui_image)) = node_query.get(image_id) else {
                 // Inactive viewport
                 continue;
             };
-            let node_rect =
-                Rect::from_center_size(global_transform.translation, computed_node.size());
+            let node_top_left = global_transform.translation - computed_node.size() / 2.;
+            let position = event.location.position - node_top_left;
+            let target = NormalizedRenderTarget::Image(ui_image.image.clone().into());
 
-            let new_location = Location {
-                position: event.location.position - node_rect.min,
-                target: NormalizedRenderTarget::Image(ui_image.image.clone().into()),
+            let event_copy = PointerInput {
+                action: event.action,
+                location: Location { position, target },
+                pointer_id: pointer_id_from_entity(pane_root),
             };
 
-            // Duplicate the event
-            let mut new_event = event.clone();
-            // Relocate the event to the render-target
-            new_event.location = new_location.clone();
-            // Resend the event
-            commands.send_event(new_event);
-
-            if let Some((_id, mut pointer_location)) = pointers
-                .iter_mut()
-                .find(|(pointer_id, _)| **pointer_id == event.pointer_id)
-            {
-                // Relocate the pointer to the render-target
-                pointer_location.location = Some(new_location);
-            }
+            commands.send_event(event_copy);
         }
     }
 }
@@ -143,6 +137,12 @@ fn setup(mut commands: Commands, theme: Res<Theme>) {
     ));
 }
 
+/// Construct a pointer id from an entity. Used to tie the viewport panel root entity to a pointer id.
+fn pointer_id_from_entity(entity: Entity) -> PointerId {
+    let bits = entity.to_bits();
+    PointerId::Custom(Uuid::from_u64_pair(bits, bits))
+}
+
 fn on_pane_creation(
     structure: In<PaneStructure>,
     mut commands: Commands,
@@ -155,6 +155,10 @@ fn on_pane_creation(
     image.texture_descriptor.format = TextureFormat::Bgra8UnormSrgb;
 
     let image_handle = images.add(image);
+
+    // Spawn the cursor associated with this viewport pane.
+    let pointer_id = pointer_id_from_entity(structure.root);
+    commands.spawn((pointer_id, ChildOf(structure.root)));
 
     commands
         .spawn((
@@ -190,6 +194,7 @@ fn on_pane_creation(
             EditorCam::default(),
             Transform::from_translation(Vec3::ONE * 5.).looking_at(Vec3::ZERO, Vec3::Y),
             RenderLayers::from_layers(&[0, 1]),
+            MeshPickingCamera,
         ))
         .id();
 

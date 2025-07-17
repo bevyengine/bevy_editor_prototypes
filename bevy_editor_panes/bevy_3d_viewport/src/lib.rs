@@ -82,7 +82,7 @@ impl Plugin for Viewport3dPanePlugin {
 struct Active;
 
 // FIXME: This system makes a lot of assumptions and is therefore rather fragile. Does not handle multiple windows.
-/// Sends copies of [`PointerAction`]s from the window pointer to pointers belonging to the viewport panes.
+/// Sends copies of [`PointerInput`] event actions from the mouse pointer to pointers belonging to the viewport panes.
 fn render_target_picking_passthrough(
     viewports: Query<(Entity, &Bevy3dViewport)>,
     content: Query<&PaneContentNode>,

@@ -46,7 +46,7 @@ fn on_release(
             },
         );
         commands.trigger_targets(event.clone(), trigger.target());
-        commands.send_event(event);
+        commands.write_event(event);
     }
 }
 

@@ -68,7 +68,7 @@ impl IndependentSkybox {
 impl Default for IndependentSkybox {
     fn default() -> Self {
         Self {
-            skybox: Default::default(),
+            skybox: Handle::default(),
             brightness: 500.0,
             skybox_cam_order_offset: -1_000,
             fov: Default::default(),

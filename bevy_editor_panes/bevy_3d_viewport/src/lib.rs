@@ -118,7 +118,7 @@ fn render_target_picking_passthrough(
                 pointer_id: pointer_id_from_entity(pane_root),
             };
 
-            commands.send_event(event_copy);
+            commands.write_event(event_copy);
         }
     }
 }

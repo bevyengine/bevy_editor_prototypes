@@ -140,7 +140,7 @@ pub(crate) fn register_reflect_construct(app: &mut App) {
     app.register_type_data::<bevy::pbr::RenderVisibleMeshEntities, ReflectConstruct>();
     app.register_type_data::<bevy::pbr::VisibleMeshEntities, ReflectConstruct>();
     app.register_type_data::<bevy::pbr::DistanceFog, ReflectConstruct>();
-    app.register_type_data::<bevy::pbr::environment_map::EnvironmentMapLight, ReflectConstruct>();
+    app.register_type_data::<bevy::prelude::EnvironmentMapLight, ReflectConstruct>();
     app.register_type_data::<bevy::pbr::irradiance_volume::IrradianceVolume, ReflectConstruct>();
     app.register_type_data::<bevy::pbr::LightProbe, ReflectConstruct>();
     app.register_type_data::<bevy::pbr::AmbientLight, ReflectConstruct>();
@@ -240,7 +240,7 @@ pub(crate) fn register_reflect_construct(app: &mut App) {
     app.register_type_data::<bevy::ui::BorderColor, ReflectConstruct>();
     app.register_type_data::<bevy::ui::BorderRadius, ReflectConstruct>();
     app.register_type_data::<bevy::ui::BoxShadow, ReflectConstruct>();
-    app.register_type_data::<bevy::ui::BoxShadowSamples, ReflectConstruct>();
+    app.register_type_data::<bevy::ui_render::BoxShadowSamples, ReflectConstruct>();
     app.register_type_data::<bevy::ui::CalculatedClip, ReflectConstruct>();
     app.register_type_data::<bevy::ui::ComputedNode, ReflectConstruct>();
     app.register_type::<bevy::ui::ComputedNodeTarget>();
@@ -252,7 +252,7 @@ pub(crate) fn register_reflect_construct(app: &mut App) {
     app.register_type_data::<bevy::ui::Node, ReflectConstruct>();
     app.register_type_data::<bevy::ui::Outline, ReflectConstruct>();
     app.register_type_data::<bevy::ui::ScrollPosition, ReflectConstruct>();
-    app.register_type_data::<bevy::ui::TextShadow, ReflectConstruct>();
+    app.register_type_data::<bevy::ui::widget::TextShadow, ReflectConstruct>();
     app.register_type::<bevy::ui::UiTransform>();
     app.register_type::<bevy::ui::UiGlobalTransform>();
     app.register_type_data::<bevy::ui::ZIndex, ReflectConstruct>();

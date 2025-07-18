@@ -17,7 +17,7 @@ bevy.workspace = true
 bevy_derive.workspace = true
 
 [dev-dependencies]
-bevy = { workspace = true, features = ["jpeg", "ktx2", "zstd"] }
+bevy = { workspace = true, features = ["jpeg", "ktx2", "zstd_rust"] }
 rand = "0.8"
 
 [lints]

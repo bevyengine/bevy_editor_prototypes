@@ -3,7 +3,7 @@
 //! Data can be viewed and modified in real-time, with changes being reflected in the application.
 
 use bevy::{color::palettes::tailwind, prelude::*, reflect::*};
-use bevy_editor_core::SelectedEntity;
+use bevy_editor_core::selection::SelectedEntity;
 use bevy_i_cant_believe_its_not_bsn::{Template, TemplateEntityCommandsExt, template};
 use bevy_pane_layout::prelude::{PaneAppExt, PaneStructure};
 

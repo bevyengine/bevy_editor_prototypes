@@ -1,6 +1,6 @@
 use bevy::ecs::system::SystemParam;
 use bevy::prelude::*;
-use bevy_editor_core::SelectedEntity;
+use bevy_editor_core::selection::SelectedEntity;
 use bevy_render::primitives::Aabb;
 
 #[derive(SystemParam)]

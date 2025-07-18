@@ -1,7 +1,9 @@
 //! An interactive, collapsible tree view for hierarchical ECS data in Bevy.
 
 use bevy::{app::Plugin, color::palettes::tailwind, prelude::*};
-use bevy_editor_core::SelectedEntity;
+use bevy_editor_core::selection::{
+    SelectedEntity, common_handlers::toggle_select_on_click_for_entity,
+};
 use bevy_i_cant_believe_its_not_bsn::{Template, TemplateEntityCommandsExt, on, template};
 use bevy_pane_layout::prelude::{PaneAppExt, PaneStructure};
 
@@ -62,16 +64,6 @@ fn scene_tree_row_for_entity(
     name: &Name,
     selected_entity: &SelectedEntity,
 ) -> Template {
-    let set_selected_entity_on_click =
-        move |mut trigger: On<Pointer<Click>>, mut selected_entity: ResMut<SelectedEntity>| {
-            if selected_entity.0 == Some(entity) {
-                selected_entity.0 = None;
-            } else {
-                selected_entity.0 = Some(entity);
-            }
-            trigger.propagate(false);
-        };
-
     template! {
         {entity}: (
             Node {
@@ -82,7 +74,7 @@ fn scene_tree_row_for_entity(
             BorderRadius::all(Val::Px(4.0)),
             BackgroundColor(if selected_entity.0 == Some(entity) { tailwind::NEUTRAL_700.into() } else { Color::NONE }),
         ) => [
-            on(set_selected_entity_on_click);
+            on(toggle_select_on_click_for_entity(entity));
             (
                 Text(name.into()),
                 TextFont::from_font_size(11.0),

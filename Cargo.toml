@@ -27,12 +27,13 @@ unsafe_op_in_unsafe_fn = "warn"
 unused_qualifications = "warn"
 
 [workspace.dependencies]
-bevy = { git = "https://github.com/cart/bevy.git", rev = "d5882d45d71ebfa805747bbb4bbf5fb226e85581", features = [
-    # "wayland",
+bevy = { git = "https://github.com/cart/bevy.git", rev = "ab733198b8b59ec90194797f4a1d46a12043ebfc", features = [
+    "wayland",
+    "experimental_bevy_feathers",
 ] }
-bevy_render = { git = "https://github.com/cart/bevy.git", rev = "d5882d45d71ebfa805747bbb4bbf5fb226e85581" }
-bevy_derive = { git = "https://github.com/cart/bevy.git", rev = "d5882d45d71ebfa805747bbb4bbf5fb226e85581" }
-bevy_macro_utils = { git = "https://github.com/cart/bevy.git", rev = "d5882d45d71ebfa805747bbb4bbf5fb226e85581" }
+bevy_render = { git = "https://github.com/cart/bevy.git", rev = "ab733198b8b59ec90194797f4a1d46a12043ebfc" }
+bevy_derive = { git = "https://github.com/cart/bevy.git", rev = "ab733198b8b59ec90194797f4a1d46a12043ebfc" }
+bevy_macro_utils = { git = "https://github.com/cart/bevy.git", rev = "ab733198b8b59ec90194797f4a1d46a12043ebfc" }
 thiserror = "2.0"
 serde = { version = "1", features = ["derive"] }
 tracing-test = "0.2.5"
@@ -78,7 +79,6 @@ bevy_editor_styles = { path = "crates/bevy_editor_styles" }
 bevy_localization = { path = "crates/bevy_localization" }
 bevy_pane_layout = { path = "crates/bevy_pane_layout" }
 bevy_transform_gizmos = { path = "crates/bevy_transform_gizmos" }
-bevy_transform_gizmo = { path = "crates/bevy_transform_gizmo" }
 bevy_undo = { path = "crates/bevy_undo" }
 bevy_infinite_grid = { path = "crates/bevy_infinite_grid" }
 bevy_editor_cam = { path = "crates/bevy_editor_cam" }

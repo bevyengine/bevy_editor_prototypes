@@ -1,5 +1,5 @@
 [workspace]
-resolver = "2"
+resolver = "3"
 members = ["crates/*", "bevy_editor_panes/*", "bevy_widgets/*"]
 exclude = ["templates/"]
 default-members = ["crates/bevy_editor_launcher"]
@@ -27,12 +27,12 @@ unsafe_op_in_unsafe_fn = "warn"
 unused_qualifications = "warn"
 
 [workspace.dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "a3d406dd497205253e34ace757ab0076d50eec14", features = [
-    "wayland",
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "0294fa89db4e213ac8e186eed6966a7ea7459d1a", features = [
+    # "wayland",
 ] }
-bevy_render = { git = "https://github.com/bevyengine/bevy.git", rev = "a3d406dd497205253e34ace757ab0076d50eec14" }
-bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "a3d406dd497205253e34ace757ab0076d50eec14" }
-bevy_macro_utils = { git = "https://github.com/bevyengine/bevy.git", rev = "a3d406dd497205253e34ace757ab0076d50eec14" }
+bevy_render = { git = "https://github.com/bevyengine/bevy.git", rev = "0294fa89db4e213ac8e186eed6966a7ea7459d1a" }
+bevy_derive = { git = "https://github.com/bevyengine/bevy.git", rev = "0294fa89db4e213ac8e186eed6966a7ea7459d1a" }
+bevy_macro_utils = { git = "https://github.com/bevyengine/bevy.git", rev = "0294fa89db4e213ac8e186eed6966a7ea7459d1a" }
 thiserror = "2.0"
 serde = { version = "1", features = ["derive"] }
 tracing-test = "0.2.5"
@@ -78,6 +78,7 @@ bevy_editor_styles = { path = "crates/bevy_editor_styles" }
 bevy_localization = { path = "crates/bevy_localization" }
 bevy_pane_layout = { path = "crates/bevy_pane_layout" }
 bevy_transform_gizmos = { path = "crates/bevy_transform_gizmos" }
+bevy_transform_gizmo = { path = "crates/bevy_transform_gizmo" }
 bevy_undo = { path = "crates/bevy_undo" }
 bevy_infinite_grid = { path = "crates/bevy_infinite_grid" }
 bevy_editor_cam = { path = "crates/bevy_editor_cam" }

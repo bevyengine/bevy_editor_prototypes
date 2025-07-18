@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use bevy::{
-    asset::{load_internal_asset, weak_handle},
+    asset::{load_internal_asset, uuid_handle},
     core_pipeline::{core_2d::Transparent2d, core_3d::Transparent3d},
     ecs::{
         query::ROQueryItem,
@@ -37,7 +37,7 @@ use bevy::{
 
 use crate::InfiniteGridSettings;
 
-const GRID_SHADER_HANDLE: Handle<Shader> = weak_handle!("7cd38dd1-d707-481e-b38c-0eccb706e629");
+const GRID_SHADER_HANDLE: Handle<Shader> = uuid_handle!("7cd38dd1-d707-481e-b38c-0eccb706e629");
 
 pub fn render_app_builder(app: &mut App) {
     load_internal_asset!(app, GRID_SHADER_HANDLE, "grid.wgsl", Shader::from_wgsl);
@@ -531,7 +531,7 @@ impl SpecializedRenderPipeline for InfiniteGridPipeline {
             vertex: VertexState {
                 shader: GRID_SHADER_HANDLE,
                 shader_defs: vec![],
-                entry_point: Cow::Borrowed("vertex"),
+                entry_point: Some(Cow::Borrowed("vertex")),
                 buffers: vec![],
             },
             primitive: PrimitiveState {
@@ -567,7 +567,7 @@ impl SpecializedRenderPipeline for InfiniteGridPipeline {
             fragment: Some(FragmentState {
                 shader: GRID_SHADER_HANDLE,
                 shader_defs: vec![],
-                entry_point: Cow::Borrowed("fragment"),
+                entry_point: Some(Cow::Borrowed("fragment")),
                 targets: vec![Some(ColorTargetState {
                     format,
                     blend: Some(BlendState::ALPHA_BLENDING),

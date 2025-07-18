@@ -2,9 +2,7 @@ use alloc::borrow::Cow;
 use bevy::{
     ecs::{
         bundle::{BundleFromComponents, DynamicBundle},
-        component::{
-            ComponentId, Components, ComponentsRegistrator, RequiredComponents, StorageType,
-        },
+        component::{ComponentId, Components, ComponentsRegistrator, StorageType},
         system::EntityCommands,
         world::error::EntityMutableFetchError,
     },
@@ -193,13 +191,6 @@ all_tuples!(
 unsafe impl<B: Bundle> Bundle for ConstructTuple<B> {
     fn component_ids(components: &mut ComponentsRegistrator, ids: &mut impl FnMut(ComponentId)) {
         B::component_ids(components, ids);
-    }
-
-    fn register_required_components(
-        components: &mut ComponentsRegistrator,
-        required_components: &mut RequiredComponents,
-    ) {
-        B::register_required_components(components, required_components);
     }
 
     fn get_component_ids(components: &Components, ids: &mut impl FnMut(Option<ComponentId>)) {

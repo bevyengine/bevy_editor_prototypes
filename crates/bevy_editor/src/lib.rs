@@ -58,7 +58,13 @@ impl Plugin for EditorPlugin {
                 ui::EditorUIPlugin,
                 AssetBrowserPanePlugin,
                 LoadGltfPlugin,
+                MeshPickingPlugin,
             ))
+            .insert_resource(MeshPickingSettings {
+                // Workaround for the Mesh2d circle blocking picking in the 3d viewport (even though it is not visible).
+                require_markers: true,
+                ..default()
+            })
             .add_systems(Startup, dummy_setup);
     }
 }
@@ -106,6 +112,7 @@ fn dummy_setup(
         Mesh3d(meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(1.5)))),
         MeshMaterial3d(materials_3d.add(Color::WHITE)),
         Name::new("Plane"),
+        Pickable::default(),
     ));
 
     commands.spawn((

@@ -79,63 +79,62 @@ pub fn default_camera_inputs(
     let pan_start = MouseButton::Left;
     let zoom_stop = 0.0;
 
-    if let Some(&camera) = pointer_map.get(&PointerId::Mouse) {
-        let camera_query = cameras.get(camera).ok();
-        let is_in_zoom_mode = camera_query
-            .map(|(.., editor_cam)| editor_cam.current_motion.is_zooming_only())
-            .unwrap_or_default();
-        let zoom_amount_abs = camera_query
-            .and_then(|(.., editor_cam)| {
-                editor_cam
-                    .current_motion
-                    .inputs()
-                    .map(|inputs| inputs.zoom_velocity_abs(editor_cam.smoothing.zoom.mul_f32(2.0)))
-            })
-            .unwrap_or(0.0);
-        let should_zoom_end = is_in_zoom_mode && zoom_amount_abs <= zoom_stop;
-
-        if mouse_input.any_just_released([orbit_start, pan_start]) || should_zoom_end {
-            controller.write(EditorCamInputEvent::End { camera });
-        }
-    }
-
     for (&pointer, pointer_location) in pointers
         .iter()
         .filter_map(|(id, loc)| loc.location().map(|loc| (id, loc)))
     {
-        match pointer {
-            PointerId::Mouse => {
-                let Some((camera, ..)) = cameras.iter().find(|(_, camera, _)| {
-                    pointer_location.is_in_viewport(camera, &primary_window)
-                }) else {
-                    continue; // Pointer must be in viewport to start a motion.
-                };
+        if matches!(pointer, PointerId::Touch(_) | PointerId::Mouse) {
+            continue;
+        }
 
-                if mouse_input.just_pressed(orbit_start) {
-                    controller.write(EditorCamInputEvent::Start {
-                        kind: MotionKind::OrbitZoom,
-                        camera,
-                        pointer,
-                    });
-                } else if mouse_input.just_pressed(pan_start) {
-                    controller.write(EditorCamInputEvent::Start {
-                        kind: MotionKind::PanZoom,
-                        camera,
-                        pointer,
-                    });
-                } else if mouse_wheel.read().map(|mw| mw.y.abs()).sum::<f32>() > 0.0 {
-                    // Note we can't just check if the mouse wheel inputs are empty, we need to
-                    // check if the y value abs greater than zero, otherwise we get a bunch of false
-                    // positives, which can cause issues with figuring out what the user is trying
-                    // to do.
-                    controller.write(EditorCamInputEvent::Start {
-                        kind: MotionKind::Zoom,
-                        camera,
-                        pointer,
-                    });
-                }
+        if let Some(&camera) = pointer_map.get(&pointer) {
+            let camera_query = cameras.get(camera).ok();
+            let is_in_zoom_mode = camera_query
+                .map(|(.., editor_cam)| editor_cam.current_motion.is_zooming_only())
+                .unwrap_or_default();
+            let zoom_amount_abs = camera_query
+                .and_then(|(.., editor_cam)| {
+                    editor_cam.current_motion.inputs().map(|inputs| {
+                        inputs.zoom_velocity_abs(editor_cam.smoothing.zoom.mul_f32(2.0))
+                    })
+                })
+                .unwrap_or(0.0);
+            let should_zoom_end = is_in_zoom_mode && zoom_amount_abs <= zoom_stop;
+
+            if mouse_input.any_just_released([orbit_start, pan_start]) || should_zoom_end {
+                controller.write(EditorCamInputEvent::End { camera });
             }
-            PointerId::Touch(_) | PointerId::Custom(_) => continue,
+        }
+
+        let Some((camera, ..)) = cameras
+            .iter()
+            .find(|(_, camera, _)| pointer_location.is_in_viewport(camera, &primary_window))
+        else {
+            continue; // Pointer must be in viewport to start a motion.
+        };
+
+        if mouse_input.just_pressed(orbit_start) {
+            controller.write(EditorCamInputEvent::Start {
+                kind: MotionKind::OrbitZoom,
+                camera,
+                pointer,
+            });
+        } else if mouse_input.just_pressed(pan_start) {
+            controller.write(EditorCamInputEvent::Start {
+                kind: MotionKind::PanZoom,
+                camera,
+                pointer,
+            });
+        } else if mouse_wheel.read().map(|mw| mw.y.abs()).sum::<f32>() > 0.0 {
+            // Note we can't just check if the mouse wheel inputs are empty, we need to
+            // check if the y value abs greater than zero, otherwise we get a bunch of false
+            // positives, which can cause issues with figuring out what the user is trying
+            // to do.
+            controller.write(EditorCamInputEvent::Start {
+                kind: MotionKind::Zoom,
+                camera,
+                pointer,
+            });
         }
     }
 
@@ -293,7 +292,7 @@ impl EditorCamInputEvent {
 
             let zoom_amount = match pointer {
                 // TODO: add pinch zoom support, probably in bevy_picking
-                PointerId::Mouse => mouse_wheel
+                PointerId::Mouse | PointerId::Custom(_) => mouse_wheel
                     .read()
                     .map(|mw| {
                         let scroll_multiplier = match mw.unit {

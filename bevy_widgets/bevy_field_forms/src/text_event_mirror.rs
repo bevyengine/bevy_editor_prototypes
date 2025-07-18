@@ -2,7 +2,7 @@
 //! This is useful to create controlled text widgets with filters on top of this text widget.
 
 use bevy::prelude::*;
-use bevy_text_editing::{child_traversal::FirstChildTraversal, SetText, TextChanged};
+use bevy_text_editing::{SetText, TextChanged, child_traversal::FirstChildTraversal};
 
 /// Plugin for the text event mirror.
 pub struct TextEventMirrorPlugin;

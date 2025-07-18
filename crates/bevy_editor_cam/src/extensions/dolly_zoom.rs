@@ -15,7 +15,7 @@ use bevy::render::{camera::ScalingMode, prelude::*};
 use bevy::transform::prelude::*;
 use bevy::window::RequestRedraw;
 
-use crate::prelude::{motion::CurrentMotion, EditorCam, EnabledMotion};
+use crate::prelude::{EditorCam, EnabledMotion, motion::CurrentMotion};
 
 /// See the [module](self) docs.
 pub struct DollyZoomPlugin;

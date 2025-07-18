@@ -1,6 +1,6 @@
 use bevy::{
     prelude::warn,
-    reflect::{attributes::CustomAttributes, List, ListInfo},
+    reflect::{List, ListInfo, attributes::CustomAttributes},
 };
 
 use crate::MergeStrategy;

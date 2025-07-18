@@ -1,9 +1,9 @@
 use bevy::{asset::io::AssetSourceId, prelude::*};
 use bevy_context_menu::{ContextMenu, ContextMenuOption};
 use bevy_editor_styles::Theme;
-use bevy_scroll_box::{spawn_scroll_box, ScrollBox, ScrollBoxContent};
+use bevy_scroll_box::{ScrollBox, ScrollBoxContent, spawn_scroll_box};
 
-use crate::{io, AssetBrowserLocation, DefaultSourceFilePath, DirectoryContent, Entry};
+use crate::{AssetBrowserLocation, DefaultSourceFilePath, DirectoryContent, Entry, io};
 
 use crate::ui::nodes::{spawn_file_node, spawn_folder_node, spawn_source_node};
 

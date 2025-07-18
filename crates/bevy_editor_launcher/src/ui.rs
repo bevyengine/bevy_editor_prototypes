@@ -2,7 +2,7 @@ use std::io::ErrorKind;
 use std::path::Path;
 
 use bevy::{prelude::*, ui::RelativeCursorPosition};
-use bevy_editor::project::{run_project, set_project_list, templates::Templates, ProjectInfo};
+use bevy_editor::project::{ProjectInfo, run_project, set_project_list, templates::Templates};
 use bevy_editor_styles::Theme;
 use bevy_footer_bar::FooterBarNode;
 

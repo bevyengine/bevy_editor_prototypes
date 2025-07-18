@@ -5,8 +5,8 @@ mod render;
 
 use bevy::{
     input_focus::{
-        tab_navigation::{TabIndex, TabNavigationPlugin},
         InputDispatchPlugin,
+        tab_navigation::{TabIndex, TabNavigationPlugin},
     },
     platform::collections::HashSet,
     prelude::*,
@@ -14,8 +14,8 @@ use bevy::{
 use bevy_clipboard::ClipboardPlugin;
 
 use crate::{
+    CharPosition, HasFocus, SetCursorPosition, SetText, TEXT_SELECTION_COLOR, TextChanged,
     cursor::{Cursor, CursorPlugin},
-    CharPosition, HasFocus, SetCursorPosition, SetText, TextChanged, TEXT_SELECTION_COLOR,
 };
 
 use input::*;
@@ -182,7 +182,7 @@ impl EditableTextLine {
             return None;
         }
 
-        if range.0 .0 > self.text.chars().count() || range.1 .0 > self.text.chars().count() {
+        if range.0.0 > self.text.chars().count() || range.1.0 > self.text.chars().count() {
             return None;
         }
 

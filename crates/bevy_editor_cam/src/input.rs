@@ -4,7 +4,7 @@ use bevy::input::{
     mouse::{MouseScrollUnit, MouseWheel},
     prelude::*,
 };
-use bevy::math::{prelude::*, DVec2, DVec3};
+use bevy::math::{DVec2, DVec3, prelude::*};
 use bevy::platform::collections::HashMap;
 use bevy::reflect::prelude::*;
 use bevy::render::prelude::*;

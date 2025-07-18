@@ -1,7 +1,7 @@
 use bevy::{prelude::*, window::SystemCursorIcon, winit::cursor::CursorIcon};
 use bevy_editor_styles::Theme;
 
-use crate::{io, AssetBrowserLocation};
+use crate::{AssetBrowserLocation, io};
 
 use super::source_id_to_string;
 

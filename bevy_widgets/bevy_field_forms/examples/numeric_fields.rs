@@ -2,10 +2,10 @@
 
 use bevy::{input_focus::tab_navigation::TabGroup, prelude::*};
 use bevy_field_forms::{
+    FieldFormsPlugin,
     drag_input::{DragInput, Draggable},
     input_field::{InputField, Validable},
     validate_highlight::SimpleBorderHighlight,
-    FieldFormsPlugin,
 };
 
 fn main() {

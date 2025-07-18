@@ -183,12 +183,12 @@ pub mod input;
 /// Common imports.
 pub mod prelude {
     pub use crate::{
-        controller::{component::*, *},
         DefaultEditorCamPlugins,
+        controller::{component::*, *},
     };
 }
 
-use bevy::app::{prelude::*, PluginGroupBuilder};
+use bevy::app::{PluginGroupBuilder, prelude::*};
 
 /// Adds [`bevy_editor_cam`](crate) functionality with all extensions and the default input plugin.
 pub struct DefaultEditorCamPlugins;

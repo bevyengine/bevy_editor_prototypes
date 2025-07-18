@@ -10,11 +10,11 @@ use bevy::{
 use bevy_context_menu::{ContextMenu, ContextMenuOption};
 use bevy_editor_styles::Theme;
 
-use crate::{io, ui::source_id_to_string, AssetBrowserLocation};
+use crate::{AssetBrowserLocation, io, ui::source_id_to_string};
 
 use super::{
-    directory_content::{delete_file, delete_folder},
     DEFAULT_SOURCE_ID_NAME,
+    directory_content::{delete_file, delete_folder},
 };
 
 pub(crate) fn spawn_source_node<'a>(

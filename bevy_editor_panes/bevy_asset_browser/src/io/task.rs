@@ -2,7 +2,7 @@ use crate::{AssetBrowserLocation, DirectoryContent, Entry};
 use bevy::{
     asset::io::AssetSourceBuilders,
     prelude::*,
-    tasks::{block_on, futures_lite::StreamExt, poll_once, IoTaskPool, Task},
+    tasks::{IoTaskPool, Task, block_on, futures_lite::StreamExt, poll_once},
 };
 
 #[derive(Component)]

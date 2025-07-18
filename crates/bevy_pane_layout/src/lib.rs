@@ -29,8 +29,8 @@ use crate::{
 /// Crate prelude.
 pub mod prelude {
     pub use crate::{
-        registry::{PaneAppExt, PaneStructure},
         PaneAreaNode, PaneContentNode, PaneHeaderNode,
+        registry::{PaneAppExt, PaneStructure},
     };
 }
 

@@ -1,10 +1,10 @@
 use bevy::{prelude::*, window::SystemCursorIcon, winit::cursor::CursorIcon};
 use bevy_context_menu::{ContextMenu, ContextMenuOption};
-use bevy_editor_styles::{icons, Theme};
+use bevy_editor_styles::{Theme, icons};
 
 use crate::{
-    handlers::*, registry::PaneStructure, Divider, DragState, PaneAreaNode, PaneContentNode,
-    PaneHeaderNode, PaneRootNode, ResizeHandle, Size,
+    Divider, DragState, PaneAreaNode, PaneContentNode, PaneHeaderNode, PaneRootNode, ResizeHandle,
+    Size, handlers::*, registry::PaneStructure,
 };
 
 pub(crate) fn spawn_pane<'a>(

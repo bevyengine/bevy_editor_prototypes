@@ -7,7 +7,7 @@
 
 use bevy::app::prelude::*;
 use bevy::asset::Handle;
-use bevy::core_pipeline::{prelude::*, Skybox};
+use bevy::core_pipeline::{Skybox, prelude::*};
 use bevy::ecs::prelude::*;
 use bevy::image::Image;
 use bevy::reflect::prelude::*;

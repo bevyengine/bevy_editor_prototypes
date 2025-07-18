@@ -12,6 +12,7 @@
 //! - Finally, it will be a standalone application that communicates with a running Bevy game via the Bevy Remote Protocol.
 
 use bevy::app::App as BevyApp;
+use bevy::asset::UnapprovedPathMode;
 use bevy::prelude::*;
 // Re-export Bevy for project use
 pub use bevy;
@@ -36,7 +37,10 @@ pub struct RuntimePlugin;
 
 impl Plugin for RuntimePlugin {
     fn build(&self, bevy_app: &mut BevyApp) {
-        bevy_app.add_plugins(DefaultPlugins);
+        bevy_app.add_plugins(DefaultPlugins.set(AssetPlugin {
+            unapproved_path_mode: UnapprovedPathMode::Deny,
+            ..default()
+        }));
     }
 }
 

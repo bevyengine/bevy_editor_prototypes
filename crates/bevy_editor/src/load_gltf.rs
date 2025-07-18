@@ -23,7 +23,7 @@ fn file_dropped(
     for event in event_reader.read() {
         if let FileDragAndDrop::DroppedFile { path_buf, .. } = event {
             let asset_path = GltfAssetLabel::Scene(0).from_asset(path_buf.clone());
-            commands.spawn(SceneRoot(asset_server.load(asset_path)));
+            commands.spawn(SceneRoot(asset_server.load_override(asset_path)));
         }
     }
 }
@@ -68,6 +68,6 @@ fn poll_pick_gltf(
     if let Some(file) = result {
         let path = file.path().to_owned();
         let asset_path = GltfAssetLabel::Scene(0).from_asset(path);
-        commands.spawn(SceneRoot(asset_server.load(asset_path)));
+        commands.spawn(SceneRoot(asset_server.load_override(asset_path)));
     }
 }

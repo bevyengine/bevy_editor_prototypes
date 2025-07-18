@@ -42,7 +42,7 @@ impl SelectedEntity {
     }
 }
 
-/// System to removes entity [`SelectedEntity`] when the entity is despawned.
+/// System to reset [`SelectedEntity`] when the entity is despawned.
 pub fn reset_selected_entity_if_entity_despawned(
     mut selected_entity: ResMut<SelectedEntity>,
     entities: &Entities,

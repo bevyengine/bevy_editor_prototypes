@@ -248,11 +248,11 @@ impl EditorCam {
         {
             match motion_inputs {
                 MotionInputs::OrbitZoom {
-                    screenspace_inputs: ref mut movement,
+                    screenspace_inputs: movement,
                     ..
                 } => movement.process_input(screenspace_input, self.smoothing.orbit),
                 MotionInputs::PanZoom {
-                    screenspace_inputs: ref mut movement,
+                    screenspace_inputs: movement,
                     ..
                 } => movement.process_input(screenspace_input, self.smoothing.pan),
                 MotionInputs::Zoom { .. } => (), // When in zoom-only, we ignore pan and zoom
@@ -323,9 +323,7 @@ impl EditorCam {
     ) {
         let (anchor, orbit, pan, zoom) = match &mut self.current_motion {
             CurrentMotion::Stationary => return,
-            CurrentMotion::Momentum {
-                ref mut velocity, ..
-            } => {
+            CurrentMotion::Momentum { velocity, .. } => {
                 velocity.decay(self.momentum, delta_time);
                 match velocity {
                     Velocity::None => {
@@ -440,7 +438,7 @@ impl EditorCam {
                 // Scale this with the perspective FOV, so zoom speed feels the same regardless.
                 anchor.normalize() * zoom_amount / perspective.fov as f64
             }
-            Projection::Orthographic(ref mut ortho) => {
+            Projection::Orthographic(ortho) => {
                 // Constants are hand tuned to feel equivalent between perspective and ortho. Might
                 // be a better way to do this correctly, if it matters.
                 ortho.scale *= 1.0 - zoom_bounded as f32 * 0.0015;

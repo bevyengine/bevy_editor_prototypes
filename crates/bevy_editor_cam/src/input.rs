@@ -245,7 +245,7 @@ impl EditorCamInputEvent {
                     controller.end_move();
                     if let Some(pointer) = camera_map
                         .iter()
-                        .find(|(.., &camera)| camera == event.camera())
+                        .find(|&(.., &camera)| camera == event.camera())
                         .map(|(&pointer, ..)| pointer)
                     {
                         camera_map.remove(&pointer);

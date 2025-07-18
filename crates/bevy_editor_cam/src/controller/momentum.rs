@@ -87,15 +87,11 @@ impl Velocity {
     pub fn decay(&mut self, momentum: Momentum, delta_time: Duration) {
         let is_none = match self {
             Velocity::None => true,
-            Velocity::Orbit {
-                ref mut velocity, ..
-            } => {
+            Velocity::Orbit { velocity, .. } => {
                 *velocity = momentum.decay_velocity_orbit(*velocity, delta_time);
                 velocity.length() <= Self::DECAY_THRESHOLD
             }
-            Velocity::Pan {
-                ref mut velocity, ..
-            } => {
+            Velocity::Pan { velocity, .. } => {
                 *velocity = momentum.decay_velocity_pan(*velocity, delta_time);
                 velocity.length() <= Self::DECAY_THRESHOLD
             }

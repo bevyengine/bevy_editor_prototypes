@@ -2,9 +2,9 @@
 use bevy::{
     asset::uuid::Uuid,
     picking::{
+        PickingSystems,
         input::{mouse_pick_events, touch_pick_events},
         pointer::{Location, PointerId, PointerInput},
-        PickingSystems,
     },
     prelude::*,
     render::{
@@ -18,7 +18,7 @@ use bevy_editor_cam::prelude::{DefaultEditorCamPlugins, EditorCam};
 use bevy_editor_styles::Theme;
 use bevy_infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings};
 use bevy_pane_layout::prelude::*;
-use view_gizmo::{spawn_view_gizmo_target_texture, ViewGizmoPlugin};
+use view_gizmo::{ViewGizmoPlugin, spawn_view_gizmo_target_texture};
 
 use crate::selection_box::SelectionBoxPlugin;
 

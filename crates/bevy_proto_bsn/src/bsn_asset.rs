@@ -1,5 +1,5 @@
 use bevy::{
-    asset::{io::Reader, AssetLoader, AsyncReadExt, LoadContext},
+    asset::{AssetLoader, AsyncReadExt, LoadContext, io::Reader},
     prelude::*,
 };
 use thiserror::Error;

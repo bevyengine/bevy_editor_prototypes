@@ -4,7 +4,7 @@
 
 use bevy::{color::palettes::tailwind, prelude::*, reflect::*};
 use bevy_editor_core::SelectedEntity;
-use bevy_i_cant_believe_its_not_bsn::{template, Template, TemplateEntityCommandsExt};
+use bevy_i_cant_believe_its_not_bsn::{Template, TemplateEntityCommandsExt, template};
 use bevy_pane_layout::prelude::{PaneAppExt, PaneStructure};
 
 /// Plugin for the editor properties pane.

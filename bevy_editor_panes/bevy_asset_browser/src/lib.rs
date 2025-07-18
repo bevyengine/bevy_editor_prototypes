@@ -5,9 +5,8 @@ use std::path::PathBuf;
 
 use bevy::{
     asset::{
-        embedded_asset,
-        io::{file::FileAssetReader, AssetSourceId},
-        AssetPlugin,
+        AssetPlugin, embedded_asset,
+        io::{AssetSourceId, file::FileAssetReader},
     },
     prelude::*,
 };

@@ -3,7 +3,7 @@
 use bevy::log::{error, info, warn};
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, time::SystemTime};
-use templates::{copy_template, Templates};
+use templates::{Templates, copy_template};
 
 mod cache;
 pub mod templates;

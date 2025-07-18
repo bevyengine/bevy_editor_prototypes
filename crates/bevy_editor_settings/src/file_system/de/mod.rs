@@ -14,7 +14,7 @@ mod value;
 use array::LoadArray;
 use bevy::{
     prelude::*,
-    reflect::{attributes::CustomAttributes, ReflectFromPtr, ReflectMut, TypeInfo},
+    reflect::{ReflectFromPtr, ReflectMut, TypeInfo, attributes::CustomAttributes},
 };
 use enums::LoadEnum;
 use heck::ToSnakeCase;

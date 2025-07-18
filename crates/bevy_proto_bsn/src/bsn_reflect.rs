@@ -2,7 +2,7 @@ use core::{any::TypeId, cell::RefCell, hash::BuildHasher, ops::Deref, str::FromS
 
 use bevy::{
     app::App,
-    asset::{io::Reader, Asset, AssetLoader, AssetServer, Handle, LoadContext},
+    asset::{Asset, AssetLoader, AssetServer, Handle, LoadContext, io::Reader},
     ecs::{
         reflect::AppTypeRegistry,
         world::{FromWorld, World},
@@ -61,7 +61,7 @@ impl ReflectedBsn {
         let key = match &bsn.key {
             Some(BsnKey::Static(key)) => Some(key.clone()),
             Some(BsnKey::Dynamic(key)) => {
-                return Err(ReflectError::DynamicKeyNotSupported(key.clone()))
+                return Err(ReflectError::DynamicKeyNotSupported(key.clone()));
             }
             None => None,
         };

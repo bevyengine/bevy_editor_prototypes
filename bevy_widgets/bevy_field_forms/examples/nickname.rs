@@ -2,9 +2,9 @@
 
 use bevy::{input_focus::tab_navigation::TabGroup, platform::collections::HashSet, prelude::*};
 use bevy_field_forms::{
+    FieldFormsPlugin,
     input_field::{InputField, InputFieldPlugin, Validable, ValidationChanged, ValidationState},
     validate_highlight::SimpleBorderHighlight,
-    FieldFormsPlugin,
 };
 
 fn main() {
@@ -80,7 +80,9 @@ impl Validable for CharacterName {
                 .chars()
                 .filter(|c| !allowed_chars.contains(c))
                 .collect();
-            Err(format!("Invalid character name. The following characters are not allowed: '{invalid_chars}'. Only letters, numbers, and underscores can be used."))
+            Err(format!(
+                "Invalid character name. The following characters are not allowed: '{invalid_chars}'. Only letters, numbers, and underscores can be used."
+            ))
         }
     }
 }

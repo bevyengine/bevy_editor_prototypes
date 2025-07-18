@@ -7,11 +7,11 @@ use std::path::PathBuf;
 use bevy::{
     ecs::schedule::common_conditions::any_with_component,
     prelude::*,
-    tasks::{block_on, futures_lite::future, IoTaskPool, Task},
+    tasks::{IoTaskPool, Task, block_on, futures_lite::future},
 };
 
 use bevy_editor::project::{
-    create_new_project, get_local_projects, set_project_list, templates::Templates, ProjectInfo,
+    ProjectInfo, create_new_project, get_local_projects, set_project_list, templates::Templates,
 };
 use bevy_editor_styles::{StylesPlugin, Theme};
 use bevy_footer_bar::{FooterBarPlugin, FooterBarSet};

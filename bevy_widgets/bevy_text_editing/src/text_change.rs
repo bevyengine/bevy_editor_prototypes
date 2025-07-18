@@ -7,7 +7,7 @@
 //! The main struct in this module is `TextChange`, which encapsulates a single text change operation,
 //! including the range of text to be modified and the new text to be inserted.
 
-use crate::{get_byte_position, CharPosition};
+use crate::{CharPosition, get_byte_position};
 
 /// Represents a single text change operation.
 /// Any text change can be represented as a series of these operations.

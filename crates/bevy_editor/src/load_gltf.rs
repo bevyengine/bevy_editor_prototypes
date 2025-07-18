@@ -2,7 +2,7 @@
 
 use bevy::{
     prelude::*,
-    tasks::{block_on, futures_lite::future, AsyncComputeTaskPool, Task},
+    tasks::{AsyncComputeTaskPool, Task, block_on, futures_lite::future},
 };
 use rfd::{AsyncFileDialog, FileHandle};
 

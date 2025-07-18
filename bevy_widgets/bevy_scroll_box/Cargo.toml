@@ -1,7 +1,7 @@
 [package]
 name = "bevy_scroll_box"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 bevy.workspace = true
@@ -9,4 +9,3 @@ bevy_editor_styles.workspace = true
 
 [lints]
 workspace = true
-

@@ -10,7 +10,11 @@ use crate::{actions::ActionsPlugin, selection::SelectionPlugin, utils::CoreUtils
 
 /// Crate prelude.
 pub mod prelude {
-    pub use crate::actions::{ActionAppExt, ActionWorldExt};
+    pub use crate::{
+        actions::{ActionAppExt, ActionWorldExt},
+        selection::SelectedEntity,
+        utils::IntoBoxedScene,
+    };
 }
 
 /// Core plugin for the editor.

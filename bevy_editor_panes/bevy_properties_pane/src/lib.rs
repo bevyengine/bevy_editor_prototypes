@@ -2,76 +2,86 @@
 //!
 //! Data can be viewed and modified in real-time, with changes being reflected in the application.
 
-use bevy::{color::palettes::tailwind, prelude::*, reflect::*};
-use bevy_editor_core::selection::SelectedEntity;
-use bevy_i_cant_believe_its_not_bsn::{Template, TemplateEntityCommandsExt, template};
-use bevy_pane_layout::prelude::{PaneAppExt, PaneStructure};
+use bevy::{
+    feathers::theme::ThemedText,
+    prelude::*,
+    reflect::*,
+    scene2::{CommandsSpawnScene, Scene, SceneList, bsn},
+};
+use bevy_editor_core::{selection::SelectedEntity, utils::IntoBoxedScene};
+use bevy_pane_layout::prelude::*;
 
 /// Plugin for the editor properties pane.
 pub struct PropertiesPanePlugin;
 
 impl Plugin for PropertiesPanePlugin {
     fn build(&self, app: &mut App) {
-        app.register_pane("Properties", setup_pane)
-            .add_systems(PostUpdate, update_properties_pane);
+        app.register_pane("Properties", setup_pane).add_systems(
+            Update,
+            update_properties_pane.run_if(
+                resource_changed::<SelectedEntity>
+                    .or(any_match_filter::<Added<PropertiesPaneBody>>),
+            ),
+        );
     }
 }
 
 /// Root UI node of the properties pane.
-#[derive(Component)]
-struct PropertiesPaneRoot;
+#[derive(Component, Default, Clone)]
+struct PropertiesPaneBody;
 
 fn setup_pane(pane: In<PaneStructure>, mut commands: Commands) {
-    commands.entity(pane.content).insert((
-        PropertiesPaneRoot,
-        Node {
-            flex_direction: FlexDirection::Column,
-            flex_grow: 1.0,
-            column_gap: Val::Px(4.0),
-            padding: UiRect::all(Val::Px(8.0)),
-            ..Default::default()
-        },
-        BackgroundColor(tailwind::NEUTRAL_600.into()),
-    ));
+    // Remove the existing structure
+    commands.entity(pane.area).despawn();
+
+    commands
+        .spawn_scene(bsn! {
+            :editor_pane [
+                :editor_pane_header [
+                    (Text("Properties") ThemedText),
+                ],
+                :editor_pane_body
+                PropertiesPaneBody
+            ]
+        })
+        .insert(Node::default())
+        .insert(ChildOf(pane.root));
 }
 
 fn update_properties_pane(
-    panes: Query<Entity, With<PropertiesPaneRoot>>,
+    pane_bodies: Query<Entity, With<PropertiesPaneBody>>,
     selected_entity: Res<SelectedEntity>,
     world: &World,
     mut commands: Commands,
 ) {
-    for pane in &panes {
+    for pane_body in &pane_bodies {
+        commands.entity(pane_body).despawn_children();
         commands
-            .entity(pane)
-            .build_children(properties_pane(&selected_entity, world));
+            .spawn_scene(properties_pane(&selected_entity, world))
+            .insert(Node::default())
+            .insert(ChildOf(pane_body));
     }
 }
 
-fn properties_pane(selected_entity: &SelectedEntity, world: &World) -> Template {
+fn properties_pane(selected_entity: &SelectedEntity, world: &World) -> impl Scene {
     match selected_entity.0 {
-        Some(selected_entity) => component_list(selected_entity, world),
-        None => template! {
-            Node {
-                flex_direction: FlexDirection::Column,
-                ..Default::default()
-            } => [
-                (
-                    Text("Select an entity to inspect".into()),
-                    TextFont::from_font_size(14.0),
-                );
-            ];
-
-        },
+        Some(selected_entity) => bsn! {Node { flex_direction: FlexDirection::Column } [
+            {component_list(selected_entity, world)}
+        ]}
+        .boxed_scene(),
+        None => bsn! {
+            (Text("Select an entity to inspect") ThemedText)
+        }
+        .boxed_scene(),
     }
 }
 
-fn component_list(entity: Entity, world: &World) -> Template {
+fn component_list(entity: Entity, world: &World) -> impl SceneList {
     let type_registry = world.resource::<AppTypeRegistry>().read();
     world
         .inspect_entity(entity)
         .unwrap()
-        .flat_map(|component_info| {
+        .map(|component_info| {
             let type_info = component_info
                 .type_id()
                 .and_then(|type_id| type_registry.get_type_info(type_id));
@@ -88,131 +98,120 @@ fn component_list(entity: Entity, world: &World) -> Template {
                 reflect_component.reflect(entity_ref.unwrap())
             });
 
-            template! {
+            bsn! {
                 Node {
                     flex_direction: FlexDirection::Column,
                     margin: UiRect::all(Val::Px(4.0)),
-
-                    ..Default::default()
-                } => [
-                    // Collapsible header for the component
+                } [
                     Node {
                         flex_direction: FlexDirection::Row,
                         align_items: AlignItems::Center,
-                        ..Default::default()
-                    } => [
-                        (
-                            Text(format!("⯆ {name}")),
-                            TextFont::from_font_size(14.0),
-                            TextColor(Color::WHITE),
-                        );
-                    ];
+                    } [
+                        TextFont::from_font_size(14.0)
+                        Text({format!("{name}")})
+                        TextColor(Color::WHITE)
+                    ],
                     // Component fields
-                    @{ match reflect {
-                        Some(reflect) => component(type_info, reflect),
-                        None => template! {
+                    ({ match reflect {
+                        Some(reflect) => component(type_info, reflect).boxed_scene(),
+                        None => bsn! {
                             Node {
                                 flex_direction: FlexDirection::Row,
-                                ..Default::default()
-                            } => [
-                                (
-                                    Text("<unavailable>".into()),
-                                    TextFont::from_font_size(10.0),
-                                    TextColor(Color::srgb(1.0, 0.0, 0.0)),
-                                );
-                            ];
-                        },
-                    } };
-                ];
+                            } [
+                                Text("<unavailable>")
+                                TextFont::from_font_size(10.0)
+                                TextColor(Color::srgb(1.0, 0.0, 0.0))
+                            ]
+                        }.boxed_scene(),
+                    }})
+                ]
             }
         })
-        .collect()
+        .collect::<Vec<_>>()
 }
 
-fn component(type_info: Option<&TypeInfo>, reflect: &dyn Reflect) -> Template {
+fn component(type_info: Option<&TypeInfo>, reflect: &dyn Reflect) -> impl Scene {
     match type_info {
-        Some(TypeInfo::Struct(struct_info)) => reflected_struct(struct_info, reflect),
-        Some(TypeInfo::TupleStruct(tuple_struct_info)) => reflected_tuple_struct(tuple_struct_info),
-        Some(TypeInfo::Enum(enum_info)) => reflected_enum(enum_info),
-        _ => template! {},
+        Some(TypeInfo::Struct(info)) => reflected_struct(info, reflect).boxed_scene(),
+        Some(TypeInfo::TupleStruct(info)) => reflected_tuple_struct(info).boxed_scene(),
+        Some(TypeInfo::Enum(info)) => reflected_enum(info).boxed_scene(),
+        _ => bsn! {}.boxed_scene(),
     }
 }
-fn reflected_struct(struct_info: &StructInfo, reflect: &dyn Reflect) -> Template {
+fn reflected_struct(struct_info: &StructInfo, reflect: &dyn Reflect) -> impl Scene {
     let fields = struct_info
         .iter()
         .enumerate()
-        .flat_map(|(i, field)| {
-            let value = reflect
+        .map(|(i, field)| {
+            let valuee = reflect
                 .reflect_ref()
                 .as_struct()
                 .map(|s| s.field_at(i))
                 .map(|v| format!("{v:?}"))
                 .unwrap_or("<unavailable>".to_string());
 
-            template! {
+            let field_name = field.name();
+            bsn! {
                 Node {
                     flex_direction: FlexDirection::Row,
                     margin: UiRect::vertical(Val::Px(2.0)),
-                    ..Default::default()
-                } => [
+                } [
                     (
-                        Text(field.name().to_string()),
-                        TextFont::from_font_size(12.0),
-                        TextColor(Color::srgb(0.8, 0.8, 0.8)),
-                    );
+                        Text(field_name)
+                        TextFont::from_font_size(12.0)
+                        TextColor(Color::srgb(0.8, 0.8, 0.8))
+                    ),
                     (
                         // Value (use reflection to get value as string)
-                        Text(value),
-                        TextFont::from_font_size(10.0),
-                        TextColor(Color::WHITE),
-                    );
-                ];
+                        Text({valuee.clone()})
+                        TextFont::from_font_size(10.0)
+                        TextColor(Color::WHITE)
+                    ),
+                ]
             }
         })
-        .collect::<Template>();
+        .collect::<Vec<_>>();
 
-    template! {
+    bsn! {
         Node {
             flex_direction: FlexDirection::Column,
-            ..Default::default()
-        } => [ @{ fields }; ];
+        } [ {fields} ]
     }
 }
 
-fn reflected_tuple_struct(tuple_struct_info: &TupleStructInfo) -> Template {
+fn reflected_tuple_struct(tuple_struct_info: &TupleStructInfo) -> impl Scene {
     let fields = tuple_struct_info
         .iter()
-        .flat_map(|_field| {
-            template! {(
-                Text("TODO".into()),
-                TextFont::from_font_size(10.0),
-            );}
+        .map(|_field| {
+            bsn! {
+                Text("TODO")
+                TextFont::from_font_size(10.0)
+            }
         })
-        .collect::<Template>();
+        .collect::<Vec<_>>();
 
-    template! {
+    bsn! {
         Node {
             flex_direction: FlexDirection::Column,
-            ..Default::default()
-        } => [ @{ fields }; ];
+        } [ {fields} ]
     }
 }
 
-fn reflected_enum(enum_info: &EnumInfo) -> Template {
+fn reflected_enum(enum_info: &EnumInfo) -> impl Scene {
     let variants = enum_info
         .iter()
-        .flat_map(|variant| {
-            template! {(
-                Text(variant.name().into()),
-                TextFont::from_font_size(10.0),
-            );}
+        .map(|variant| {
+            let name = variant.name();
+            bsn! {
+                Text(name)
+                TextFont::from_font_size(10.0)
+            }
         })
-        .collect::<Template>();
+        .collect::<Vec<_>>();
 
-    template! {
+    bsn! {
         Node {
             flex_direction: FlexDirection::Column,
-            ..Default::default()
-        } => [ @{ variants }; ];
+        } [ {variants} ]
     }
 }

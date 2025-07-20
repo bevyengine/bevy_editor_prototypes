@@ -3,7 +3,10 @@
 use std::time::Duration;
 
 use bevy::{
-    picking::backend::HitData, platform::collections::HashMap, platform::time::Instant, prelude::*,
+    picking::backend::HitData,
+    platform::{collections::HashMap, time::Instant},
+    prelude::*,
+    scene2::Scene,
 };
 
 /// Editor core utils plugin.
@@ -65,3 +68,39 @@ pub struct DragCancelClick {
 
 #[derive(Resource, Deref, DerefMut, Default)]
 struct DragCancelClickState(HashMap<Entity, Instant>);
+
+/// A boxed [`Scene`]. Useful when you might need to pass or store scenes of different types.
+pub struct BoxedScene(pub Box<dyn Scene>);
+
+impl BoxedScene {
+    /// Create a new boxed scene.
+    pub fn new(scene: impl Scene) -> Self {
+        Self(Box::new(scene))
+    }
+}
+
+impl Scene for BoxedScene {
+    fn patch(
+        &self,
+        assets: &AssetServer,
+        patches: &Assets<bevy::scene2::ScenePatch>,
+        scene: &mut bevy::scene2::ResolvedScene,
+    ) {
+        self.0.patch(assets, patches, scene);
+    }
+}
+
+/// Convenience trait for boxing scenes.
+pub trait IntoBoxedScene: Scene {
+    /// Box this scene.
+    fn boxed_scene(self) -> BoxedScene;
+}
+
+impl<T> IntoBoxedScene for T
+where
+    T: Scene,
+{
+    fn boxed_scene(self) -> BoxedScene {
+        BoxedScene::new(self)
+    }
+}

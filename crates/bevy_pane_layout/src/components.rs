@@ -2,7 +2,11 @@
 
 use bevy::{
     ecs::template::template,
-    feathers::containers::{pane, pane_body, pane_header},
+    feathers::{
+        containers::{pane, pane_body, pane_header},
+        theme::ThemeBackgroundColor,
+        tokens,
+    },
     prelude::*,
     scene2::{Scene, bsn},
 };
@@ -25,6 +29,9 @@ pub fn editor_pane_header() -> impl Scene {
     bsn! {
         :pane_header
         PaneHeaderNode
+        Node {
+            flex_shrink: 0.,
+        }
         template(|_| Ok(header_context_menu()))
     }
 }
@@ -36,7 +43,9 @@ pub fn editor_pane_body() -> impl Scene {
         PaneContentNode
         Node {
             flex_grow: 1.,
+            overflow: Overflow::hidden(),
         }
+        ThemeBackgroundColor(tokens::SUBPANE_BODY_BG)
     }
 }
 

@@ -1,6 +1,7 @@
 //! 3D Viewport for Bevy
 use bevy::{
     asset::uuid::Uuid,
+    feathers::theme::ThemedText,
     picking::{
         PickingSystems,
         input::{mouse_pick_events, touch_pick_events},
@@ -12,15 +13,16 @@ use bevy::{
         render_resource::{Extent3d, TextureFormat, TextureUsages},
         view::RenderLayers,
     },
+    scene2::{CommandsSpawnScene, bsn, on},
     ui::ui_layout_system,
 };
 use bevy_editor_cam::prelude::{DefaultEditorCamPlugins, EditorCam};
 use bevy_editor_styles::Theme;
 use bevy_infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings};
 use bevy_pane_layout::prelude::*;
-use view_gizmo::{ViewGizmoPlugin, spawn_view_gizmo_target_texture};
+use view_gizmo::ViewGizmoPlugin;
 
-use crate::selection_box::SelectionBoxPlugin;
+use crate::{selection_box::SelectionBoxPlugin, view_gizmo::view_gizmo_node};
 
 mod selection_box;
 mod view_gizmo;
@@ -160,28 +162,31 @@ fn on_pane_creation(
     let pointer_id = pointer_id_from_entity(structure.root);
     commands.spawn((pointer_id, ChildOf(structure.root)));
 
+    // Remove the existing structure
+    commands.entity(structure.area).despawn();
+
+    let image = image_handle.clone();
     commands
-        .spawn((
-            ImageNode::new(image_handle.clone()),
-            Node {
-                position_type: PositionType::Absolute,
-                top: Val::ZERO,
-                bottom: Val::ZERO,
-                left: Val::ZERO,
-                right: Val::ZERO,
-                ..default()
-            },
-            ChildOf(structure.content),
-        ))
-        .with_children(|parent| {
-            spawn_view_gizmo_target_texture(images, parent);
+        .spawn_scene(bsn! {
+            :editor_pane [
+                :editor_pane_header [
+                    (Text("3D Viewport") ThemedText),
+                ],
+                :editor_pane_body [
+                    ImageNode::new(image.clone())
+                    :fit_to_parent
+                    on(|trigger: On<Pointer<Over>>, mut commands: Commands| {
+                        commands.entity(trigger.target()).insert(Active);
+                    })
+                    on(|trigger: On<Pointer<Out>>, mut commands: Commands| {
+                        commands.entity(trigger.target()).remove::<Active>();
+                    })
+                    [ :view_gizmo_node ]
+                ],
+            ]
         })
-        .observe(|trigger: On<Pointer<Over>>, mut commands: Commands| {
-            commands.entity(trigger.target()).insert(Active);
-        })
-        .observe(|trigger: On<Pointer<Out>>, mut commands: Commands| {
-            commands.entity(trigger.target()).remove::<Active>();
-        });
+        .insert(Node::default())
+        .insert(ChildOf(structure.root));
 
     let camera_id = commands
         .spawn((
@@ -206,18 +211,20 @@ fn on_pane_creation(
 fn update_render_target_size(
     query: Query<(Entity, &Bevy3dViewport)>,
     mut camera_query: Query<&Camera>,
-    content: Query<&PaneContentNode>,
+    bodies: Query<&PaneContentNode>,
     children_query: Query<&Children>,
     computed_node_query: Query<&ComputedNode, Changed<ComputedNode>>,
     mut images: ResMut<Assets<Image>>,
 ) {
     for (pane_root, viewport) in &query {
-        let content_node_id = children_query
+        let Some(pane_body) = children_query
             .iter_descendants(pane_root)
-            .find(|e| content.contains(*e))
-            .unwrap();
+            .find(|e| bodies.contains(*e))
+        else {
+            continue;
+        };
 
-        let Ok(computed_node) = computed_node_query.get(content_node_id) else {
+        let Ok(computed_node) = computed_node_query.get(pane_body) else {
             continue;
         };
         // TODO Convert to physical pixels

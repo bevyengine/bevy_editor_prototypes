@@ -8,7 +8,7 @@ use bevy::{
     reflect::*,
     scene2::{CommandsSpawnScene, Scene, SceneList, bsn},
 };
-use bevy_editor_core::{selection::SelectedEntity, utils::IntoBoxedScene};
+use bevy_editor_core::prelude::*;
 use bevy_pane_layout::prelude::*;
 
 /// Plugin for the editor properties pane.

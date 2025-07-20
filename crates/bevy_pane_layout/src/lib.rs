@@ -1,5 +1,6 @@
 //! Resizable, divider-able panes for Bevy.
 
+pub mod components;
 mod handlers;
 mod pane_drop_area;
 pub mod registry;
@@ -30,6 +31,7 @@ use crate::{
 pub mod prelude {
     pub use crate::{
         PaneAreaNode, PaneContentNode, PaneHeaderNode,
+        components::*,
         registry::{PaneAppExt, PaneStructure},
     };
 }
@@ -189,13 +191,13 @@ struct PaneRootNode {
 }
 
 /// Node to denote the area of the Pane.
-#[derive(Component)]
+#[derive(Component, Clone, Default)]
 pub struct PaneAreaNode;
 
 /// Node to add widgets into the header of a Pane.
-#[derive(Component)]
+#[derive(Component, Clone, Default)]
 pub struct PaneHeaderNode;
 
 /// Node to denote the content space of the Pane.
-#[derive(Component)]
+#[derive(Component, Clone, Default)]
 pub struct PaneContentNode;

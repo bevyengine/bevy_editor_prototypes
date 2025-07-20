@@ -7,6 +7,20 @@ use crate::{
     Size, handlers::*, registry::PaneStructure,
 };
 
+pub fn header_context_menu() -> ContextMenu {
+    ContextMenu::new([
+        ContextMenuOption::new("Close", |mut commands, entity| {
+            commands.run_system_cached_with(remove_pane, entity);
+        }),
+        ContextMenuOption::new("Split - Horizontal", |mut commands, entity| {
+            commands.run_system_cached_with(split_pane, (entity, false));
+        }),
+        ContextMenuOption::new("Split - Vertical", |mut commands, entity| {
+            commands.run_system_cached_with(split_pane, (entity, true));
+        }),
+    ])
+}
+
 pub(crate) fn spawn_pane<'a>(
     commands: &'a mut Commands,
     theme: &Theme,
@@ -57,17 +71,7 @@ pub(crate) fn spawn_pane<'a>(
             },
             theme.pane.header_background_color,
             theme.pane.header_border_radius,
-            ContextMenu::new([
-                ContextMenuOption::new("Close", |mut commands, entity| {
-                    commands.run_system_cached_with(remove_pane, entity);
-                }),
-                ContextMenuOption::new("Split - Horizontal", |mut commands, entity| {
-                    commands.run_system_cached_with(split_pane, (entity, false));
-                }),
-                ContextMenuOption::new("Split - Vertical", |mut commands, entity| {
-                    commands.run_system_cached_with(split_pane, (entity, true));
-                }),
-            ]),
+            header_context_menu(),
             PaneHeaderNode,
             ChildOf(area),
         ))

@@ -11,12 +11,20 @@
 //!   which transforms the user's application into an editor that runs their game.
 //! - Finally, it will be a standalone application that communicates with a running Bevy game via the Bevy Remote Protocol.
 
+use std::time::Duration;
+
 use bevy::app::App as BevyApp;
 use bevy::asset::UnapprovedPathMode;
 use bevy::prelude::*;
+use bevy::{
+    core_widgets::CoreWidgetsPlugins,
+    feathers::{FeathersPlugin, dark_theme::create_dark_theme, theme::UiTheme},
+    input_focus::{InputDispatchPlugin, tab_navigation::TabNavigationPlugin},
+};
 // Re-export Bevy for project use
 pub use bevy;
 
+use bevy::winit::{UpdateMode, WinitSettings};
 use bevy_context_menu::ContextMenuPlugin;
 use bevy_editor_core::EditorCorePlugin;
 use bevy_editor_core::selection::common_handlers::toggle_select_on_click;
@@ -64,11 +72,20 @@ impl Plugin for EditorPlugin {
                 AssetBrowserPanePlugin,
                 LoadGltfPlugin,
                 MeshPickingPlugin,
+                CoreWidgetsPlugins,
+                InputDispatchPlugin,
+                TabNavigationPlugin,
+                FeathersPlugin,
             ))
             .insert_resource(MeshPickingSettings {
                 // Workaround for the Mesh2d circle blocking picking in the 3d viewport (even though it is not visible).
                 require_markers: true,
                 ..default()
+            })
+            .insert_resource(UiTheme(create_dark_theme()))
+            .insert_resource(WinitSettings {
+                focused_mode: UpdateMode::reactive(Duration::from_secs_f64(1.0 / 60.0)),
+                unfocused_mode: UpdateMode::reactive_low_power(Duration::from_secs(1)),
             })
             .add_systems(Startup, dummy_setup);
     }

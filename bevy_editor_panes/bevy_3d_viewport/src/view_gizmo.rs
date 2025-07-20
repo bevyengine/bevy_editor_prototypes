@@ -4,14 +4,16 @@
 
 use bevy::{
     asset::RenderAssetUsages,
-    ecs::relationship::RelatedSpawnerCommands,
+    ecs::template::template,
     prelude::*,
     render::{
         render_resource::{Extent3d, Face, TextureDimension, TextureFormat, TextureUsages},
         view::RenderLayers,
     },
+    scene2::{Scene, bsn},
 };
 use bevy_editor_cam::prelude::EditorCam;
+use bevy_pane_layout::components::fit_to_parent;
 
 // That value was picked arbitrarily
 pub const VIEW_GIZMO_TEXTURE_SIZE: u32 = 125;
@@ -34,10 +36,18 @@ pub struct ViewGizmoCamera;
 #[derive(Component)]
 pub struct ViewGizmoCameraTarget(pub Handle<Image>);
 
-pub fn spawn_view_gizmo_target_texture(
-    mut images: ResMut<'_, Assets<Image>>,
-    parent: &mut RelatedSpawnerCommands<ChildOf>,
-) {
+pub fn view_gizmo_node() -> impl Scene {
+    bsn! {
+        :fit_to_parent
+        Node {
+            width: Val::Px({VIEW_GIZMO_TEXTURE_SIZE as f32}),
+            height: Val::Px({VIEW_GIZMO_TEXTURE_SIZE as f32}),
+        }
+        template(view_gizmo_template)
+    }
+}
+
+fn view_gizmo_template(entity: &mut EntityWorldMut) -> Result<()> {
     let size = Extent3d {
         width: VIEW_GIZMO_TEXTURE_SIZE,
         height: VIEW_GIZMO_TEXTURE_SIZE,
@@ -54,24 +64,14 @@ pub fn spawn_view_gizmo_target_texture(
     target_texture.texture_descriptor.usage =
         TextureUsages::TEXTURE_BINDING | TextureUsages::COPY_DST | TextureUsages::RENDER_ATTACHMENT;
 
-    let image = images.add(target_texture);
+    let image = entity.resource_mut::<Assets<Image>>().add(target_texture);
 
-    // TODO don't hardcode it to top left
-    // TODO send input events to the image target
-    parent.spawn((
-        ImageNode::new(image.clone()),
-        Node {
-            position_type: PositionType::Absolute,
-            top: Val::ZERO,
-            bottom: Val::ZERO,
-            left: Val::ZERO,
-            right: Val::ZERO,
-            width: Val::Px(VIEW_GIZMO_TEXTURE_SIZE as f32),
-            height: Val::Px(VIEW_GIZMO_TEXTURE_SIZE as f32),
-            ..default()
-        },
+    entity.insert((
         ViewGizmoCameraTarget(image.clone()),
+        ImageNode::new(image.clone()),
     ));
+
+    Ok(())
 }
 
 fn setup_view_gizmo(

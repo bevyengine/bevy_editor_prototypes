@@ -1,34 +1,37 @@
-#![allow(clippy::type_complexity)]
+//! Transform
 
 use bevy::asset::load_internal_asset;
-use bevy::{prelude::*, render::camera::Projection, transform::TransformSystem};
-use bevy_mod_picking::{
-    backend::{HitData, PointerHits},
-    picking_core::PickSet,
-    prelude::{PickingInteraction, PointerId},
-    selection::{NoDeselect, PickSelection},
+use bevy::picking::hover::HoverMap;
+use bevy::picking::{
+    backend::{ray::RayMap, HitData, PointerHits},
+    hover::PickingInteraction,
+    pointer::PointerId,
+    PickingSystems,
 };
-use bevy_mod_raycast::prelude::RaycastSystem;
+use bevy::{prelude::*, render::camera::Projection, transform::TransformSystems};
+use bevy_editor_core::prelude::SelectedEntity;
 use gizmo_material::GizmoMaterial;
 use mesh::{RotationGizmo, ViewTranslateGizmo};
+
 use normalization::*;
 
 mod gizmo_material;
 mod mesh;
 pub mod normalization;
 
-pub mod picking;
+// pub mod picking;
 
-use picking::GizmoRaycastSet;
-pub use picking::{GizmoPickSource, PickableGizmo};
+// use picking::GizmoRaycastSet;
+// pub use picking::{GizmoPickSource, PickableGizmo};
 
 #[derive(Resource, Clone, Debug)]
 pub struct GizmoSystemsEnabled(pub bool);
 
 pub use normalization::Ui3dNormalization;
 
+///
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
-pub enum TransformGizmoSystem {
+pub enum TransformGizmoSystems {
     InputsSet,
     MainSet,
     RaycastSet,
@@ -41,7 +44,7 @@ pub enum TransformGizmoSystem {
     Drag,
 }
 
-#[derive(Debug, Clone, Event)]
+#[derive(Debug, Clone, Event, BufferedEvent)]
 pub struct TransformGizmoEvent {
     pub from: GlobalTransform,
     pub to: GlobalTransform,
@@ -94,7 +97,7 @@ impl Plugin for TransformGizmoPlugin {
         .insert_resource(GizmoSystemsEnabled(true))
         .add_plugins((
             MaterialPlugin::<GizmoMaterial>::default(),
-            picking::GizmoPickingPlugin,
+            // picking::GizmoPickingPlugin,
             Ui3dNormalization,
         ))
         .add_event::<TransformGizmoEvent>();
@@ -103,17 +106,17 @@ impl Plugin for TransformGizmoPlugin {
         app.add_systems(
             PreUpdate,
             (
-                update_gizmo_settings.in_set(TransformGizmoSystem::UpdateSettings),
+                update_gizmo_settings.in_set(TransformGizmoSystems::UpdateSettings),
                 hover_gizmo
-                    .in_set(TransformGizmoSystem::Hover)
-                    .in_set(PickSet::Backend)
-                    .after(RaycastSystem::UpdateRaycast::<GizmoRaycastSet>),
+                    .in_set(TransformGizmoSystems::Hover)
+                    .in_set(PickingSystems::Backend),
+                // .after(RaycastSystem::UpdateRaycast::<GizmoRaycastSet>),
                 grab_gizmo
-                    .in_set(TransformGizmoSystem::Grab)
-                    .after(PickSet::Focus),
+                    .in_set(TransformGizmoSystems::Grab)
+                    .after(PickingSystems::Hover),
             )
                 .chain()
-                .in_set(TransformGizmoSystem::InputsSet)
+                .in_set(TransformGizmoSystems::InputsSet)
                 .run_if(|settings: Res<GizmoSettings>| settings.enabled),
         );
 
@@ -122,17 +125,17 @@ impl Plugin for TransformGizmoPlugin {
             PostUpdate,
             (
                 drag_gizmo
-                    .in_set(TransformGizmoSystem::Drag)
-                    .before(TransformSystem::TransformPropagate),
+                    .in_set(TransformGizmoSystems::Drag)
+                    .before(TransformSystems::Propagate),
                 place_gizmo
-                    .in_set(TransformGizmoSystem::Place)
-                    .after(TransformSystem::TransformPropagate),
+                    .in_set(TransformGizmoSystems::Place)
+                    .after(TransformSystems::Propagate),
                 propagate_gizmo_elements,
-                adjust_view_translate_gizmo.in_set(TransformGizmoSystem::Drag),
-                gizmo_cam_copy_settings.in_set(TransformGizmoSystem::Drag),
+                adjust_view_translate_gizmo.in_set(TransformGizmoSystems::Drag),
+                gizmo_cam_copy_settings.in_set(TransformGizmoSystems::Drag),
             )
                 .chain()
-                .in_set(TransformGizmoSystem::MainSet)
+                .in_set(TransformGizmoSystems::MainSet)
                 .run_if(|settings: Res<GizmoSettings>| settings.enabled),
         );
 
@@ -145,7 +148,7 @@ impl Plugin for TransformGizmoPlugin {
 pub struct TransformGizmoBundle {
     gizmo: TransformGizmo,
     picking_interaction: PickingInteraction,
-    picking_blocker: NoDeselect,
+    // picking_blocker: NoDeselect,
     transform: Transform,
     global_transform: GlobalTransform,
     visible: Visibility,
@@ -159,7 +162,7 @@ impl Default for TransformGizmoBundle {
         TransformGizmoBundle {
             transform: Transform::from_translation(Vec3::splat(f32::MIN)),
             picking_interaction: PickingInteraction::None,
-            picking_blocker: NoDeselect,
+            // picking_blocker: NoDeselect,
             visible: Visibility::Hidden,
             inherited_visibility: InheritedVisibility::default(),
             view_visibility: ViewVisibility::default(),
@@ -206,12 +209,15 @@ struct InitialTransform {
 /// Updates the position of the gizmo and selected meshes while the gizmo is being dragged.
 #[allow(clippy::type_complexity)]
 fn drag_gizmo(
-    pick_cam: Query<&GizmoPickSource>,
+    // pick_cam: Query<&GizmoPickSource>,
+    raymap: Res<RayMap>,
     mut gizmo_mut: Query<&mut TransformGizmo>,
+    selection: Res<SelectedEntity>,
     mut transform_query: Query<
         (
-            &PickSelection,
-            Option<&Parent>,
+            Entity,
+            // &PickSelection,
+            Option<&ChildOf>,
             &mut Transform,
             &InitialTransform,
         ),
@@ -220,15 +226,15 @@ fn drag_gizmo(
     parent_query: Query<&GlobalTransform>,
     gizmo_query: Query<(&GlobalTransform, &PickingInteraction), With<TransformGizmo>>,
 ) {
-    let picking_camera = if let Some(cam) = pick_cam.iter().last() {
-        cam
-    } else {
-        // Not exactly one picking camera.
-        return;
-    };
-    let picking_ray = if let Some(ray) = picking_camera.get_ray() {
-        ray
-    } else {
+    // TODO
+    // Temporarily use the first non mouse pointer
+    let Some((_, &picking_ray)) = raymap
+        .iter()
+        .filter(
+            |(ray_id, b)| true, /* ray_id.pointer != PointerId::Mouse */
+        )
+        .next()
+    else {
         // Picking camera does not have a ray.
         return;
     };
@@ -237,12 +243,12 @@ fn drag_gizmo(
     // click point to mouse's current position, onto the axis of the direction we are dragging. See
     // the wiki article for details: https://en.wikipedia.org/wiki/Vector_projection
     let gizmo_transform =
-        if let Ok((transform, &PickingInteraction::Pressed)) = gizmo_query.get_single() {
+        if let Ok((transform, &PickingInteraction::Pressed)) = gizmo_query.single() {
             transform.to_owned()
         } else {
             return;
         };
-    let mut gizmo = if let Ok(g) = gizmo_mut.get_single_mut() {
+    let mut gizmo = if let Ok(g) = gizmo_mut.single_mut() {
         g
     } else {
         error!("Number of transform gizmos is != 1");
@@ -256,18 +262,19 @@ fn drag_gizmo(
             origin
         }
     };
+
     let selected_iter = transform_query
         .iter_mut()
-        .filter(|(s, ..)| s.is_selected)
+        .filter(|(entity, ..)| selection.contains(*entity))
         .map(|(_, parent, local_transform, initial_global_transform)| {
             let parent_global_transform = match parent {
-                Some(parent) => match parent_query.get(parent.get()) {
+                Some(child_of) => match parent_query.get(child_of.parent()) {
                     Ok(transform) => *transform,
                     Err(_) => GlobalTransform::IDENTITY,
                 },
                 None => GlobalTransform::IDENTITY,
             };
-            let parent_mat = parent_global_transform.compute_matrix();
+            let parent_mat = parent_global_transform.to_matrix();
             let inverse_parent = parent_mat.inverse();
             (inverse_parent, local_transform, initial_global_transform)
         });
@@ -280,12 +287,9 @@ fn drag_gizmo(
                 let vertical_vector = picking_ray.direction.cross(axis).normalize();
                 let plane_normal = axis.cross(vertical_vector).normalize();
                 let plane_origin = gizmo_origin;
-                let cursor_plane_intersection = if let Some(intesect_point) = picking_camera
-                    .get_ray()
-                    .and_then(|ray| intersect_plane(ray, plane_normal, plane_origin))
-                {
-                    intesect_point
-                } else {
+                let Some(cursor_plane_intersection) =
+                    intersect_plane(picking_ray, plane_normal, plane_origin)
+                else {
                     return;
                 };
 
@@ -313,19 +317,16 @@ fn drag_gizmo(
                             rotation: initial_global_transform.transform.rotation,
                             scale: initial_global_transform.transform.scale,
                         };
-                        let local = inverse_parent * new_transform.compute_matrix();
+                        let local = inverse_parent * new_transform.to_matrix();
                         local_transform.set_if_neq(Transform::from_matrix(local));
                     },
                 );
             }
             TransformGizmoInteraction::TranslatePlane { normal, .. } => {
                 let plane_origin = gizmo_origin;
-                let cursor_plane_intersection = if let Some(intersection) = picking_camera
-                    .get_ray()
-                    .and_then(|ray| intersect_plane(ray, normal, plane_origin))
-                {
-                    intersection
-                } else {
+                let Some(cursor_plane_intersection) =
+                    intersect_plane(picking_ray, normal, plane_origin)
+                else {
                     return;
                 };
                 let drag_start = match gizmo.drag_start {
@@ -344,18 +345,15 @@ fn drag_gizmo(
                             rotation: initial_transform.transform.rotation,
                             scale: initial_transform.transform.scale,
                         };
-                        let local = inverse_parent * new_transform.compute_matrix();
+                        let local = inverse_parent * new_transform.to_matrix();
                         local_transform.set_if_neq(Transform::from_matrix(local));
                     },
                 );
             }
             TransformGizmoInteraction::RotateAxis { original: _, axis } => {
-                let cursor_plane_intersection = if let Some(intersection) = picking_camera
-                    .get_ray()
-                    .and_then(|ray| intersect_plane(ray, axis.normalize(), gizmo_origin))
-                {
-                    intersection
-                } else {
+                let Some(cursor_plane_intersection) =
+                    intersect_plane(picking_ray, axis.normalize(), gizmo_origin)
+                else {
                     return;
                 };
                 let cursor_vector = (cursor_plane_intersection - gizmo_origin).normalize();
@@ -381,7 +379,7 @@ fn drag_gizmo(
                             rotation: rotation * initial_transform.transform.rotation,
                             scale: initial_transform.transform.scale,
                         };
-                        let local = inverse_parent * new_transform.compute_matrix();
+                        let local = inverse_parent * new_transform.to_matrix();
                         local_transform.set_if_neq(Transform::from_matrix(local));
                     },
                 );
@@ -408,7 +406,7 @@ fn intersect_plane(ray: Ray3d, plane_normal: Vec3, plane_origin: Vec3) -> Option
 }
 
 fn hover_gizmo(
-    gizmo_raycast_source: Query<(Entity, &GizmoPickSource)>,
+    gizmo_raycast_source: Query<(Entity /* &GizmoPickSource */,), With<MeshPickingCamera>>,
     mut gizmo_query: Query<(
         Entity,
         &Children,
@@ -418,22 +416,29 @@ fn hover_gizmo(
     )>,
     hover_query: Query<&TransformGizmoInteraction>,
     mut hits: EventWriter<PointerHits>,
+    hover_map: Res<HoverMap>,
 ) {
     for (gizmo_entity, children, mut gizmo, mut interaction, _transform) in gizmo_query.iter_mut() {
-        let Ok((camera, gizmo_raycast_source)) = gizmo_raycast_source.get_single() else {
+        let Ok((camera /* gizmo_raycast_source */,)) = gizmo_raycast_source.single() else {
             warn!("There must be exactly one gizmo raycast source");
             return;
         };
 
-        if let Some((topmost_gizmo_entity, _)) = gizmo_raycast_source.get_nearest_intersection() {
+        // TODO
+
+        if let Some((topmost_gizmo_entity, _)) = hover_map
+            .get(&PointerId::Mouse)
+            .and_then(|e| e.iter().next())
+        {
+            dbg!(topmost_gizmo_entity);
             // Only update the gizmo state if it isn't being clicked (dragged) currently.
             if *interaction != PickingInteraction::Pressed {
                 for child in children
                     .iter()
-                    .filter(|entity| **entity == topmost_gizmo_entity)
+                    .filter(|entity| entity == topmost_gizmo_entity)
                 {
                     *interaction = PickingInteraction::Hovered;
-                    if let Ok(gizmo_interaction) = hover_query.get(*child) {
+                    if let Ok(gizmo_interaction) = hover_query.get(child) {
                         gizmo.current_interaction = Some(*gizmo_interaction);
                     }
                 }
@@ -441,6 +446,8 @@ fn hover_gizmo(
         } else if *interaction == PickingInteraction::Hovered {
             *interaction = PickingInteraction::None
         }
+
+        dbg!(gizmo.current_interaction);
 
         if !matches!(*interaction, PickingInteraction::None) {
             // Tell picking backend we're hovering the gizmo, so the `NoDeselect` component takes effect.
@@ -450,8 +457,8 @@ fn hover_gizmo(
                 position: None,
                 normal: None,
             };
-            hits.send(PointerHits {
-                pointer: PointerId::Mouse,
+            hits.write(PointerHits {
+                pointer: PointerId::Mouse, // TODO
                 picks: vec![(gizmo_entity, data)],
                 order: 1000.0,
             });
@@ -473,8 +480,9 @@ fn grab_gizmo(
         &mut PickingInteraction,
         &GlobalTransform,
     )>,
-    selected_items_query: Query<(
-        &PickSelection,
+    selection: Res<SelectedEntity>,
+    items_query: Query<(
+        // &PickSelection,
         &GlobalTransform,
         Entity,
         Option<&RotationOriginOffset>,
@@ -485,10 +493,8 @@ fn grab_gizmo(
         for (mut gizmo, interaction, _transform) in gizmo_query.iter_mut() {
             if *interaction == PickingInteraction::Pressed {
                 // Dragging has started, store the initial position of all selected meshes
-                for (selection, transform, entity, rotation_origin_offset) in
-                    selected_items_query.iter()
-                {
-                    if selection.is_selected {
+                for (transform, entity, rotation_origin_offset) in items_query.iter() {
+                    if selection.contains(entity) {
                         commands.entity(entity).insert(InitialTransform {
                             transform: transform.compute_transform(),
                             rotation_offset: rotation_origin_offset
@@ -516,7 +522,7 @@ fn grab_gizmo(
                     interaction,
                 };
                 //info!("{:?}", event);
-                gizmo_events.send(event);
+                gizmo_events.write(event);
                 *gizmo = TransformGizmo::default();
             }
         }
@@ -527,10 +533,12 @@ fn grab_gizmo(
 #[allow(clippy::type_complexity)]
 fn place_gizmo(
     plugin_settings: Res<GizmoSettings>,
+    selection: Res<SelectedEntity>,
     mut queries: ParamSet<(
         Query<
             (
-                &PickSelection,
+                Entity,
+                // &PickSelection,
                 &GlobalTransform,
                 Option<&RotationOriginOffset>,
             ),
@@ -542,7 +550,7 @@ fn place_gizmo(
     let selected: Vec<_> = queries
         .p0()
         .iter()
-        .filter(|(s, ..)| s.is_selected)
+        .filter(|(entity, ..)| selection.contains(*entity))
         .map(|(_s, t, offset)| {
             t.translation()
                 + offset
@@ -554,7 +562,7 @@ fn place_gizmo(
     let transform_sum = selected.iter().fold(Vec3::ZERO, |acc, t| acc + *t);
     let centroid = transform_sum / n_selected as f32;
     // Set the gizmo's position and visibility
-    if let Ok((mut g_transform, mut transform, mut visible)) = queries.p1().get_single_mut() {
+    if let Ok((mut g_transform, mut transform, mut visible)) = queries.p1().single_mut() {
         let gt = g_transform.compute_transform();
         *g_transform = Transform {
             translation: centroid,
@@ -578,8 +586,8 @@ fn propagate_gizmo_elements(
     gizmo: Query<(&GlobalTransform, &Children), With<TransformGizmo>>,
     mut gizmo_parts_query: Query<(&Transform, &mut GlobalTransform), Without<TransformGizmo>>,
 ) {
-    if let Ok((gizmo_pos, gizmo_parts)) = gizmo.get_single() {
-        for &entity in gizmo_parts.iter() {
+    if let Ok((gizmo_pos, gizmo_parts)) = gizmo.single() {
+        for entity in gizmo_parts.iter() {
             let (transform, mut g_transform) = gizmo_parts_query.get_mut(entity).unwrap();
             *g_transform = gizmo_pos.mul_transform(*transform);
         }
@@ -640,16 +648,16 @@ fn update_gizmo_settings(
 fn adjust_view_translate_gizmo(
     mut gizmo: Query<
         (&mut GlobalTransform, &mut TransformGizmoInteraction),
-        (With<ViewTranslateGizmo>, Without<GizmoPickSource>),
+        (With<ViewTranslateGizmo>, Without<MeshPickingCamera>),
     >,
-    camera: Query<&Transform, With<GizmoPickSource>>,
+    camera: Query<&Transform, With<MeshPickingCamera>>,
 ) {
-    let (mut global_transform, mut interaction) = match gizmo.get_single_mut() {
+    let (mut global_transform, mut interaction) = match gizmo.single_mut() {
         Ok(x) => x,
         Err(_) => return,
     };
 
-    let cam_transform = match camera.get_single() {
+    let cam_transform = match camera.single() {
         Ok(x) => x,
         Err(_) => return,
     };
@@ -672,19 +680,19 @@ fn adjust_view_translate_gizmo(
 }
 
 fn gizmo_cam_copy_settings(
-    main_cam: Query<(Ref<Camera>, Ref<GlobalTransform>, Ref<Projection>), With<GizmoPickSource>>,
+    main_cam: Query<(Ref<Camera>, Ref<GlobalTransform>, Ref<Projection>), With<MeshPickingCamera>>,
     mut gizmo_cam: Query<
         (&mut Camera, &mut GlobalTransform, &mut Projection),
-        (With<InternalGizmoCamera>, Without<GizmoPickSource>),
+        (With<InternalGizmoCamera>, Without<MeshPickingCamera>),
     >,
 ) {
-    let (main_cam, main_cam_pos, main_proj) = if let Ok(x) = main_cam.get_single() {
+    let (main_cam, main_cam_pos, main_proj) = if let Ok(x) = main_cam.single() {
         x
     } else {
         error!("No `GizmoPickSource` found! Insert the `GizmoPickSource` component onto your primary 3d camera");
         return;
     };
-    let (mut gizmo_cam, mut gizmo_cam_pos, mut proj) = gizmo_cam.single_mut();
+    let (mut gizmo_cam, mut gizmo_cam_pos, mut proj) = gizmo_cam.single_mut().unwrap();
     if main_cam_pos.is_changed() {
         *gizmo_cam_pos = *main_cam_pos;
     }

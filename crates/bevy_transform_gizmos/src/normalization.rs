@@ -1,6 +1,6 @@
-use bevy::{prelude::*, render::camera::Camera, transform::TransformSystem};
+use bevy::{prelude::*, render::camera::Camera, transform::TransformSystems};
 
-use crate::{GizmoPickSource, GizmoSettings, TransformGizmoSystem};
+use crate::{GizmoSettings, TransformGizmoSystems};
 
 pub struct Ui3dNormalization;
 impl Plugin for Ui3dNormalization {
@@ -8,9 +8,9 @@ impl Plugin for Ui3dNormalization {
         app.add_systems(
             PostUpdate,
             normalize
-                .in_set(TransformGizmoSystem::NormalizeSet)
-                .after(TransformSystem::TransformPropagate)
-                .after(TransformGizmoSystem::Place)
+                .in_set(TransformGizmoSystems::NormalizeSet)
+                .after(TransformSystems::Propagate)
+                .after(TransformGizmoSystems::Place)
                 .run_if(|settings: Res<GizmoSettings>| settings.enabled),
         );
     }
@@ -36,24 +36,24 @@ impl Normalize3d {
 #[allow(clippy::type_complexity)]
 pub fn normalize(
     mut query: ParamSet<(
-        Query<(&GlobalTransform, &Camera), With<GizmoPickSource>>,
+        Query<(&GlobalTransform, &Camera), With<MeshPickingCamera>>,
         Query<(&mut Transform, &mut GlobalTransform, &Normalize3d)>,
     )>,
 ) {
     // TODO: can be improved by manually specifying the active camera to normalize against. The
     // majority of cases will only use a single camera for this viewer, so this is sufficient.
-    let (camera_position, camera) = if let Ok((camera_position, camera)) = query.p0().get_single() {
+    let (camera_position, camera) = if let Ok((camera_position, camera)) = query.p0().single() {
         (camera_position.to_owned(), camera.to_owned())
     } else {
         error!("More than one picking camera");
         return;
     };
-    let view = camera_position.compute_matrix().inverse();
+    let view = camera_position.to_matrix().inverse();
 
     for (mut transform, mut global_transform, normalize) in query.p1().iter_mut() {
         let distance = view.transform_point3(global_transform.translation()).z;
         let gt = global_transform.compute_transform();
-        let pixel_end = if let Some(coords) = Camera::world_to_viewport(
+        let pixel_end = if let Ok(coords) = Camera::world_to_viewport(
             &camera,
             &GlobalTransform::default(),
             Vec3::new(normalize.size_in_world * gt.scale.x, 0.0, distance),
@@ -62,7 +62,7 @@ pub fn normalize(
         } else {
             continue;
         };
-        let pixel_root = if let Some(coords) = Camera::world_to_viewport(
+        let pixel_root = if let Ok(coords) = Camera::world_to_viewport(
             &camera,
             &GlobalTransform::default(),
             Vec3::new(0.0, 0.0, distance),

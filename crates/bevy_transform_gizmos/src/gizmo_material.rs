@@ -1,4 +1,5 @@
 use bevy::{
+    asset::uuid_handle,
     pbr::{MaterialPipeline, MaterialPipelineKey},
     prelude::*,
     reflect::TypePath,
@@ -10,7 +11,8 @@ use bevy::{
     },
 };
 
-pub const GIZMO_SHADER_HANDLE: Handle<Shader> = Handle::weak_from_u128(13953800272683943019);
+pub const GIZMO_SHADER_HANDLE: Handle<Shader> =
+    uuid_handle!("c61e62fa-e72b-4b0b-80fb-35c4ba991adb");
 
 #[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
 pub struct GizmoMaterial {
@@ -40,7 +42,7 @@ impl Material for GizmoMaterial {
     }
 
     fn specialize(
-        _pipeline: &MaterialPipeline<Self>,
+        _pipeline: &MaterialPipeline,
         descriptor: &mut RenderPipelineDescriptor,
         _layout: &MeshVertexBufferLayoutRef,
         _key: MaterialPipelineKey<Self>,

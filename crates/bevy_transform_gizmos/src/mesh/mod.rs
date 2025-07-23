@@ -1,15 +1,10 @@
-use crate::{
-    gizmo_material::GizmoMaterial, InternalGizmoCamera, TransformGizmoBundle,
-    TransformGizmoInteraction,
-};
+use std::f32::consts::TAU;
+
+use crate::{InternalGizmoCamera, TransformGizmoBundle, TransformGizmoInteraction};
 use bevy::{
     core_pipeline::core_3d::Camera3dDepthLoadOp, pbr::NotShadowCaster, prelude::*,
     render::view::RenderLayers,
 };
-// use bevy_mod_raycast::prelude::NoBackfaceCulling;
-
-mod cone;
-mod truncated_torus;
 
 #[derive(Component)]
 pub struct RotationGizmo;
@@ -25,7 +20,7 @@ pub fn build_gizmo(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let axis_length = 1.3;
-    let arc_radius = 1.;
+    let arc_radius = TAU / 4.;
     let plane_size = axis_length * 0.25;
     let plane_offset = plane_size / 2. + axis_length * 0.2;
     // Define gizmo meshes
@@ -33,33 +28,39 @@ pub fn build_gizmo(
         radius: 0.04,
         half_length: axis_length * 0.5f32,
     });
-    let cone_mesh = meshes.add(cone::Cone {
+
+    let cone_mesh = meshes.add(Cone {
         height: 0.25,
         radius: 0.10,
-        ..Default::default()
     });
     let plane_mesh = meshes.add(Plane3d::default().mesh().size(plane_size, plane_size));
     let sphere_mesh = meshes.add(Sphere { radius: 0.2 });
-    let rotation_mesh = meshes.add(Mesh::from(truncated_torus::TruncatedTorus {
-        radius: arc_radius,
-        ring_radius: 0.04,
-        ..Default::default()
-    }));
-    //let cube_mesh = meshes.add(Mesh::from(shape::Cube { size: 0.15 }));
+    let rotation_mesh = meshes.add(Mesh::from(
+        Torus {
+            major_radius: 1.,
+            minor_radius: 0.04,
+        }
+        .mesh()
+        .angle_range(0f32..=arc_radius),
+    ));
+
     // Define gizmo materials
+    fn material(color: Color) -> StandardMaterial {
+        StandardMaterial {
+            base_color: color,
+            unlit: true,
+            ..default()
+        }
+    }
     let (s, l) = (0.8, 0.6);
-    let gizmo_matl_x = materials.add(StandardMaterial::from(Color::hsl(0.0, s, l)));
-    let gizmo_matl_y = materials.add(StandardMaterial::from(Color::hsl(120.0, s, l)));
-    let gizmo_matl_z = materials.add(StandardMaterial::from(Color::hsl(240.0, s, l)));
-    let gizmo_matl_x_sel = materials.add(StandardMaterial::from(Color::hsl(0.0, s, l)));
-    let gizmo_matl_y_sel = materials.add(StandardMaterial::from(Color::hsl(120.0, s, l)));
-    let gizmo_matl_z_sel = materials.add(StandardMaterial::from(Color::hsl(240.0, s, l)));
-    let gizmo_matl_v_sel = materials.add(StandardMaterial::from(Color::hsl(0., 0.0, l)));
-    /*let gizmo_matl_origin = materials.add(StandardMaterial {
-        unlit: true,
-        base_color: Color::rgb(0.7, 0.7, 0.7),
-        ..Default::default()
-    });*/
+    let gizmo_matl_x = materials.add(material(Color::hsl(0.0, s, l)));
+    let gizmo_matl_y = materials.add(material(Color::hsl(120.0, s, l)));
+    let gizmo_matl_z = materials.add(material(Color::hsl(240.0, s, l)));
+    let gizmo_matl_x_sel = materials.add(material(Color::hsl(0.0, s, l)));
+    let gizmo_matl_y_sel = materials.add(material(Color::hsl(120.0, s, l)));
+    let gizmo_matl_z_sel = materials.add(material(Color::hsl(240.0, s, l)));
+    let gizmo_matl_v_sel = materials.add(material(Color::hsl(0., 0.0, l)));
+
     // Build the gizmo using the variables above.
     commands
         .spawn(TransformGizmoBundle::default())

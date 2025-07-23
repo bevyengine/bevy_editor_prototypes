@@ -8,6 +8,7 @@ fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
+            MeshPickingPlugin::default(),
             TransformGizmoPlugin::new(
                 Quat::from_rotation_y(-0.2), // Align the gizmo to a different coordinate system.
                                              // Use TransformGizmoPlugin::default() to align to the

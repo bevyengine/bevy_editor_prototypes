@@ -426,17 +426,13 @@ fn hover_gizmo(
 
         // TODO
 
-        if let Some((topmost_gizmo_entity, _)) = hover_map
+        if let Some((hovered, _)) = hover_map
             .get(&PointerId::Mouse)
             .and_then(|e| e.iter().next())
         {
-            dbg!(topmost_gizmo_entity);
             // Only update the gizmo state if it isn't being clicked (dragged) currently.
             if *interaction != PickingInteraction::Pressed {
-                for child in children
-                    .iter()
-                    .filter(|entity| entity == topmost_gizmo_entity)
-                {
+                for child in children.iter().filter(|entity| entity == hovered) {
                     *interaction = PickingInteraction::Hovered;
                     if let Ok(gizmo_interaction) = hover_query.get(child) {
                         gizmo.current_interaction = Some(*gizmo_interaction);
@@ -446,8 +442,6 @@ fn hover_gizmo(
         } else if *interaction == PickingInteraction::Hovered {
             *interaction = PickingInteraction::None
         }
-
-        dbg!(gizmo.current_interaction);
 
         if !matches!(*interaction, PickingInteraction::None) {
             // Tell picking backend we're hovering the gizmo, so the `NoDeselect` component takes effect.

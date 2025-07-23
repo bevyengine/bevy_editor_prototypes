@@ -1,20 +1,15 @@
 //! Parenting example.
 
-use bevy::{prelude::*, window::PresentMode};
+use bevy::prelude::*;
+use bevy_editor_core::prelude::SelectedEntity;
 use bevy_transform_gizmos::TransformGizmoPlugin;
 
 fn main() {
     App::new()
         .add_plugins((
-            DefaultPlugins.set(WindowPlugin {
-                primary_window: Some(Window {
-                    present_mode: PresentMode::Immediate,
-                    ..default()
-                }),
-                ..default()
-            }),
-            DefaultPickingPlugins,
-            TransformGizmoPlugin::new(Quat::default()),
+            DefaultPlugins,
+            MeshPickingPlugin::default(),
+            TransformGizmoPlugin::default(),
         ))
         .add_systems(Startup, setup)
         .run();
@@ -38,7 +33,7 @@ fn setup(
     let red = Color::srgb_u8(127, 26, 26);
 
     // cube
-    commands
+    let id = commands
         .spawn((
             Mesh3d(meshes.add(Cuboid::from_size(Vec3::splat(1.0)))),
             MeshMaterial3d(materials.add(StandardMaterial::from(red))),
@@ -58,8 +53,10 @@ fn setup(
                 Transform::from_xyz(1.0, 1.0, 0.0),
                 bevy_transform_gizmos::GizmoTransformable,
             ));
-        });
+        })
+        .id();
 
+    commands.insert_resource(SelectedEntity(Some(id)));
     // light
     commands.spawn((PointLight::default(), Transform::from_xyz(4.0, 8.0, 4.0)));
     // camera

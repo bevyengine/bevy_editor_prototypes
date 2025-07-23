@@ -1,6 +1,5 @@
 //! Transform
 
-use bevy::asset::load_internal_asset;
 use bevy::picking::hover::HoverMap;
 use bevy::picking::{
     backend::{ray::RayMap, HitData, PointerHits},
@@ -10,34 +9,25 @@ use bevy::picking::{
 };
 use bevy::{prelude::*, render::camera::Projection, transform::TransformSystems};
 use bevy_editor_core::prelude::SelectedEntity;
-use gizmo_material::GizmoMaterial;
 use mesh::{RotationGizmo, ViewTranslateGizmo};
 
 use normalization::*;
 
-mod gizmo_material;
 mod mesh;
 pub mod normalization;
-
-// pub mod picking;
-
-// use picking::GizmoRaycastSet;
-// pub use picking::{GizmoPickSource, PickableGizmo};
 
 #[derive(Resource, Clone, Debug)]
 pub struct GizmoSystemsEnabled(pub bool);
 
 pub use normalization::Ui3dNormalization;
 
-///
+/// Set enum for the systems relating to transform gizmos.
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
 pub enum TransformGizmoSystems {
     InputsSet,
     MainSet,
-    RaycastSet,
     NormalizeSet,
     UpdateSettings,
-    AdjustViewTranslateGizmo,
     Place,
     Hover,
     Grab,
@@ -81,13 +71,6 @@ impl TransformGizmoPlugin {
 
 impl Plugin for TransformGizmoPlugin {
     fn build(&self, app: &mut App) {
-        load_internal_asset!(
-            app,
-            gizmo_material::GIZMO_SHADER_HANDLE,
-            "gizmo_material.wgsl",
-            Shader::from_wgsl
-        );
-
         let alignment_rotation = self.alignment_rotation;
         app.insert_resource(GizmoSettings {
             enabled: true,
@@ -95,11 +78,7 @@ impl Plugin for TransformGizmoPlugin {
             allow_rotation: true,
         })
         .insert_resource(GizmoSystemsEnabled(true))
-        .add_plugins((
-            MaterialPlugin::<GizmoMaterial>::default(),
-            // picking::GizmoPickingPlugin,
-            Ui3dNormalization,
-        ))
+        .add_plugins((Ui3dNormalization,))
         .add_event::<TransformGizmoEvent>();
 
         // Input Set

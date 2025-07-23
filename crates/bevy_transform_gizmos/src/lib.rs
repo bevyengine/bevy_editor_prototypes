@@ -123,36 +123,13 @@ impl Plugin for TransformGizmoPlugin {
     }
 }
 
-#[derive(Bundle)]
-pub struct TransformGizmoBundle {
-    gizmo: TransformGizmo,
-    picking_interaction: PickingInteraction,
-    // picking_blocker: NoDeselect,
-    transform: Transform,
-    global_transform: GlobalTransform,
-    visible: Visibility,
-    inherited_visibility: InheritedVisibility,
-    view_visibility: ViewVisibility,
-    normalize: Normalize3d,
-}
-
-impl Default for TransformGizmoBundle {
-    fn default() -> Self {
-        TransformGizmoBundle {
-            transform: Transform::from_translation(Vec3::splat(f32::MIN)),
-            picking_interaction: PickingInteraction::None,
-            // picking_blocker: NoDeselect,
-            visible: Visibility::Hidden,
-            inherited_visibility: InheritedVisibility::default(),
-            view_visibility: ViewVisibility::default(),
-            gizmo: TransformGizmo::default(),
-            global_transform: GlobalTransform::default(),
-            normalize: Normalize3d::new(1.5, 150.0),
-        }
-    }
-}
-
 #[derive(Default, PartialEq, Component)]
+#[require(
+    Transform,
+    Visibility::Hidden,
+    PickingInteraction::None,
+    Normalize3d::new(1.5, 150.0)
+)]
 pub struct TransformGizmo {
     current_interaction: Option<TransformGizmoInteraction>,
     // Point in space where mouse-gizmo interaction started (on mouse down), used to compare how

@@ -1,6 +1,6 @@
 use std::f32::consts::TAU;
 
-use crate::{InternalGizmoCamera, TransformGizmoBundle, TransformGizmoInteraction};
+use crate::{InternalGizmoCamera, TransformGizmo, TransformGizmoInteraction};
 use bevy::{
     core_pipeline::core_3d::Camera3dDepthLoadOp, pbr::NotShadowCaster, prelude::*,
     render::view::RenderLayers,
@@ -63,7 +63,7 @@ pub fn build_gizmo(
 
     // Build the gizmo using the variables above.
     commands
-        .spawn(TransformGizmoBundle::default())
+        .spawn(TransformGizmo::default())
         .with_children(|parent| {
             // Translation Axes
             parent.spawn((

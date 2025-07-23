@@ -1,0 +1,41 @@
+[package]
+name = "bevy_transform_gizmo"
+version = "0.12.1"
+authors = [
+    "Aevyrie Roessler <aevyrie@gmail.com>",
+    "Foresight Mining Software Corporation",
+]
+edition = "2021"
+description = "A 3D transform gizmo for Bevy"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/ForesightMiningSoftwareCorporation/bevy_transform_gizmo"
+documentation = "https://docs.rs/bevy_transform_gizmo"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bevy = { version = "0.14.0", default-features = false, features = [
+    "bevy_render",
+    "bevy_core_pipeline",
+    "bevy_pbr",
+] }
+bevy_mod_picking = { version = "0.20", default-features = false, features = [
+    "selection",
+] }
+bevy_mod_raycast = { version = "0.18", default-features = false }
+
+[dev-dependencies]
+bevy = { version = "0.14.0", default-features = false, features = [
+    "bevy_pbr",
+    "bevy_winit",
+    "x11",
+    "tonemapping_luts",
+    "ktx2",
+    "zstd",
+] }
+bevy_mod_picking = { version = "0.20", default-features = false, features = [
+    "selection",
+    "backend_raycast",
+    "highlight",
+    "bevy_picking_raycast",
+] }

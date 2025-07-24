@@ -40,6 +40,11 @@ impl SelectedEntity {
     pub fn reset(&mut self) {
         self.0 = None;
     }
+
+    /// Check whether the selection contains a given entity.
+    pub fn contains(&self, entity: Entity) -> bool {
+        self.0.is_some_and(|selected| selected == entity)
+    }
 }
 
 /// System to reset [`SelectedEntity`] when the entity is despawned.
@@ -47,10 +52,10 @@ pub fn reset_selected_entity_if_entity_despawned(
     mut selected_entity: ResMut<SelectedEntity>,
     entities: &Entities,
 ) {
-    if let Some(e) = selected_entity.0 {
-        if !entities.contains(e) {
-            selected_entity.reset();
-        }
+    if let Some(e) = selected_entity.0
+        && !entities.contains(e)
+    {
+        selected_entity.reset();
     }
 }
 

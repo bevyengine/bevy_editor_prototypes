@@ -13,6 +13,7 @@ use bevy::{
     scene2::{Scene, bsn},
 };
 use bevy_editor_cam::prelude::EditorCam;
+use bevy_editor_styles::Theme;
 use bevy_pane_layout::components::fit_to_parent;
 
 // That value was picked arbitrarily
@@ -79,18 +80,18 @@ fn setup_view_gizmo(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut gizmo_assets: ResMut<Assets<GizmoAsset>>,
+    theme: Res<Theme>,
 ) {
     info!("Spawning View Gizmo");
     let view_gizmo_pass_layer = RenderLayers::layer(VIEW_GIZMO_LAYER);
     let sphere = meshes.add(Sphere::new(0.2).mesh().uv(32, 18));
 
-    for axis in [
-        Vec3::new(1.0, 0.0, 0.0),
-        Vec3::new(0.0, 1.0, 0.0),
-        Vec3::new(0.0, 0.0, 1.0),
+    for (axis, color) in [
+        (Vec3::X, theme.viewport.x_axis_color),
+        (Vec3::Y, theme.viewport.y_axis_color),
+        (Vec3::Z, theme.viewport.z_axis_color),
     ] {
         let mut gizmo = GizmoAsset::new();
-        let color = LinearRgba::from_vec3(axis);
         gizmo.line(Vec3::ZERO, axis, color);
         commands.spawn((
             Gizmo {

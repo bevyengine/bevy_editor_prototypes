@@ -10,10 +10,14 @@ use normalization::*;
 mod mesh;
 pub mod normalization;
 
+/// Crate prelude.
+pub mod prelude {
+    pub use crate::{GizmoCamera, TransformGizmoPlugin};
+}
+
+/// Resource that controls whether the transform gizmo is active.
 #[derive(Resource, Clone, Debug)]
 pub struct GizmoSystemsEnabled(pub bool);
-
-pub use normalization::Ui3dNormalization;
 
 /// Set enum for the systems relating to transform gizmos.
 #[derive(Debug, Hash, PartialEq, Eq, Clone, SystemSet)]
@@ -32,12 +36,13 @@ pub enum TransformGizmoSystems {
 pub struct TransformGizmoEvent {
     pub from: GlobalTransform,
     pub to: GlobalTransform,
-    pub interaction: TransformGizmoInteraction,
+    pub interaction: InteractionKind,
 }
 
 #[derive(Component, Default, Clone, Debug)]
 pub struct GizmoTransformable;
 
+/// Marker component for the camera that displays the gizmo.
 #[derive(Component, Default, Clone, Debug)]
 pub struct InternalGizmoCamera;
 
@@ -76,24 +81,24 @@ impl Plugin for TransformGizmoPlugin {
         .add_event::<TransformGizmoEvent>()
         .add_observer(
             |trigger: On<Pointer<Press>>,
-             target_query: Query<(&TransformGizmoInteraction, &ChildOf)>,
+             target_query: Query<(&InteractionKind, &ChildOf)>,
              mut query: Query<&mut TransformGizmo>,
              selection: Res<SelectedEntity>,
              items_query: Query<(&GlobalTransform, Entity, Option<&RotationOriginOffset>)>,
              mut commands: Commands| {
-                if trigger.pointer_id != PointerId::Mouse
-                    || trigger.button != PointerButton::Primary
-                {
+                if trigger.button != PointerButton::Primary {
                     return;
                 }
                 let Ok((interaction, child_of)) = target_query.get(trigger.target()) else {
                     return;
                 };
 
-                query
-                    .get_mut(child_of.parent())
-                    .unwrap()
-                    .current_interaction = Some(*interaction);
+                // Activate the interaction.
+                query.get_mut(child_of.parent()).unwrap().interaction =
+                    Some(TransformGizmoInteraction {
+                        kind: *interaction,
+                        pointer_id: trigger.pointer_id,
+                    });
 
                 // Dragging has started, store the initial position of all selected meshes
                 for (transform, entity, rotation_origin_offset) in items_query.iter() {
@@ -120,14 +125,13 @@ impl Plugin for TransformGizmoPlugin {
                 let (mut gizmo, transform) = query.single_mut().unwrap();
 
                 if let (Some(from), Some(interaction)) =
-                    (gizmo.initial_transform, gizmo.current_interaction)
+                    (gizmo.initial_transform, gizmo.interaction)
                 {
                     let event = TransformGizmoEvent {
                         from,
                         to: *transform,
-                        interaction,
+                        interaction: interaction.kind,
                     };
-                    //info!("{:?}", event);
                     gizmo_events.write(event);
                     *gizmo = TransformGizmo::default();
                 }
@@ -143,18 +147,8 @@ impl Plugin for TransformGizmoPlugin {
         // Input Set
         app.add_systems(
             PreUpdate,
-            (
-                update_gizmo_settings.in_set(TransformGizmoSystems::UpdateSettings),
-                // hover_gizmo
-                //     .in_set(TransformGizmoSystems::Hover)
-                //     .in_set(PickingSystems::Backend),
-                // .after(RaycastSystem::UpdateRaycast::<GizmoRaycastSet>),
-                // grab_gizmo
-                //     .in_set(TransformGizmoSystems::Grab)
-                //     .after(PickingSystems::Hover),
-            )
-                .chain()
-                .in_set(TransformGizmoSystems::InputsSet)
+            update_gizmo_settings
+                .in_set(TransformGizmoSystems::UpdateSettings)
                 .run_if(|settings: Res<GizmoSettings>| settings.enabled),
         );
 
@@ -182,10 +176,12 @@ impl Plugin for TransformGizmoPlugin {
     }
 }
 
+/// Component for the transform gizmo itself. Holds dat about the current interaction.
 #[derive(Default, PartialEq, Component)]
 #[require(Transform, Visibility::Hidden, Normalize3d::new(1.5, 150.0))]
 pub struct TransformGizmo {
-    current_interaction: Option<TransformGizmoInteraction>,
+    /// The active gizmo interaction.
+    interaction: Option<TransformGizmoInteraction>,
     // Point in space where mouse-gizmo interaction started (on mouse down), used to compare how
     // much total dragging has occurred without accumulating error across frames.
     drag_start: Option<Vec3>,
@@ -195,32 +191,57 @@ pub struct TransformGizmo {
 }
 
 impl TransformGizmo {
-    /// Get the gizmo's drag direction.
-    pub fn current_interaction(&self) -> Option<TransformGizmoInteraction> {
-        self.current_interaction
+    /// Get the gizmo's ongoing interaction.
+    pub fn interaction(&self) -> Option<TransformGizmoInteraction> {
+        self.interaction
     }
 }
 
-/// Marks the current active gizmo interaction
+/// Describes an ongoing transform gizmo interation.
 #[derive(Clone, Copy, Debug, PartialEq, Component)]
-pub enum TransformGizmoInteraction {
-    TranslateAxis { original: Vec3, axis: Vec3 },
-    TranslatePlane { original: Vec3, normal: Vec3 },
-    RotateAxis { original: Vec3, axis: Vec3 },
-    ScaleAxis { original: Vec3, axis: Vec3 },
+pub struct TransformGizmoInteraction {
+    /// The kind of interaction we are currently performing.
+    kind: InteractionKind,
+    /// The pointer that started this interaction.
+    pointer_id: PointerId,
+}
+
+/// The kind of [`TransformGizmoInteraction`] that is happening.
+#[derive(Clone, Copy, Debug, PartialEq, Component)]
+pub enum InteractionKind {
+    /// Translating along an axis.
+    TranslateAxis {
+        /// Starting position.
+        original: Vec3,
+        /// The axis were translating along.
+        axis: Vec3,
+    },
+    /// Translating across a plane.
+    TranslatePlane {
+        /// Starting position.
+        original: Vec3,
+        /// The plane were translating across.
+        normal: Vec3,
+    },
+    /// Rotating on an axis.
+    RotateAxis {
+        /// Starting direction.
+        original: Vec3,
+        /// The axis were rotating on.
+        axis: Vec3,
+    },
 }
 
 /// Stores the inital transform of entities involved in a [`TransformGizmoInteraction`].
-#[derive(Component)]
+#[derive(Component, Clone, Debug)]
 struct InitialTransform {
     transform: Transform,
     rotation_offset: Vec3,
 }
 
+/// Marker component for the camera that display and control the transform gizmo.
 #[derive(Component, Default, Clone, Debug)]
-struct GizmoCamera {
-    pointer_id: PointerId,
-}
+pub struct GizmoCamera;
 
 /// Updates the position of the gizmo and selected meshes while the gizmo is being dragged.
 #[allow(clippy::type_complexity)]
@@ -241,19 +262,6 @@ fn drag_gizmo(
     parent_query: Query<&GlobalTransform>,
     mut gizmo_query: Query<(&mut TransformGizmo, &GlobalTransform)>,
 ) {
-    // TODO:
-
-    // FIXME: Temporarily use the first non mouse pointer
-    let Some((_, &picking_ray)) = raymap
-        .iter()
-        .filter(
-            |(ray_id, b)| true, /* ray_id.pointer != PointerId::Mouse */
-        )
-        .next()
-    else {
-        // Picking camera does not have a ray.
-        return;
-    };
     // Gizmo handle should project mouse motion onto the axis of the handle. Perpendicular motion
     // should have no effect on the handle. We can do this by projecting the vector from the handle
     // click point to mouse's current position, onto the axis of the direction we are dragging. See
@@ -261,7 +269,15 @@ fn drag_gizmo(
     let Ok((mut gizmo, &gizmo_transform)) = gizmo_query.single_mut() else {
         return;
     };
-    let Some(interaction) = gizmo.current_interaction else {
+    let Some(TransformGizmoInteraction { kind, pointer_id }) = gizmo.interaction else {
+        return;
+    };
+    let Some((_, &picking_ray)) = raymap
+        .iter()
+        .filter(|(ray_id, _)| ray_id.pointer == pointer_id)
+        .next()
+    else {
+        // Picking camera does not have a ray.
         return;
     };
     let gizmo_origin = match gizmo.origin_drag_start {
@@ -287,8 +303,8 @@ fn drag_gizmo(
     if gizmo.initial_transform.is_none() {
         gizmo.initial_transform = Some(gizmo_transform);
     }
-    match interaction {
-        TransformGizmoInteraction::TranslateAxis { original: _, axis } => {
+    match kind {
+        InteractionKind::TranslateAxis { original: _, axis } => {
             let vertical_vector = picking_ray.direction.cross(axis).normalize();
             let plane_normal = axis.cross(vertical_vector).normalize();
             let plane_origin = gizmo_origin;
@@ -325,7 +341,7 @@ fn drag_gizmo(
                 },
             );
         }
-        TransformGizmoInteraction::TranslatePlane { normal, .. } => {
+        InteractionKind::TranslatePlane { normal, .. } => {
             let plane_origin = gizmo_origin;
             let Some(cursor_plane_intersection) =
                 intersect_plane(picking_ray, normal, plane_origin)
@@ -351,7 +367,7 @@ fn drag_gizmo(
                 local_transform.set_if_neq(Transform::from_matrix(local));
             });
         }
-        TransformGizmoInteraction::RotateAxis { original: _, axis } => {
+        InteractionKind::RotateAxis { original: _, axis } => {
             let Some(cursor_plane_intersection) =
                 intersect_plane(picking_ray, axis.normalize(), gizmo_origin)
             else {
@@ -383,10 +399,6 @@ fn drag_gizmo(
                 local_transform.set_if_neq(Transform::from_matrix(local));
             });
         }
-        TransformGizmoInteraction::ScaleAxis {
-            original: _,
-            axis: _,
-        } => (),
     }
 }
 
@@ -473,7 +485,7 @@ fn propagate_gizmo_elements(
 
 fn update_gizmo_settings(
     plugin_settings: Res<GizmoSettings>,
-    mut interactions: Query<&mut TransformGizmoInteraction, Without<ViewTranslateGizmo>>,
+    mut interactions: Query<&mut InteractionKind, Without<ViewTranslateGizmo>>,
     mut rotations: Query<&mut Visibility, With<RotationGizmo>>,
 ) {
     if !plugin_settings.is_changed() {
@@ -482,27 +494,21 @@ fn update_gizmo_settings(
     let rotation = plugin_settings.alignment_rotation;
     for mut interaction in interactions.iter_mut() {
         if let Some(rotated_interaction) = match *interaction {
-            TransformGizmoInteraction::TranslateAxis { original, axis: _ } => {
-                Some(TransformGizmoInteraction::TranslateAxis {
+            InteractionKind::TranslateAxis { original, axis: _ } => {
+                Some(InteractionKind::TranslateAxis {
                     original,
                     axis: rotation.mul_vec3(original),
                 })
             }
-            TransformGizmoInteraction::TranslatePlane {
+            InteractionKind::TranslatePlane {
                 original,
                 normal: _,
-            } => Some(TransformGizmoInteraction::TranslatePlane {
+            } => Some(InteractionKind::TranslatePlane {
                 original,
                 normal: rotation.mul_vec3(original),
             }),
-            TransformGizmoInteraction::RotateAxis { original, axis: _ } => {
-                Some(TransformGizmoInteraction::RotateAxis {
-                    original,
-                    axis: rotation.mul_vec3(original),
-                })
-            }
-            TransformGizmoInteraction::ScaleAxis { original, axis: _ } => {
-                Some(TransformGizmoInteraction::ScaleAxis {
+            InteractionKind::RotateAxis { original, axis: _ } => {
+                Some(InteractionKind::RotateAxis {
                     original,
                     axis: rotation.mul_vec3(original),
                 })
@@ -524,10 +530,10 @@ fn update_gizmo_settings(
 #[allow(clippy::type_complexity)]
 fn adjust_view_translate_gizmo(
     mut gizmo: Query<
-        (&mut GlobalTransform, &mut TransformGizmoInteraction),
-        (With<ViewTranslateGizmo>, Without<MeshPickingCamera>),
+        (&mut GlobalTransform, &mut InteractionKind),
+        (With<ViewTranslateGizmo>, Without<GizmoCamera>),
     >,
-    camera: Query<&Transform, With<MeshPickingCamera>>,
+    camera: Query<&Transform, With<GizmoCamera>>,
 ) {
     let (mut global_transform, mut interaction) = match gizmo.single_mut() {
         Ok(x) => x,
@@ -540,7 +546,7 @@ fn adjust_view_translate_gizmo(
     };
 
     let direction = cam_transform.local_z();
-    *interaction = TransformGizmoInteraction::TranslatePlane {
+    *interaction = InteractionKind::TranslatePlane {
         original: Vec3::ZERO,
         normal: *direction,
     };
@@ -557,10 +563,10 @@ fn adjust_view_translate_gizmo(
 }
 
 fn gizmo_cam_copy_settings(
-    main_cam: Query<(Ref<Camera>, Ref<GlobalTransform>, Ref<Projection>), With<MeshPickingCamera>>,
+    main_cam: Query<(Ref<Camera>, Ref<GlobalTransform>, Ref<Projection>), With<GizmoCamera>>,
     mut gizmo_cam: Query<
         (&mut Camera, &mut GlobalTransform, &mut Projection),
-        (With<InternalGizmoCamera>, Without<MeshPickingCamera>),
+        (With<InternalGizmoCamera>, Without<GizmoCamera>),
     >,
 ) {
     let (main_cam, main_cam_pos, main_proj) = if let Ok(x) = main_cam.single() {
@@ -575,7 +581,7 @@ fn gizmo_cam_copy_settings(
     }
     if main_cam.is_changed() {
         *gizmo_cam = main_cam.clone();
-        gizmo_cam.order += 10;
+        gizmo_cam.order += 1;
     }
     if main_proj.is_changed() {
         *proj = main_proj.clone();

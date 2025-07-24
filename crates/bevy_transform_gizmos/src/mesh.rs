@@ -1,6 +1,6 @@
 use std::f32::consts::TAU;
 
-use crate::{InternalGizmoCamera, TransformGizmo, TransformGizmoInteraction};
+use crate::{InteractionKind, InternalGizmoCamera, TransformGizmo};
 use bevy::{
     core_pipeline::core_3d::Camera3dDepthLoadOp, pbr::NotShadowCaster, prelude::*,
     render::view::RenderLayers,
@@ -73,7 +73,7 @@ pub fn build_gizmo(
                     Quat::from_rotation_z(std::f32::consts::PI / 2.0),
                     Vec3::new(axis_length / 2.0, 0.0, 0.0),
                 )),
-                TransformGizmoInteraction::TranslateAxis {
+                InteractionKind::TranslateAxis {
                     original: Vec3::X,
                     axis: Vec3::X,
                 },
@@ -87,7 +87,7 @@ pub fn build_gizmo(
                     Quat::from_rotation_y(std::f32::consts::PI / 2.0),
                     Vec3::new(0.0, axis_length / 2.0, 0.0),
                 )),
-                TransformGizmoInteraction::TranslateAxis {
+                InteractionKind::TranslateAxis {
                     original: Vec3::Y,
                     axis: Vec3::Y,
                 },
@@ -101,7 +101,7 @@ pub fn build_gizmo(
                     Quat::from_rotation_x(std::f32::consts::PI / 2.0),
                     Vec3::new(0.0, 0.0, axis_length / 2.0),
                 )),
-                TransformGizmoInteraction::TranslateAxis {
+                InteractionKind::TranslateAxis {
                     original: Vec3::Z,
                     axis: Vec3::Z,
                 },
@@ -117,7 +117,7 @@ pub fn build_gizmo(
                     Quat::from_rotation_z(std::f32::consts::PI / -2.0),
                     Vec3::new(axis_length, 0.0, 0.0),
                 )),
-                TransformGizmoInteraction::TranslateAxis {
+                InteractionKind::TranslateAxis {
                     original: Vec3::X,
                     axis: Vec3::X,
                 },
@@ -131,7 +131,7 @@ pub fn build_gizmo(
                     Quat::from_rotation_z(std::f32::consts::PI / -2.0),
                     Vec3::new(0., plane_offset, plane_offset),
                 )),
-                TransformGizmoInteraction::TranslatePlane {
+                InteractionKind::TranslatePlane {
                     original: Vec3::X,
                     normal: Vec3::X,
                 },
@@ -143,7 +143,7 @@ pub fn build_gizmo(
                 Mesh3d(cone_mesh.clone()),
                 MeshMaterial3d(gizmo_matl_y_sel.clone()),
                 Transform::from_translation(Vec3::new(0.0, axis_length, 0.0)),
-                TransformGizmoInteraction::TranslateAxis {
+                InteractionKind::TranslateAxis {
                     original: Vec3::Y,
                     axis: Vec3::Y,
                 },
@@ -154,7 +154,7 @@ pub fn build_gizmo(
                 Mesh3d(plane_mesh.clone()),
                 MeshMaterial3d(gizmo_matl_y_sel.clone()),
                 Transform::from_translation(Vec3::new(plane_offset, 0.0, plane_offset)),
-                TransformGizmoInteraction::TranslatePlane {
+                InteractionKind::TranslatePlane {
                     original: Vec3::Y,
                     normal: Vec3::Y,
                 },
@@ -169,7 +169,7 @@ pub fn build_gizmo(
                     Quat::from_rotation_x(std::f32::consts::PI / 2.0),
                     Vec3::new(0.0, 0.0, axis_length),
                 )),
-                TransformGizmoInteraction::TranslateAxis {
+                InteractionKind::TranslateAxis {
                     original: Vec3::Z,
                     axis: Vec3::Z,
                 },
@@ -183,7 +183,7 @@ pub fn build_gizmo(
                     Quat::from_rotation_x(std::f32::consts::PI / 2.0),
                     Vec3::new(plane_offset, plane_offset, 0.0),
                 )),
-                TransformGizmoInteraction::TranslatePlane {
+                InteractionKind::TranslatePlane {
                     original: Vec3::Z,
                     normal: Vec3::Z,
                 },
@@ -195,7 +195,7 @@ pub fn build_gizmo(
             parent.spawn((
                 Mesh3d(sphere_mesh.clone()),
                 MeshMaterial3d(gizmo_matl_v_sel.clone()),
-                TransformGizmoInteraction::TranslatePlane {
+                InteractionKind::TranslatePlane {
                     original: Vec3::ZERO,
                     normal: Vec3::Z,
                 },
@@ -210,7 +210,7 @@ pub fn build_gizmo(
                 MeshMaterial3d(gizmo_matl_x.clone()),
                 Transform::from_rotation(Quat::from_axis_angle(Vec3::Z, f32::to_radians(90.0))),
                 RotationGizmo,
-                TransformGizmoInteraction::RotateAxis {
+                InteractionKind::RotateAxis {
                     original: Vec3::X,
                     axis: Vec3::X,
                 },
@@ -221,7 +221,7 @@ pub fn build_gizmo(
                 Mesh3d(rotation_mesh.clone()),
                 MeshMaterial3d(gizmo_matl_y.clone()),
                 RotationGizmo,
-                TransformGizmoInteraction::RotateAxis {
+                InteractionKind::RotateAxis {
                     original: Vec3::Y,
                     axis: Vec3::Y,
                 },
@@ -236,7 +236,7 @@ pub fn build_gizmo(
                         * Quat::from_axis_angle(Vec3::X, f32::to_radians(90.0)),
                 ),
                 RotationGizmo,
-                TransformGizmoInteraction::RotateAxis {
+                InteractionKind::RotateAxis {
                     original: Vec3::Z,
                     axis: Vec3::Z,
                 },

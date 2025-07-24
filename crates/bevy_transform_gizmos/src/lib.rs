@@ -463,7 +463,7 @@ fn propagate_gizmo_elements(
     if let Ok((gizmo_pos, gizmo_parts)) = gizmo.single() {
         for entity in gizmo_parts.iter() {
             let Ok((transform, mut g_transform)) = gizmo_parts_query.get_mut(entity) else {
-                error!("Misformed transform gizmo");
+                error!("Malformed transform gizmo");
                 continue;
             };
             *g_transform = gizmo_pos.mul_transform(*transform);

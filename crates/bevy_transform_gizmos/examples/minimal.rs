@@ -6,15 +6,13 @@ use bevy_transform_gizmos::prelude::*;
 
 fn main() {
     App::new()
-        .add_plugins((
-            DefaultPlugins,
-            MeshPickingPlugin::default(),
-            TransformGizmoPlugin::new(
-                Quat::from_rotation_y(-0.2), // Align the gizmo to a different coordinate system.
-                                             // Use TransformGizmoPlugin::default() to align to the
-                                             // scene's coordinate system.
-            ),
-        ))
+        .insert_resource(TransformGizmoSettings {
+            // Align the gizmo to a different coordinate system.
+            // Leave at the default value to align to the scene's coordinate system.
+            alignment_rotation: Quat::from_rotation_y(-0.2),
+            ..default()
+        })
+        .add_plugins((DefaultPlugins, MeshPickingPlugin, TransformGizmoPlugin))
         .add_systems(Startup, setup)
         .run();
 }
@@ -43,7 +41,13 @@ fn setup(
         .id();
     commands.insert_resource(SelectedEntity(Some(id)));
     // light
-    commands.spawn((PointLight::default(), Transform::from_xyz(4.0, 8.0, 4.0)));
+    commands.spawn((
+        PointLight {
+            shadows_enabled: true,
+            ..default()
+        },
+        Transform::from_xyz(4.0, 8.0, 4.0),
+    ));
     // camera
     commands.spawn((
         Camera3d::default(),

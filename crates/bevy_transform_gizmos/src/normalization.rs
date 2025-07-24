@@ -1,22 +1,26 @@
+//!
+
 use bevy::{prelude::*, render::camera::Camera, transform::TransformSystems};
 
-use crate::{GizmoCamera, GizmoSettings, TransformGizmoSystems};
+use crate::{GizmoCamera, TransformGizmoSettings, TransformGizmoSystems};
 
-pub struct Ui3dNormalization;
-impl Plugin for Ui3dNormalization {
+/// Plugin for normalizing the size of a 3d object in the camera's view.
+pub struct Ui3dNormalizationPlugin;
+
+impl Plugin for Ui3dNormalizationPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             PostUpdate,
             normalize
-                .in_set(TransformGizmoSystems::NormalizeSet)
+                .in_set(TransformGizmoSystems::Normalize)
                 .after(TransformSystems::Propagate)
                 .after(TransformGizmoSystems::Place)
-                .run_if(|settings: Res<GizmoSettings>| settings.enabled),
+                .run_if(|settings: Res<TransformGizmoSettings>| settings.enabled),
         );
     }
 }
 
-/// Marker struct that marks entities with meshes that should be scaled relative to the camera.
+/// Struct that marks entities with meshes that should be scaled relative to the camera.
 #[derive(Component, Debug)]
 pub struct Normalize3d {
     /// Length of the object in world space units
@@ -24,7 +28,9 @@ pub struct Normalize3d {
     /// Desired length of the object in pixels
     pub desired_pixel_size: f32,
 }
+
 impl Normalize3d {
+    /// Construct a new [`Normalize3d`].
     pub fn new(size_in_world: f32, desired_pixel_size: f32) -> Self {
         Normalize3d {
             size_in_world,
@@ -33,7 +39,7 @@ impl Normalize3d {
     }
 }
 
-#[allow(clippy::type_complexity)]
+/// The system that performs size normalization based on the [`Normalize3d`] component.
 pub fn normalize(
     mut query: ParamSet<(
         Query<(&GlobalTransform, &Camera), With<GizmoCamera>>,

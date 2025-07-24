@@ -189,7 +189,7 @@ fn on_transform_gizmo_pointer_press(
     target_query: Query<(&InteractionKind, &ChildOf)>,
     mut query: Query<(&mut TransformGizmo, &GlobalTransform)>,
     selection: Res<SelectedEntity>,
-    items_query: Query<(&GlobalTransform, Entity, Option<&RotationOriginOffset>)>,
+    items_query: Query<(&GlobalTransform, Entity, Option<&TransformGizmoOffset>)>,
     mut commands: Commands,
 ) {
     if trigger.button != PointerButton::Primary {
@@ -266,127 +266,115 @@ fn drag_gizmo(
     // should have no effect on the handle. We can do this by projecting the vector from the handle
     // click point to mouse's current position, onto the axis of the direction we are dragging. See
     // the wiki article for details: https://en.wikipedia.org/wiki/Vector_projection
-    let Ok((mut gizmo, &gizmo_transform)) = gizmo_query.single_mut() else {
-        return;
-    };
-    let Some(TransformGizmoInteraction {
-        kind,
-        pointer_id,
-        origin,
-    }) = gizmo.interaction
-    else {
-        return;
-    };
-    let Some((_, &picking_ray)) = raymap.iter().find(|(id, _)| id.pointer == pointer_id) else {
-        return;
-    };
+    if let Ok((mut gizmo, &gizmo_transform)) = gizmo_query.single_mut()
+        && let Some(TransformGizmoInteraction {
+            kind,
+            pointer_id,
+            origin,
+        }) = gizmo.interaction
+        && let Some((_, &ray)) = raymap.iter().find(|(id, _)| id.pointer == pointer_id)
+    {
+        let selected_iter = transform_query
+            .iter_mut()
+            .filter(|(entity, ..)| selection.contains(*entity))
+            .map(|(_, parent, local_transform, initial_global_transform)| {
+                let parent_global_transform = parent
+                    .and_then(|child_of| parent_query.get(child_of.parent()).ok())
+                    .unwrap_or(&GlobalTransform::IDENTITY);
+                let parent_mat = parent_global_transform.to_matrix();
+                let inverse_parent = parent_mat.inverse();
+                (inverse_parent, local_transform, initial_global_transform)
+            });
+        if gizmo.initial_transform.is_none() {
+            gizmo.initial_transform = Some(gizmo_transform);
+        }
+        match kind {
+            InteractionKind::TranslateAxis { original: _, axis } => {
+                let vertical_vector = ray.direction.cross(axis).normalize();
+                let plane_normal = axis.cross(vertical_vector).normalize();
+                let Some(cursor_plane_intersection) = intersect_plane(ray, plane_normal, origin)
+                else {
+                    return;
+                };
 
-    let selected_iter = transform_query
-        .iter_mut()
-        .filter(|(entity, ..)| selection.contains(*entity))
-        .map(|(_, parent, local_transform, initial_global_transform)| {
-            let parent_global_transform = parent
-                .and_then(|child_of| parent_query.get(child_of.parent()).ok())
-                .unwrap_or(&GlobalTransform::IDENTITY);
-            let parent_mat = parent_global_transform.to_matrix();
-            let inverse_parent = parent_mat.inverse();
-            (inverse_parent, local_transform, initial_global_transform)
-        });
-    if gizmo.initial_transform.is_none() {
-        gizmo.initial_transform = Some(gizmo_transform);
-    }
-    match kind {
-        InteractionKind::TranslateAxis { original: _, axis } => {
-            let vertical_vector = picking_ray.direction.cross(axis).normalize();
-            let plane_normal = axis.cross(vertical_vector).normalize();
-            let Some(cursor_plane_intersection) =
-                intersect_plane(picking_ray, plane_normal, origin)
-            else {
-                return;
-            };
-
-            let cursor_vector: Vec3 = cursor_plane_intersection - origin;
-            let cursor_projected_onto_handle = match &gizmo.drag_start {
-                Some(drag_start) => *drag_start,
-                None => {
+                let cursor_vector: Vec3 = cursor_plane_intersection - origin;
+                let Some(cursor_projected_onto_handle) = &gizmo.drag_start else {
                     let handle_vector = axis;
                     let cursor_projected_onto_handle =
                         cursor_vector.dot(handle_vector.normalize()) * handle_vector.normalize();
                     gizmo.drag_start = Some(cursor_projected_onto_handle + origin);
                     return;
-                }
-            };
-            let selected_handle_vec = cursor_projected_onto_handle - origin;
-            let new_handle_vec = cursor_vector.dot(selected_handle_vec.normalize())
-                * selected_handle_vec.normalize();
-            let translation = new_handle_vec - selected_handle_vec;
-            selected_iter.for_each(
-                |(inverse_parent, mut local_transform, initial_global_transform)| {
-                    let new_transform = Transform {
-                        translation: initial_global_transform.transform.translation + translation,
-                        rotation: initial_global_transform.transform.rotation,
-                        scale: initial_global_transform.transform.scale,
-                    };
-                    let local = inverse_parent * new_transform.to_matrix();
-                    local_transform.set_if_neq(Transform::from_matrix(local));
-                },
-            );
-        }
-        InteractionKind::TranslatePlane { normal, .. } => {
-            let Some(cursor_plane_intersection) = intersect_plane(picking_ray, normal, origin)
-            else {
-                return;
-            };
-            let drag_start = match gizmo.drag_start {
-                Some(drag_start) => drag_start,
-                None => {
+                };
+                let selected_handle_vec = cursor_projected_onto_handle - origin;
+                let new_handle_vec = cursor_vector.dot(selected_handle_vec.normalize())
+                    * selected_handle_vec.normalize();
+                let translation = new_handle_vec - selected_handle_vec;
+                selected_iter.for_each(
+                    |(inverse_parent, mut local_transform, initial_global_transform)| {
+                        let new_transform = Transform {
+                            translation: initial_global_transform.transform.translation
+                                + translation,
+                            rotation: initial_global_transform.transform.rotation,
+                            scale: initial_global_transform.transform.scale,
+                        };
+                        let local = inverse_parent * new_transform.to_matrix();
+                        local_transform.set_if_neq(Transform::from_matrix(local));
+                    },
+                );
+            }
+            InteractionKind::TranslatePlane { normal, .. } => {
+                let Some(cursor_plane_intersection) = intersect_plane(ray, normal, origin) else {
+                    return;
+                };
+                let Some(drag_start) = gizmo.drag_start else {
                     gizmo.drag_start = Some(cursor_plane_intersection);
                     return;
-                }
-            };
-            selected_iter.for_each(|(inverse_parent, mut local_transform, initial_transform)| {
-                let new_transform = Transform {
-                    translation: initial_transform.transform.translation
-                        + cursor_plane_intersection
-                        - drag_start,
-                    rotation: initial_transform.transform.rotation,
-                    scale: initial_transform.transform.scale,
                 };
-                let local = inverse_parent * new_transform.to_matrix();
-                local_transform.set_if_neq(Transform::from_matrix(local));
-            });
-        }
-        InteractionKind::RotateAxis { original: _, axis } => {
-            let Some(cursor_plane_intersection) =
-                intersect_plane(picking_ray, axis.normalize(), origin)
-            else {
-                return;
-            };
-            let cursor_vector = (cursor_plane_intersection - origin).normalize();
-            let drag_start = match &gizmo.drag_start {
-                Some(drag_start) => *drag_start,
-                None => {
+                selected_iter.for_each(
+                    |(inverse_parent, mut local_transform, initial_transform)| {
+                        let new_transform = Transform {
+                            translation: initial_transform.transform.translation
+                                + cursor_plane_intersection
+                                - drag_start,
+                            rotation: initial_transform.transform.rotation,
+                            scale: initial_transform.transform.scale,
+                        };
+                        let local = inverse_parent * new_transform.to_matrix();
+                        local_transform.set_if_neq(Transform::from_matrix(local));
+                    },
+                );
+            }
+            InteractionKind::RotateAxis { original: _, axis } => {
+                let Some(cursor_plane_intersection) =
+                    intersect_plane(ray, axis.normalize(), origin)
+                else {
+                    return;
+                };
+                let cursor_vector = (cursor_plane_intersection - origin).normalize();
+                let Some(drag_start) = &gizmo.drag_start else {
                     gizmo.drag_start = Some(cursor_vector);
-                    return; // We just started dragging, no transformation is needed yet, exit early.
-                }
-            };
-            let dot = drag_start.dot(cursor_vector);
-            let det = axis.dot(drag_start.cross(cursor_vector));
-            let angle = det.atan2(dot);
-            let rotation = Quat::from_axis_angle(axis, angle);
-            selected_iter.for_each(|(inverse_parent, mut local_transform, initial_transform)| {
-                let world_space_offset =
-                    initial_transform.transform.rotation * initial_transform.rotation_offset;
-                let offset_rotated = rotation * world_space_offset;
-                let offset = world_space_offset - offset_rotated;
-                let new_transform = Transform {
-                    translation: initial_transform.transform.translation + offset,
-                    rotation: rotation * initial_transform.transform.rotation,
-                    scale: initial_transform.transform.scale,
+                    return;
                 };
-                let local = inverse_parent * new_transform.to_matrix();
-                local_transform.set_if_neq(Transform::from_matrix(local));
-            });
+                let dot = drag_start.dot(cursor_vector);
+                let det = axis.dot(drag_start.cross(cursor_vector));
+                let angle = det.atan2(dot);
+                let rotation = Quat::from_axis_angle(axis, angle);
+                selected_iter.for_each(
+                    |(inverse_parent, mut local_transform, initial_transform)| {
+                        let world_space_offset = initial_transform.transform.rotation
+                            * initial_transform.rotation_offset;
+                        let offset_rotated = rotation * world_space_offset;
+                        let offset = world_space_offset - offset_rotated;
+                        let new_transform = Transform {
+                            translation: initial_transform.transform.translation + offset,
+                            rotation: rotation * initial_transform.transform.rotation,
+                            scale: initial_transform.transform.scale,
+                        };
+                        let local = inverse_parent * new_transform.to_matrix();
+                        local_transform.set_if_neq(Transform::from_matrix(local));
+                    },
+                );
+            }
         }
     }
 }
@@ -404,16 +392,16 @@ fn intersect_plane(ray: Ray3d, plane_normal: Vec3, plane_origin: Vec3) -> Option
     }
 }
 
-/// Offsets the origin should be considered to be for an entity transformed by the transform gizmo.
+/// Offsets where the origin is for an entity transformed by the transform gizmo.
 #[derive(Component)]
-pub struct RotationOriginOffset(pub Vec3);
+pub struct TransformGizmoOffset(pub Vec3);
 
 /// Places the gizmo in space relative to the selected entity(s).
 fn place_gizmo(
     plugin_settings: Res<TransformGizmoSettings>,
     selection: Res<SelectedEntity>,
     mut queries: ParamSet<(
-        Query<(Entity, &GlobalTransform, Option<&RotationOriginOffset>), With<GizmoTransformable>>,
+        Query<(Entity, &GlobalTransform, Option<&TransformGizmoOffset>)>,
         Query<(&mut GlobalTransform, &mut Transform, &mut Visibility), With<TransformGizmo>>,
     )>,
 ) {
@@ -446,9 +434,6 @@ fn place_gizmo(
             *visible = Visibility::Inherited;
         } else {
             *visible = Visibility::Hidden;
-        }
-        if selection.is_changed() {
-            dbg!(transform);
         }
     } else {
         error!("Number of gizmos is != 1");
@@ -518,31 +503,25 @@ fn adjust_view_translate_gizmo(
     >,
     camera: Query<&Transform, With<GizmoCamera>>,
 ) {
-    let (mut global_transform, mut interaction) = match gizmo.single_mut() {
-        Ok(x) => x,
-        Err(_) => return,
-    };
-
-    let cam_transform = match camera.single() {
-        Ok(x) => x,
-        Err(_) => return,
-    };
-
-    let direction = cam_transform.local_z();
-    *interaction = InteractionKind::TranslatePlane {
-        original: Vec3::ZERO,
-        normal: *direction,
-    };
-    let rotation = Quat::from_mat3(&Mat3::from_cols(
-        direction.cross(*cam_transform.local_y()),
-        *direction,
-        *cam_transform.local_y(),
-    ));
-    *global_transform = Transform {
-        rotation,
-        ..global_transform.compute_transform()
+    if let Ok((mut global_transform, mut interaction)) = gizmo.single_mut()
+        && let Ok(cam_transform) = camera.single()
+    {
+        let direction = cam_transform.local_z();
+        *interaction = InteractionKind::TranslatePlane {
+            original: Vec3::ZERO,
+            normal: *direction,
+        };
+        let rotation = Quat::from_mat3(&Mat3::from_cols(
+            direction.cross(*cam_transform.local_y()),
+            *direction,
+            *cam_transform.local_y(),
+        ));
+        *global_transform = Transform {
+            rotation,
+            ..global_transform.compute_transform()
+        }
+        .into();
     }
-    .into();
 }
 
 fn gizmo_cam_copy_settings(
@@ -553,7 +532,9 @@ fn gizmo_cam_copy_settings(
     >,
 ) {
     let Ok((main_cam, main_cam_pos, main_proj)) = main_cam.single() else {
-        error!("No `GizmoPickSource` found! Insert the `GizmoPickSource` component onto your primary 3d camera");
+        error!(
+            "No `GizmoPickSource` found! Insert the `GizmoPickSource` component onto your primary 3d camera"
+        );
         return;
     };
     let (mut gizmo_cam, mut gizmo_cam_pos, mut proj) = gizmo_cam.single_mut().unwrap();

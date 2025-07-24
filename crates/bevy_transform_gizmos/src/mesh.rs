@@ -12,7 +12,6 @@ pub struct RotationGizmo;
 #[derive(Component)]
 pub struct ViewTranslateGizmo;
 
-// TODO: Tie to viewport cameras/render targets
 /// Startup system that builds the procedural mesh and materials of the gizmo.
 pub fn build_gizmo(
     mut commands: Commands,

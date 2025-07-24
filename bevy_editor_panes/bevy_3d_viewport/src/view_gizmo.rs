@@ -109,7 +109,7 @@ fn setup_view_gizmo(
         commands.spawn((
             Mesh3d(sphere.clone()),
             MeshMaterial3d(materials.add(StandardMaterial {
-                base_color: color.into(),
+                base_color: color,
                 unlit: true,
                 ..Default::default()
             })),

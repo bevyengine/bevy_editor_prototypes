@@ -1,4 +1,15 @@
-//! A crate for transform gizmos.
+//! A crate for transform gizmos. Transform gizmos are UI elements that
+//! allow you to manipulate the transforms of entities.
+//!
+//! # Usage
+//!
+//! You must add the [`TransformGizmoPlugin`] to the app.
+//!
+//! Then you can add the [`GizmoCamera`] marker component to a camera,
+//! and the [`GizmoTransformable`] marker to the entities you want to manipulate.
+//!
+//! Then, when these entities are selected via [`bevy_editor_core::selection`] the
+//! transform gizmo will appear and allow you to move and rotate your selection.
 
 use bevy::picking::{backend::ray::RayMap, pointer::PointerId};
 use bevy::{prelude::*, render::camera::Projection, transform::TransformSystems};
@@ -79,6 +90,9 @@ pub struct TransformGizmoPlugin;
 
 impl Plugin for TransformGizmoPlugin {
     fn build(&self, app: &mut App) {
+        if !app.is_plugin_added::<MeshPickingPlugin>() {
+            app.add_plugins(MeshPickingPlugin);
+        }
         app.init_resource::<TransformGizmoSettings>()
             .add_plugins(Ui3dNormalizationPlugin)
             .add_event::<TransformGizmoEvent>()
@@ -232,7 +246,9 @@ fn on_transform_gizmo_pointer_release(
     if trigger.button != PointerButton::Primary {
         return;
     }
-    let (mut gizmo, transform) = query.single_mut().unwrap();
+    let Ok((mut gizmo, transform)) = query.single_mut() else {
+        return;
+    };
 
     if let (Some(from), Some(interaction)) = (gizmo.initial_transform, gizmo.interaction) {
         let event = TransformGizmoEvent {
@@ -401,7 +417,7 @@ fn place_gizmo(
     plugin_settings: Res<TransformGizmoSettings>,
     selection: Res<SelectedEntity>,
     mut queries: ParamSet<(
-        Query<(Entity, &GlobalTransform, Option<&TransformGizmoOffset>)>,
+        Query<(Entity, &GlobalTransform, Option<&TransformGizmoOffset>), With<GizmoTransformable>>,
         Query<(&mut GlobalTransform, &mut Transform, &mut Visibility), With<TransformGizmo>>,
     )>,
 ) {
@@ -446,7 +462,10 @@ fn propagate_gizmo_elements(
 ) {
     if let Ok((gizmo_pos, gizmo_parts)) = gizmo.single() {
         for entity in gizmo_parts.iter() {
-            let (transform, mut g_transform) = gizmo_parts_query.get_mut(entity).unwrap();
+            let Ok((transform, mut g_transform)) = gizmo_parts_query.get_mut(entity) else {
+                error!("Misformed transform gizmo");
+                continue;
+            };
             *g_transform = gizmo_pos.mul_transform(*transform);
         }
     }
@@ -531,21 +550,18 @@ fn gizmo_cam_copy_settings(
         (With<InternalGizmoCamera>, Without<GizmoCamera>),
     >,
 ) {
-    let Ok((main_cam, main_cam_pos, main_proj)) = main_cam.single() else {
-        error!(
-            "No `GizmoPickSource` found! Insert the `GizmoPickSource` component onto your primary 3d camera"
-        );
-        return;
-    };
-    let (mut gizmo_cam, mut gizmo_cam_pos, mut proj) = gizmo_cam.single_mut().unwrap();
-    if main_cam_pos.is_changed() {
-        *gizmo_cam_pos = *main_cam_pos;
-    }
-    if main_cam.is_changed() {
-        *gizmo_cam = main_cam.clone();
-        gizmo_cam.order += 10;
-    }
-    if main_proj.is_changed() {
-        *proj = main_proj.clone();
+    if let Ok((main_cam, main_cam_pos, main_proj)) = main_cam.single()
+        && let Ok((mut gizmo_cam, mut gizmo_cam_pos, mut proj)) = gizmo_cam.single_mut()
+    {
+        if main_cam_pos.is_changed() {
+            *gizmo_cam_pos = *main_cam_pos;
+        }
+        if main_cam.is_changed() {
+            *gizmo_cam = main_cam.clone();
+            gizmo_cam.order += 10;
+        }
+        if main_proj.is_changed() {
+            *proj = main_proj.clone();
+        }
     }
 }

@@ -12,7 +12,7 @@ fn main() {
             alignment_rotation: Quat::from_rotation_y(-0.2),
             ..default()
         })
-        .add_plugins((DefaultPlugins, MeshPickingPlugin, TransformGizmoPlugin))
+        .add_plugins((DefaultPlugins, TransformGizmoPlugin))
         .add_systems(Startup, setup)
         .run();
 }

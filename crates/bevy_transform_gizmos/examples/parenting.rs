@@ -6,7 +6,7 @@ use bevy_transform_gizmos::prelude::*;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, MeshPickingPlugin, TransformGizmoPlugin))
+        .add_plugins((DefaultPlugins, TransformGizmoPlugin))
         .add_systems(Startup, setup)
         .run();
 }

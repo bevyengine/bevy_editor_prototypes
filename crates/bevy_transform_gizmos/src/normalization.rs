@@ -1,4 +1,4 @@
-//!
+//! Normalization module. See [`Normalize3d`].
 
 use bevy::{prelude::*, render::camera::Camera, transform::TransformSystems};
 
@@ -59,22 +59,18 @@ pub fn normalize(
     for (mut transform, mut global_transform, normalize) in query.p1().iter_mut() {
         let distance = view.transform_point3(global_transform.translation()).z;
         let gt = global_transform.compute_transform();
-        let pixel_end = if let Ok(coords) = Camera::world_to_viewport(
+        let Ok(pixel_end) = Camera::world_to_viewport(
             &camera,
             &GlobalTransform::default(),
             Vec3::new(normalize.size_in_world * gt.scale.x, 0.0, distance),
-        ) {
-            coords
-        } else {
+        ) else {
             continue;
         };
-        let pixel_root = if let Ok(coords) = Camera::world_to_viewport(
+        let Ok(pixel_root) = Camera::world_to_viewport(
             &camera,
             &GlobalTransform::default(),
             Vec3::new(0.0, 0.0, distance),
-        ) {
-            coords
-        } else {
+        ) else {
             continue;
         };
         let actual_pixel_size = pixel_root.distance(pixel_end);

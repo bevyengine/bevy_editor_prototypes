@@ -52,10 +52,10 @@ pub fn reset_selected_entity_if_entity_despawned(
     mut selected_entity: ResMut<SelectedEntity>,
     entities: &Entities,
 ) {
-    if let Some(e) = selected_entity.0 {
-        if !entities.contains(e) {
-            selected_entity.reset();
-        }
+    if let Some(e) = selected_entity.0
+        && !entities.contains(e)
+    {
+        selected_entity.reset();
     }
 }
 

@@ -51,7 +51,7 @@ pub struct GizmoTransformable;
 #[derive(Component, Default, Clone, Debug)]
 pub struct InternalGizmoCamera;
 
-///
+/// Settings for the [`TransformGizmoPlugin`].
 #[derive(Resource, Clone, Debug)]
 pub struct TransformGizmoSettings {
     /// Control whether the transform gizmo is active.
@@ -85,7 +85,7 @@ impl Plugin for TransformGizmoPlugin {
             .add_observer(on_transform_gizmo_pointer_press)
             .add_observer(on_transform_gizmo_pointer_release);
 
-        // Settins Set
+        // Settings Set
         app.add_systems(
             PreUpdate,
             update_gizmo_settings
@@ -137,7 +137,7 @@ impl TransformGizmo {
     }
 }
 
-/// Describes an ongoing transform gizmo interation.
+/// Describes an ongoing transform gizmo interaction.
 #[derive(Clone, Copy, Debug, PartialEq, Component)]
 pub struct TransformGizmoInteraction {
     /// The kind of interaction we are currently performing.
@@ -173,7 +173,7 @@ pub enum InteractionKind {
     },
 }
 
-/// Stores the inital transform of entities involved in a [`TransformGizmoInteraction`].
+/// Stores the initial transform of entities involved in a [`TransformGizmoInteraction`].
 #[derive(Component, Clone, Debug)]
 struct InitialTransform {
     transform: Transform,

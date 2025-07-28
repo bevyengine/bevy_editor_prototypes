@@ -39,7 +39,9 @@ fn setup(
             bevy_transform_gizmos::GizmoTransformable,
         ))
         .id();
-    commands.insert_resource(SelectedEntity(Some(id)));
+    let mut selection = EditorSelection::default();
+    selection.add(id);
+    commands.insert_resource(selection);
     // light
     commands.spawn((
         PointLight {

@@ -27,7 +27,7 @@ pub use bevy;
 use bevy::winit::{UpdateMode, WinitSettings};
 use bevy_context_menu::ContextMenuPlugin;
 use bevy_editor_core::EditorCorePlugin;
-use bevy_editor_core::selection::common_handlers::toggle_select_on_click;
+use bevy_editor_core::selection::Selectable;
 use bevy_editor_styles::StylesPlugin;
 
 // Panes
@@ -130,14 +130,13 @@ fn dummy_setup(
         Name::new("Circle"),
     ));
 
-    commands
-        .spawn((
-            Mesh3d(meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(1.5)))),
-            MeshMaterial3d(materials_3d.add(Color::WHITE)),
-            Name::new("Plane"),
-            Pickable::default(),
-        ))
-        .observe(toggle_select_on_click);
+    commands.spawn((
+        Mesh3d(meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(1.5)))),
+        MeshMaterial3d(materials_3d.add(Color::WHITE)),
+        Name::new("Plane"),
+        Pickable::default(),
+        Selectable,
+    ));
 
     commands.spawn((
         DirectionalLight {

@@ -25,7 +25,7 @@ fn ui() -> impl Scene {
         } [
             (Node, {Name::new("BasicButton")}, :button("Basic")),
             (Node, :button("Rounded"), rounded),
-            (Node { border: px_all(5.0) }, {BorderColor::all(RED_500.into())} :button("Thick red"), rounded),
+            (Node { border: px_all(5.0) }, {BorderColor::all(RED_500)} :button("Thick red"), rounded),
             (Node, :button("Merged children"), rounded) [(
                 Node {
                     width: px(30.0),
@@ -60,7 +60,7 @@ fn button(text: &'static str) -> impl Scene {
             column_gap: px(3.0),
         },
         BackgroundColor(LIME_500),
-        {BorderColor::all(LIME_800.into())},
+        {BorderColor::all(LIME_800)},
     ) [
         ({Text::new(text)}, ConstructTextFont { font: @"Inter-Regular.ttf" })
     ]}

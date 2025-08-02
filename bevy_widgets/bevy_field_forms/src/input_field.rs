@@ -100,15 +100,15 @@ pub enum ValidationState {
 }
 
 /// Event that is emitted when the validation state changes
-#[derive(Event, EntityEvent)]
+#[derive(EntityEvent)]
 pub struct ValidationChanged(pub ValidationState);
 
 /// Event that is emitted when the value changes
-#[derive(Event, EntityEvent)]
+#[derive(EntityEvent)]
 pub struct ValueChanged<T: Validable>(pub T);
 
 /// This event is used to set the value of the validated input field.
-#[derive(Event, EntityEvent)]
+#[derive(EntityEvent)]
 pub struct SetValue<T: Validable>(pub T);
 
 fn on_text_changed<T: Validable>(

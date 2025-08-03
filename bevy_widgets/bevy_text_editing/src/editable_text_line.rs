@@ -236,7 +236,7 @@ pub struct EditableTextInner {
 }
 
 /// Event for rendering editable text line
-#[derive(Event, EntityEvent, Default, Clone)]
+#[derive(EntityEvent, Default, Clone)]
 pub struct RenderWidget {
     /// Make cursor immediately visible and reset cursor blinking timer
     pub show_cursor: bool,

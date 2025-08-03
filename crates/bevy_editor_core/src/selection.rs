@@ -80,16 +80,12 @@ impl EditorSelection {
     /// Remove an entity from the selection if present. Returns `true` if the entity was removed.
     pub fn remove(&mut self, entity: Entity) -> bool {
         debug_assert_ne!(entity, Entity::PLACEHOLDER);
-        let mut was_removed = false;
-        self.0.retain(|selected| {
-            if *selected == entity {
-                was_removed = true;
-                false
-            } else {
-                true
-            }
-        });
-        was_removed
+        if let Some(position) = self.0.iter().position(|selected| *selected == entity) {
+            self.0.remove(position);
+            true
+        } else {
+            false
+        }
     }
 
     /// Empty the selection.

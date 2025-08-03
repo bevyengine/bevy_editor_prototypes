@@ -1,6 +1,9 @@
 //! Editor selection module.
 
-use bevy::{ecs::entity::Entities, prelude::*};
+use bevy::{
+    ecs::entity::{Entities, EntitySetIterator, UniqueEntityVec},
+    prelude::*,
+};
 
 use crate::utils::DragCancelClick;
 
@@ -11,7 +14,6 @@ pub struct SelectionPlugin;
 impl Plugin for SelectionPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<EditorSelection>()
-            .register_type::<EditorSelection>()
             .add_systems(PostUpdate, remove_entity_from_selection_if_despawned)
             .add_observer(selection_handler);
     }
@@ -40,23 +42,26 @@ fn selection_handler(
 }
 
 /// The currently selected entities in the scene.
-#[derive(Resource, Default, Reflect)]
-#[reflect(Resource, Default)]
-pub struct EditorSelection(Vec<Entity>);
+#[derive(Resource, Default)]
+pub struct EditorSelection(UniqueEntityVec);
 
 impl EditorSelection {
     /// Toggle selection for an entity.
     pub fn toggle(&mut self, entity: Entity) {
         debug_assert_ne!(entity, Entity::PLACEHOLDER);
         if !self.remove(entity) {
-            self.0.push(entity);
+            // SAFETY: The preceding call to self.remove ensures the entity is not present.
+            #[expect(unsafe_code)]
+            unsafe {
+                self.0.push(entity);
+            }
         }
     }
 
     /// Set the selection to an entity, making it the primary selection.
     pub fn set(&mut self, entity: Entity) {
         debug_assert_ne!(entity, Entity::PLACEHOLDER);
-        self.0 = vec![entity];
+        self.0 = std::iter::once(entity).collect();
     }
 
     /// Add an entity to the selection, making it the primary selection.
@@ -65,7 +70,11 @@ impl EditorSelection {
     pub fn add(&mut self, entity: Entity) {
         debug_assert_ne!(entity, Entity::PLACEHOLDER);
         self.remove(entity);
-        self.0.push(entity);
+        // SAFETY: The preceding call to self.remove ensures the entity is not present.
+        #[expect(unsafe_code)]
+        unsafe {
+            self.0.push(entity);
+        }
     }
 
     /// Remove an entity from the selection if present. Returns `true` if the entity was removed.
@@ -99,7 +108,7 @@ impl EditorSelection {
     }
 
     /// Returns an iterator over all entities in the selection in the order they were selected.
-    pub fn iter(&self) -> impl Iterator<Item = Entity> {
+    pub fn iter(&self) -> impl EntitySetIterator<Item = Entity> {
         self.0.iter().copied()
     }
 }

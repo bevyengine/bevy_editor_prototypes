@@ -8,7 +8,7 @@ use bevy::{
     reflect::*,
     scene2::{CommandsSpawnScene, Scene, SceneList, bsn},
 };
-use bevy_editor_core::prelude::*;
+use bevy_editor_core::{prelude::*, selection::common_conditions::primary_selection_changed};
 use bevy_pane_layout::prelude::*;
 
 /// Plugin for the editor properties pane.
@@ -19,8 +19,7 @@ impl Plugin for PropertiesPanePlugin {
         app.register_pane("Properties", setup_pane).add_systems(
             Update,
             update_properties_pane.run_if(
-                resource_changed::<SelectedEntity>
-                    .or(any_match_filter::<Added<PropertiesPaneBody>>),
+                primary_selection_changed.or(any_match_filter::<Added<PropertiesPaneBody>>),
             ),
         );
     }
@@ -50,23 +49,23 @@ fn setup_pane(pane: In<PaneStructure>, mut commands: Commands) {
 
 fn update_properties_pane(
     pane_bodies: Query<Entity, With<PropertiesPaneBody>>,
-    selected_entity: Res<SelectedEntity>,
+    selection: Res<EditorSelection>,
     world: &World,
     mut commands: Commands,
 ) {
     for pane_body in &pane_bodies {
         commands.entity(pane_body).despawn_children();
         commands
-            .spawn_scene(properties_pane(&selected_entity, world))
+            .spawn_scene(properties_pane(&selection, world))
             .insert(Node::default())
             .insert(ChildOf(pane_body));
     }
 }
 
-fn properties_pane(selected_entity: &SelectedEntity, world: &World) -> impl Scene {
-    match selected_entity.0 {
-        Some(selected_entity) => bsn! {Node { flex_direction: FlexDirection::Column } [
-            {component_list(selected_entity, world)}
+fn properties_pane(selection: &EditorSelection, world: &World) -> impl Scene {
+    match selection.primary() {
+        Some(selection) => bsn! {Node { flex_direction: FlexDirection::Column } [
+            {component_list(selection, world)}
         ]}
         .boxed_scene(),
         None => bsn! {

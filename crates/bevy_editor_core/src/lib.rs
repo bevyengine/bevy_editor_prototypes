@@ -12,7 +12,7 @@ use crate::{actions::ActionsPlugin, selection::SelectionPlugin, utils::CoreUtils
 pub mod prelude {
     pub use crate::{
         actions::{ActionAppExt, ActionWorldExt},
-        selection::SelectedEntity,
+        selection::EditorSelection,
         utils::IntoBoxedScene,
     };
 }

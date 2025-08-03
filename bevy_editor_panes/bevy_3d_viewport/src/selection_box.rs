@@ -1,6 +1,6 @@
 use bevy::ecs::system::SystemParam;
 use bevy::prelude::*;
-use bevy_editor_core::selection::SelectedEntity;
+use bevy_editor_core::selection::EditorSelection;
 use bevy_render::primitives::Aabb;
 
 #[derive(SystemParam)]
@@ -68,7 +68,7 @@ fn draw_fallback_selection_box(gizmos: &mut Gizmos, global_transform: &GlobalTra
 
 pub fn selection_box_system(
     show: Res<ShowSelectionBox>,
-    selected_entity: Res<SelectedEntity>,
+    selection: Res<EditorSelection>,
     mut gizmos: Gizmos,
     queries: SelectionBoxQueries,
     meshes: Res<Assets<Mesh>>,
@@ -77,25 +77,23 @@ pub fn selection_box_system(
         return;
     }
 
-    let Some(entity) = selected_entity.0 else {
-        return;
-    };
-
-    // Calculate the bounding box for the entity (including children)
-    if let Some(world_aabb) = calculate_world_aabb(
-        entity,
-        &queries.mesh_query,
-        &queries.sprite_query,
-        &queries.aabb_query,
-        &queries.children_query,
-        &queries.transform_query,
-        &meshes,
-    ) {
-        draw_selection_box(&mut gizmos, &world_aabb);
-    } else {
-        // Fallback to simple transform-based selection box
-        if let Ok(global_transform) = queries.transform_query.get(entity) {
-            draw_fallback_selection_box(&mut gizmos, global_transform);
+    for entity in selection.iter() {
+        // Calculate the bounding box for the entity (including children)
+        if let Some(world_aabb) = calculate_world_aabb(
+            entity,
+            &queries.mesh_query,
+            &queries.sprite_query,
+            &queries.aabb_query,
+            &queries.children_query,
+            &queries.transform_query,
+            &meshes,
+        ) {
+            draw_selection_box(&mut gizmos, &world_aabb);
+        } else {
+            // Fallback to simple transform-based selection box
+            if let Ok(global_transform) = queries.transform_query.get(entity) {
+                draw_fallback_selection_box(&mut gizmos, global_transform);
+            }
         }
     }
 }

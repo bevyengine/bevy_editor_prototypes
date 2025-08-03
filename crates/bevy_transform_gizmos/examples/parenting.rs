@@ -51,7 +51,7 @@ fn setup(
             ));
         })
         .id();
-    commands.insert_resource(SelectedEntity(Some(id)));
+    commands.insert_resource(EditorSelection::from_iter([id]));
 
     // light
     commands.spawn((

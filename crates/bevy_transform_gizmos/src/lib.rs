@@ -13,7 +13,7 @@
 
 use bevy::picking::{backend::ray::RayMap, pointer::PointerId};
 use bevy::{prelude::*, render::camera::Projection, transform::TransformSystems};
-use bevy_editor_core::selection::SelectedEntity;
+use bevy_editor_core::selection::EditorSelection;
 use mesh::{RotationGizmo, ViewTranslateGizmo};
 
 use normalization::*;
@@ -202,7 +202,7 @@ fn on_transform_gizmo_pointer_press(
     trigger: On<Pointer<Press>>,
     target_query: Query<(&InteractionKind, &ChildOf)>,
     mut query: Query<(&mut TransformGizmo, &GlobalTransform)>,
-    selection: Res<SelectedEntity>,
+    selection: Res<EditorSelection>,
     items_query: Query<(&GlobalTransform, Entity, Option<&TransformGizmoOffset>)>,
     mut commands: Commands,
 ) {
@@ -270,7 +270,7 @@ fn on_transform_gizmo_pointer_release(
 /// Updates the position of the gizmo and selected meshes while the gizmo is being dragged.
 fn drag_gizmo(
     raymap: Res<RayMap>,
-    selection: Res<SelectedEntity>,
+    selection: Res<EditorSelection>,
     mut transform_query: Query<
         (Entity, Option<&ChildOf>, &mut Transform, &InitialTransform),
         Without<TransformGizmo>,
@@ -415,7 +415,7 @@ pub struct TransformGizmoOffset(pub Vec3);
 /// Places the gizmo in space relative to the selected entity(s).
 fn place_gizmo(
     plugin_settings: Res<TransformGizmoSettings>,
-    selection: Res<SelectedEntity>,
+    selection: Res<EditorSelection>,
     mut queries: ParamSet<(
         Query<(Entity, &GlobalTransform, Option<&TransformGizmoOffset>), With<GizmoTransformable>>,
         Query<(&mut GlobalTransform, &mut Transform, &mut Visibility), With<TransformGizmo>>,

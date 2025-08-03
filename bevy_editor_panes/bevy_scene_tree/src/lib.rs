@@ -1,9 +1,7 @@
 //! An interactive, collapsible tree view for hierarchical ECS data in Bevy.
 
 use bevy::{app::Plugin, color::palettes::tailwind, prelude::*};
-use bevy_editor_core::selection::{
-    SelectedEntity, common_handlers::toggle_select_on_click_for_entity,
-};
+use bevy_editor_core::selection::EditorSelection;
 use bevy_i_cant_believe_its_not_bsn::{Template, TemplateEntityCommandsExt, on, template};
 use bevy_pane_layout::prelude::{PaneAppExt, PaneStructure};
 
@@ -36,8 +34,8 @@ fn setup_pane(pane: In<PaneStructure>, mut commands: Commands) {
             BackgroundColor(tailwind::NEUTRAL_600.into()),
         ))
         .observe(
-            |mut trigger: On<Pointer<Click>>, mut selected_entity: ResMut<SelectedEntity>| {
-                selected_entity.0 = None;
+            |mut trigger: On<Pointer<Click>>, mut selection: ResMut<EditorSelection>| {
+                selection.clear();
                 trigger.propagate(false);
             },
         );
@@ -46,24 +44,37 @@ fn setup_pane(pane: In<PaneStructure>, mut commands: Commands) {
 fn update_scene_tree(
     scene_trees: Query<Entity, With<SceneTreeRoot>>,
     scene_entities: Query<(Entity, &Name)>,
-    selected_entity: Res<SelectedEntity>,
+    selection: Res<EditorSelection>,
     mut commands: Commands,
 ) {
     for scene_tree in &scene_trees {
         let tree_rows: Template = scene_entities
             .iter()
-            .flat_map(|(entity, name)| scene_tree_row_for_entity(entity, name, &selected_entity))
+            .flat_map(|(entity, name)| scene_tree_row_for_entity(entity, name, &selection))
             .collect();
 
         commands.entity(scene_tree).build_children(tree_rows);
     }
 }
 
-fn scene_tree_row_for_entity(
-    entity: Entity,
-    name: &Name,
-    selected_entity: &SelectedEntity,
-) -> Template {
+fn scene_tree_row_for_entity(entity: Entity, name: &Name, selection: &EditorSelection) -> Template {
+    let selection_handler =
+        move |mut trigger: On<Pointer<Click>>,
+              keyboard_input: Res<ButtonInput<KeyCode>>,
+              mut selection: ResMut<EditorSelection>| {
+            if trigger.button != PointerButton::Primary {
+                return;
+            }
+
+            trigger.propagate(false);
+            let ctrl = keyboard_input.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
+            if ctrl {
+                selection.toggle(entity);
+            } else {
+                selection.set(entity);
+            }
+        };
+
     template! {
         {entity}: (
             Node {
@@ -72,9 +83,9 @@ fn scene_tree_row_for_entity(
                 ..Default::default()
             },
             BorderRadius::all(Val::Px(4.0)),
-            BackgroundColor(if selected_entity.0 == Some(entity) { tailwind::NEUTRAL_700.into() } else { Color::NONE }),
+            BackgroundColor(if selection.contains(entity) { tailwind::NEUTRAL_700.into() } else { Color::NONE }),
         ) => [
-            on(toggle_select_on_click_for_entity(entity));
+            on(selection_handler);
             (
                 Text(name.into()),
                 TextFont::from_font_size(11.0),

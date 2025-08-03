@@ -2,38 +2,14 @@
 
 use bevy::{ecs::system::SystemId, prelude::*};
 
-/// Editor selection plugin.
+/// Editor actions plugin.
 #[derive(Default)]
 pub struct ActionsPlugin;
 
 impl Plugin for ActionsPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<ActionRegistry>()
-            .init_resource::<ActionBindings>()
-            .add_systems(Update, run_actions_on_binding);
+        app.init_resource::<ActionRegistry>();
     }
-}
-
-fn run_actions_on_binding(world: &mut World) {
-    world.resource_scope(|world, mut bindings: Mut<ActionBindings>| {
-        world.resource_scope(|world, input: Mut<ButtonInput<KeyCode>>| {
-            // Sort by the invserse amount of keys in the binding so that simpler keybinds don't prevent more complex ones from triggering.
-            bindings.list.sort_by_key(|(v, _)| usize::MAX - v.len());
-            'outer: for (binding, action_id) in &bindings.list {
-                if let Some(last_key) = binding.last() {
-                    for key in &binding[..(binding.len() - 1)] {
-                        if !input.pressed(*key) {
-                            continue 'outer;
-                        }
-                    }
-                    if input.just_pressed(*last_key) {
-                        world.run_action(action_id);
-                        break 'outer;
-                    }
-                }
-            }
-        });
-    });
 }
 
 /// The registry for [`Action`]s
@@ -68,24 +44,6 @@ impl ActionRegistry {
     }
 }
 
-/// List of keybindings to [`Action`]s
-#[derive(Resource, Default)]
-pub struct ActionBindings {
-    list: Vec<(Vec<KeyCode>, String)>,
-}
-
-impl ActionBindings {
-    /// Add a binding for an action.
-    pub fn add_binding(
-        &mut self,
-        action_id: impl Into<String>,
-        binding: impl IntoIterator<Item = KeyCode>,
-    ) {
-        self.list
-            .push((binding.into_iter().collect(), action_id.into()));
-    }
-}
-
 /// Defines some action with an id and a label for display.
 pub struct Action {
     id: String,
@@ -103,13 +61,6 @@ pub trait ActionAppExt {
         label: impl Into<String>,
         system: impl IntoSystem<(), (), M> + 'static,
     ) -> &mut Self;
-
-    /// Register an action binding.
-    fn register_action_binding(
-        &mut self,
-        action_id: impl Into<String>,
-        binding: impl IntoIterator<Item = KeyCode>,
-    ) -> &mut Self;
 }
 
 impl ActionAppExt for App {
@@ -123,17 +74,6 @@ impl ActionAppExt for App {
         self.world_mut()
             .get_resource_or_init::<ActionRegistry>()
             .register(id, label, system_id);
-        self
-    }
-
-    fn register_action_binding(
-        &mut self,
-        action_id: impl Into<String>,
-        binding: impl IntoIterator<Item = KeyCode>,
-    ) -> &mut Self {
-        self.world_mut()
-            .get_resource_or_init::<ActionBindings>()
-            .add_binding(action_id, binding);
         self
     }
 }

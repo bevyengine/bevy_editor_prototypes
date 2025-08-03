@@ -14,7 +14,7 @@ impl Plugin for LoadGltfPlugin {
         app.init_resource::<GltfFilepickerTask>()
             .add_systems(Update, (poll_pick_gltf, file_dropped))
             .register_action("load-gltf", "Load GLTF", pick_gltf_action)
-            .register_action_binding("load-gltf", [KeyCode::ControlLeft, KeyCode::KeyL]);
+            .register_keybinding(Keybinding::new(KeyCode::KeyL, "load-gltf").ctrl());
     }
 }
 

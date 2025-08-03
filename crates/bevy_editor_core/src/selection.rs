@@ -155,7 +155,6 @@ pub mod common_conditions {
 
 #[cfg(test)]
 mod tests {
-    // use bevy::ecs::entity::Entity;
     use super::*;
 
     fn ids<const L: usize>() -> [Entity; L] {
@@ -168,10 +167,13 @@ mod tests {
 
         let mut selection = EditorSelection::from_iter([a, b, c]);
 
-        selection.remove(b);
+        assert!(selection.remove(b));
         assert_eq!(selection.0[..], [a, c]);
 
-        selection.remove(c);
+        assert!(selection.remove(c));
+        assert_eq!(selection.0[..], [a]);
+
+        assert!(!selection.remove(b));
         assert_eq!(selection.0[..], [a]);
     }
 
@@ -183,21 +185,12 @@ mod tests {
 
         selection.add(c);
         assert_eq!(selection.0[..], [a, b, c]);
-    }
-
-    #[test]
-    fn add_when_present() {
-        let [a, b, c] = ids();
-
-        let mut selection = EditorSelection::from_iter([a, b, c]);
 
         selection.add(a);
-
         assert_eq!(selection.0[..], [b, c, a]);
 
         selection.add(c);
-
-        assert_eq!(selection.0[..], [a, b, c]);
+        assert_eq!(selection.0[..], [b, a, c]);
     }
 
     #[test]

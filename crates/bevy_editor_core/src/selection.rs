@@ -158,7 +158,8 @@ mod tests {
     use super::*;
 
     fn ids<const L: usize>() -> [Entity; L] {
-        std::array::from_fn(|i| Entity::from_bits(i as u64 + 2))
+        let mut world = World::new();
+        std::array::from_fn(|_| world.spawn_empty().id())
     }
 
     #[test]

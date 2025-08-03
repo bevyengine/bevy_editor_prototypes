@@ -51,9 +51,7 @@ fn setup(
             ));
         })
         .id();
-    let mut selection = EditorSelection::default();
-    selection.add(id);
-    commands.insert_resource(selection);
+    commands.insert_resource(EditorSelection::from_iter([id]));
 
     // light
     commands.spawn((

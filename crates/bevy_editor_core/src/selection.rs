@@ -1,7 +1,7 @@
 //! Editor selection module.
 
 use bevy::{
-    ecs::entity::{Entities, EntitySetIterator, UniqueEntityVec},
+    ecs::entity::{Entities, EntitySet, EntitySetIterator, FromEntitySetIterator, UniqueEntityVec},
     prelude::*,
 };
 
@@ -61,7 +61,7 @@ impl EditorSelection {
     /// Set the selection to an entity, making it the primary selection.
     pub fn set(&mut self, entity: Entity) {
         debug_assert_ne!(entity, Entity::PLACEHOLDER);
-        self.0 = std::iter::once(entity).collect();
+        *self = EditorSelection::from_iter([entity]);
     }
 
     /// Add an entity to the selection, making it the primary selection.
@@ -106,6 +106,18 @@ impl EditorSelection {
     /// Returns an iterator over all entities in the selection in the order they were selected.
     pub fn iter(&self) -> impl EntitySetIterator<Item = Entity> {
         self.0.iter().copied()
+    }
+}
+
+impl FromIterator<Entity> for EditorSelection {
+    fn from_iter<T: IntoIterator<Item = Entity>>(iter: T) -> Self {
+        EditorSelection(UniqueEntityVec::from_iter(iter))
+    }
+}
+
+impl FromEntitySetIterator<Entity> for EditorSelection {
+    fn from_entity_set_iter<T: EntitySet<Item = Entity>>(set_iter: T) -> Self {
+        EditorSelection(UniqueEntityVec::from_entity_set_iter(set_iter))
     }
 }
 

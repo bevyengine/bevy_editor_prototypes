@@ -152,3 +152,77 @@ pub mod common_conditions {
         changed
     }
 }
+
+#[cfg(test)]
+mod tests {
+    // use bevy::ecs::entity::Entity;
+    use super::*;
+
+    fn ids<const L: usize>() -> [Entity; L] {
+        std::array::from_fn(|i| Entity::from_bits(i as u64 + 2))
+    }
+
+    #[test]
+    fn remove() {
+        let [a, b, c] = ids();
+
+        let mut selection = EditorSelection::from_iter([a, b, c]);
+
+        selection.remove(b);
+        assert_eq!(selection.0[..], [a, c]);
+
+        selection.remove(c);
+        assert_eq!(selection.0[..], [a]);
+    }
+
+    #[test]
+    fn add() {
+        let [a, b, c] = ids();
+
+        let mut selection = EditorSelection::from_iter([a, b]);
+
+        selection.add(c);
+        assert_eq!(selection.0[..], [a, b, c]);
+    }
+
+    #[test]
+    fn add_when_present() {
+        let [a, b, c] = ids();
+
+        let mut selection = EditorSelection::from_iter([a, b, c]);
+
+        selection.add(a);
+
+        assert_eq!(selection.0[..], [b, c, a]);
+
+        selection.add(c);
+
+        assert_eq!(selection.0[..], [a, b, c]);
+    }
+
+    #[test]
+    fn toggle() {
+        let [a, b, c] = ids();
+
+        let mut selection = EditorSelection::from_iter([a, b, c]);
+
+        selection.toggle(a);
+        assert_eq!(selection.0[..], [b, c]);
+
+        selection.toggle(c);
+        assert_eq!(selection.0[..], [b]);
+
+        selection.toggle(a);
+        assert_eq!(selection.0[..], [b, a]);
+    }
+
+    #[test]
+    fn set() {
+        let [a, b] = ids();
+
+        let mut selection = EditorSelection::from_iter([a, b]);
+
+        selection.set(a);
+        assert_eq!(selection.0[..], [a]);
+    }
+}

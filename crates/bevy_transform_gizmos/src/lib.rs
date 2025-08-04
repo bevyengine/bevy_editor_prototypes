@@ -558,7 +558,7 @@ fn gizmo_cam_copy_settings(
         }
         if main_cam.is_changed() {
             *gizmo_cam = main_cam.clone();
-            gizmo_cam.order += 10;
+            gizmo_cam.order += 1;
         }
         if main_proj.is_changed() {
             *proj = main_proj.clone();

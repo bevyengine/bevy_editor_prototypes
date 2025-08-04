@@ -87,31 +87,35 @@ pub fn default_camera_inputs(
             continue;
         }
 
-        if let Some(&camera) = pointer_map.get(&pointer) {
-            let camera_query = cameras.get(camera).ok();
-            let is_in_zoom_mode = camera_query
-                .map(|(.., editor_cam)| editor_cam.current_motion.is_zooming_only())
+        if let Some(&camera) = pointer_map.get(&pointer)
+            && let Ok((entity, _camera, editor_cam)) = cameras.get(camera)
+        {
+            let is_in_zoom_mode = editor_cam.current_motion.is_zooming_only();
+            let zoom_amount_abs = editor_cam
+                .current_motion
+                .inputs()
+                .map(|inputs| inputs.zoom_velocity_abs(editor_cam.smoothing.zoom.mul_f32(2.0)))
                 .unwrap_or_default();
-            let zoom_amount_abs = camera_query
-                .and_then(|(.., editor_cam)| {
-                    editor_cam.current_motion.inputs().map(|inputs| {
-                        inputs.zoom_velocity_abs(editor_cam.smoothing.zoom.mul_f32(2.0))
-                    })
-                })
-                .unwrap_or(0.0);
             let should_zoom_end = is_in_zoom_mode && zoom_amount_abs <= zoom_stop;
 
-            if mouse_input.any_just_released([orbit_start, pan_start]) || should_zoom_end {
-                controller.write(EditorCamInputEvent::End { camera });
+            if !editor_cam.enabled
+                || mouse_input.any_just_released([orbit_start, pan_start])
+                || should_zoom_end
+            {
+                controller.write(EditorCamInputEvent::End { camera: entity });
             }
         }
 
-        let Some((camera, ..)) = cameras
+        let Some((camera, .., editor_cam)) = cameras
             .iter()
             .find(|(_, camera, _)| pointer_location.is_in_viewport(camera, &primary_window))
         else {
             continue; // Pointer must be in viewport to start a motion.
         };
+
+        if !editor_cam.enabled {
+            continue;
+        }
 
         if mouse_input.just_pressed(orbit_start) {
             controller.write(EditorCamInputEvent::Start {

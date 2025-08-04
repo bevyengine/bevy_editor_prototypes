@@ -5,23 +5,27 @@ edition = "2024"
 
 [dependencies]
 bevy.workspace = true
+
+# Editor
+bevy_editor_core.workspace = true
 bevy_pane_layout.workspace = true
 bevy_menu_bar.workspace = true
 bevy_footer_bar.workspace = true
 bevy_context_menu.workspace = true
 bevy_editor_styles.workspace = true
-
-serde.workspace = true
-ron.workspace = true
-rfd.workspace = true
+bevy_transform_gizmos.workspace = true
 
 # Panes
-bevy_editor_core.workspace = true
 bevy_3d_viewport.workspace = true
 bevy_2d_viewport.workspace = true
 bevy_scene_tree.workspace = true
 bevy_properties_pane.workspace = true
 bevy_asset_browser.workspace = true
+
+# Third party
+serde.workspace = true
+ron.workspace = true
+rfd.workspace = true
 
 [lints]
 workspace = true

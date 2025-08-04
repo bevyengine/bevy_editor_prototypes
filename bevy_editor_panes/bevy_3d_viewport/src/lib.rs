@@ -20,6 +20,7 @@ use bevy_editor_cam::prelude::{DefaultEditorCamPlugins, EditorCam};
 use bevy_editor_styles::Theme;
 use bevy_infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings};
 use bevy_pane_layout::prelude::*;
+use bevy_transform_gizmos::{TransformGizmo, prelude::*};
 use view_gizmo::ViewGizmoPlugin;
 
 use crate::{selection_box::SelectionBoxPlugin, view_gizmo::view_gizmo_node};
@@ -62,7 +63,10 @@ impl Plugin for Viewport3dPanePlugin {
             )
             .add_systems(
                 PostUpdate,
-                update_render_target_size.after(ui_layout_system),
+                (
+                    update_render_target_size.after(ui_layout_system),
+                    disable_editor_cam_during_gizmo_interaction,
+                ),
             )
             .add_observer(
                 |trigger: On<Remove, Bevy3dViewport>,
@@ -76,6 +80,20 @@ impl Plugin for Viewport3dPanePlugin {
             );
 
         app.register_pane("Viewport 3D", on_pane_creation);
+    }
+}
+
+/// Temporary. We will need a proper design for mutually exclusive controls.
+fn disable_editor_cam_during_gizmo_interaction(
+    transform_gizmo: Single<Ref<TransformGizmo>>,
+    mut query: Query<&mut EditorCam>,
+) {
+    if !transform_gizmo.is_changed() {
+        return;
+    }
+    let enable = transform_gizmo.interaction().is_none();
+    for mut editor_cam in &mut query {
+        editor_cam.enabled = enable;
     }
 }
 
@@ -197,6 +215,7 @@ fn on_pane_creation(
                 ..default()
             },
             EditorCam::default(),
+            GizmoCamera,
             Transform::from_translation(Vec3::ONE * 5.).looking_at(Vec3::ZERO, Vec3::Y),
             RenderLayers::from_layers(&[0, 1]),
             MeshPickingCamera,

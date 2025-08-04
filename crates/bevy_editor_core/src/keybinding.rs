@@ -47,28 +47,28 @@ impl Default for Keybindings {
 /// # use bevy_editor_core::prelude::*;
 /// # use bevy::prelude::*;
 /// # let mut app = App::new();
-/// app.register_keybinding(Keybinding::new(KeyCode::KeyL, "load-gltf").ctrl());
+/// app.register_keybinding(Keybinding::new("load-gltf", KeyCode::KeyL).ctrl());
 /// ```
 #[derive(Clone, Debug, Reflect)]
 pub struct Keybinding {
+    action_id: String,
+    key: KeyCode,
     ctrl: bool,
     shift: bool,
     alt: bool,
     os: bool,
-    key: KeyCode,
-    action_id: String,
 }
 
 impl Keybinding {
-    /// Create a new keybind from a key and the id of the action it will be bound to.
-    pub fn new(key: KeyCode, action_id: impl Into<String>) -> Self {
+    /// Create a new keybind from the id of the action it will be bound to and a keycode.
+    pub fn new(action_id: impl Into<String>, key: KeyCode) -> Self {
         Self {
+            action_id: action_id.into(),
+            key,
             ctrl: false,
             shift: false,
             alt: false,
             os: false,
-            key,
-            action_id: action_id.into(),
         }
     }
 

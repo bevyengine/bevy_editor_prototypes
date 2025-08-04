@@ -47,6 +47,8 @@ use super::{
 /// 3. When the motion should end, call  [`EditorCam::end_move`].
 #[derive(Debug, Clone, Reflect, Component)]
 pub struct EditorCam {
+    /// Controls whether any motions are allowed. The ongoing motion will be canceled if set to `false`.
+    pub enabled: bool,
     /// What input motions are currently allowed?
     pub enabled_motion: EnabledMotion,
     /// The type of camera orbit to use.
@@ -83,6 +85,7 @@ pub struct EditorCam {
 impl Default for EditorCam {
     fn default() -> Self {
         EditorCam {
+            enabled: true,
             orbit_constraint: Default::default(),
             zoom_limits: Default::default(),
             smoothing: Default::default(),

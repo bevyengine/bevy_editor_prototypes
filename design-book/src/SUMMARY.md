@@ -2,6 +2,7 @@
 
 - [Vision](./vision.md)
 - [Roadmap](./roadmap.md)
+- [Editor Features](./editor_features.md)
 - [Glossary](./glossary.md)
 - [Architecture](./architecture.md)
 - [Design Constraints](./design-constraints.md)

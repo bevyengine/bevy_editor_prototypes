@@ -127,7 +127,6 @@ fn on_pane_creation(
                 ],
             ]
         })
-        .insert(Node::default())
         .insert(ChildOf(structure.root));
 
     commands

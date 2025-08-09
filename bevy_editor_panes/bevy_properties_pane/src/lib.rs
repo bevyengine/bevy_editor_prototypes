@@ -43,7 +43,6 @@ fn setup_pane(pane: In<PaneStructure>, mut commands: Commands) {
                 PropertiesPaneBody
             ]
         })
-        .insert(Node::default())
         .insert(ChildOf(pane.root));
 }
 
@@ -57,7 +56,6 @@ fn update_properties_pane(
         commands.entity(pane_body).despawn_children();
         commands
             .spawn_scene(properties_pane(&selection, world))
-            .insert(Node::default())
             .insert(ChildOf(pane_body));
     }
 }

@@ -1,4 +1,4 @@
-use bevy::{prelude::*, window::SystemCursorIcon, winit::cursor::CursorIcon};
+use bevy::{feathers::cursor::EntityCursor, prelude::*, window::SystemCursorIcon};
 use bevy_context_menu::{ContextMenu, ContextMenuOption};
 use bevy_editor_styles::{Theme, icons};
 
@@ -74,27 +74,8 @@ pub(crate) fn spawn_pane<'a>(
             header_context_menu(),
             PaneHeaderNode,
             ChildOf(area),
+            EntityCursor::System(SystemCursorIcon::Pointer),
         ))
-        .observe(
-            move |_trigger: On<Pointer<Move>>,
-                  window_query: Query<Entity, With<Window>>,
-                  mut commands: Commands| {
-                let window = window_query.single().unwrap();
-                commands
-                    .entity(window)
-                    .insert(CursorIcon::System(SystemCursorIcon::Pointer));
-            },
-        )
-        .observe(
-            |_trigger: On<Pointer<Out>>,
-             window_query: Query<Entity, With<Window>>,
-             mut commands: Commands| {
-                let window = window_query.single().unwrap();
-                commands
-                    .entity(window)
-                    .insert(CursorIcon::System(SystemCursorIcon::Default));
-            },
-        )
         .with_children(|parent| {
             parent
                 .spawn(Node {
@@ -201,6 +182,10 @@ pub(crate) fn spawn_resize_handle<'a>(
         ZIndex(3),
     ));
     // Add the Resize
+    let cursor_icon = match divider_parent {
+        Divider::Horizontal => SystemCursorIcon::EwResize,
+        Divider::Vertical => SystemCursorIcon::NsResize,
+    };
     ec.with_child((
         Node {
             width: match divider_parent {
@@ -214,6 +199,7 @@ pub(crate) fn spawn_resize_handle<'a>(
             ..default()
         },
         ResizeHandle,
+        EntityCursor::System(cursor_icon),
     ))
     .observe(
         move |trigger: On<Pointer<DragStart>>,
@@ -297,29 +283,6 @@ pub(crate) fn spawn_resize_handle<'a>(
         |_trigger: On<Pointer<Cancel>>, mut drag_state: ResMut<DragState>| {
             drag_state.is_dragging = false;
             drag_state.offset = 0.;
-        },
-    )
-    .observe(
-        move |_trigger: On<Pointer<Move>>,
-              window_query: Query<Entity, With<Window>>,
-              mut commands: Commands| {
-            let window = window_query.single().unwrap();
-            commands
-                .entity(window)
-                .insert(CursorIcon::System(match divider_parent {
-                    Divider::Horizontal => SystemCursorIcon::EwResize,
-                    Divider::Vertical => SystemCursorIcon::NsResize,
-                }));
-        },
-    )
-    .observe(
-        |_trigger: On<Pointer<Out>>,
-         window_query: Query<Entity, With<Window>>,
-         mut commands: Commands| {
-            let window = window_query.single().unwrap();
-            commands
-                .entity(window)
-                .insert(CursorIcon::System(SystemCursorIcon::Default));
         },
     );
     ec

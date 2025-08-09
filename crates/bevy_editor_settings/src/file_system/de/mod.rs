@@ -241,15 +241,15 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                             .map(|key| key.0.to_string())
                             .unwrap_or_else(|| enm.reflect_type_ident().unwrap().to_snake_case());
 
-                        if let Some(table) = table.get(&name).and_then(|v| v.as_table()) {
-                            if let Some(value) = table.get("variant") {
-                                LoadEnum {
-                                    enum_info,
-                                    enm,
-                                    toml_value: value,
-                                }
-                                .load_enum();
+                        if let Some(table) = table.get(&name).and_then(|v| v.as_table())
+                            && let Some(value) = table.get("variant")
+                        {
+                            LoadEnum {
+                                enum_info,
+                                enm,
+                                toml_value: value,
                             }
+                            .load_enum();
                         }
                     }
                 }
@@ -274,17 +274,16 @@ pub fn load_preferences(world: &mut World, table: toml::Table, settings_type: Se
                             tuple_struct.reflect_type_ident().unwrap().to_snake_case()
                         });
 
-                        if let Some(table) = table.get(&name).and_then(|v| v.as_table()) {
-                            if let Some(array_value) =
+                        if let Some(table) = table.get(&name).and_then(|v| v.as_table())
+                            && let Some(array_value) =
                                 table.get("fields").and_then(|v| v.as_array())
-                            {
-                                LoadTupleStruct {
-                                    tuple_struct_info,
-                                    table: array_value,
-                                    tuple_struct,
-                                }
-                                .load_tuple_struct();
+                        {
+                            LoadTupleStruct {
+                                tuple_struct_info,
+                                table: array_value,
+                                tuple_struct,
                             }
+                            .load_tuple_struct();
                         }
                     }
                 }

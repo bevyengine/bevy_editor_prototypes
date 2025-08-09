@@ -321,13 +321,13 @@ impl TryFrom<&ExprUnary> for BsnValue {
     type Error = BsnLoaderError;
 
     fn try_from(value: &ExprUnary) -> Result<Self, Self::Error> {
-        if let UnOp::Neg(_) = value.op {
-            if let Expr::Lit(lit) = value.expr.as_ref() {
-                let mut bsn_value: BsnValue = lit.into();
-                if let BsnValue::Number(ref mut f) = bsn_value {
-                    f.insert(0, '-');
-                    return Ok(bsn_value);
-                }
+        if let UnOp::Neg(_) = value.op
+            && let Expr::Lit(lit) = value.expr.as_ref()
+        {
+            let mut bsn_value: BsnValue = lit.into();
+            if let BsnValue::Number(ref mut f) = bsn_value {
+                f.insert(0, '-');
+                return Ok(bsn_value);
             }
         }
 

@@ -27,13 +27,13 @@ unsafe_op_in_unsafe_fn = "warn"
 unused_qualifications = "warn"
 
 [workspace.dependencies]
-bevy = { git = "https://github.com/cart/bevy.git", rev = "40e6f12bbad44dfe2566fda2ead83469d53717d0", features = [
+bevy = { git = "https://github.com/tim-blackbird/bevy.git", rev = "a7ee6690049e8021163490faf6cb67022c7831d7", features = [
     "wayland",
     "experimental_bevy_feathers",
 ] }
-bevy_render = { git = "https://github.com/cart/bevy.git", rev = "40e6f12bbad44dfe2566fda2ead83469d53717d0" }
-bevy_derive = { git = "https://github.com/cart/bevy.git", rev = "40e6f12bbad44dfe2566fda2ead83469d53717d0" }
-bevy_macro_utils = { git = "https://github.com/cart/bevy.git", rev = "40e6f12bbad44dfe2566fda2ead83469d53717d0" }
+bevy_render = { git = "https://github.com/tim-blackbird/bevy.git", rev = "a7ee6690049e8021163490faf6cb67022c7831d7" }
+bevy_derive = { git = "https://github.com/tim-blackbird/bevy.git", rev = "a7ee6690049e8021163490faf6cb67022c7831d7" }
+bevy_macro_utils = { git = "https://github.com/tim-blackbird/bevy.git", rev = "a7ee6690049e8021163490faf6cb67022c7831d7" }
 thiserror = "2.0"
 serde = { version = "1", features = ["derive"] }
 tracing-test = "0.2.5"

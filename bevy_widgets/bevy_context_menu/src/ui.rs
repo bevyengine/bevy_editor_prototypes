@@ -1,4 +1,4 @@
-use bevy::{prelude::*, window::SystemCursorIcon, winit::cursor::CursorIcon};
+use bevy::{feathers::cursor::EntityCursor, prelude::*, window::SystemCursorIcon};
 use bevy_editor_styles::Theme;
 
 use crate::ContextMenu;
@@ -55,6 +55,7 @@ pub(crate) fn spawn_option<'a>(
                 ..default()
             },
             theme.context_menu.option_border_radius,
+            EntityCursor::System(SystemCursorIcon::Pointer),
         ))
         .observe(
             |trigger: On<Pointer<Over>>,
@@ -66,26 +67,6 @@ pub(crate) fn spawn_option<'a>(
         .observe(
             |trigger: On<Pointer<Out>>, mut query: Query<&mut BackgroundColor>| {
                 query.get_mut(trigger.target()).unwrap().0 = Color::NONE;
-            },
-        )
-        .observe(
-            move |_trigger: On<Pointer<Over>>,
-                  window_query: Query<Entity, With<Window>>,
-                  mut commands: Commands| {
-                let window = window_query.single().unwrap();
-                commands
-                    .entity(window)
-                    .insert(CursorIcon::System(SystemCursorIcon::Pointer));
-            },
-        )
-        .observe(
-            |_trigger: On<Pointer<Out>>,
-             window_query: Query<Entity, With<Window>>,
-             mut commands: Commands| {
-                let window = window_query.single().unwrap();
-                commands
-                    .entity(window)
-                    .insert(CursorIcon::System(SystemCursorIcon::Default));
             },
         )
         .observe(

@@ -362,22 +362,21 @@ impl<'a, 'b> BsnReflector<'a, 'b> {
     ) -> ReflectResult<Box<dyn PartialReflect>> {
         // HACK: Allows constructing Handles from asset paths in BSN assets by triggering loads during reflection.
         // This should be removed when we have an upstream Construct implementation for Handle.
-        if ty.type_path().starts_with("bevy_asset::handle::Handle<") && self.asset_loader.is_some()
+        if ty.type_path().starts_with("bevy_asset::handle::Handle<")
+            && self.asset_loader.is_some()
+            && let BsnProp::Props(BsnValue::String(asset_path)) = prop
         {
-            if let BsnProp::Props(BsnValue::String(asset_path)) = prop {
-                let Some(reflect_handle_load) = self
-                    .registry
-                    .get_type_data::<ReflectHandleLoad>(ty.type_id())
-                else {
-                    return Err(ReflectError::MissingTypeData(
-                        "ReflectHandleLoad".into(),
-                        ty.type_path().into(),
-                    ));
-                };
-                let handle =
-                    reflect_handle_load.load(asset_path, self.asset_loader.as_ref().unwrap());
-                return Ok(handle.into_partial_reflect());
-            }
+            let Some(reflect_handle_load) = self
+                .registry
+                .get_type_data::<ReflectHandleLoad>(ty.type_id())
+            else {
+                return Err(ReflectError::MissingTypeData(
+                    "ReflectHandleLoad".into(),
+                    ty.type_path().into(),
+                ));
+            };
+            let handle = reflect_handle_load.load(asset_path, self.asset_loader.as_ref().unwrap());
+            return Ok(handle.into_partial_reflect());
         }
 
         // This is fine : )

@@ -88,10 +88,10 @@ pub fn on_key_input(
         // Process modifier key combinations
         match &input.key_code {
             KeyCode::KeyC => {
-                if let Some(selected_text) = text_field.get_selected_text() {
-                    if let Err(e) = clipboard.set_text(selected_text) {
-                        warn!("Clipboard error: {}", e);
-                    }
+                if let Some(selected_text) = text_field.get_selected_text()
+                    && let Err(e) = clipboard.set_text(selected_text)
+                {
+                    warn!("Clipboard error: {}", e);
                 }
             }
             KeyCode::KeyV => match clipboard.get_text() {
@@ -114,10 +114,10 @@ pub fn on_key_input(
                 }
             },
             KeyCode::KeyX => {
-                if let Some(selected_text) = text_field.get_selected_text() {
-                    if let Err(e) = clipboard.set_text(selected_text) {
-                        warn!("Clipboard error: {}", e);
-                    }
+                if let Some(selected_text) = text_field.get_selected_text()
+                    && let Err(e) = clipboard.set_text(selected_text)
+                {
+                    warn!("Clipboard error: {}", e);
                 }
                 if let Some(selected_range) = text_field.selection_range() {
                     text_change = TextChange::remove_change(selected_range);
@@ -137,10 +137,10 @@ pub fn on_key_input(
         // Process regular (non-modifier) key press
         match &input.logical_key {
             Key::Space => {
-                if let Some(allowed_chars) = &text_field.allowed_chars {
-                    if !allowed_chars.contains(&' ') {
-                        return;
-                    }
+                if let Some(allowed_chars) = &text_field.allowed_chars
+                    && !allowed_chars.contains(&' ')
+                {
+                    return;
                 }
 
                 if let Some((start, end)) = text_field.selection_range() {
@@ -269,11 +269,11 @@ pub fn update_has_focus(
                 // Gained focus
                 commands.entity(entity).insert(HasFocus(true));
 
-                if let Ok(mut text_field) = q_editable_texts.get_mut(entity) {
-                    if text_field.cursor_position.is_none() {
-                        text_field.cursor_position = Some(CharPosition(0));
-                        commands.trigger_targets(RenderWidget::show_cursor(), entity);
-                    }
+                if let Ok(mut text_field) = q_editable_texts.get_mut(entity)
+                    && text_field.cursor_position.is_none()
+                {
+                    text_field.cursor_position = Some(CharPosition(0));
+                    commands.trigger_targets(RenderWidget::show_cursor(), entity);
                 }
             }
         } else if has_focus.0 {

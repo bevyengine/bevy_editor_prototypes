@@ -221,12 +221,12 @@ where
 /// Extension trait implementing [`Scene`] utilities for [`EntityCommands`].
 pub trait EntityCommandsSceneExt {
     /// Constructs a [`Scene`] and applies it to the entity.
-    fn construct_scene(&mut self, scene: impl Scene + Send + 'static) -> EntityCommands;
+    fn construct_scene(&mut self, scene: impl Scene + Send + 'static) -> EntityCommands<'_>;
 }
 
 impl EntityCommandsSceneExt for EntityCommands<'_> {
     // type Out = EntityCommands;
-    fn construct_scene(&mut self, scene: impl Scene + Send + 'static) -> EntityCommands {
+    fn construct_scene(&mut self, scene: impl Scene + Send + 'static) -> EntityCommands<'_> {
         self.queue(ConstructSceneCommand(scene));
         self.reborrow()
     }
@@ -235,12 +235,12 @@ impl EntityCommandsSceneExt for EntityCommands<'_> {
 /// Scene spawning extension.
 pub trait SpawnSceneExt {
     /// Spawn the given [`Scene`].
-    fn spawn_scene(&mut self, scene: impl Scene + Send + 'static) -> EntityCommands;
+    fn spawn_scene(&mut self, scene: impl Scene + Send + 'static) -> EntityCommands<'_>;
 }
 
 impl SpawnSceneExt for Commands<'_, '_> {
     /// Spawn the given [`Scene`].
-    fn spawn_scene(&mut self, scene: impl Scene + Send + 'static) -> EntityCommands {
+    fn spawn_scene(&mut self, scene: impl Scene + Send + 'static) -> EntityCommands<'_> {
         let mut entity = self.spawn_empty();
         entity.queue(ConstructSceneCommand(scene));
         entity
@@ -248,7 +248,7 @@ impl SpawnSceneExt for Commands<'_, '_> {
 }
 
 impl SpawnSceneExt for ChildSpawnerCommands<'_> {
-    fn spawn_scene(&mut self, scene: impl Scene + Send + 'static) -> EntityCommands {
+    fn spawn_scene(&mut self, scene: impl Scene + Send + 'static) -> EntityCommands<'_> {
         let mut entity = self.spawn_empty();
         entity.queue(ConstructSceneCommand(scene));
         entity

@@ -130,13 +130,16 @@ impl<'a> ConstructContext<'a> {
 /// Construct extension
 pub trait ConstructEntityCommandsExt {
     /// Construct a bundle using the given props and insert it onto the entity.
-    fn construct<T: Construct + Bundle>(&mut self, props: impl Into<T::Props>) -> EntityCommands
+    fn construct<T: Construct + Bundle>(
+        &mut self,
+        props: impl Into<T::Props>,
+    ) -> EntityCommands<'_>
     where
         <T as Construct>::Props: Send;
 }
 
 impl ConstructEntityCommandsExt for EntityCommands<'_> {
-    fn construct<T: Construct + Bundle>(&mut self, props: impl Into<T::Props>) -> EntityCommands
+    fn construct<T: Construct + Bundle>(&mut self, props: impl Into<T::Props>) -> EntityCommands<'_>
     where
         <T as Construct>::Props: Send,
     {

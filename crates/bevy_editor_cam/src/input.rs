@@ -59,9 +59,7 @@ impl Plugin for DefaultInputPlugin {
                     .chain()
                     .after(bevy::picking::PickingSystems::Last)
                     .before(EditorCam::update_camera_positions),
-            )
-            .register_type::<CameraPointerMap>()
-            .register_type::<EditorCamInputEvent>();
+            );
     }
 }
 

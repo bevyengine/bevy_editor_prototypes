@@ -25,8 +25,7 @@ impl Plugin for LookToPlugin {
                 PreUpdate,
                 LookTo::update.before(EditorCam::update_camera_positions),
             )
-            .add_systems(PostUpdate, LookToTrigger::receive) // In PostUpdate so we don't miss users sending this in Update. LookTo::update will catch the changes next frame.
-            .register_type::<LookTo>();
+            .add_systems(PostUpdate, LookToTrigger::receive); // In PostUpdate so we don't miss users sending this in Update. LookTo::update will catch the changes next frame.
     }
 }
 

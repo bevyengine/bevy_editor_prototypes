@@ -31,8 +31,7 @@ impl Plugin for IndependentSkyboxPlugin {
                 IndependentSkyboxCamera::update,
             )
                 .chain(),
-        )
-        .register_type::<IndependentSkybox>();
+        );
     }
 }
 

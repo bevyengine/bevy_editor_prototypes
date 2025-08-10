@@ -52,9 +52,7 @@ impl Plugin for AnchorIndicatorPlugin {
                     commands.entity(anchor_root.0).despawn();
                 }
             },
-        )
-        .register_type::<AnchorIndicator>()
-        .register_type::<AnchorRoot>();
+        );
     }
 }
 

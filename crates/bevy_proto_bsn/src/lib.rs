@@ -42,7 +42,6 @@ pub struct BsnPlugin;
 impl Plugin for BsnPlugin {
     fn build(&self, app: &mut App) {
         register_reflect_construct(app);
-        register_construct_impls(app);
         bsn_asset_plugin(app);
         bsn_reflect_plugin(app);
         prefab_plugin(app);

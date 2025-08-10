@@ -27,7 +27,6 @@ impl Plugin for MinimalEditorCamPlugin {
             )
                 .chain()
                 .after(bevy::picking::PickingSystems::Last),
-        )
-        .register_type::<component::EditorCam>();
+        );
     }
 }

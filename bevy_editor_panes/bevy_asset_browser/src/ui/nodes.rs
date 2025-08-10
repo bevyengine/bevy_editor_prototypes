@@ -3,9 +3,9 @@
 use atomicow::CowArc;
 use bevy::{
     asset::io::{AssetSource, AssetSourceBuilders, AssetSourceId},
+    feathers::cursor::EntityCursor,
     prelude::*,
     window::SystemCursorIcon,
-    winit::cursor::CursorIcon,
 };
 use bevy_context_menu::{ContextMenu, ContextMenuOption};
 use bevy_editor_styles::Theme;
@@ -200,7 +200,7 @@ pub(crate) fn spawn_file_node<'a>(
 }
 
 fn spawn_base_node<'a>(commands: &'a mut Commands, theme: &Res<Theme>) -> EntityCommands<'a> {
-    let mut base_node_ec = commands.spawn((
+    commands.spawn((
         Button,
         Node {
             margin: UiRect::all(Val::Px(5.0)),
@@ -215,30 +215,6 @@ fn spawn_base_node<'a>(commands: &'a mut Commands, theme: &Res<Theme>) -> Entity
         },
         ZIndex(1),
         theme.general.border_radius,
-    ));
-
-    // Hover effect
-    base_node_ec
-        .observe(
-            move |_trigger: On<Pointer<Move>>,
-                  window_query: Query<Entity, With<Window>>,
-                  mut commands: Commands| {
-                let window = window_query.single().unwrap();
-                commands
-                    .entity(window)
-                    .insert(CursorIcon::System(SystemCursorIcon::Pointer));
-            },
-        )
-        .observe(
-            move |_trigger: On<Pointer<Out>>,
-                  window_query: Query<Entity, With<Window>>,
-                  mut commands: Commands| {
-                let window = window_query.single().unwrap();
-                commands
-                    .entity(window)
-                    .insert(CursorIcon::System(SystemCursorIcon::Default));
-            },
-        );
-
-    base_node_ec
+        EntityCursor::System(SystemCursorIcon::Pointer),
+    ))
 }

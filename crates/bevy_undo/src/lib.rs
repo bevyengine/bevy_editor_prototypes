@@ -1407,15 +1407,15 @@ fn auto_undo_remove_detect<T: Component + Clone>(
     ignore_storage: ResMut<UndoIgnoreStorage>,
 ) {
     for e in removed_query.read() {
-        if !ignore_storage.storage.contains_key(&e) {
-            if let Some(prev_value) = storage.storage.remove(&e) {
-                new_changes.write(NewChange {
-                    change: Arc::new(RemovedComponent {
-                        old_value: prev_value,
-                        entity: e,
-                    }),
-                });
-            }
+        if !ignore_storage.storage.contains_key(&e)
+            && let Some(prev_value) = storage.storage.remove(&e)
+        {
+            new_changes.write(NewChange {
+                change: Arc::new(RemovedComponent {
+                    old_value: prev_value,
+                    entity: e,
+                }),
+            });
         }
     }
 }
@@ -1428,15 +1428,15 @@ fn auto_undo_reflected_remove_detect<T: Component + Reflect + FromReflect>(
     ignore_storage: ResMut<UndoIgnoreStorage>,
 ) {
     for e in removed_query.read() {
-        if !ignore_storage.storage.contains_key(&e) {
-            if let Some(prev_value) = storage.storage.remove(&e) {
-                new_changes.write(NewChange {
-                    change: Arc::new(ReflectedRemovedComponent {
-                        old_value: prev_value,
-                        entity: e,
-                    }),
-                });
-            }
+        if !ignore_storage.storage.contains_key(&e)
+            && let Some(prev_value) = storage.storage.remove(&e)
+        {
+            new_changes.write(NewChange {
+                change: Arc::new(ReflectedRemovedComponent {
+                    old_value: prev_value,
+                    entity: e,
+                }),
+            });
         }
     }
 }

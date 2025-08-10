@@ -10,7 +10,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  RUSTFLAGS: --deny warnings
+  RUSTFLAGS: --deny warnings -C debuginfo=line-tables-only
   RUSTDOCFLAGS: --deny warnings
   # This can be any valid Cargo version requirement, but should start with a caret `^` to opt-in to
   # SemVer-compatible changes. Please keep this in sync with `book.yaml`.

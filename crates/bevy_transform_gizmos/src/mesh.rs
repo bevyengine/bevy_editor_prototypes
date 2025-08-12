@@ -17,8 +17,7 @@ pub fn build_gizmo(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    // Enhanced gizmo dimensions for better precision and visibility  
+) {  
     let axis_length = 1.5;
     let arc_radius = TAU / 4.0;
     let plane_size = 0.3;

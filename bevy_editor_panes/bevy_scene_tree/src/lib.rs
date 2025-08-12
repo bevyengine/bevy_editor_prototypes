@@ -19,6 +19,7 @@ impl Plugin for SceneTreePlugin {
 #[derive(Component)]
 struct SceneTreeRoot;
 
+
 fn setup_pane(pane: In<PaneStructure>, mut commands: Commands) {
     commands
         .entity(pane.content)
@@ -50,14 +51,14 @@ fn update_scene_tree(
     for scene_tree in &scene_trees {
         let tree_rows: Template = scene_entities
             .iter()
-            .flat_map(|(entity, name)| scene_tree_row_for_entity(entity, name, &selection))
+            .flat_map(|(entity, name)| scene_tree_row_for_entity(entity, name, &selection, 0))
             .collect();
 
         commands.entity(scene_tree).build_children(tree_rows);
     }
 }
 
-fn scene_tree_row_for_entity(entity: Entity, name: &Name, selection: &EditorSelection) -> Template {
+fn scene_tree_row_for_entity(entity: Entity, name: &Name, selection: &EditorSelection, level: usize) -> Template {
     let selection_handler =
         move |mut trigger: On<Pointer<Click>>,
               keyboard_input: Res<ButtonInput<KeyCode>>,
@@ -75,20 +76,34 @@ fn scene_tree_row_for_entity(entity: Entity, name: &Name, selection: &EditorSele
             }
         };
 
+    let indentation_px = level * 20;
+    
     template! {
         {entity}: (
             Node {
-                padding: UiRect::all(Val::Px(4.0)),
+                padding: UiRect::new(Val::Px(4.0 + indentation_px as f32), Val::Px(4.0), Val::Px(2.0), Val::Px(2.0)),
                 align_items: AlignItems::Center,
-                ..Default::default()
+                flex_direction: FlexDirection::Row,
+                ..default()
             },
             BorderRadius::all(Val::Px(4.0)),
-            BackgroundColor(if selection.contains(entity) { tailwind::NEUTRAL_700.into() } else { Color::NONE }),
+            BackgroundColor(if selection.contains(entity) { tailwind::BLUE_600.into() } else { Color::NONE }),
         ) => [
             on(selection_handler);
+            // Indentation spacer
+            (
+                Node {
+                    width: Val::Px(16.0),
+                    height: Val::Px(16.0),
+                    margin: UiRect::right(Val::Px(4.0)),
+                    ..default()
+                },
+            );
+            // Entity name
             (
                 Text(name.into()),
-                TextFont::from_font_size(11.0),
+                TextFont::from_font_size(12.0),
+                TextColor(if selection.contains(entity) { Color::WHITE } else { tailwind::NEUTRAL_200.into() }),
                 Pickable::IGNORE,
             );
         ];

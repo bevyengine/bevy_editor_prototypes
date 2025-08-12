@@ -133,17 +133,23 @@ impl FromWorld for Theme {
         Theme {
             general: GeneralStyles {
                 border_radius: BorderRadius::all(Val::Px(8.)),
-                background_color: BackgroundColor(Color::oklch(0.209, 0.0, 0.0)),
+                // CSS: #1F1F24 - Main editor background
+                background_color: BackgroundColor(Color::srgb(0.122, 0.122, 0.141)),
             },
             button: ButtonStyles {
-                border_radius: BorderRadius::all(Val::Px(3.)),
-                background_color: BackgroundColor(Color::oklch(0.2768, 0.0, 0.0)),
-                hover_color: Color::oklch(0.7693, 0.116_877_146, 268.019_3),
+                border_radius: BorderRadius::all(Val::Px(5.)),
+                // CSS: #36373B - Button background
+                background_color: BackgroundColor(Color::srgb(0.212, 0.216, 0.231)),
+                // CSS: #206EC9 - Active/hover blue
+                hover_color: Color::srgb(0.125, 0.431, 0.788),
             },
             text: TextStyles {
-                low_priority: Color::oklch(0.50, 0.0, 0.0),
-                text_color: Color::oklch(0.9219, 0.0, 0.0),
-                high_priority: Color::oklch(0.48, 0.1926, 0.2243),
+                // CSS: #838385 - Low priority text
+                low_priority: Color::srgb(0.514, 0.514, 0.522),
+                // CSS: #ECECEC - Primary text
+                text_color: Color::srgb(0.925, 0.925, 0.925),
+                // CSS: #206EC9 - High priority/accent text  
+                high_priority: Color::srgb(0.125, 0.431, 0.788),
                 font: asset_server
                     .load("embedded://bevy_editor_styles/assets/fonts/Inter-Regular.ttf"),
             },
@@ -151,30 +157,41 @@ impl FromWorld for Theme {
                 font: asset_server.load("embedded://bevy_editor_styles/assets/icons/Lucide.ttf"),
             },
             pane: PaneStyles {
-                header_background_color: BackgroundColor(Color::oklch(0.3407, 0.0, 0.0)),
-                area_background_color: BackgroundColor(Color::oklch(0.3677, 0.0, 0.0)),
-                header_border_radius: BorderRadius::top(Val::Px(8.)),
+                // CSS: #1F1F24 - Pane header
+                header_background_color: BackgroundColor(Color::srgb(0.122, 0.122, 0.141)),
+                // CSS: #2A2A2E - Pane content area  
+                area_background_color: BackgroundColor(Color::srgb(0.165, 0.165, 0.180)),
+                header_border_radius: BorderRadius::top(Val::Px(6.)),
             },
             menu: MenuStyles {
-                background_color: Color::oklch(0.209, 0.0, 0.0),
+                // CSS: #1F1F24
+                background_color: Color::srgb(0.122, 0.122, 0.141),
             },
             context_menu: ContextMenuStyles {
-                background_color: BackgroundColor(Color::oklch(0.209, 0., 0.)),
-                hover_color: BackgroundColor(Color::oklch(0.3677, 0., 0.)),
-                option_border_radius: BorderRadius::all(Val::Px(5.)),
+                // CSS: #1F1F24
+                background_color: BackgroundColor(Color::srgb(0.122, 0.122, 0.141)),
+                // CSS: #36373B - Hover background
+                hover_color: BackgroundColor(Color::srgb(0.212, 0.216, 0.231)),
+                option_border_radius: BorderRadius::all(Val::Px(4.)),
             },
             viewport: ViewportStyles {
-                background_color: Color::oklch(0.3677, 0.0, 0.0),
-                x_axis_color: Color::oklch(0.65, 0.24, 27.0),
-                y_axis_color: Color::oklch(0.87, 0.27, 144.0),
-                z_axis_color: Color::oklch(0.65, 0.19, 255.0),
-                grid_major_line_color: Color::oklch(0.45, 0.0, 0.0),
-                grid_minor_line_color: Color::oklch(0.4, 0.0, 0.0),
+                // CSS: #2A2A2E - Viewport background
+                background_color: Color::srgb(0.165, 0.165, 0.180),
+                // Transform component X (red): #AB4051
+                x_axis_color: Color::srgb(0.671, 0.251, 0.318),
+                // Transform component Y (green): #5D8D0A  
+                y_axis_color: Color::srgb(0.365, 0.553, 0.039),
+                // Transform component Z (blue): #2160A3
+                z_axis_color: Color::srgb(0.129, 0.376, 0.639),
+                // CSS: #414142 - Border colors
+                grid_major_line_color: Color::srgb(0.255, 0.255, 0.259),
+                grid_minor_line_color: Color::srgb(0.188, 0.188, 0.188),
             },
             scroll_box: ScrollBoxStyles {
-                background_color: BackgroundColor(Color::oklch(0.4, 0.0, 0.0)),
-                handle_color: Color::oklch(0.325, 0.0, 0.0),
-                border_radius: BorderRadius::all(Val::Px(8.)),
+                // CSS: #36373B
+                background_color: BackgroundColor(Color::srgb(0.212, 0.216, 0.231)),
+                handle_color: Color::srgb(0.180, 0.180, 0.184),
+                border_radius: BorderRadius::all(Val::Px(5.)),
             },
         }
     }

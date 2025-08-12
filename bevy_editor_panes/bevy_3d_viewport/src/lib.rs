@@ -97,6 +97,7 @@ fn disable_editor_cam_during_gizmo_interaction(
     }
 }
 
+
 /// A viewport is considered active while the mouse is hovering over it.
 #[derive(Component)]
 struct Active;

@@ -31,6 +31,7 @@ use bevy_context_menu::ContextMenuPlugin;
 use bevy_editor_core::EditorCorePlugin;
 use bevy_editor_core::selection::Selectable;
 use bevy_editor_styles::StylesPlugin;
+use bevy_toolbar::ActiveTool;
 use bevy_transform_gizmos::{GizmoTransformable, TransformGizmoPlugin};
 
 // Panes
@@ -86,6 +87,7 @@ impl Plugin for EditorPlugin {
                 focused_mode: UpdateMode::reactive(Duration::from_secs_f64(1.0 / 60.0)),
                 unfocused_mode: UpdateMode::reactive_low_power(Duration::from_secs(1)),
             })
+            .init_resource::<ActiveTool>()
             .add_systems(Startup, dummy_setup);
     }
 }

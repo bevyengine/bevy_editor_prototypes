@@ -18,3 +18,4 @@ Cargo.lock
 
 # mdbook generated files
 design-book/book
+IMPLEMENTATION_PLAN.md

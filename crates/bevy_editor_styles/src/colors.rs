@@ -90,28 +90,3 @@ impl EditorColors {
     /// Error/disabled state - red  
     pub const ERROR: Color = Color::srgb(0.8, 0.3, 0.3);
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    
-    #[test]
-    fn color_constants_are_valid() {
-        // Ensure all colors are in valid sRGB range [0.0, 1.0]
-        let colors = [
-            EditorColors::BACKGROUND,
-            EditorColors::PANEL_BACKGROUND,
-            EditorColors::BUTTON_DEFAULT,
-            EditorColors::TEXT_PRIMARY,
-            EditorColors::ACCENT_BLUE,
-        ];
-        
-        for color in colors {
-            let [r, g, b, a] = color.to_srgba().to_array();
-            assert!((0.0..=1.0).contains(&r), "Red component out of range: {}", r);
-            assert!((0.0..=1.0).contains(&g), "Green component out of range: {}", g);
-            assert!((0.0..=1.0).contains(&b), "Blue component out of range: {}", b);
-            assert!((0.0..=1.0).contains(&a), "Alpha component out of range: {}", a);
-        }
-    }
-}

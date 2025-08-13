@@ -53,7 +53,7 @@ pub fn build_gizmo(
         .angle_range(0f32..=arc_radius * 0.8), // Partial arcs for cleaner look
     ));
 
-    // Define gizmo materials with modern editor colors
+    /// Helper function to create a material with a specific color
     fn material(color: Color) -> StandardMaterial {
         StandardMaterial {
             base_color: color,

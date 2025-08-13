@@ -1,7 +1,29 @@
-//! Palette plugin for the Bevy Editor. This plugin provides a color palette for the editor's UI.
+//! Styles and theming system for the Bevy Editor.
+//! 
+//! This crate provides a consistent theming system for the editor UI components.
+//! All colors are derived from the Figma design specification and are centralized
+//! in the [`colors`] module for easy maintenance.
+//!
+//! ## Usage
+//!
+//! Add the [`StylesPlugin`] to your app and access the [`Theme`] resource:
+//!
+//! ```rust
+//! use bevy::prelude::*;
+//! use bevy_editor_styles::{StylesPlugin, Theme, colors::EditorColors};
+//!
+//! fn setup(theme: Res<Theme>) {
+//!     // Use theme from resource
+//!     let bg_color = theme.general.background_color;
+//!     
+//!     // Or use color constants directly
+//!     let button_color = EditorColors::BUTTON_DEFAULT;
+//! }
+//! ```
 use bevy::{asset::embedded_asset, prelude::*};
 
 pub mod icons;
+pub mod colors;
 
 /// The Pallet Plugin.
 pub struct StylesPlugin;
@@ -130,26 +152,22 @@ pub struct ScrollBoxStyles {
 impl FromWorld for Theme {
     fn from_world(world: &mut World) -> Self {
         let asset_server = world.resource::<AssetServer>();
+        use colors::EditorColors;
+        
         Theme {
             general: GeneralStyles {
                 border_radius: BorderRadius::all(Val::Px(8.)),
-                // CSS: #1F1F24 - Main editor background
-                background_color: BackgroundColor(Color::srgb(0.122, 0.122, 0.141)),
+                background_color: BackgroundColor(EditorColors::BACKGROUND),
             },
             button: ButtonStyles {
                 border_radius: BorderRadius::all(Val::Px(5.)),
-                // CSS: #36373B - Button background
-                background_color: BackgroundColor(Color::srgb(0.212, 0.216, 0.231)),
-                // CSS: #206EC9 - Active/hover blue
-                hover_color: Color::srgb(0.125, 0.431, 0.788),
+                background_color: BackgroundColor(EditorColors::BUTTON_DEFAULT),
+                hover_color: EditorColors::ACCENT_BLUE,
             },
             text: TextStyles {
-                // CSS: #838385 - Low priority text
-                low_priority: Color::srgb(0.514, 0.514, 0.522),
-                // CSS: #ECECEC - Primary text
-                text_color: Color::srgb(0.925, 0.925, 0.925),
-                // CSS: #206EC9 - High priority/accent text  
-                high_priority: Color::srgb(0.125, 0.431, 0.788),
+                low_priority: EditorColors::TEXT_MUTED,
+                text_color: EditorColors::TEXT_PRIMARY,
+                high_priority: EditorColors::ACCENT_BLUE,
                 font: asset_server
                     .load("embedded://bevy_editor_styles/assets/fonts/Inter-Regular.ttf"),
             },
@@ -157,40 +175,29 @@ impl FromWorld for Theme {
                 font: asset_server.load("embedded://bevy_editor_styles/assets/icons/Lucide.ttf"),
             },
             pane: PaneStyles {
-                // CSS: #1F1F24 - Pane header
-                header_background_color: BackgroundColor(Color::srgb(0.122, 0.122, 0.141)),
-                // CSS: #2A2A2E - Pane content area  
-                area_background_color: BackgroundColor(Color::srgb(0.165, 0.165, 0.180)),
+                header_background_color: BackgroundColor(EditorColors::BACKGROUND),
+                area_background_color: BackgroundColor(EditorColors::PANEL_BACKGROUND),
                 header_border_radius: BorderRadius::top(Val::Px(6.)),
             },
             menu: MenuStyles {
-                // CSS: #1F1F24
-                background_color: Color::srgb(0.122, 0.122, 0.141),
+                background_color: EditorColors::BACKGROUND,
             },
             context_menu: ContextMenuStyles {
-                // CSS: #1F1F24
-                background_color: BackgroundColor(Color::srgb(0.122, 0.122, 0.141)),
-                // CSS: #36373B - Hover background
-                hover_color: BackgroundColor(Color::srgb(0.212, 0.216, 0.231)),
+                background_color: BackgroundColor(EditorColors::BACKGROUND),
+                hover_color: BackgroundColor(EditorColors::BUTTON_DEFAULT),
                 option_border_radius: BorderRadius::all(Val::Px(4.)),
             },
             viewport: ViewportStyles {
-                // CSS: #2A2A2E - Viewport background
-                background_color: Color::srgb(0.165, 0.165, 0.180),
-                // Transform component X (red): #AB4051
-                x_axis_color: Color::srgb(0.671, 0.251, 0.318),
-                // Transform component Y (green): #5D8D0A  
-                y_axis_color: Color::srgb(0.365, 0.553, 0.039),
-                // Transform component Z (blue): #2160A3
-                z_axis_color: Color::srgb(0.129, 0.376, 0.639),
-                // CSS: #414142 - Border colors
-                grid_major_line_color: Color::srgb(0.255, 0.255, 0.259),
-                grid_minor_line_color: Color::srgb(0.188, 0.188, 0.188),
+                background_color: EditorColors::PANEL_BACKGROUND,
+                x_axis_color: EditorColors::AXIS_X,
+                y_axis_color: EditorColors::AXIS_Y,
+                z_axis_color: EditorColors::AXIS_Z,
+                grid_major_line_color: EditorColors::GRID_MAJOR,
+                grid_minor_line_color: EditorColors::GRID_MINOR,
             },
             scroll_box: ScrollBoxStyles {
-                // CSS: #36373B
-                background_color: BackgroundColor(Color::srgb(0.212, 0.216, 0.231)),
-                handle_color: Color::srgb(0.180, 0.180, 0.184),
+                background_color: BackgroundColor(EditorColors::BUTTON_DEFAULT),
+                handle_color: EditorColors::BORDER,
                 border_radius: BorderRadius::all(Val::Px(5.)),
             },
         }

@@ -5,7 +5,7 @@
 
 use bevy::prelude::*;
 use bevy_editor_core::selection::EditorSelection;
-use bevy_editor_styles::Theme;
+use bevy_editor_styles::{Theme, colors::EditorColors};
 use bevy_transform_gizmos::{TransformGizmoSettings, GizmoMode};
 
 /// Plugin for the editor toolbar.
@@ -110,9 +110,8 @@ fn setup_toolbar(
                 column_gap: Val::Px(6.0),
                 ..default()
             },
-            // CSS: #1F1F24 with border #303030
             BackgroundColor(theme.general.background_color.0),
-            BorderColor::all(Color::srgb(0.188, 0.188, 0.188)),
+            BorderColor::all(EditorColors::GRID_MINOR),
             theme.general.border_radius,
         )).with_children(|parent| {
         // Left side - tool buttons
@@ -136,7 +135,6 @@ fn setup_toolbar(
                         margin: UiRect::horizontal(Val::Px(1.0)),
                         ..default()
                     },
-                    // CSS: #36373B - Button background
                     theme.button.background_color,
                     theme.button.border_radius,
                 )).with_children(|button| {
@@ -147,7 +145,6 @@ fn setup_toolbar(
                             font_size: 10.0, // Slightly smaller to fit shortcuts
                             ..default()
                         },
-                        // CSS: #E6E6E6 - Button text
                         TextColor(theme.text.text_color),
                     ));
                 });
@@ -181,7 +178,7 @@ fn setup_toolbar(
                     font_size: 10.0,
                     ..default()
                 },
-                TextColor(Color::srgb(0.6, 0.6, 0.6)), // Dimmed help text
+                TextColor(EditorColors::TEXT_MUTED),
             ));
             
             // Snap status
@@ -192,7 +189,7 @@ fn setup_toolbar(
                     font_size: 10.0,
                     ..default()
                 },
-                TextColor(Color::srgb(0.36, 0.7, 0.05)), // Green for enabled snap
+                TextColor(EditorColors::SUCCESS),
                 GizmoModeStatus,
             ));
         });
@@ -243,16 +240,13 @@ fn handle_toolbar_actions(
             },
             Interaction::Hovered => {
                 if active_tool.0 != toolbar_button.tool {
-                    // CSS: hover state
-                    *background = BackgroundColor(Color::srgb(0.255, 0.259, 0.278));
+                    *background = BackgroundColor(EditorColors::BUTTON_HOVER);
                 }
             },
             Interaction::None => {
                 if active_tool.0 == toolbar_button.tool {
-                    // CSS: #206EC9 - Active tool
                     *background = BackgroundColor(theme.button.hover_color);
                 } else {
-                    // CSS: #36373B - Default button
                     *background = theme.button.background_color;
                 }
             },
@@ -276,19 +270,15 @@ fn update_button_colors(
             match *interaction {
                 Interaction::Hovered => {
                     if is_active {
-                        // CSS: #206EC9 - Active tool, slightly brighter on hover
-                        *background = BackgroundColor(Color::srgb(0.145, 0.471, 0.828));
+                        *background = BackgroundColor(EditorColors::ACCENT_BLUE_BRIGHT);
                     } else {
-                        // CSS: hover state - slightly lighter
-                        *background = BackgroundColor(Color::srgb(0.255, 0.259, 0.278));
+                        *background = BackgroundColor(EditorColors::BUTTON_HOVER);
                     }
                 },
                 _ => {
                     if is_active {
-                        // CSS: #206EC9 - Active tool
                         *background = BackgroundColor(theme.button.hover_color);
                     } else {
-                        // CSS: #36373B - Default button background
                         *background = theme.button.background_color;
                     }
                 }
@@ -314,10 +304,10 @@ fn sync_gizmo_mode(
         if let Ok((mut text, mut color)) = status_query.single_mut() {
             if gizmo_settings.snap_enabled {
                 text.0 = "Snap: ON".to_string();
-                color.0 = Color::srgb(0.36, 0.7, 0.05); // Green for enabled
+                color.0 = EditorColors::SUCCESS;
             } else {
                 text.0 = "Snap: OFF".to_string();
-                color.0 = Color::srgb(0.8, 0.3, 0.3); // Red for disabled
+                color.0 = EditorColors::ERROR;
             }
         }
     }

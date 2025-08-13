@@ -63,7 +63,7 @@ pub fn build_gizmo(
         }
     }
     
-    // Modern editor color scheme - matching CSS specification
+    // Editor color scheme - matching CSS specification
     let gizmo_matl_x = materials.add(material(Color::srgba(0.8, 0.25, 0.32, 0.9))); // Red X-axis: #CC3F51
     let gizmo_matl_y = materials.add(material(Color::srgba(0.36, 0.7, 0.05, 0.9))); // Green Y-axis: #5CB20D  
     let gizmo_matl_z = materials.add(material(Color::srgba(0.13, 0.5, 0.8, 0.9))); // Blue Z-axis: #2180CC

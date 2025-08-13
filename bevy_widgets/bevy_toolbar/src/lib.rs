@@ -6,7 +6,7 @@
 use bevy::prelude::*;
 use bevy_editor_core::selection::EditorSelection;
 use bevy_editor_styles::{Theme, colors::EditorColors};
-use bevy_transform_gizmos::{TransformGizmoSettings, GizmoMode};
+use bevy_transform_gizmos::{GizmoMode, TransformGizmoSettings};
 
 /// Plugin for the editor toolbar.
 pub struct ToolbarPlugin;
@@ -14,7 +14,14 @@ pub struct ToolbarPlugin;
 impl Plugin for ToolbarPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_toolbar.in_set(ToolbarSet))
-            .add_systems(Update, (handle_toolbar_actions, update_button_colors, sync_gizmo_mode))
+            .add_systems(
+                Update,
+                (
+                    handle_toolbar_actions,
+                    update_button_colors,
+                    sync_gizmo_mode,
+                ),
+            )
             .init_resource::<ActiveTool>();
     }
 }
@@ -78,7 +85,7 @@ impl Default for EditorTool {
 pub struct GizmoModeStatus;
 
 fn setup_toolbar(
-    mut commands: Commands, 
+    mut commands: Commands,
     theme: Res<Theme>,
     toolbar_query: Query<Entity, With<ToolbarNode>>,
 ) {
@@ -99,101 +106,104 @@ fn setup_toolbar(
 
     // Find the existing ToolbarNode and populate it
     if let Ok(toolbar_entity) = toolbar_query.single() {
-        commands.entity(toolbar_entity).insert((
-            Node {
-                width: Val::Percent(100.0),
-                height: Val::Px(30.0),
-                flex_direction: FlexDirection::Row,
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                padding: UiRect::all(Val::Px(6.0)),
-                column_gap: Val::Px(6.0),
-                ..default()
-            },
-            BackgroundColor(theme.general.background_color.0),
-            BorderColor::all(EditorColors::GRID_MINOR),
-            theme.general.border_radius,
-        )).with_children(|parent| {
-        // Left side - tool buttons
-        parent.spawn((
-            Node {
-                flex_direction: FlexDirection::Row,
-                align_items: AlignItems::Center,
-                column_gap: Val::Px(6.0),
-                ..default()
-            },
-        )).with_children(|tools| {
-            for (tool, icon) in toolbar_tools {
-                tools.spawn((
-                    Button,
-                    ToolbarButton { tool },
-                    Node {
-                        width: Val::Px(58.0), // Slightly wider for keyboard shortcuts
-                        height: Val::Px(18.0),
+        commands
+            .entity(toolbar_entity)
+            .insert((
+                Node {
+                    width: Val::Percent(100.0),
+                    height: Val::Px(30.0),
+                    flex_direction: FlexDirection::Row,
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    padding: UiRect::all(Val::Px(6.0)),
+                    column_gap: Val::Px(6.0),
+                    ..default()
+                },
+                BackgroundColor(theme.general.background_color.0),
+                BorderColor::all(EditorColors::GRID_MINOR),
+                theme.general.border_radius,
+            ))
+            .with_children(|parent| {
+                // Left side - tool buttons
+                parent
+                    .spawn((Node {
+                        flex_direction: FlexDirection::Row,
                         align_items: AlignItems::Center,
-                        justify_content: JustifyContent::Center,
-                        margin: UiRect::horizontal(Val::Px(1.0)),
+                        column_gap: Val::Px(6.0),
                         ..default()
-                    },
-                    theme.button.background_color,
-                    theme.button.border_radius,
-                )).with_children(|button| {
-                    button.spawn((
-                        Text(icon.to_string()),
-                        TextFont {
-                            font: theme.text.font.clone(),
-                            font_size: 10.0, // Slightly smaller to fit shortcuts
-                            ..default()
-                        },
-                        TextColor(theme.text.text_color),
-                    ));
-                });
-            }
-        });
+                    },))
+                    .with_children(|tools| {
+                        for (tool, icon) in toolbar_tools {
+                            tools
+                                .spawn((
+                                    Button,
+                                    ToolbarButton { tool },
+                                    Node {
+                                        width: Val::Px(58.0), // Slightly wider for keyboard shortcuts
+                                        height: Val::Px(18.0),
+                                        align_items: AlignItems::Center,
+                                        justify_content: JustifyContent::Center,
+                                        margin: UiRect::horizontal(Val::Px(1.0)),
+                                        ..default()
+                                    },
+                                    theme.button.background_color,
+                                    theme.button.border_radius,
+                                ))
+                                .with_children(|button| {
+                                    button.spawn((
+                                        Text(icon.to_string()),
+                                        TextFont {
+                                            font: theme.text.font.clone(),
+                                            font_size: 10.0, // Slightly smaller to fit shortcuts
+                                            ..default()
+                                        },
+                                        TextColor(theme.text.text_color),
+                                    ));
+                                });
+                        }
+                    });
 
-        // Spacer to push everything to the sides
-        parent.spawn((
-            Node {
-                flex_grow: 1.0,
-                ..default()
-            },
-        ));
+                // Spacer to push everything to the sides
+                parent.spawn((Node {
+                    flex_grow: 1.0,
+                    ..default()
+                },));
 
-        // Right side - hotkeys and snap status
-        parent.spawn((
-            Node {
-                flex_direction: FlexDirection::Row,
-                align_items: AlignItems::Center,
-                justify_content: JustifyContent::FlexEnd,
-                padding: UiRect::horizontal(Val::Px(12.0)),
-                column_gap: Val::Px(16.0),
-                ..default()
-            },
-        )).with_children(|status| {
-            // Hotkeys help
-            status.spawn((
-                Text("W=Move | E=Rotate | R=Scale | Ctrl=Snap".to_string()),
-                TextFont {
-                    font: theme.text.font.clone(),
-                    font_size: 10.0,
-                    ..default()
-                },
-                TextColor(EditorColors::TEXT_MUTED),
-            ));
-            
-            // Snap status
-            status.spawn((
-                Text("Snap: ON".to_string()),
-                TextFont {
-                    font: theme.text.font.clone(),
-                    font_size: 10.0,
-                    ..default()
-                },
-                TextColor(EditorColors::SUCCESS),
-                GizmoModeStatus,
-            ));
-        });
-        });
+                // Right side - hotkeys and snap status
+                parent
+                    .spawn((Node {
+                        flex_direction: FlexDirection::Row,
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::FlexEnd,
+                        padding: UiRect::horizontal(Val::Px(12.0)),
+                        column_gap: Val::Px(16.0),
+                        ..default()
+                    },))
+                    .with_children(|status| {
+                        // Hotkeys help
+                        status.spawn((
+                            Text("W=Move | E=Rotate | R=Scale | Ctrl=Snap".to_string()),
+                            TextFont {
+                                font: theme.text.font.clone(),
+                                font_size: 10.0,
+                                ..default()
+                            },
+                            TextColor(EditorColors::TEXT_MUTED),
+                        ));
+
+                        // Snap status
+                        status.spawn((
+                            Text("Snap: ON".to_string()),
+                            TextFont {
+                                font: theme.text.font.clone(),
+                                font_size: 10.0,
+                                ..default()
+                            },
+                            TextColor(EditorColors::SUCCESS),
+                            GizmoModeStatus,
+                        ));
+                    });
+            });
     } else {
         error!("Could not find ToolbarNode entity to populate with toolbar content");
     }
@@ -214,42 +224,36 @@ fn handle_toolbar_actions(
         match *interaction {
             Interaction::Pressed => {
                 active_tool.0 = toolbar_button.tool;
-                
+
                 // Sync toolbar actions with gizmo modes
                 match toolbar_button.tool {
                     EditorTool::Move => {
                         gizmo_settings.mode = GizmoMode::Translate;
-                    },
+                    }
                     EditorTool::Rotate => {
                         gizmo_settings.mode = GizmoMode::Rotate;
-                    },
+                    }
                     EditorTool::Scale => {
                         gizmo_settings.mode = GizmoMode::Scale;
-                    },
+                    }
                     EditorTool::NewEntity => {
                         spawn_new_entity(&mut commands);
-                    },
-                    EditorTool::Save => {
-                        // Save scene functionality - to be implemented
-                    },
-                    EditorTool::Load => {
-                        // Load scene functionality - to be implemented
-                    },
+                    }
                     _ => {}
                 }
-            },
+            }
             Interaction::Hovered => {
                 if active_tool.0 != toolbar_button.tool {
                     *background = BackgroundColor(EditorColors::BUTTON_HOVER);
                 }
-            },
+            }
             Interaction::None => {
                 if active_tool.0 == toolbar_button.tool {
                     *background = BackgroundColor(theme.button.hover_color);
                 } else {
                     *background = theme.button.background_color;
                 }
-            },
+            }
         }
     }
 }
@@ -262,11 +266,14 @@ fn update_button_colors(
 ) {
     if active_tool.is_changed() || gizmo_settings.is_changed() {
         for (toolbar_button, mut background, interaction) in &mut buttons {
-            let is_active = active_tool.0 == toolbar_button.tool || 
-                (toolbar_button.tool == EditorTool::Move && gizmo_settings.mode == GizmoMode::Translate) ||
-                (toolbar_button.tool == EditorTool::Rotate && gizmo_settings.mode == GizmoMode::Rotate) ||
-                (toolbar_button.tool == EditorTool::Scale && gizmo_settings.mode == GizmoMode::Scale);
-                
+            let is_active = active_tool.0 == toolbar_button.tool
+                || (toolbar_button.tool == EditorTool::Move
+                    && gizmo_settings.mode == GizmoMode::Translate)
+                || (toolbar_button.tool == EditorTool::Rotate
+                    && gizmo_settings.mode == GizmoMode::Rotate)
+                || (toolbar_button.tool == EditorTool::Scale
+                    && gizmo_settings.mode == GizmoMode::Scale);
+
             match *interaction {
                 Interaction::Hovered => {
                     if is_active {
@@ -274,7 +281,7 @@ fn update_button_colors(
                     } else {
                         *background = BackgroundColor(EditorColors::BUTTON_HOVER);
                     }
-                },
+                }
                 _ => {
                     if is_active {
                         *background = BackgroundColor(theme.button.hover_color);
@@ -314,10 +321,11 @@ fn sync_gizmo_mode(
 }
 
 fn spawn_new_entity(commands: &mut Commands) {
-    let _entity = commands.spawn((
-        Name::new("New Entity"),
-        Transform::default(),
-        Visibility::default(),
-    )).id();
-    
+    let _entity = commands
+        .spawn((
+            Name::new("New Entity"),
+            Transform::default(),
+            Visibility::default(),
+        ))
+        .id();
 }

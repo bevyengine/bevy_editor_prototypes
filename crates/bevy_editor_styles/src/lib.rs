@@ -1,5 +1,5 @@
 //! Styles and theming system for the Bevy Editor.
-//! 
+//!
 //! This crate provides a consistent theming system for the editor UI components.
 //! All colors are derived from the Figma design specification and are centralized
 //! in the [`colors`] module for easy maintenance.
@@ -22,8 +22,8 @@
 //! ```
 use bevy::{asset::embedded_asset, prelude::*};
 
-pub mod icons;
 pub mod colors;
+pub mod icons;
 
 /// The Pallet Plugin.
 pub struct StylesPlugin;
@@ -153,7 +153,7 @@ impl FromWorld for Theme {
     fn from_world(world: &mut World) -> Self {
         let asset_server = world.resource::<AssetServer>();
         use colors::EditorColors;
-        
+
         Theme {
             general: GeneralStyles {
                 border_radius: BorderRadius::all(Val::Px(8.)),

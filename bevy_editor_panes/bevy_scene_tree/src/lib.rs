@@ -19,7 +19,6 @@ impl Plugin for SceneTreePlugin {
 #[derive(Component)]
 struct SceneTreeRoot;
 
-
 fn setup_pane(pane: In<PaneStructure>, mut commands: Commands) {
     commands
         .entity(pane.content)
@@ -58,7 +57,12 @@ fn update_scene_tree(
     }
 }
 
-fn scene_tree_row_for_entity(entity: Entity, name: &Name, selection: &EditorSelection, level: usize) -> Template {
+fn scene_tree_row_for_entity(
+    entity: Entity,
+    name: &Name,
+    selection: &EditorSelection,
+    level: usize,
+) -> Template {
     let selection_handler =
         move |mut trigger: On<Pointer<Click>>,
               keyboard_input: Res<ButtonInput<KeyCode>>,
@@ -77,7 +81,7 @@ fn scene_tree_row_for_entity(entity: Entity, name: &Name, selection: &EditorSele
         };
 
     let indentation_px = level * 20;
-    
+
     template! {
         {entity}: (
             Node {

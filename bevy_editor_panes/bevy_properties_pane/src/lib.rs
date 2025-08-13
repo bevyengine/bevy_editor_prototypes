@@ -8,8 +8,8 @@ use bevy::{
     reflect::*,
     scene2::{CommandsSpawnScene, Scene, SceneList, bsn},
 };
-use bevy_editor_styles::Theme;
 use bevy_editor_core::{prelude::*, selection::common_conditions::primary_selection_changed};
+use bevy_editor_styles::Theme;
 use bevy_pane_layout::prelude::*;
 
 /// Plugin for the editor properties pane.
@@ -17,22 +17,18 @@ pub struct PropertiesPanePlugin;
 
 impl Plugin for PropertiesPanePlugin {
     fn build(&self, app: &mut App) {
-        app.register_pane("Properties", setup_pane)
-            .add_systems(
-                Update,
-                (
-                    update_properties_pane.run_if(
-                        primary_selection_changed.or(any_match_filter::<Added<PropertiesPaneBody>>),
-                    ),
-                ),
-            );
+        app.register_pane("Properties", setup_pane).add_systems(
+            Update,
+            (update_properties_pane.run_if(
+                primary_selection_changed.or(any_match_filter::<Added<PropertiesPaneBody>>),
+            ),),
+        );
     }
 }
 
 /// Root UI node of the properties pane.
 #[derive(Component, Default, Clone)]
 struct PropertiesPaneBody;
-
 
 fn setup_pane(pane: In<PaneStructure>, mut commands: Commands) {
     // Remove the existing structure
@@ -93,7 +89,6 @@ fn properties_pane(selection: &EditorSelection, theme: &Theme, world: &World) ->
     }
 }
 
-
 fn component_list(entity: Entity, theme: &Theme, world: &World) -> impl SceneList {
     let type_registry = world.resource::<AppTypeRegistry>().read();
     world
@@ -123,9 +118,9 @@ fn component_list(entity: Entity, theme: &Theme, world: &World) -> impl SceneLis
                     border: UiRect::all(Val::Px(1.0)),
                     padding: UiRect::all(Val::Px(0.0))
                 }
-                // CSS: #2A2A2E - Component background  
+                // CSS: #2A2A2E - Component background
                 BackgroundColor(Color::srgb(0.165, 0.165, 0.180))
-                // CSS: #414142 - Border color  
+                // CSS: #414142 - Border color
                 BorderColor::all(Color::srgb(0.255, 0.255, 0.259))
                 BorderRadius::all(Val::Px(5.0))
                 [
@@ -150,13 +145,13 @@ fn component_list(entity: Entity, theme: &Theme, world: &World) -> impl SceneLis
                             TextFont::from_font_size(12.0)
                             // CSS: #C4C4C4 - Chevron color
                             TextColor(Color::srgb(0.769, 0.769, 0.769)),
-                            
+
                             Text({format!("{name}")})
                             TextFont::from_font_size(12.0)
                             // CSS: #DCDCDC - Component name
                             TextColor(Color::srgb(0.863, 0.863, 0.863)),
                         ],
-                        
+
                         Text("⋯")
                         TextFont::from_font_size(12.0)
                         // CSS: #C4C4C4 - Menu dots
@@ -190,7 +185,7 @@ fn component(type_info: Option<&TypeInfo>, reflect: &dyn Reflect, theme: &Theme)
         _ => bsn! {}.boxed_scene(),
     }
 }
-fn reflected_struct(struct_info: &StructInfo, reflect: &dyn Reflect, theme: &Theme) -> impl Scene {
+fn reflected_struct(struct_info: &StructInfo, reflect: &dyn Reflect, _theme: &Theme) -> impl Scene {
     let fields = struct_info
         .iter()
         .enumerate()
@@ -202,7 +197,7 @@ fn reflected_struct(struct_info: &StructInfo, reflect: &dyn Reflect, theme: &The
                 .and_then(|s| s.field_at(i));
 
             let field_name = field.name();
-            
+
             let value_string = field_reflect
                 .map(|v| format!("{v:?}"))
                 .unwrap_or_else(|| "<unavailable>".to_string());
@@ -224,7 +219,7 @@ fn reflected_struct(struct_info: &StructInfo, reflect: &dyn Reflect, theme: &The
                     TextFont::from_font_size(12.0)
                     // CSS: #DADADA - Field labels
                     TextColor(Color::srgb(0.855, 0.855, 0.855)),
-                    
+
                     Text({value_string.clone()})
                     TextFont::from_font_size(12.0)
                     // CSS: #C2C2C2 - Field values
@@ -243,8 +238,7 @@ fn reflected_struct(struct_info: &StructInfo, reflect: &dyn Reflect, theme: &The
     }
 }
 
-
-fn reflected_tuple_struct(tuple_struct_info: &TupleStructInfo, theme: &Theme) -> impl Scene {
+fn reflected_tuple_struct(tuple_struct_info: &TupleStructInfo, _theme: &Theme) -> impl Scene {
     let fields = tuple_struct_info
         .iter()
         .map(|_field| {
@@ -262,7 +256,7 @@ fn reflected_tuple_struct(tuple_struct_info: &TupleStructInfo, theme: &Theme) ->
     }
 }
 
-fn reflected_enum(enum_info: &EnumInfo, theme: &Theme) -> impl Scene {
+fn reflected_enum(enum_info: &EnumInfo, _theme: &Theme) -> impl Scene {
     let variants = enum_info
         .iter()
         .map(|variant| {

@@ -1,6 +1,6 @@
 use std::f32::consts::TAU;
 
-use crate::{InteractionKind, InternalGizmoCamera, TransformGizmo};
+use crate::{InteractionKind, InternalGizmoCamera, ScaleGizmo, TransformGizmo, TranslationGizmo};
 use bevy::{
     core_pipeline::core_3d::Camera3dDepthLoadOp, pbr::NotShadowCaster, prelude::*,
     render::view::RenderLayers,
@@ -18,47 +18,63 @@ pub fn build_gizmo(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let axis_length = 1.3;
-    let arc_radius = TAU / 4.;
-    let plane_size = axis_length * 0.25;
-    let plane_offset = plane_size / 2. + axis_length * 0.2;
-    // Define gizmo meshes
+    let axis_length = 1.5;
+    let arc_radius = TAU / 4.0;
+    let plane_size = 0.3;
+    let plane_offset = 0.4;
+
+    // Define improved gizmo meshes with better proportions
     let arrow_tail_mesh = meshes.add(Capsule3d {
-        radius: 0.04,
-        half_length: axis_length * 0.5f32,
+        radius: 0.03, // Slightly thinner for precision
+        half_length: axis_length * 0.45,
     });
 
     let cone_mesh = meshes.add(Cone {
-        height: 0.25,
-        radius: 0.10,
+        height: 0.2,
+        radius: 0.08, // Smaller, more precise arrow heads
     });
+
+    // Plane handles for multi-axis translation
     let plane_mesh = meshes.add(Plane3d::default().mesh().size(plane_size, plane_size));
-    let sphere_mesh = meshes.add(Sphere { radius: 0.2 });
+
+    // Center sphere for free movement
+    let sphere_mesh = meshes.add(Sphere { radius: 0.15 });
+
+    // Scale gizmo handles - small cubes at the end of axes
+    let scale_handle_mesh = meshes.add(Cuboid::new(0.12, 0.12, 0.12));
+
+    // Rotation rings with better visibility
     let rotation_mesh = meshes.add(Mesh::from(
         Torus {
-            major_radius: 1.,
-            minor_radius: 0.04,
+            major_radius: 1.1,
+            minor_radius: 0.03,
         }
         .mesh()
-        .angle_range(0f32..=arc_radius),
+        .angle_range(0f32..=arc_radius * 0.8), // Partial arcs for cleaner look
     ));
 
-    // Define gizmo materials
+    /// Helper function to create a material with a specific color
     fn material(color: Color) -> StandardMaterial {
         StandardMaterial {
             base_color: color,
             unlit: true,
+            alpha_mode: AlphaMode::Blend,
             ..default()
         }
     }
-    let (s, l) = (0.8, 0.6);
-    let gizmo_matl_x = materials.add(material(Color::hsl(0.0, s, l)));
-    let gizmo_matl_y = materials.add(material(Color::hsl(120.0, s, l)));
-    let gizmo_matl_z = materials.add(material(Color::hsl(240.0, s, l)));
-    let gizmo_matl_x_sel = materials.add(material(Color::hsl(0.0, s, l)));
-    let gizmo_matl_y_sel = materials.add(material(Color::hsl(120.0, s, l)));
-    let gizmo_matl_z_sel = materials.add(material(Color::hsl(240.0, s, l)));
-    let gizmo_matl_v_sel = materials.add(material(Color::hsl(0., 0.0, l)));
+
+    // Editor color scheme - matching CSS specification
+    let gizmo_matl_x = materials.add(material(Color::srgba(0.8, 0.25, 0.32, 0.9))); // Red X-axis: #CC3F51
+    let gizmo_matl_y = materials.add(material(Color::srgba(0.36, 0.7, 0.05, 0.9))); // Green Y-axis: #5CB20D  
+    let gizmo_matl_z = materials.add(material(Color::srgba(0.13, 0.5, 0.8, 0.9))); // Blue Z-axis: #2180CC
+
+    // Brighter versions for selected/hovered state
+    let gizmo_matl_x_sel = materials.add(material(Color::srgba(1.0, 0.4, 0.45, 1.0))); // Bright red
+    let gizmo_matl_y_sel = materials.add(material(Color::srgba(0.5, 0.9, 0.2, 1.0))); // Bright green
+    let gizmo_matl_z_sel = materials.add(material(Color::srgba(0.25, 0.65, 1.0, 1.0))); // Bright blue
+
+    // View gizmo - neutral white/gray
+    let gizmo_matl_v_sel = materials.add(material(Color::srgba(0.9, 0.9, 0.9, 0.8)));
 
     // Build the gizmo using the variables above.
     commands
@@ -76,6 +92,7 @@ pub fn build_gizmo(
                     original: Vec3::X,
                     axis: Vec3::X,
                 },
+                TranslationGizmo,
                 NotShadowCaster,
                 RenderLayers::layer(12),
             ));
@@ -90,6 +107,7 @@ pub fn build_gizmo(
                     original: Vec3::Y,
                     axis: Vec3::Y,
                 },
+                TranslationGizmo,
                 NotShadowCaster,
                 RenderLayers::layer(12),
             ));
@@ -104,6 +122,7 @@ pub fn build_gizmo(
                     original: Vec3::Z,
                     axis: Vec3::Z,
                 },
+                TranslationGizmo,
                 NotShadowCaster,
                 RenderLayers::layer(12),
             ));
@@ -120,6 +139,7 @@ pub fn build_gizmo(
                     original: Vec3::X,
                     axis: Vec3::X,
                 },
+                TranslationGizmo,
                 NotShadowCaster,
                 RenderLayers::layer(12),
             ));
@@ -134,6 +154,7 @@ pub fn build_gizmo(
                     original: Vec3::X,
                     normal: Vec3::X,
                 },
+                TranslationGizmo,
                 // NoBackfaceCulling,
                 NotShadowCaster,
                 RenderLayers::layer(12),
@@ -146,6 +167,7 @@ pub fn build_gizmo(
                     original: Vec3::Y,
                     axis: Vec3::Y,
                 },
+                TranslationGizmo,
                 NotShadowCaster,
                 RenderLayers::layer(12),
             ));
@@ -157,6 +179,7 @@ pub fn build_gizmo(
                     original: Vec3::Y,
                     normal: Vec3::Y,
                 },
+                TranslationGizmo,
                 // NoBackfaceCulling,
                 NotShadowCaster,
                 RenderLayers::layer(12),
@@ -172,6 +195,7 @@ pub fn build_gizmo(
                     original: Vec3::Z,
                     axis: Vec3::Z,
                 },
+                TranslationGizmo,
                 NotShadowCaster,
                 RenderLayers::layer(12),
             ));
@@ -186,6 +210,7 @@ pub fn build_gizmo(
                     original: Vec3::Z,
                     normal: Vec3::Z,
                 },
+                TranslationGizmo,
                 // NoBackfaceCulling,
                 NotShadowCaster,
                 RenderLayers::layer(12),
@@ -199,6 +224,7 @@ pub fn build_gizmo(
                     normal: Vec3::Z,
                 },
                 ViewTranslateGizmo,
+                TranslationGizmo,
                 NotShadowCaster,
                 RenderLayers::layer(12),
             ));
@@ -239,6 +265,57 @@ pub fn build_gizmo(
                     original: Vec3::Z,
                     axis: Vec3::Z,
                 },
+                NotShadowCaster,
+                RenderLayers::layer(12),
+            ));
+
+            // Scale Handles - Cubes at end of axes for per-axis scaling
+            parent.spawn((
+                Mesh3d(scale_handle_mesh.clone()),
+                MeshMaterial3d(gizmo_matl_x_sel.clone()),
+                Transform::from_translation(Vec3::new(axis_length + 0.15, 0.0, 0.0)),
+                InteractionKind::ScaleAxis {
+                    original: Vec3::X,
+                    axis: Vec3::X,
+                },
+                ScaleGizmo,
+                NotShadowCaster,
+                RenderLayers::layer(12),
+            ));
+            parent.spawn((
+                Mesh3d(scale_handle_mesh.clone()),
+                MeshMaterial3d(gizmo_matl_y_sel.clone()),
+                Transform::from_translation(Vec3::new(0.0, axis_length + 0.15, 0.0)),
+                InteractionKind::ScaleAxis {
+                    original: Vec3::Y,
+                    axis: Vec3::Y,
+                },
+                ScaleGizmo,
+                NotShadowCaster,
+                RenderLayers::layer(12),
+            ));
+            parent.spawn((
+                Mesh3d(scale_handle_mesh.clone()),
+                MeshMaterial3d(gizmo_matl_z_sel.clone()),
+                Transform::from_translation(Vec3::new(0.0, 0.0, axis_length + 0.15)),
+                InteractionKind::ScaleAxis {
+                    original: Vec3::Z,
+                    axis: Vec3::Z,
+                },
+                ScaleGizmo,
+                NotShadowCaster,
+                RenderLayers::layer(12),
+            ));
+
+            // Uniform scale handle - larger cube at center
+            parent.spawn((
+                Mesh3d(meshes.add(Cuboid::new(0.2, 0.2, 0.2))),
+                MeshMaterial3d(materials.add(material(Color::srgba(0.9, 0.9, 0.9, 0.7)))),
+                Transform::from_translation(Vec3::ZERO),
+                InteractionKind::ScaleUniform {
+                    original: Vec3::ONE,
+                },
+                ScaleGizmo,
                 NotShadowCaster,
                 RenderLayers::layer(12),
             ));

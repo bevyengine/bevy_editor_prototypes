@@ -63,6 +63,7 @@ bevy_menu_bar = { path = "bevy_widgets/bevy_menu_bar" }
 bevy_scroll_box = { path = "bevy_widgets/bevy_scroll_box" }
 bevy_footer_bar = { path = "bevy_widgets/bevy_footer_bar" }
 bevy_toolbar = { path = "bevy_widgets/bevy_toolbar" }
+bevy_gizmo_indicator = { path = "bevy_widgets/bevy_gizmo_indicator" }
 bevy_tooltips = { path = "bevy_widgets/bevy_tooltips" }
 bevy_text_editing = { path = "bevy_widgets/bevy_text_editing" }
 bevy_field_forms = { path = "bevy_widgets/bevy_field_forms" }

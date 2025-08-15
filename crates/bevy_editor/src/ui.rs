@@ -6,6 +6,7 @@ use bevy_menu_bar::{MenuBarNode, MenuBarPlugin, MenuBarSet};
 use bevy_pane_layout::{PaneLayoutPlugin, PaneLayoutSet, RootPaneLayoutNode};
 use bevy_properties_pane::PropertiesPanePlugin;
 use bevy_scene_tree::SceneTreePlugin;
+use bevy_toolbar::{ToolbarNode, ToolbarPlugin, ToolbarSet};
 
 /// The Bevy Editor UI Plugin.
 pub struct EditorUIPlugin;
@@ -15,11 +16,12 @@ impl Plugin for EditorUIPlugin {
         app.add_systems(Startup, ui_setup.in_set(UISet))
             .configure_sets(
                 Startup,
-                (PaneLayoutSet, MenuBarSet, FooterBarSet).after(UISet),
+                (PaneLayoutSet, MenuBarSet, ToolbarSet, FooterBarSet).after(UISet),
             )
             .add_plugins((
                 PaneLayoutPlugin,
                 MenuBarPlugin,
+                ToolbarPlugin,
                 FooterBarPlugin,
                 SceneTreePlugin,
                 PropertiesPanePlugin,
@@ -59,6 +61,7 @@ fn ui_setup(mut commands: Commands, theme: Res<Theme>) {
         ))
         .with_children(|parent| {
             parent.spawn(MenuBarNode);
+            parent.spawn(ToolbarNode);
             parent.spawn(RootPaneLayoutNode);
             parent.spawn(FooterBarNode);
         });

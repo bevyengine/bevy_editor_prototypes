@@ -23,7 +23,7 @@ pub mod normalization;
 
 /// Crate prelude.
 pub mod prelude {
-    pub use crate::{GizmoCamera, TransformGizmoPlugin, TransformGizmoSettings};
+    pub use crate::{GizmoCamera, GizmoMode, TransformGizmoPlugin, TransformGizmoSettings};
 }
 
 /// Set enum for the systems relating to transform gizmos.
@@ -58,9 +58,34 @@ pub struct TransformGizmoEvent {
 #[derive(Component, Default, Clone, Debug)]
 pub struct GizmoTransformable;
 
+/// Marker component for translation gizmo elements.
+#[derive(Component, Default, Clone, Debug)]
+pub struct TranslationGizmo;
+
+/// Marker component for scale gizmo elements.
+#[derive(Component, Default, Clone, Debug)]
+pub struct ScaleGizmo;
+
 /// Marker component for the camera that displays the gizmo.
 #[derive(Component, Default, Clone, Debug)]
 pub struct InternalGizmoCamera;
+
+/// Available gizmo modes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum GizmoMode {
+    /// Translation mode (W key).
+    Translate,
+    /// Rotation mode (E key).
+    Rotate,
+    /// Scale mode (R key).
+    Scale,
+}
+
+impl Default for GizmoMode {
+    fn default() -> Self {
+        Self::Translate
+    }
+}
 
 /// Settings for the [`TransformGizmoPlugin`].
 #[derive(Resource, Clone, Debug)]
@@ -72,6 +97,16 @@ pub struct TransformGizmoSettings {
     pub alignment_rotation: Quat,
     /// Control whether the gizmo allows rotation.
     pub enable_rotation: bool,
+    /// Grid snap distance for translation (0.0 = no snapping).
+    pub grid_snap: f32,
+    /// Angle snap in degrees for rotation (0.0 = no snapping).
+    pub angle_snap: f32,
+    /// Scale snap increment for scaling (0.0 = no snapping).
+    pub scale_snap: f32,
+    /// Whether snapping is currently enabled (can be toggled with Ctrl key).
+    pub snap_enabled: bool,
+    /// Current gizmo mode.
+    pub mode: GizmoMode,
 }
 
 impl Default for TransformGizmoSettings {
@@ -80,6 +115,11 @@ impl Default for TransformGizmoSettings {
             enabled: true,
             alignment_rotation: default(),
             enable_rotation: true,
+            grid_snap: 0.5,     // 0.5 unit grid snapping
+            angle_snap: 15.0,   // 15 degree angle snapping
+            scale_snap: 0.1,    // 0.1 scale increment snapping
+            snap_enabled: true, // Enable snapping by default
+            mode: GizmoMode::default(),
         }
     }
 }
@@ -102,8 +142,16 @@ impl Plugin for TransformGizmoPlugin {
         // Settings Set
         app.add_systems(
             PreUpdate,
-            update_gizmo_settings
+            (update_gizmo_settings, update_gizmo_visibility)
                 .in_set(TransformGizmoSystems::UpdateSettings)
+                .run_if(|settings: Res<TransformGizmoSettings>| settings.enabled),
+        );
+
+        // Input Set
+        app.add_systems(
+            PreUpdate,
+            handle_gizmo_hotkeys
+                .in_set(TransformGizmoSystems::Input)
                 .run_if(|settings: Res<TransformGizmoSettings>| settings.enabled),
         );
 
@@ -184,6 +232,18 @@ pub enum InteractionKind {
         original: Vec3,
         /// The axis were rotating on.
         axis: Vec3,
+    },
+    /// Scaling along an axis.
+    ScaleAxis {
+        /// Starting scale.
+        original: Vec3,
+        /// The axis we're scaling along.
+        axis: Vec3,
+    },
+    /// Uniform scaling.
+    ScaleUniform {
+        /// Starting scale.
+        original: Vec3,
     },
 }
 
@@ -271,6 +331,7 @@ fn on_transform_gizmo_pointer_release(
 fn drag_gizmo(
     raymap: Res<RayMap>,
     selection: Res<EditorSelection>,
+    settings: Res<TransformGizmoSettings>,
     mut transform_query: Query<
         (Entity, Option<&ChildOf>, &mut Transform, &InitialTransform),
         Without<TransformGizmo>,
@@ -324,7 +385,12 @@ fn drag_gizmo(
                 let selected_handle_vec = cursor_projected_onto_handle - origin;
                 let new_handle_vec = cursor_vector.dot(selected_handle_vec.normalize())
                     * selected_handle_vec.normalize();
-                let translation = new_handle_vec - selected_handle_vec;
+                let mut translation = new_handle_vec - selected_handle_vec;
+
+                // Apply grid snapping if enabled
+                if settings.snap_enabled && settings.grid_snap > 0.0 {
+                    translation = snap_to_grid(translation, settings.grid_snap);
+                }
                 selected_iter.for_each(
                     |(inverse_parent, mut local_transform, initial_global_transform)| {
                         let new_transform = Transform {
@@ -346,12 +412,19 @@ fn drag_gizmo(
                     gizmo.drag_start = Some(cursor_plane_intersection);
                     return;
                 };
+
+                let mut translation_delta = cursor_plane_intersection - drag_start;
+
+                // Apply grid snapping if enabled
+                if settings.snap_enabled && settings.grid_snap > 0.0 {
+                    translation_delta = snap_to_grid(translation_delta, settings.grid_snap);
+                }
+
                 selected_iter.for_each(
                     |(inverse_parent, mut local_transform, initial_transform)| {
                         let new_transform = Transform {
                             translation: initial_transform.transform.translation
-                                + cursor_plane_intersection
-                                - drag_start,
+                                + translation_delta,
                             rotation: initial_transform.transform.rotation,
                             scale: initial_transform.transform.scale,
                         };
@@ -373,7 +446,13 @@ fn drag_gizmo(
                 };
                 let dot = drag_start.dot(cursor_vector);
                 let det = axis.dot(drag_start.cross(cursor_vector));
-                let angle = det.atan2(dot);
+                let mut angle = det.atan2(dot);
+
+                // Apply angle snapping if enabled
+                if settings.snap_enabled && settings.angle_snap > 0.0 {
+                    angle = snap_angle(angle, settings.angle_snap);
+                }
+
                 let rotation = Quat::from_axis_angle(axis, angle);
                 selected_iter.for_each(
                     |(inverse_parent, mut local_transform, initial_transform)| {
@@ -385,6 +464,105 @@ fn drag_gizmo(
                             translation: initial_transform.transform.translation + offset,
                             rotation: rotation * initial_transform.transform.rotation,
                             scale: initial_transform.transform.scale,
+                        };
+                        let local = inverse_parent * new_transform.to_matrix();
+                        local_transform.set_if_neq(Transform::from_matrix(local));
+                    },
+                );
+            }
+            InteractionKind::ScaleAxis { original: _, axis } => {
+                let vertical_vector = ray.direction.cross(axis).normalize();
+                let plane_normal = axis.cross(vertical_vector).normalize();
+                let Some(cursor_plane_intersection) = intersect_plane(ray, plane_normal, origin)
+                else {
+                    return;
+                };
+
+                let cursor_vector: Vec3 = cursor_plane_intersection - origin;
+                let Some(cursor_projected_onto_handle) = &gizmo.drag_start else {
+                    let handle_vector = axis;
+                    let cursor_projected_onto_handle =
+                        cursor_vector.dot(handle_vector.normalize()) * handle_vector.normalize();
+                    gizmo.drag_start = Some(cursor_projected_onto_handle + origin);
+                    return;
+                };
+                let selected_handle_vec = cursor_projected_onto_handle - origin;
+                let new_handle_vec = cursor_vector.dot(selected_handle_vec.normalize())
+                    * selected_handle_vec.normalize();
+
+                // Calculate scale factor based on distance change
+                let initial_distance = selected_handle_vec.length();
+                let new_distance = new_handle_vec.length();
+                let mut scale_factor = if initial_distance > 0.0 {
+                    (new_distance / initial_distance).max(0.01) // Prevent negative/zero scale
+                } else {
+                    1.0
+                };
+
+                // Apply scale snapping if enabled
+                if settings.snap_enabled && settings.scale_snap > 0.0 {
+                    scale_factor = snap_scale(scale_factor, settings.scale_snap);
+                }
+
+                selected_iter.for_each(
+                    |(inverse_parent, mut local_transform, initial_transform)| {
+                        let mut new_scale = initial_transform.transform.scale;
+
+                        // Apply scale only along the specified axis
+                        if axis.x.abs() > 0.9 {
+                            new_scale.x = initial_transform.transform.scale.x * scale_factor;
+                        }
+                        if axis.y.abs() > 0.9 {
+                            new_scale.y = initial_transform.transform.scale.y * scale_factor;
+                        }
+                        if axis.z.abs() > 0.9 {
+                            new_scale.z = initial_transform.transform.scale.z * scale_factor;
+                        }
+
+                        let new_transform = Transform {
+                            translation: initial_transform.transform.translation,
+                            rotation: initial_transform.transform.rotation,
+                            scale: new_scale,
+                        };
+                        let local = inverse_parent * new_transform.to_matrix();
+                        local_transform.set_if_neq(Transform::from_matrix(local));
+                    },
+                );
+            }
+            InteractionKind::ScaleUniform { original: _ } => {
+                // Use the camera's forward vector as the plane normal for uniform scaling
+                let plane_normal = ray.direction.normalize();
+                let Some(cursor_plane_intersection) = intersect_plane(ray, plane_normal, origin)
+                else {
+                    return;
+                };
+
+                let Some(drag_start) = &gizmo.drag_start else {
+                    gizmo.drag_start = Some(cursor_plane_intersection);
+                    return;
+                };
+
+                // Calculate scale based on distance from origin
+                let initial_distance = (*drag_start - origin).length();
+                let current_distance = (cursor_plane_intersection - origin).length();
+                let mut scale_factor = if initial_distance > 0.0 {
+                    (current_distance / initial_distance).max(0.01) // Prevent negative/zero scale
+                } else {
+                    1.0
+                };
+
+                // Apply scale snapping if enabled
+                if settings.snap_enabled && settings.scale_snap > 0.0 {
+                    scale_factor = snap_scale(scale_factor, settings.scale_snap);
+                }
+
+                selected_iter.for_each(
+                    |(inverse_parent, mut local_transform, initial_transform)| {
+                        let new_scale = initial_transform.transform.scale * scale_factor;
+                        let new_transform = Transform {
+                            translation: initial_transform.transform.translation,
+                            rotation: initial_transform.transform.rotation,
+                            scale: new_scale,
                         };
                         let local = inverse_parent * new_transform.to_matrix();
                         local_transform.set_if_neq(Transform::from_matrix(local));
@@ -406,6 +584,35 @@ fn intersect_plane(ray: Ray3d, plane_normal: Vec3, plane_origin: Vec3) -> Option
     } else {
         None
     }
+}
+
+/// Snap a position to the nearest grid point.
+fn snap_to_grid(position: Vec3, grid_size: f32) -> Vec3 {
+    if grid_size <= 0.0 {
+        return position;
+    }
+    Vec3::new(
+        (position.x / grid_size).round() * grid_size,
+        (position.y / grid_size).round() * grid_size,
+        (position.z / grid_size).round() * grid_size,
+    )
+}
+
+/// Snap an angle to the nearest increment.
+fn snap_angle(angle: f32, snap_increment: f32) -> f32 {
+    if snap_increment <= 0.0 {
+        return angle;
+    }
+    let snap_rad = snap_increment.to_radians();
+    (angle / snap_rad).round() * snap_rad
+}
+
+/// Snap a scale value to the nearest increment.
+fn snap_scale(scale: f32, snap_increment: f32) -> f32 {
+    if snap_increment <= 0.0 {
+        return scale;
+    }
+    (scale / snap_increment).round() * snap_increment
 }
 
 /// Offsets where the origin is for an entity transformed by the transform gizmo.
@@ -501,6 +708,13 @@ fn update_gizmo_settings(
                     axis: rotation.mul_vec3(original),
                 })
             }
+            InteractionKind::ScaleAxis { original, axis: _ } => Some(InteractionKind::ScaleAxis {
+                original,
+                axis: rotation.mul_vec3(original),
+            }),
+            InteractionKind::ScaleUniform { original } => {
+                Some(InteractionKind::ScaleUniform { original })
+            }
         } {
             *interaction = rotated_interaction;
         }
@@ -562,6 +776,97 @@ fn gizmo_cam_copy_settings(
         }
         if main_proj.is_changed() {
             *proj = main_proj.clone();
+        }
+    }
+}
+
+fn handle_gizmo_hotkeys(
+    mut settings: ResMut<TransformGizmoSettings>,
+    keyboard: Res<ButtonInput<KeyCode>>,
+) {
+    if keyboard.just_pressed(KeyCode::KeyW) {
+        settings.mode = GizmoMode::Translate;
+    } else if keyboard.just_pressed(KeyCode::KeyE) {
+        settings.mode = GizmoMode::Rotate;
+    } else if keyboard.just_pressed(KeyCode::KeyR) {
+        settings.mode = GizmoMode::Scale;
+    }
+
+    // Toggle snapping with Ctrl
+    if keyboard.just_pressed(KeyCode::ControlLeft) || keyboard.just_pressed(KeyCode::ControlRight) {
+        settings.snap_enabled = !settings.snap_enabled;
+    }
+}
+
+fn update_gizmo_visibility(
+    settings: Res<TransformGizmoSettings>,
+    mut translation_gizmos: Query<
+        &mut Visibility,
+        (
+            With<TranslationGizmo>,
+            Without<RotationGizmo>,
+            Without<ScaleGizmo>,
+        ),
+    >,
+    mut rotation_gizmos: Query<
+        &mut Visibility,
+        (
+            With<RotationGizmo>,
+            Without<TranslationGizmo>,
+            Without<ScaleGizmo>,
+        ),
+    >,
+    mut scale_gizmos: Query<
+        &mut Visibility,
+        (
+            With<ScaleGizmo>,
+            Without<TranslationGizmo>,
+            Without<RotationGizmo>,
+        ),
+    >,
+) {
+    if !settings.is_changed() {
+        return;
+    }
+
+    // Show/hide gizmo elements based on current mode
+    match settings.mode {
+        GizmoMode::Translate => {
+            for mut vis in translation_gizmos.iter_mut() {
+                *vis = Visibility::Inherited;
+            }
+            for mut vis in rotation_gizmos.iter_mut() {
+                *vis = Visibility::Hidden;
+            }
+            for mut vis in scale_gizmos.iter_mut() {
+                *vis = Visibility::Hidden;
+            }
+        }
+        GizmoMode::Rotate => {
+            for mut vis in translation_gizmos.iter_mut() {
+                *vis = Visibility::Hidden;
+            }
+            for mut vis in rotation_gizmos.iter_mut() {
+                *vis = if settings.enable_rotation {
+                    Visibility::Inherited
+                } else {
+                    Visibility::Hidden
+                };
+            }
+            for mut vis in scale_gizmos.iter_mut() {
+                *vis = Visibility::Hidden;
+            }
+        }
+        GizmoMode::Scale => {
+            for mut vis in translation_gizmos.iter_mut() {
+                *vis = Visibility::Hidden;
+            }
+            for mut vis in rotation_gizmos.iter_mut() {
+                *vis = Visibility::Hidden;
+            }
+            for mut vis in scale_gizmos.iter_mut() {
+                *vis = Visibility::Inherited;
+            }
         }
     }
 }

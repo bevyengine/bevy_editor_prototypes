@@ -1,11 +1,10 @@
 [package]
-name = "bevy_toolbar"
+name = "bevy_gizmo_indicator"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
 bevy.workspace = true
-bevy_editor_core = { path = "../../crates/bevy_editor_core" }
 bevy_editor_styles = { path = "../../crates/bevy_editor_styles" }
 bevy_transform_gizmos = { path = "../../crates/bevy_transform_gizmos" }
 

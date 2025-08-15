@@ -1,6 +1,28 @@
-//! Palette plugin for the Bevy Editor. This plugin provides a color palette for the editor's UI.
+//! Styles and theming system for the Bevy Editor.
+//!
+//! This crate provides a consistent theming system for the editor UI components.
+//! All colors are derived from the Figma design specification and are centralized
+//! in the [`colors`] module for easy maintenance.
+//!
+//! ## Usage
+//!
+//! Add the [`StylesPlugin`] to your app and access the [`Theme`] resource:
+//!
+//! ```rust
+//! use bevy::prelude::*;
+//! use bevy_editor_styles::{StylesPlugin, Theme, colors::EditorColors};
+//!
+//! fn setup(theme: Res<Theme>) {
+//!     // Use theme from resource
+//!     let bg_color = theme.general.background_color;
+//!     
+//!     // Or use color constants directly
+//!     let button_color = EditorColors::BUTTON_DEFAULT;
+//! }
+//! ```
 use bevy::{asset::embedded_asset, prelude::*};
 
+pub mod colors;
 pub mod icons;
 
 /// The Pallet Plugin.
@@ -130,20 +152,22 @@ pub struct ScrollBoxStyles {
 impl FromWorld for Theme {
     fn from_world(world: &mut World) -> Self {
         let asset_server = world.resource::<AssetServer>();
+        use colors::EditorColors;
+
         Theme {
             general: GeneralStyles {
                 border_radius: BorderRadius::all(Val::Px(8.)),
-                background_color: BackgroundColor(Color::oklch(0.209, 0.0, 0.0)),
+                background_color: BackgroundColor(EditorColors::BACKGROUND),
             },
             button: ButtonStyles {
-                border_radius: BorderRadius::all(Val::Px(3.)),
-                background_color: BackgroundColor(Color::oklch(0.2768, 0.0, 0.0)),
-                hover_color: Color::oklch(0.7693, 0.116_877_146, 268.019_3),
+                border_radius: BorderRadius::all(Val::Px(5.)),
+                background_color: BackgroundColor(EditorColors::BUTTON_DEFAULT),
+                hover_color: EditorColors::ACCENT_BLUE,
             },
             text: TextStyles {
-                low_priority: Color::oklch(0.50, 0.0, 0.0),
-                text_color: Color::oklch(0.9219, 0.0, 0.0),
-                high_priority: Color::oklch(0.48, 0.1926, 0.2243),
+                low_priority: EditorColors::TEXT_MUTED,
+                text_color: EditorColors::TEXT_PRIMARY,
+                high_priority: EditorColors::ACCENT_BLUE,
                 font: asset_server
                     .load("embedded://bevy_editor_styles/assets/fonts/Inter-Regular.ttf"),
             },
@@ -151,30 +175,30 @@ impl FromWorld for Theme {
                 font: asset_server.load("embedded://bevy_editor_styles/assets/icons/Lucide.ttf"),
             },
             pane: PaneStyles {
-                header_background_color: BackgroundColor(Color::oklch(0.3407, 0.0, 0.0)),
-                area_background_color: BackgroundColor(Color::oklch(0.3677, 0.0, 0.0)),
-                header_border_radius: BorderRadius::top(Val::Px(8.)),
+                header_background_color: BackgroundColor(EditorColors::BACKGROUND),
+                area_background_color: BackgroundColor(EditorColors::PANEL_BACKGROUND),
+                header_border_radius: BorderRadius::top(Val::Px(6.)),
             },
             menu: MenuStyles {
-                background_color: Color::oklch(0.209, 0.0, 0.0),
+                background_color: EditorColors::BACKGROUND,
             },
             context_menu: ContextMenuStyles {
-                background_color: BackgroundColor(Color::oklch(0.209, 0., 0.)),
-                hover_color: BackgroundColor(Color::oklch(0.3677, 0., 0.)),
-                option_border_radius: BorderRadius::all(Val::Px(5.)),
+                background_color: BackgroundColor(EditorColors::BACKGROUND),
+                hover_color: BackgroundColor(EditorColors::BUTTON_DEFAULT),
+                option_border_radius: BorderRadius::all(Val::Px(4.)),
             },
             viewport: ViewportStyles {
-                background_color: Color::oklch(0.3677, 0.0, 0.0),
-                x_axis_color: Color::oklch(0.65, 0.24, 27.0),
-                y_axis_color: Color::oklch(0.87, 0.27, 144.0),
-                z_axis_color: Color::oklch(0.65, 0.19, 255.0),
-                grid_major_line_color: Color::oklch(0.45, 0.0, 0.0),
-                grid_minor_line_color: Color::oklch(0.4, 0.0, 0.0),
+                background_color: EditorColors::PANEL_BACKGROUND,
+                x_axis_color: EditorColors::AXIS_X,
+                y_axis_color: EditorColors::AXIS_Y,
+                z_axis_color: EditorColors::AXIS_Z,
+                grid_major_line_color: EditorColors::GRID_MAJOR,
+                grid_minor_line_color: EditorColors::GRID_MINOR,
             },
             scroll_box: ScrollBoxStyles {
-                background_color: BackgroundColor(Color::oklch(0.4, 0.0, 0.0)),
-                handle_color: Color::oklch(0.325, 0.0, 0.0),
-                border_radius: BorderRadius::all(Val::Px(8.)),
+                background_color: BackgroundColor(EditorColors::BUTTON_DEFAULT),
+                handle_color: EditorColors::BORDER,
+                border_radius: BorderRadius::all(Val::Px(5.)),
             },
         }
     }

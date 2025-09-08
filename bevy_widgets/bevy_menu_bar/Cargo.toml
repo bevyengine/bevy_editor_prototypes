@@ -7,6 +7,7 @@ edition = "2024"
 bevy.workspace = true
 bevy_editor_styles.workspace = true
 
+[target.'cfg(target_os = "macos")'.dependencies]
 objc-rs.workspace = true
 objc2.workspace = true
 objc2-app-kit.workspace = true

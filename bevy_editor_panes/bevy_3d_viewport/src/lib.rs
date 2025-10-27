@@ -118,12 +118,10 @@ fn render_target_picking_passthrough(
             continue;
         }
         for (pane_root, _viewport) in &viewports {
-            let Some(content_node_id) = children_query
+            let content_node_id = children_query
                 .iter_descendants(pane_root)
                 .find(|e| content.contains(*e))
-            else {
-                continue;
-            };
+                .unwrap();
 
             let image_id = children_query.get(content_node_id).unwrap()[0];
             let Ok((computed_node, global_transform, ui_image)) = node_query.get(image_id) else {

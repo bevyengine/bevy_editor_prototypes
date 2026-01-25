@@ -76,7 +76,7 @@ impl Plugin for MyEditorPlugin {
     - It will be expected of Bevy to offer something to download and to resemble more traditional engines.
     - The launcher is a good place for future Bevy tooling to exist such as, a asset store, a community plugin list, and more.
     - People who aren't programmers generally are not comfortable with a command line and asking them to use the command line creates unnecessary friction we can avoid.
-    - A launcher can be delivered update/changelog information to let users who arent very active in the community be notified of new updates.
+    - A launcher can be delivered update/changelog information to let users who aren't very active in the community be notified of new updates.
     - It will help disguise the weirdness of the editor being apart of the user's project.
 
 - Functionality that is useful without a graphical editor should be usable without the editor.

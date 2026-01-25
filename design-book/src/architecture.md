@@ -11,7 +11,7 @@ So far, we've agreed upon a general architecture for a MVP release:
 
 - All Bevy Engine tooling will live within the main repo, and must be updated and fixed as part of the ordinary development process.
 
-- The Editor is built as a plugin withing the user's project.
+- The Editor is built as a plugin within the user's project.
   - Explanation/Reasoning:
     - In order for the editor to display components (and other data) that a entity and by extension a BSN file, can be created with. The Editor must have access to the reflection type data. Rust currently has no built in reflection support and theres no tooling from which the editor could extract this data without being constrained by a validly compiled and running game project binary.
     - The only option that has the least risk, maintenance requirements, and time, is to have the Editor compiled together with the user's project allowing the Editor's type registry to have all the necessary data for creating and loading BSN files.

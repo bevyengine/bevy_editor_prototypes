@@ -11,7 +11,7 @@
 //! - [`DisclosureToggled`] - Event emitted when triangles are clicked
 //! - [`crate::theme::InspectorTheme`] - Theming system for consistent styling
 
-use bevy::{ecs::event::BufferedEvent, prelude::*};
+use bevy::{ecs::message::Message, prelude::*};
 
 /// Component representing a collapsible disclosure triangle
 #[derive(Component, Clone, Debug)]
@@ -34,7 +34,7 @@ pub struct DisclosureProps {
 }
 
 /// Event fired when a disclosure triangle is toggled
-#[derive(Event, BufferedEvent)]
+#[derive(Event, Message)]
 pub struct DisclosureToggled {
     /// Target ID of the disclosure triangle that was toggled
     pub target_id: String,
@@ -107,7 +107,7 @@ pub fn update_disclosure_style(
 /// System to handle disclosure triangle clicks
 pub fn handle_disclosure_clicks(
     query: Query<(&Interaction, &DisclosureTriangle), (Changed<Interaction>, With<Button>)>,
-    mut toggle_events: EventWriter<DisclosureToggled>,
+    mut toggle_events: MessageWriter<DisclosureToggled>,
 ) {
     for (interaction, disclosure) in query.iter() {
         if *interaction == Interaction::Pressed {
@@ -142,7 +142,7 @@ pub struct DisclosurePlugin;
 
 impl Plugin for DisclosurePlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<DisclosureToggled>()
+        app.add_message::<DisclosureToggled>()
             .add_systems(Update, (update_disclosure_style, handle_disclosure_clicks));
     }
 }

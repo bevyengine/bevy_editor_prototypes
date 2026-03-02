@@ -10,7 +10,7 @@
 //! - [`InspectorEvent`] - Main event enum for inspector state changes
 //! - [`EntityInspectorRows`] - Central data store with change tracking
 
-use bevy::ecs::event::BufferedEvent;
+use bevy::ecs::message::Message;
 use bevy::platform::collections::HashMap;
 use bevy::prelude::*;
 
@@ -41,7 +41,7 @@ use bevy::prelude::*;
 ///
 /// These events are typically emitted by data source plugins (like the remote inspection plugin)
 /// and consumed by the main event handler (see [`crate::ui_systems::handle_inspector_events`]) to update the tree UI.
-#[derive(Event, BufferedEvent, Debug, Clone)]
+#[derive(Event, Message, Debug, Clone)]
 pub enum InspectorEvent {
     /// Entity was added to the inspector.
     ///

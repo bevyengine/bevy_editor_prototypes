@@ -182,7 +182,7 @@ pub struct InspectorPlugin;
 impl Plugin for InspectorPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(TreePlugin)
-            .add_event::<InspectorEvent>()
+            .add_message::<InspectorEvent>()
             .init_resource::<EntityInspectorRows>()
             .init_resource::<InspectorTheme>()
             .add_systems(Startup, (setup_inspector_camera, spawn_inspector_ui_once))

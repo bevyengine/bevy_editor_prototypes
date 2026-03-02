@@ -13,10 +13,10 @@ default = ["remote"]
 remote = ["dep:bevy_remote", "dep:serde", "dep:serde_json", "dep:ureq"]
 
 [dependencies]
-bevy = { git = "https://github.com/bevyengine/bevy.git", branch = "main", features = ["wayland", "serialize"] }
+bevy.workspace = true
 
 # Optional remote functionality dependencies
-bevy_remote = { git = "https://github.com/bevyengine/bevy.git", branch = "main", optional = true }
+bevy_remote = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 ureq = { workspace = true, optional = true }

@@ -12,10 +12,10 @@
 //! - [`crate::TreeNodeType`] - Node type enum for visual styling
 
 use bevy::{
-    core_widgets::{ControlOrientation, CoreScrollbar, CoreScrollbarPlugin, CoreScrollbarThumb},
     ecs::{relationship::RelatedSpawner, spawn::SpawnWith},
     picking::hover::Hovered,
     prelude::*,
+    ui_widgets::{ControlOrientation, CoreScrollbarThumb, Scrollbar, ScrollbarPlugin},
 };
 use std::collections::HashMap;
 
@@ -257,7 +257,7 @@ pub struct TreeContainer;
 /// - **Entity selection**: Shows all components for that entity
 /// - **Component selection**: Shows detailed fields for that specific component
 /// - **Field selection**: Shows the parent component with the selected field highlighted
-#[derive(Event, BufferedEvent)]
+#[derive(Event, Message)]
 pub struct TreeNodeSelected {
     /// ID of the tree node that was selected.
     ///
@@ -278,7 +278,7 @@ pub struct TreeNodeSelected {
 /// - **Animations**: Trigger expand/collapse animations
 /// - **State Persistence**: Remember expansion states across app restarts
 /// - **Performance**: Defer expensive reflection operations until needed
-#[derive(Event, BufferedEvent)]
+#[derive(Event, Message)]
 pub struct TreeNodeExpanded {
     /// ID of the node whose expansion state changed.
     pub node_id: String,
@@ -513,7 +513,7 @@ pub fn tree_container(config: &TreeConfig) -> impl Bundle {
                     grid_column: GridPlacement::start(2),
                     ..default()
                 },
-                CoreScrollbar {
+                Scrollbar {
                     target: scroll_area_id,
                     orientation: ControlOrientation::Vertical,
                     min_thumb_length: 20.0,
@@ -538,7 +538,7 @@ pub fn tree_container(config: &TreeConfig) -> impl Bundle {
                     grid_column: GridPlacement::start(1),
                     ..default()
                 },
-                CoreScrollbar {
+                Scrollbar {
                     target: scroll_area_id,
                     orientation: ControlOrientation::Horizontal,
                     min_thumb_length: 20.0,
@@ -594,7 +594,7 @@ pub fn update_tree_node_style(
 pub fn handle_tree_node_interactions(
     tree_node_query: Query<(&Interaction, &TreeNodeWidget), (Changed<Interaction>, With<Button>)>,
     mut tree_state: ResMut<TreeState>,
-    mut selection_events: EventWriter<TreeNodeSelected>,
+    mut selection_events: MessageWriter<TreeNodeSelected>,
 ) {
     for (interaction, node_widget) in tree_node_query.iter() {
         if *interaction == Interaction::Pressed {
@@ -875,11 +875,11 @@ pub struct TreePlugin;
 
 impl Plugin for TreePlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<TreeNodeSelected>()
-            .add_event::<TreeNodeExpanded>()
+        app.add_message::<TreeNodeSelected>()
+            .add_message::<TreeNodeExpanded>()
             .init_resource::<TreeConfig>()
             .init_resource::<TreeState>()
-            .add_plugins(CoreScrollbarPlugin)
+            .add_plugins(ScrollbarPlugin)
             .add_systems(
                 Update,
                 (

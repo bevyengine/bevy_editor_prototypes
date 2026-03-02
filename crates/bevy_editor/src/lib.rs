@@ -78,14 +78,18 @@ impl Plugin for EditorPlugin {
                 EditorCorePlugin,
                 ContextMenuPlugin,
                 StylesPlugin,
+            ))
+            .add_plugins((
                 Viewport2dPanePlugin,
                 Viewport3dPanePlugin,
                 ui::EditorUIPlugin,
+                UiWidgetsPlugins,
+            ))
+            .add_plugins((
                 LoadGltfPlugin,
                 AssetBrowserPanePlugin,
                 MeshPickingPlugin,
                 TransformGizmoPlugin,
-                UiWidgetsPlugins,
                 InputDispatchPlugin,
                 TabNavigationPlugin,
                 FeathersPlugin,

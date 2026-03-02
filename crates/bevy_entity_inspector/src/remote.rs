@@ -356,7 +356,7 @@ fn poll_remote_entity_rows(
 fn update_remote_entity_rows(
     mut task_handle: ResMut<RowTaskHandle>,
     mut rows: ResMut<EntityInspectorRows>,
-    mut events: EventWriter<InspectorEvent>,
+    mut events: MessageWriter<InspectorEvent>,
 ) {
     if let Some(mut task) = task_handle.0.take() {
         if let Some(result) = future::block_on(future::poll_once(&mut task)) {

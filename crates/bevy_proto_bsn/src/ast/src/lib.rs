@@ -1,11 +1,10 @@
 //! Shared BSN AST core used by both macro and assets.
 
 use syn::{
-    braced, bracketed, parenthesized,
-    parse::{discouraged::Speculative, Parse, ParseStream},
+    Block, Expr, Ident, Member, Path, Result, Token, braced, bracketed, parenthesized,
+    parse::{Parse, ParseStream, discouraged::Speculative},
     punctuated::Punctuated,
     token::{self, Brace, Paren},
-    Block, Expr, Ident, Member, Path, Result, Token,
 };
 
 pub use quote;

@@ -1,5 +1,7 @@
 //! Resizable, divider-able panes for Bevy.
 
+pub mod components;
+mod containers;
 mod handlers;
 mod pane_drop_area;
 pub mod registry;
@@ -18,7 +20,7 @@ mod ui;
 /// - Panes cannot have min/max sizes, they must be able to be resized to any size.
 ///   - If a pane can not be sensibly resized, it can overflow under the other panes.
 /// - Panes must not interfere with each other, only temporary/absolute positioned elements are allowed to overlap panes.
-use bevy::prelude::*;
+use bevy::{feathers::theme::UiTheme, prelude::*};
 use bevy_editor_styles::Theme;
 
 use crate::{
@@ -29,8 +31,9 @@ use crate::{
 /// Crate prelude.
 pub mod prelude {
     pub use crate::{
-        registry::{PaneAppExt, PaneStructure},
         PaneAreaNode, PaneContentNode, PaneHeaderNode,
+        components::*,
+        registry::{PaneAppExt, PaneStructure},
     };
 }
 
@@ -95,14 +98,19 @@ pub struct PaneLayoutSet;
 fn setup(
     mut commands: Commands,
     theme: Res<Theme>,
+    ui_theme: ResMut<UiTheme>,
     panes_root: Single<Entity, With<RootPaneLayoutNode>>,
 ) {
+    containers::setup(ui_theme);
+
     commands.entity(*panes_root).insert((
         Node {
             padding: UiRect::all(Val::Px(1.)),
             flex_grow: 1.,
             width: Val::Percent(100.),
-
+            height: Val::Percent(100.),
+            // Prevent children from expanding the height of this node.
+            min_height: Val::Px(0.),
             ..default()
         },
         theme.general.background_color,
@@ -188,13 +196,13 @@ struct PaneRootNode {
 }
 
 /// Node to denote the area of the Pane.
-#[derive(Component)]
+#[derive(Component, Clone, Default)]
 pub struct PaneAreaNode;
 
 /// Node to add widgets into the header of a Pane.
-#[derive(Component)]
+#[derive(Component, Clone, Default)]
 pub struct PaneHeaderNode;
 
 /// Node to denote the content space of the Pane.
-#[derive(Component)]
+#[derive(Component, Clone, Default)]
 pub struct PaneContentNode;

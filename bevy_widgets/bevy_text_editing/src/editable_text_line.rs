@@ -5,8 +5,8 @@ mod render;
 
 use bevy::{
     input_focus::{
-        tab_navigation::{TabIndex, TabNavigationPlugin},
         InputDispatchPlugin,
+        tab_navigation::{TabIndex, TabNavigationPlugin},
     },
     platform::collections::HashSet,
     prelude::*,
@@ -14,8 +14,8 @@ use bevy::{
 use bevy_clipboard::ClipboardPlugin;
 
 use crate::{
+    CharPosition, HasFocus, SetCursorPosition, SetText, TEXT_SELECTION_COLOR, TextChanged,
     cursor::{Cursor, CursorPlugin},
-    CharPosition, HasFocus, SetCursorPosition, SetText, TextChanged, TEXT_SELECTION_COLOR,
 };
 
 use input::*;
@@ -182,7 +182,7 @@ impl EditableTextLine {
             return None;
         }
 
-        if range.0 .0 > self.text.chars().count() || range.1 .0 > self.text.chars().count() {
+        if range.0.0 > self.text.chars().count() || range.1.0 > self.text.chars().count() {
             return None;
         }
 
@@ -236,16 +236,29 @@ pub struct EditableTextInner {
 }
 
 /// Event for rendering editable text line
-#[derive(Event, EntityEvent, Default, Clone)]
+#[derive(Clone, EntityEvent)]
 pub struct RenderWidget {
+    /// The entity to propagate to
+    pub entity: Entity,
     /// Make cursor immediately visible and reset cursor blinking timer
     pub show_cursor: bool,
 }
 
 impl RenderWidget {
+    /// Make cursor immediately invisible and reset cursor blinking timer
+    pub fn hide_cursor(entity: Entity) -> Self {
+        Self {
+            entity,
+            show_cursor: false,
+        }
+    }
+
     /// Make cursor immediately visible and reset cursor blinking timer
-    pub fn show_cursor() -> Self {
-        Self { show_cursor: true }
+    pub fn show_cursor(entity: Entity) -> Self {
+        Self {
+            entity,
+            show_cursor: true,
+        }
     }
 }
 
@@ -392,16 +405,16 @@ fn set_text_trigger(
     mut commands: Commands,
     mut q_texts: Query<&mut EditableTextLine>,
 ) {
-    let entity = trigger.target();
+    let entity = trigger.event().event_target();
     let Ok(mut line) = q_texts.get_mut(entity) else {
         return;
     };
 
-    line.text = trigger.0.clone();
-    // info!("Set text for {} to {}", entity, trigger.0);
+    line.text = trigger.text.clone();
+    // info!("Set text for {} to {}", entity, trigger.text);
 
     // Trigger rerender
-    commands.trigger_targets(RenderWidget::default(), entity);
+    commands.trigger(RenderWidget::hide_cursor(entity));
 }
 
 fn propagate_text_font(

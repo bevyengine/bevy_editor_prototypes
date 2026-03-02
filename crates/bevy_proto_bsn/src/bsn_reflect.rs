@@ -2,7 +2,7 @@ use core::{any::TypeId, cell::RefCell, hash::BuildHasher, ops::Deref, str::FromS
 
 use bevy::{
     app::App,
-    asset::{io::Reader, Asset, AssetLoader, AssetServer, Handle, LoadContext},
+    asset::{Asset, AssetLoader, AssetPath, AssetServer, Handle, LoadContext, io::Reader},
     ecs::{
         reflect::AppTypeRegistry,
         world::{FromWorld, World},
@@ -26,7 +26,7 @@ pub(crate) fn bsn_reflect_plugin(app: &mut App) {
     app.init_asset_loader::<ReflectedBsnLoader>();
 
     /// Register `ReflectHandle`s for some upstream assets to ensure the hacky asset loading workaround works.
-    use bevy::{asset::Handle, prelude::*, sprite::Wireframe2dMaterial};
+    use bevy::{asset::Handle, prelude::*, sprite_render::Wireframe2dMaterial};
     app.register_type_data::<Handle<Scene>, ReflectHandleLoad>();
     app.register_type_data::<Handle<Bsn>, ReflectHandleLoad>();
     app.register_type_data::<Handle<Font>, ReflectHandleLoad>();
@@ -61,7 +61,7 @@ impl ReflectedBsn {
         let key = match &bsn.key {
             Some(BsnKey::Static(key)) => Some(key.clone()),
             Some(BsnKey::Dynamic(key)) => {
-                return Err(ReflectError::DynamicKeyNotSupported(key.clone()))
+                return Err(ReflectError::DynamicKeyNotSupported(key.clone()));
             }
             None => None,
         };
@@ -362,22 +362,21 @@ impl<'a, 'b> BsnReflector<'a, 'b> {
     ) -> ReflectResult<Box<dyn PartialReflect>> {
         // HACK: Allows constructing Handles from asset paths in BSN assets by triggering loads during reflection.
         // This should be removed when we have an upstream Construct implementation for Handle.
-        if ty.type_path().starts_with("bevy_asset::handle::Handle<") && self.asset_loader.is_some()
+        if ty.type_path().starts_with("bevy_asset::handle::Handle<")
+            && self.asset_loader.is_some()
+            && let BsnProp::Props(BsnValue::String(asset_path)) = prop
         {
-            if let BsnProp::Props(BsnValue::String(asset_path)) = prop {
-                let Some(reflect_handle_load) = self
-                    .registry
-                    .get_type_data::<ReflectHandleLoad>(ty.type_id())
-                else {
-                    return Err(ReflectError::MissingTypeData(
-                        "ReflectHandleLoad".into(),
-                        ty.type_path().into(),
-                    ));
-                };
-                let handle =
-                    reflect_handle_load.load(asset_path, self.asset_loader.as_ref().unwrap());
-                return Ok(handle.into_partial_reflect());
-            }
+            let Some(reflect_handle_load) = self
+                .registry
+                .get_type_data::<ReflectHandleLoad>(ty.type_id())
+            else {
+                return Err(ReflectError::MissingTypeData(
+                    "ReflectHandleLoad".into(),
+                    ty.type_path().into(),
+                ));
+            };
+            let handle = reflect_handle_load.load(asset_path, self.asset_loader.as_ref().unwrap());
+            return Ok(handle.into_partial_reflect());
         }
 
         // This is fine : )
@@ -711,11 +710,14 @@ pub enum BsnReflectorAssetLoader<'a, 'b> {
 }
 
 impl BsnReflectorAssetLoader<'_, '_> {
-    fn load<A: Asset>(&self, path: &str) -> Handle<A> {
+    fn load<'a, A: Asset>(&self, path: impl Into<AssetPath<'a>>) -> Handle<A> {
+        let asset_path = path.into().into_owned();
         match self {
-            BsnReflectorAssetLoader::AssetServer(asset_server) => asset_server.load::<A>(path),
+            BsnReflectorAssetLoader::AssetServer(asset_server) => {
+                asset_server.load::<A>(asset_path)
+            }
             BsnReflectorAssetLoader::LoadContext(load_context) => {
-                load_context.borrow_mut().load::<A>(path)
+                load_context.borrow_mut().load::<A>(asset_path)
             }
         }
     }
@@ -749,7 +751,10 @@ impl ReflectHandleLoad {
 impl<A: Asset> FromType<Handle<A>> for ReflectHandleLoad {
     fn from_type() -> Self {
         ReflectHandleLoad {
-            load: |path, asset_loader| Box::new(asset_loader.load::<A>(path)),
+            load: |path, asset_loader| {
+                let asset_path: AssetPath = path.to_string().into();
+                Box::new(asset_loader.load::<A>(asset_path))
+            },
         }
     }
 }

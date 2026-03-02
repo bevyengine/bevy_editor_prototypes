@@ -2,7 +2,7 @@ use std::io::ErrorKind;
 use std::path::Path;
 
 use bevy::{prelude::*, ui::RelativeCursorPosition};
-use bevy_editor::project::{run_project, set_project_list, templates::Templates, ProjectInfo};
+use bevy_editor::project::{ProjectInfo, run_project, set_project_list, templates::Templates};
 use bevy_editor_styles::Theme;
 use bevy_footer_bar::FooterBarNode;
 
@@ -139,12 +139,7 @@ pub fn setup(
                             border: UiRect::all(Val::Px(5.0)),
                             ..default()
                         },
-                        BorderRadius::new(
-                            Val::Px(20.0),
-                            Val::Px(20.0),
-                            Val::Px(20.0),
-                            Val::Px(20.0),
-                        ),
+                        BorderRadius::all(Val::Px(20.0)),
                         BorderColor::all(theme.button.background_color.0),
                     ))
                     .with_child((
@@ -198,12 +193,12 @@ pub(crate) fn spawn_project_node<'a>(
          mut commands: Commands,
          query_children: Query<&Children>,
          query_text: Query<&Text>,
-         mut exit: EventWriter<AppExit>,
+         mut exit: MessageWriter<AppExit>,
          mut project_list: ResMut<ProjectInfoList>,
          theme: Res<Theme>| {
             let project = {
                 let text = {
-                    let project_entity = trigger.target();
+                    let project_entity = trigger.event().event_target();
                     let project_children = query_children.get(project_entity).unwrap();
                     let text_container = project_children.get(1).expect(
                         "Expected project node to have 2 children, (the second being a container for the name)"
@@ -238,7 +233,7 @@ pub(crate) fn spawn_project_node<'a>(
                 project_list.0.retain(|p| p.path != project.path);
                 set_project_list(project_list.0.clone());
                 // Remove project node from UI
-                let project_entity = trigger.target();
+                let project_entity = trigger.event().event_target();
                 commands.entity(project_entity).despawn();
                 return;
             }
@@ -263,7 +258,7 @@ pub(crate) fn spawn_project_node<'a>(
                             project_list.0.retain(|p| p.path != project.path);
                             set_project_list(project_list.0.clone());
                             // Remove project node from UI
-                            let project_entity = trigger.target();
+                            let project_entity = trigger.event().event_target();
                             commands.entity(project_entity).despawn();
                         }
                         _ => {

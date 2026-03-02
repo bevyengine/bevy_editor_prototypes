@@ -2,7 +2,7 @@
 //! This is useful to create controlled text widgets with filters on top of this text widget.
 
 use bevy::prelude::*;
-use bevy_text_editing::{child_traversal::FirstChildTraversal, SetText, TextChanged};
+use bevy_text_editing::{SetText, TextChanged, child_traversal::FirstChildTraversal};
 
 /// Plugin for the text event mirror.
 pub struct TextEventMirrorPlugin;
@@ -25,7 +25,7 @@ fn on_text_changed(
     mut commands: Commands,
     q_mirrors: Query<Entity, With<TextEventMirror>>,
 ) {
-    let entity = trigger.target();
+    let entity = trigger.event().event_target();
     let Ok(_) = q_mirrors.get(entity) else {
         return;
     };
@@ -34,5 +34,8 @@ fn on_text_changed(
 
     info!("Text mirrored with value {:?}", trigger.new_text);
 
-    commands.trigger_targets(SetText(trigger.new_text.clone()), entity);
+    commands.trigger(SetText {
+        entity,
+        text: trigger.new_text.clone(),
+    });
 }

@@ -33,8 +33,8 @@ pub use patch::*;
 pub use prefab::*;
 pub use retain::*;
 
-pub use bevy_proto_bsn_macros::pbsn;
 pub use bevy_proto_bsn_macros::Construct;
+pub use bevy_proto_bsn_macros::pbsn;
 
 /// Adds support for BSN assets and reflection-based dynamic scenes.
 pub struct BsnPlugin;
@@ -42,7 +42,6 @@ pub struct BsnPlugin;
 impl Plugin for BsnPlugin {
     fn build(&self, app: &mut App) {
         register_reflect_construct(app);
-        register_construct_impls(app);
         bsn_asset_plugin(app);
         bsn_reflect_plugin(app);
         prefab_plugin(app);

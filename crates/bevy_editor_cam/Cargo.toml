@@ -1,7 +1,7 @@
 [package]
 name = "bevy_editor_cam"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 description = "A camera controller for editors and CAD."
 license = "MIT OR Apache-2.0"
 keywords = ["controller", "camera", "bevy", "CAD"]
@@ -17,7 +17,7 @@ bevy.workspace = true
 bevy_derive.workspace = true
 
 [dev-dependencies]
-bevy = { workspace = true, features = ["jpeg", "ktx2"] }
+bevy = { workspace = true, features = ["jpeg", "ktx2", "zstd_rust"] }
 rand = "0.8"
 
 [lints]

@@ -1,43 +1,44 @@
 use std::borrow::Cow;
 
 use bevy::{
-    asset::{load_internal_asset, weak_handle},
+    asset::{load_internal_asset, uuid_handle},
+    camera::visibility::VisibleEntities,
     core_pipeline::{core_2d::Transparent2d, core_3d::Transparent3d},
     ecs::{
         query::ROQueryItem,
         system::{
-            lifetimeless::{Read, SRes},
             SystemParamItem,
+            lifetimeless::{Read, SRes},
         },
     },
     image::BevyDefault,
     math::FloatOrd,
+    mesh::PrimitiveTopology,
     pbr::MeshPipelineKey,
     prelude::*,
     render::{
-        mesh::PrimitiveTopology,
+        Extract, ExtractSchedule, Render, RenderApp, RenderSystems,
         render_phase::{
             AddRenderCommand, DrawFunctions, PhaseItem, PhaseItemExtraIndex, RenderCommand,
             RenderCommandResult, SetItemPipeline, ViewSortedRenderPhases,
         },
         render_resource::{
-            binding_types::uniform_buffer, BindGroup, BindGroupEntries, BindGroupLayout,
-            BindGroupLayoutEntries, BlendState, ColorTargetState, ColorWrites, CompareFunction,
-            DepthBiasState, DepthStencilState, DynamicUniformBuffer, FragmentState,
-            MultisampleState, PipelineCache, PolygonMode, PrimitiveState, RenderPipelineDescriptor,
-            ShaderStages, ShaderType, SpecializedRenderPipeline, SpecializedRenderPipelines,
-            StencilFaceState, StencilState, TextureFormat, VertexState,
+            BindGroup, BindGroupEntries, BindGroupLayout, BindGroupLayoutEntries, BlendState,
+            ColorTargetState, ColorWrites, CompareFunction, DepthBiasState, DepthStencilState,
+            DynamicUniformBuffer, FragmentState, MultisampleState, PipelineCache, PolygonMode,
+            PrimitiveState, RenderPipelineDescriptor, ShaderStages, ShaderType,
+            SpecializedRenderPipeline, SpecializedRenderPipelines, StencilFaceState, StencilState,
+            TextureFormat, VertexState, binding_types::uniform_buffer,
         },
         renderer::{RenderDevice, RenderQueue},
         sync_world::RenderEntity,
-        view::{ExtractedView, RenderVisibleEntities, ViewTarget, VisibleEntities},
-        Extract, ExtractSchedule, Render, RenderApp, RenderSystems,
+        view::{ExtractedView, RenderVisibleEntities, ViewTarget},
     },
 };
 
 use crate::InfiniteGridSettings;
 
-const GRID_SHADER_HANDLE: Handle<Shader> = weak_handle!("7cd38dd1-d707-481e-b38c-0eccb706e629");
+const GRID_SHADER_HANDLE: Handle<Shader> = uuid_handle!("7cd38dd1-d707-481e-b38c-0eccb706e629");
 
 pub fn render_app_builder(app: &mut App) {
     load_internal_asset!(app, GRID_SHADER_HANDLE, "grid.wgsl", Shader::from_wgsl);
@@ -531,7 +532,7 @@ impl SpecializedRenderPipeline for InfiniteGridPipeline {
             vertex: VertexState {
                 shader: GRID_SHADER_HANDLE,
                 shader_defs: vec![],
-                entry_point: Cow::Borrowed("vertex"),
+                entry_point: Some(Cow::Borrowed("vertex")),
                 buffers: vec![],
             },
             primitive: PrimitiveState {
@@ -567,7 +568,7 @@ impl SpecializedRenderPipeline for InfiniteGridPipeline {
             fragment: Some(FragmentState {
                 shader: GRID_SHADER_HANDLE,
                 shader_defs: vec![],
-                entry_point: Cow::Borrowed("fragment"),
+                entry_point: Some(Cow::Borrowed("fragment")),
                 targets: vec![Some(ColorTargetState {
                     format,
                     blend: Some(BlendState::ALPHA_BLENDING),

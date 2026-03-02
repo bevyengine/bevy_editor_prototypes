@@ -5,12 +5,12 @@
 //!
 //! # Related Documentation
 //!
-//! - [Bevy Events](https://docs.rs/bevy/latest/bevy/ecs/event/index.html) - Core event system used by this inspector
-//! - [Bevy Reflection](https://docs.rs/bevy/latest/bevy/reflect/index.html) - Reflection system for component introspection
+//! - [`bevy::ecs::message`] - Core event system used by this inspector
+//! - [`bevy::reflect`] - Reflection system for component introspection
 //! - [`InspectorEvent`] - Main event enum for inspector state changes
 //! - [`EntityInspectorRows`] - Central data store with change tracking
 
-use bevy::ecs::event::BufferedEvent;
+use bevy::ecs::message::Message;
 use bevy::platform::collections::HashMap;
 use bevy::prelude::*;
 
@@ -20,7 +20,7 @@ use bevy::prelude::*;
 /// Instead of polling or hash-based detection, the inspector emits specific events when
 /// entities or components change, allowing the UI to update only what's necessary.
 ///
-/// For more details on Bevy's event system, see the [Events Guide](https://docs.rs/bevy/latest/bevy/ecs/event/index.html).
+/// For more details on Bevy's event system, see the [Messages Guide](bevy::ecs::message).
 ///
 /// # Design: Single Enum vs Multiple Event Types
 ///
@@ -41,7 +41,7 @@ use bevy::prelude::*;
 ///
 /// These events are typically emitted by data source plugins (like the remote inspection plugin)
 /// and consumed by the main event handler (see [`crate::ui_systems::handle_inspector_events`]) to update the tree UI.
-#[derive(Event, BufferedEvent, Debug, Clone)]
+#[derive(Event, Message, Debug, Clone)]
 pub enum InspectorEvent {
     /// Entity was added to the inspector.
     ///
@@ -97,14 +97,14 @@ pub enum InspectorNodeData {
 /// Contains all the information needed to display an entity in the inspector tree,
 /// including its display name, reflected component data, and change detection hash.
 ///
-/// This structure leverages Bevy's [reflection system](https://docs.rs/bevy/latest/bevy/reflect/index.html)
+/// This structure leverages Bevy's [reflection system](bevy::reflect)
 /// to store component data in a format that can be displayed in the UI without knowing
 /// the specific component types at compile time.
 ///
 /// # Fields
 ///
-/// - `name`: Display name for the entity (extracted from [`Name`](https://docs.rs/bevy/latest/bevy/core/struct.Name.html) component if available)
-/// - `components`: Map of component type names to their reflected data using [`PartialReflect`](https://docs.rs/bevy/latest/bevy/reflect/trait.PartialReflect.html)
+/// - `name`: Display name for the entity (extracted from [`Name`] component if available)
+/// - `components`: Map of component type names to their reflected data using [`PartialReflect`]
 /// - `data_hash`: Optional hash of raw component data for efficient change detection
 ///
 /// # Change Detection
@@ -124,9 +124,9 @@ pub struct EntityInspectorRow {
     /// The reflected components of the entity.
     ///
     /// Maps component type names (in format "`crate::Type`") to their
-    /// reflected data using Bevy's [`PartialReflect`](https://docs.rs/bevy/latest/bevy/reflect/trait.PartialReflect.html) trait.
-    /// Components without [`ReflectDeserialize`](https://docs.rs/bevy/latest/bevy/reflect/serde/trait.ReflectDeserialize.html) support
-    /// are stored as placeholder [`DynamicStruct`](https://docs.rs/bevy/latest/bevy/reflect/struct.DynamicStruct.html) instances.
+    /// reflected data using Bevy's [`PartialReflect`] trait.
+    /// Components without [`ReflectDeserialize`] support
+    /// are stored as placeholder [`DynamicStruct`](bevy::reflect::DynamicStruct) instances.
     pub components: HashMap<String, Box<dyn PartialReflect>>,
 
     /// Hash of the raw component data for change detection.

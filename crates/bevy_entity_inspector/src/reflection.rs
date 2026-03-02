@@ -3,8 +3,8 @@
 //!
 //! # Related Documentation
 //!
-//! - [Bevy Reflection Guide](https://docs.rs/bevy/latest/bevy/reflect/index.html) - Comprehensive reflection system documentation
-//! - [PartialReflect Trait](https://docs.rs/bevy/latest/bevy/reflect/trait.PartialReflect.html) - Core trait for reflectable types
+//! - [Bevy Reflection Guide](bevy::reflect) - Comprehensive reflection system documentation
+//! - [PartialReflect Trait](bevy::prelude::PartialReflect) - Core trait for reflectable types
 //! - [`extract_crate_and_type`] - Utility for parsing component type paths
 //! - [`extract_reflect_fields`] - Main function for extracting displayable field data
 
@@ -65,7 +65,7 @@ pub fn extract_crate_and_type(component_name: &str) -> (String, String) {
 ///
 /// This function traverses the reflected structure and extracts all displayable
 /// field information, handling different reflection types appropriately. It works
-/// with any type implementing [`PartialReflect`](https://docs.rs/bevy/latest/bevy/reflect/trait.PartialReflect.html).
+/// with any type implementing [`PartialReflect`].
 ///
 /// # Arguments
 ///
@@ -77,12 +77,12 @@ pub fn extract_crate_and_type(component_name: &str) -> (String, String) {
 ///
 /// # Supported Types
 ///
-/// - **[Struct](https://docs.rs/bevy/latest/bevy/reflect/trait.Struct.html)**: Named fields with their values
-/// - **[TupleStruct](https://docs.rs/bevy/latest/bevy/reflect/trait.TupleStruct.html)**: Indexed fields (`field_0`, `field_1`, etc.)
-/// - **[Tuple](https://docs.rs/bevy/latest/bevy/reflect/trait.Tuple.html)**: Indexed items (`item_0`, `item_1`, etc.)
-/// - **[List](https://docs.rs/bevy/latest/bevy/reflect/trait.List.html)/[Array](https://docs.rs/bevy/latest/bevy/reflect/trait.Array.html)**: Indexed elements with bracket notation (`\[0\]`, `\[1\]`, etc.)
-/// - **[Map](https://docs.rs/bevy/latest/bevy/reflect/trait.Map.html)**: Key-value pairs
-/// - **[Enum](https://docs.rs/bevy/latest/bevy/reflect/trait.Enum.html)**: Variant name and field data
+/// - **[`Struct`]**: Named fields with their values
+/// - **[`TupleStruct`]**: Indexed fields (`field_0`, `field_1`, etc.)
+/// - **[`Tuple`]**: Indexed items (`item_0`, `item_1`, etc.)
+/// - **[`List`]/[`Array`]**: Indexed elements with bracket notation (`[0]`, `[1]`, etc.)
+/// - **[`Map`]**: Key-value pairs
+/// - **[`Enum`]**: Variant name and field data
 ///
 /// # Examples
 ///

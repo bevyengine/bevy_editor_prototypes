@@ -1,26 +1,28 @@
 //! 3D Viewport for Bevy
 use bevy::{
+    asset::uuid::Uuid,
+    camera::{NormalizedRenderTarget, RenderTarget, visibility::RenderLayers},
+    feathers::theme::ThemedText,
     picking::{
-        pointer::{Location, PointerId, PointerInput, PointerLocation},
         PickingSystems,
+        input::{mouse_pick_events, touch_pick_events},
+        pointer::{Location, PointerId, PointerInput},
     },
     prelude::*,
-    render::{
-        camera::{NormalizedRenderTarget, RenderTarget},
-        render_resource::{Extent3d, TextureFormat, TextureUsages},
-        view::RenderLayers,
-    },
+    render::render_resource::{Extent3d, TextureFormat, TextureUsages},
+    scene2::{CommandsSpawnScene, bsn, on},
     ui::ui_layout_system,
 };
 use bevy_editor_cam::prelude::{DefaultEditorCamPlugins, EditorCam};
 use bevy_editor_styles::Theme;
 use bevy_infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings};
 use bevy_pane_layout::prelude::*;
-use view_gizmo::{spawn_view_gizmo_target_texture, ViewGizmoPlugin};
+use bevy_transform_gizmos::{TransformGizmo, prelude::*};
+use view_gizmo::ViewGizmoPlugin;
 
-use crate::outline_gizmo::OutlineGizmoPlugin;
+use crate::{selection_box::SelectionBoxPlugin, view_gizmo::view_gizmo_node};
 
-mod outline_gizmo;
+mod selection_box;
 mod view_gizmo;
 
 /// The identifier for the 3D Viewport.
@@ -47,15 +49,21 @@ impl Plugin for Viewport3dPanePlugin {
             app.add_plugins(InfiniteGridPlugin);
         }
 
-        app.add_plugins((DefaultEditorCamPlugins, ViewGizmoPlugin, OutlineGizmoPlugin))
+        app.add_plugins((DefaultEditorCamPlugins, ViewGizmoPlugin, SelectionBoxPlugin))
             .add_systems(Startup, setup)
             .add_systems(
-                PreUpdate,
-                render_target_picking_passthrough.in_set(PickingSystems::Last),
+                First,
+                render_target_picking_passthrough
+                    .in_set(PickingSystems::Input)
+                    .after(touch_pick_events)
+                    .after(mouse_pick_events),
             )
             .add_systems(
                 PostUpdate,
-                update_render_target_size.after(ui_layout_system),
+                (
+                    update_render_target_size.after(ui_layout_system),
+                    disable_editor_cam_during_gizmo_interaction,
+                ),
             )
             .add_observer(
                 |trigger: On<Remove, Bevy3dViewport>,
@@ -63,7 +71,7 @@ impl Plugin for Viewport3dPanePlugin {
                  query: Query<&Bevy3dViewport>| {
                     // Despawn the viewport camera
                     commands
-                        .entity(query.get(trigger.target()).unwrap().camera_id)
+                        .entity(query.get(trigger.event().event_target()).unwrap().camera_id)
                         .despawn();
                 },
             );
@@ -72,59 +80,64 @@ impl Plugin for Viewport3dPanePlugin {
     }
 }
 
+/// Temporary. We will need a proper design for mutually exclusive controls.
+fn disable_editor_cam_during_gizmo_interaction(
+    transform_gizmo: Single<Ref<TransformGizmo>>,
+    mut query: Query<&mut EditorCam>,
+) {
+    if !transform_gizmo.is_changed() {
+        return;
+    }
+    let enable = transform_gizmo.interaction().is_none();
+    for mut editor_cam in &mut query {
+        editor_cam.enabled = enable;
+    }
+}
+
+/// A viewport is considered active while the mouse is hovering over it.
 #[derive(Component)]
 struct Active;
 
-// TODO This does not properly handle multiple windows.
-/// Copies picking events and moves pointers through render-targets.
+// FIXME: This system makes a lot of assumptions and is therefore rather fragile. Does not handle multiple windows.
+/// Sends copies of [`PointerInput`] event actions from the mouse pointer to pointers belonging to the viewport panes.
 fn render_target_picking_passthrough(
-    mut commands: Commands,
     viewports: Query<(Entity, &Bevy3dViewport)>,
     content: Query<&PaneContentNode>,
     children_query: Query<&Children>,
     node_query: Query<(&ComputedNode, &UiGlobalTransform, &ImageNode), With<Active>>,
-    mut pointers: Query<(&PointerId, &mut PointerLocation)>,
-    mut pointer_input_reader: EventReader<PointerInput>,
+    mut pointer_input_reader: MessageReader<PointerInput>,
+    // Using commands to output PointerInput events to avoid clashing with the MessageReader
+    mut commands: Commands,
 ) {
     for event in pointer_input_reader.read() {
-        // Ignore the events we send to the render-targets
-        if !matches!(event.location.target, NormalizedRenderTarget::Window(..)) {
+        // Ignore the events sent from this system by only copying events that come directly from the mouse.
+        if event.pointer_id != PointerId::Mouse {
             continue;
         }
         for (pane_root, _viewport) in &viewports {
-            let content_node_id = children_query
+            let Some(content_node_id) = children_query
                 .iter_descendants(pane_root)
                 .find(|e| content.contains(*e))
-                .unwrap();
+            else {
+                continue;
+            };
 
             let image_id = children_query.get(content_node_id).unwrap()[0];
-
             let Ok((computed_node, global_transform, ui_image)) = node_query.get(image_id) else {
                 // Inactive viewport
                 continue;
             };
-            let node_rect =
-                Rect::from_center_size(global_transform.translation, computed_node.size());
+            let node_top_left = global_transform.translation - computed_node.size() / 2.;
+            let position = event.location.position - node_top_left;
+            let target = NormalizedRenderTarget::Image(ui_image.image.clone().into());
 
-            let new_location = Location {
-                position: event.location.position - node_rect.min,
-                target: NormalizedRenderTarget::Image(ui_image.image.clone().into()),
+            let event_copy = PointerInput {
+                action: event.action,
+                location: Location { position, target },
+                pointer_id: pointer_id_from_entity(pane_root),
             };
 
-            // Duplicate the event
-            let mut new_event = event.clone();
-            // Relocate the event to the render-target
-            new_event.location = new_location.clone();
-            // Resend the event
-            commands.send_event(new_event);
-
-            if let Some((_id, mut pointer_location)) = pointers
-                .iter_mut()
-                .find(|(pointer_id, _)| **pointer_id == event.pointer_id)
-            {
-                // Relocate the pointer to the render-target
-                pointer_location.location = Some(new_location);
-            }
+            commands.write_message(event_copy);
         }
     }
 }
@@ -143,6 +156,12 @@ fn setup(mut commands: Commands, theme: Res<Theme>) {
     ));
 }
 
+/// Construct a pointer id from an entity. Used to tie the viewport panel root entity to a pointer id.
+fn pointer_id_from_entity(entity: Entity) -> PointerId {
+    let bits = entity.to_bits();
+    PointerId::Custom(Uuid::from_u64_pair(bits, bits))
+}
+
 fn on_pane_creation(
     structure: In<PaneStructure>,
     mut commands: Commands,
@@ -156,28 +175,34 @@ fn on_pane_creation(
 
     let image_handle = images.add(image);
 
+    // Spawn the cursor associated with this viewport pane.
+    let pointer_id = pointer_id_from_entity(structure.root);
+    commands.spawn((pointer_id, ChildOf(structure.root)));
+
+    // Remove the existing structure
+    commands.entity(structure.area).despawn();
+
+    let image = image_handle.clone();
     commands
-        .spawn((
-            ImageNode::new(image_handle.clone()),
-            Node {
-                position_type: PositionType::Absolute,
-                top: Val::ZERO,
-                bottom: Val::ZERO,
-                left: Val::ZERO,
-                right: Val::ZERO,
-                ..default()
-            },
-            ChildOf(structure.content),
-        ))
-        .with_children(|parent| {
-            spawn_view_gizmo_target_texture(images, parent);
+        .spawn_scene(bsn! {
+            :editor_pane [
+                :editor_pane_header [
+                    (Text("3D Viewport") ThemedText),
+                ],
+                :editor_pane_body [
+                    ImageNode::new(image.clone())
+                    :fit_to_parent
+                    on(|trigger: On<Pointer<Over>>, mut commands: Commands| {
+                        commands.entity(trigger.event().event_target()).insert(Active);
+                    })
+                    on(|trigger: On<Pointer<Out>>, mut commands: Commands| {
+                        commands.entity(trigger.event().event_target()).remove::<Active>();
+                    })
+                    [ :view_gizmo_node ]
+                ],
+            ]
         })
-        .observe(|trigger: On<Pointer<Over>>, mut commands: Commands| {
-            commands.entity(trigger.target()).insert(Active);
-        })
-        .observe(|trigger: On<Pointer<Out>>, mut commands: Commands| {
-            commands.entity(trigger.target()).remove::<Active>();
-        });
+        .insert(ChildOf(structure.root));
 
     let camera_id = commands
         .spawn((
@@ -188,8 +213,10 @@ fn on_pane_creation(
                 ..default()
             },
             EditorCam::default(),
+            GizmoCamera,
             Transform::from_translation(Vec3::ONE * 5.).looking_at(Vec3::ZERO, Vec3::Y),
             RenderLayers::from_layers(&[0, 1]),
+            MeshPickingCamera,
         ))
         .id();
 
@@ -201,18 +228,20 @@ fn on_pane_creation(
 fn update_render_target_size(
     query: Query<(Entity, &Bevy3dViewport)>,
     mut camera_query: Query<&Camera>,
-    content: Query<&PaneContentNode>,
+    bodies: Query<&PaneContentNode>,
     children_query: Query<&Children>,
     computed_node_query: Query<&ComputedNode, Changed<ComputedNode>>,
     mut images: ResMut<Assets<Image>>,
 ) {
     for (pane_root, viewport) in &query {
-        let content_node_id = children_query
+        let Some(pane_body) = children_query
             .iter_descendants(pane_root)
-            .find(|e| content.contains(*e))
-            .unwrap();
+            .find(|e| bodies.contains(*e))
+        else {
+            continue;
+        };
 
-        let Ok(computed_node) = computed_node_query.get(content_node_id) else {
+        let Ok(computed_node) = computed_node_query.get(pane_body) else {
             continue;
         };
         // TODO Convert to physical pixels

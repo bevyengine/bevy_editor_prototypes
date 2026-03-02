@@ -8,10 +8,10 @@
 use std::ops::RangeInclusive;
 
 use bevy::{
+    camera::CameraProjection,
     input::mouse::AccumulatedMouseScroll,
     math::bounding::{Aabb2d, BoundingVolume},
     prelude::*,
-    render::camera::CameraProjection,
     window::PrimaryWindow,
 };
 
@@ -165,7 +165,7 @@ fn camera_zoom(
             continue;
         }
 
-        let Projection::Orthographic(ref mut projection) = projection.as_mut() else {
+        let Projection::Orthographic(projection) = projection.as_mut() else {
             panic!("EditorCamera2d requires an Orthographic projection");
         };
 

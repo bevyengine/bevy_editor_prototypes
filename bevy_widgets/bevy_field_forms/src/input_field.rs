@@ -100,23 +100,38 @@ pub enum ValidationState {
 }
 
 /// Event that is emitted when the validation state changes
-#[derive(Event, EntityEvent)]
-pub struct ValidationChanged(pub ValidationState);
+#[derive(EntityEvent)]
+pub struct ValidationChanged {
+    /// The target entity.
+    pub entity: Entity,
+    /// The new validation state.
+    pub state: ValidationState,
+}
 
 /// Event that is emitted when the value changes
-#[derive(Event, EntityEvent)]
-pub struct ValueChanged<T: Validable>(pub T);
+#[derive(EntityEvent)]
+pub struct ValueChanged<T: Validable> {
+    /// The target entity.
+    pub entity: Entity,
+    /// The value updated.
+    pub value: T,
+}
 
 /// This event is used to set the value of the validated input field.
-#[derive(Event, EntityEvent)]
-pub struct SetValue<T: Validable>(pub T);
+#[derive(EntityEvent)]
+pub struct SetValue<T: Validable> {
+    /// The target entity.
+    pub entity: Entity,
+    /// The value set.
+    pub value: T,
+}
 
 fn on_text_changed<T: Validable>(
     mut trigger: On<TextChanged>,
     mut commands: Commands,
     mut q_validated_input_fields: Query<&mut InputField<T>>,
 ) {
-    let entity = trigger.target();
+    let entity = trigger.event().event_target();
     let Ok(mut field) = q_validated_input_fields.get_mut(entity) else {
         return;
     };
@@ -126,10 +141,19 @@ fn on_text_changed<T: Validable>(
 
     match T::validate(&new_text) {
         Ok(value) => {
-            commands.trigger_targets(ValueChanged(value.clone()), entity);
-            commands.trigger_targets(ValidationChanged(ValidationState::Valid), entity);
+            commands.trigger(ValueChanged {
+                entity,
+                value: value.clone(),
+            });
+            commands.trigger(ValidationChanged {
+                entity,
+                state: ValidationState::Valid,
+            });
             // As editable label is controlled, we need to set the text manually
-            commands.trigger_targets(SetText(new_text), entity);
+            commands.trigger(SetText {
+                entity,
+                text: new_text,
+            });
             // Update the value only if the field is not controlled
             if !field.controlled {
                 // Update the text in the EditableTextLine
@@ -139,8 +163,14 @@ fn on_text_changed<T: Validable>(
         }
         Err(error) => {
             // As editable label is controlled, we need to set the text manually
-            commands.trigger_targets(SetText(new_text), entity);
-            commands.trigger_targets(ValidationChanged(ValidationState::Invalid(error)), entity);
+            commands.trigger(SetText {
+                entity,
+                text: new_text,
+            });
+            commands.trigger(ValidationChanged {
+                entity,
+                state: ValidationState::Invalid(error),
+            });
         }
     }
 }
@@ -156,8 +186,14 @@ fn on_value_changed<T: Validable>(
 
             // We will not trigger ValueChanged because it must be triggered only by input change
             // If value field was changed by external code, we will not trigger it again
-            commands.trigger_targets(SetText(field.value.to_string()), entity);
-            commands.trigger_targets(ValidationChanged(ValidationState::Valid), entity);
+            commands.trigger(SetText {
+                entity,
+                text: field.value.to_string(),
+            });
+            commands.trigger(ValidationChanged {
+                entity,
+                state: ValidationState::Valid,
+            });
         }
     }
 }
@@ -168,8 +204,14 @@ fn on_created<T: Validable>(
 ) {
     for (entity, field) in q_created_inputs.iter() {
         // Set start state
-        commands.trigger_targets(SetText(field.value.to_string()), entity);
-        commands.trigger_targets(ValidationChanged(ValidationState::Valid), entity);
+        commands.trigger(SetText {
+            entity,
+            text: field.value.to_string(),
+        });
+        commands.trigger(ValidationChanged {
+            entity,
+            state: ValidationState::Valid,
+        });
     }
 }
 

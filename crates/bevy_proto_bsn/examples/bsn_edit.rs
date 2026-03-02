@@ -5,7 +5,7 @@
 use bevy::prelude::*;
 use bevy_proto_bsn::*;
 
-#[derive(Resource, Default)]
+#[derive(Resource)]
 struct EditorState {
     bsn: Handle<Bsn>,
 }
@@ -21,7 +21,9 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugins(BsnPlugin)
         .register_type::<Counter>()
-        .init_resource::<EditorState>()
+        .insert_resource(EditorState {
+            bsn: Handle::default(),
+        })
         .add_systems(
             Startup,
             |mut commands: Commands,

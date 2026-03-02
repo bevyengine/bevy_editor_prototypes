@@ -2,14 +2,12 @@ use alloc::borrow::Cow;
 use bevy::{
     ecs::{
         bundle::{BundleFromComponents, DynamicBundle},
-        component::{
-            ComponentId, Components, ComponentsRegistrator, RequiredComponents, StorageType,
-        },
+        component::{ComponentId, Components, ComponentsRegistrator, StorageType},
         system::EntityCommands,
         world::error::EntityMutableFetchError,
     },
     prelude::*,
-    ptr::OwningPtr,
+    ptr::{MovingPtr, OwningPtr, deconstruct_moving_ptr},
 };
 use thiserror::Error;
 use variadics_please::all_tuples;
@@ -132,13 +130,16 @@ impl<'a> ConstructContext<'a> {
 /// Construct extension
 pub trait ConstructEntityCommandsExt {
     /// Construct a bundle using the given props and insert it onto the entity.
-    fn construct<T: Construct + Bundle>(&mut self, props: impl Into<T::Props>) -> EntityCommands
+    fn construct<T: Construct + Bundle>(
+        &mut self,
+        props: impl Into<T::Props>,
+    ) -> EntityCommands<'_>
     where
         <T as Construct>::Props: Send;
 }
 
 impl ConstructEntityCommandsExt for EntityCommands<'_> {
-    fn construct<T: Construct + Bundle>(&mut self, props: impl Into<T::Props>) -> EntityCommands
+    fn construct<T: Construct + Bundle>(&mut self, props: impl Into<T::Props>) -> EntityCommands<'_>
     where
         <T as Construct>::Props: Send,
     {
@@ -195,13 +196,6 @@ unsafe impl<B: Bundle> Bundle for ConstructTuple<B> {
         B::component_ids(components, ids);
     }
 
-    fn register_required_components(
-        components: &mut ComponentsRegistrator,
-        required_components: &mut RequiredComponents,
-    ) {
-        B::register_required_components(components, required_components);
-    }
-
     fn get_component_ids(components: &Components, ids: &mut impl FnMut(Option<ComponentId>)) {
         B::get_component_ids(components, ids);
     }
@@ -226,7 +220,25 @@ unsafe impl<B: BundleFromComponents> BundleFromComponents for ConstructTuple<B> 
 impl<B: Bundle> DynamicBundle for ConstructTuple<B> {
     type Effect = ();
 
-    fn get_components(self, func: &mut impl FnMut(StorageType, OwningPtr<'_>)) {
-        self.0.get_components(func);
+    #[allow(unused_variables, unsafe_code)]
+    #[inline]
+    unsafe fn get_components(
+        ptr: MovingPtr<'_, Self>,
+        func: &mut impl FnMut(StorageType, OwningPtr<'_>),
+    ) {
+        deconstruct_moving_ptr!({
+            let ConstructTuple { 0: field0 } = ptr;
+        });
+
+        // SAFETY: B::get_components has the same constraints as Self::get_components
+        unsafe { <B as DynamicBundle>::get_components(field0, func) };
+    }
+
+    #[allow(unused_variables, unsafe_code)]
+    #[inline]
+    unsafe fn apply_effect(
+        _ptr: MovingPtr<'_, std::mem::MaybeUninit<Self>>,
+        _entity: &mut EntityWorldMut,
+    ) {
     }
 }

@@ -1,8 +1,8 @@
 //! An interactive, collapsible tree view for hierarchical ECS data in Bevy.
 
 use bevy::{app::Plugin, color::palettes::tailwind, prelude::*};
-use bevy_editor_core::SelectedEntity;
-use bevy_i_cant_believe_its_not_bsn::{on, template, Template, TemplateEntityCommandsExt};
+use bevy_editor_core::selection::EditorSelection;
+use bevy_i_cant_believe_its_not_bsn::{Template, TemplateEntityCommandsExt, on, template};
 use bevy_pane_layout::prelude::{PaneAppExt, PaneStructure};
 
 /// Plugin for the editor scene tree pane.
@@ -34,8 +34,8 @@ fn setup_pane(pane: In<PaneStructure>, mut commands: Commands) {
             BackgroundColor(tailwind::NEUTRAL_600.into()),
         ))
         .observe(
-            |mut trigger: On<Pointer<Click>>, mut selected_entity: ResMut<SelectedEntity>| {
-                selected_entity.0 = None;
+            |mut trigger: On<Pointer<Click>>, mut selection: ResMut<EditorSelection>| {
+                selection.clear();
                 trigger.propagate(false);
             },
         );
@@ -44,13 +44,13 @@ fn setup_pane(pane: In<PaneStructure>, mut commands: Commands) {
 fn update_scene_tree(
     scene_trees: Query<Entity, With<SceneTreeRoot>>,
     scene_entities: Query<(Entity, &Name)>,
-    selected_entity: Res<SelectedEntity>,
+    selection: Res<EditorSelection>,
     mut commands: Commands,
 ) {
     for scene_tree in &scene_trees {
         let tree_rows: Template = scene_entities
             .iter()
-            .flat_map(|(entity, name)| scene_tree_row_for_entity(entity, name, &selected_entity))
+            .flat_map(|(entity, name)| scene_tree_row_for_entity(entity, name, &selection, 0))
             .collect();
 
         commands.entity(scene_tree).build_children(tree_rows);
@@ -60,32 +60,54 @@ fn update_scene_tree(
 fn scene_tree_row_for_entity(
     entity: Entity,
     name: &Name,
-    selected_entity: &SelectedEntity,
+    selection: &EditorSelection,
+    level: usize,
 ) -> Template {
-    let set_selected_entity_on_click =
-        move |mut trigger: On<Pointer<Click>>, mut selected_entity: ResMut<SelectedEntity>| {
-            if selected_entity.0 == Some(entity) {
-                selected_entity.0 = None;
-            } else {
-                selected_entity.0 = Some(entity);
+    let selection_handler =
+        move |mut trigger: On<Pointer<Click>>,
+              keyboard_input: Res<ButtonInput<KeyCode>>,
+              mut selection: ResMut<EditorSelection>| {
+            if trigger.button != PointerButton::Primary {
+                return;
             }
+
             trigger.propagate(false);
+            let ctrl = keyboard_input.any_pressed([KeyCode::ControlLeft, KeyCode::ControlRight]);
+            if ctrl {
+                selection.toggle(entity);
+            } else {
+                selection.set(entity);
+            }
         };
+
+    let indentation_px = level * 20;
 
     template! {
         {entity}: (
             Node {
-                padding: UiRect::all(Val::Px(4.0)),
+                padding: UiRect::new(Val::Px(4.0 + indentation_px as f32), Val::Px(4.0), Val::Px(2.0), Val::Px(2.0)),
                 align_items: AlignItems::Center,
-                ..Default::default()
+                flex_direction: FlexDirection::Row,
+                ..default()
             },
             BorderRadius::all(Val::Px(4.0)),
-            BackgroundColor(if selected_entity.0 == Some(entity) { tailwind::NEUTRAL_700.into() } else { Color::NONE }),
+            BackgroundColor(if selection.contains(entity) { tailwind::BLUE_600.into() } else { Color::NONE }),
         ) => [
-            on(set_selected_entity_on_click);
+            on(selection_handler);
+            // Indentation spacer
+            (
+                Node {
+                    width: Val::Px(16.0),
+                    height: Val::Px(16.0),
+                    margin: UiRect::right(Val::Px(4.0)),
+                    ..default()
+                },
+            );
+            // Entity name
             (
                 Text(name.into()),
-                TextFont::from_font_size(11.0),
+                TextFont::from_font_size(12.0),
+                TextColor(if selection.contains(entity) { Color::WHITE } else { tailwind::NEUTRAL_200.into() }),
                 Pickable::IGNORE,
             );
         ];

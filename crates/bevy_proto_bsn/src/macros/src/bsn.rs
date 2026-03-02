@@ -1,9 +1,8 @@
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote, ToTokens};
+use quote::{ToTokens, format_ident, quote};
 use syn::{
-    parse2,
+    Path, parse2,
     punctuated::{Pair, Punctuated},
-    Path,
 };
 
 use bevy_proto_bsn_ast::*;

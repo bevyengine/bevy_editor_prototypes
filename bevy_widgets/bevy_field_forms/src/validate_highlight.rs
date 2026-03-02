@@ -49,12 +49,12 @@ fn on_validation_changed(
     mut commands: Commands,
     mut q_highlights: Query<(&mut SimpleBorderHighlight, &Interaction, &HasFocus)>,
 ) {
-    let entity = trigger.target();
+    let entity = trigger.event().event_target();
     let Ok((mut highlight, interaction, has_focus)) = q_highlights.get_mut(entity) else {
         return;
     };
 
-    match &trigger.0 {
+    match &trigger.state {
         ValidationState::Valid | ValidationState::Unchecked => {
             if has_focus.0 {
                 commands
@@ -77,7 +77,7 @@ fn on_validation_changed(
         }
     }
 
-    highlight.last_validation_state = trigger.0.clone();
+    highlight.last_validation_state = trigger.state.clone();
 }
 
 fn on_focus_changed(
@@ -85,15 +85,15 @@ fn on_focus_changed(
     q_highlights: Query<&SimpleBorderHighlight>,
     mut commands: Commands,
 ) {
-    let entity = trigger.target();
+    let entity = trigger.event().event_target();
     let Ok(highlight) = q_highlights.get(entity) else {
         return;
     };
 
-    commands.trigger_targets(
-        ValidationChanged(highlight.last_validation_state.clone()),
+    commands.trigger(ValidationChanged {
         entity,
-    );
+        state: highlight.last_validation_state.clone(),
+    });
 }
 
 fn on_interaction_changed(
@@ -101,9 +101,9 @@ fn on_interaction_changed(
     q_changed_interaction: Query<(Entity, &SimpleBorderHighlight), Changed<Interaction>>,
 ) {
     for (entity, highlight) in q_changed_interaction.iter() {
-        commands.trigger_targets(
-            ValidationChanged(highlight.last_validation_state.clone()),
+        commands.trigger(ValidationChanged {
             entity,
-        );
+            state: highlight.last_validation_state.clone(),
+        });
     }
 }

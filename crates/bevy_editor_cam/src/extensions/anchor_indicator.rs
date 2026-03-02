@@ -17,7 +17,7 @@ impl Plugin for AnchorIndicatorPlugin {
             PostUpdate,
             draw_anchor
                 .after(TransformSystems::Propagate)
-                .after(bevy::render::camera::CameraUpdateSystems),
+                .after(bevy::camera::CameraUpdateSystems),
         )
         .add_observer(
             |trigger: On<Add, EditorCam>,
@@ -36,25 +36,25 @@ impl Plugin for AnchorIndicatorPlugin {
                             margin: UiRect::all(Val::Px(-12.)),
                             ..default()
                         },
-                        UiTargetCamera(trigger.target()),
+                        UiTargetCamera(trigger.event().event_target()),
                         Pickable::IGNORE,
                     ))
                     .id();
 
-                commands.entity(trigger.target()).insert(AnchorRoot(id));
+                commands
+                    .entity(trigger.event().event_target())
+                    .insert(AnchorRoot(id));
             },
         )
         .add_observer(
             |trigger: On<Remove, AnchorRoot>,
              mut commands: Commands,
              anchor_root_query: Query<&AnchorRoot>| {
-                if let Ok(anchor_root) = anchor_root_query.get(trigger.target()) {
+                if let Ok(anchor_root) = anchor_root_query.get(trigger.event().event_target()) {
                     commands.entity(anchor_root.0).despawn();
                 }
             },
-        )
-        .register_type::<AnchorIndicator>()
-        .register_type::<AnchorRoot>();
+        );
     }
 }
 

@@ -104,7 +104,7 @@ fn move_cube(
     }
 }
 
-fn send_undo_event(mut events: EventWriter<UndoRedo>, inputs: Res<ButtonInput<KeyCode>>) {
+fn send_undo_event(mut events: MessageWriter<UndoRedo>, inputs: Res<ButtonInput<KeyCode>>) {
     if inputs.just_pressed(KeyCode::KeyZ)
         && inputs.pressed(KeyCode::ControlLeft)
         && !inputs.pressed(KeyCode::ShiftLeft)

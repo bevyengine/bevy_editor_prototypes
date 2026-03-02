@@ -5,7 +5,7 @@
 //!
 //! # Related Documentation
 //!
-//! - [Bevy Systems](https://docs.rs/bevy/latest/bevy/ecs/system/index.html) - Core system documentation
+//! - [Bevy Systems](bevy::ecs::system) - Core system documentation
 //! - [`crate::events::InspectorEvent`] - Events processed by these systems
 //! - [`crate::ui::TreeState`] - UI state management
 //! - [`handle_inspector_events`] - Main event processing system
@@ -27,7 +27,7 @@ pub struct InspectorTreeContainer;
 /// The system is designed to minimize unnecessary UI rebuilds by categorizing events
 /// and applying appropriate update strategies.
 ///
-/// For more information on Bevy systems, see the [Systems Guide](https://docs.rs/bevy/latest/bevy/ecs/system/index.html).
+/// For more information on Bevy systems, see the [Systems Guide](bevy::ecs::system).
 ///
 /// # Event Processing
 ///
@@ -44,7 +44,7 @@ pub struct InspectorTreeContainer;
 ///
 /// # System Parameters
 ///
-/// - `events`: [`EventReader`](https://docs.rs/bevy/latest/bevy/ecs/event/struct.EventReader.html) for incoming [`InspectorEvent`]s
+/// - `events`: [`MessageReader`] for incoming [`InspectorEvent`]s
 /// - `inspector_data`: Current entity data for tree reconstruction
 /// - `tree_state`: UI tree state with expansion/selection information
 /// - `tree_container_query`: Query to find tree container entities for UI updates
@@ -52,7 +52,7 @@ pub struct InspectorTreeContainer;
 /// - `tree_config`: Visual configuration for tree rendering
 /// - `commands`: Command buffer for UI entity spawning/despawning
 pub fn handle_inspector_events(
-    mut events: EventReader<InspectorEvent>,
+    mut events: MessageReader<InspectorEvent>,
     inspector_data: Res<EntityInspectorRows>,
     mut tree_state: ResMut<TreeState>,
     tree_container_query: Query<Entity, With<TreeContainer>>,
@@ -379,7 +379,7 @@ pub fn setup_inspector_camera(mut commands: Commands) {
 
 /// System that handles tree node selection and updates the property panel
 pub fn handle_tree_selection(
-    mut selection_events: EventReader<crate::ui::tree::TreeNodeSelected>,
+    mut selection_events: MessageReader<crate::ui::tree::TreeNodeSelected>,
     mut tree_state: ResMut<TreeState>,
     inspector_data: Res<EntityInspectorRows>,
     content_query: Query<Entity, With<crate::ui::property_panel::PropertyPanelContent>>,

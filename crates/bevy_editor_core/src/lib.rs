@@ -1,31 +1,38 @@
 //! This crate provides core functionality for the Bevy Engine Editor.
 
-use bevy::{ecs::entity::Entities, prelude::*};
+pub mod actions;
+pub mod keybinding;
+pub mod selection;
+pub mod utils;
 
-/// Plugin for the editor scene tree pane.
+use bevy::prelude::*;
+
+use crate::{
+    actions::ActionsPlugin, keybinding::KeybindingPlugin, selection::SelectionPlugin,
+    utils::CoreUtilsPlugin,
+};
+
+/// Crate prelude.
+pub mod prelude {
+    pub use crate::{
+        actions::{ActionAppExt, ActionWorldExt},
+        keybinding::{Keybinding, KeybindingAppExt},
+        selection::EditorSelection,
+        utils::IntoBoxedScene,
+    };
+}
+
+/// Core plugin for the editor.
+#[derive(Default)]
 pub struct EditorCorePlugin;
 
 impl Plugin for EditorCorePlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<SelectedEntity>()
-            .register_type::<SelectedEntity>()
-            .add_systems(PostUpdate, reset_selected_entity_if_entity_despawned);
-    }
-}
-
-/// The currently selected entity in the scene.
-#[derive(Resource, Default, Reflect)]
-#[reflect(Resource, Default)]
-pub struct SelectedEntity(pub Option<Entity>);
-
-/// System to reset [`SelectedEntity`] when the entity is despawned.
-pub fn reset_selected_entity_if_entity_despawned(
-    mut selected_entity: ResMut<SelectedEntity>,
-    entities: &Entities,
-) {
-    if let Some(e) = selected_entity.0 {
-        if !entities.contains(e) {
-            selected_entity.0 = None;
-        }
+        app.add_plugins((
+            ActionsPlugin,
+            KeybindingPlugin,
+            SelectionPlugin,
+            CoreUtilsPlugin,
+        ));
     }
 }

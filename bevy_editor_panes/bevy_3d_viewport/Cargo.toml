@@ -1,7 +1,7 @@
 [package]
 name = "bevy_3d_viewport"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 bevy.workspace = true
@@ -10,6 +10,7 @@ bevy_editor_cam.workspace = true
 bevy_editor_styles.workspace = true
 bevy_infinite_grid.workspace = true
 bevy_editor_core.workspace = true
+bevy_transform_gizmos.workspace = true
 
 [lints]
 workspace = true

@@ -87,8 +87,6 @@ mod tests {
     fn basic_test() {
         let mut app = App::new();
 
-        app.register_type::<BasicSettings>();
-
         app.insert_resource(BasicSettings {
             name: "John".to_string(),
             age: 25,
@@ -119,9 +117,6 @@ mod tests {
     #[test]
     fn test_lists() {
         let mut app = App::new();
-
-        app.register_type::<ListTesting>();
-        app.register_type::<ListTestingAppend>();
 
         app.insert_resource(ListTesting {
             list: vec!["one".to_string(), "two".to_string()],
@@ -175,10 +170,6 @@ mod tests {
     fn test_enum() {
         let mut app = App::new();
 
-        app.register_type::<EnumTesting>();
-        app.register_type::<EnumSettings>();
-        app.register_type::<EnumSettingsList>();
-
         app.insert_resource(EnumTesting::One);
         app.insert_resource(EnumSettings {
             test1: EnumTestingField::Unit,
@@ -229,9 +220,6 @@ mod tests {
     #[test]
     fn test_tuple_struct() {
         let mut app = App::new();
-
-        app.register_type::<TupleStruct>();
-        app.register_type::<StructWithTuple>();
 
         app.insert_resource(TupleStruct(1, "one".to_string()));
         app.insert_resource(StructWithTuple {

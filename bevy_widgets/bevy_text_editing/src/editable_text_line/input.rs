@@ -15,7 +15,7 @@ pub fn on_click(
     q_texts: Query<(&ComputedNode, &UiGlobalTransform)>,
     key_states: Res<ButtonInput<KeyCode>>,
 ) {
-    let entity = click.target();
+    let entity = click.event().event_target();
     let Ok((mut text_line, mut inner)) = q_editable_texts.get_mut(entity) else {
         return;
     };
@@ -51,7 +51,7 @@ pub fn on_click(
     text_line.cursor_position = Some(CharPosition(cursor_pos));
     inner.skip_cursor_overflow_check = true;
 
-    commands.trigger_targets(RenderWidget::show_cursor(), entity);
+    commands.trigger(RenderWidget::show_cursor(entity));
 }
 
 pub fn on_key_input(
@@ -67,7 +67,7 @@ pub fn on_key_input(
         return;
     }
 
-    let Ok((entity, mut text_field)) = q_text_fields.get_mut(trigger.target()) else {
+    let Ok((entity, mut text_field)) = q_text_fields.get_mut(trigger.event().event_target()) else {
         return;
     };
 
@@ -88,10 +88,10 @@ pub fn on_key_input(
         // Process modifier key combinations
         match &input.key_code {
             KeyCode::KeyC => {
-                if let Some(selected_text) = text_field.get_selected_text() {
-                    if let Err(e) = clipboard.set_text(selected_text) {
-                        warn!("Clipboard error: {}", e);
-                    }
+                if let Some(selected_text) = text_field.get_selected_text()
+                    && let Err(e) = clipboard.set_text(selected_text)
+                {
+                    warn!("Clipboard error: {}", e);
                 }
             }
             KeyCode::KeyV => match clipboard.get_text() {
@@ -114,10 +114,10 @@ pub fn on_key_input(
                 }
             },
             KeyCode::KeyX => {
-                if let Some(selected_text) = text_field.get_selected_text() {
-                    if let Err(e) = clipboard.set_text(selected_text) {
-                        warn!("Clipboard error: {}", e);
-                    }
+                if let Some(selected_text) = text_field.get_selected_text()
+                    && let Err(e) = clipboard.set_text(selected_text)
+                {
+                    warn!("Clipboard error: {}", e);
                 }
                 if let Some(selected_range) = text_field.selection_range() {
                     text_change = TextChange::remove_change(selected_range);
@@ -137,10 +137,10 @@ pub fn on_key_input(
         // Process regular (non-modifier) key press
         match &input.logical_key {
             Key::Space => {
-                if let Some(allowed_chars) = &text_field.allowed_chars {
-                    if !allowed_chars.contains(&' ') {
-                        return;
-                    }
+                if let Some(allowed_chars) = &text_field.allowed_chars
+                    && !allowed_chars.contains(&' ')
+                {
+                    return;
                 }
 
                 if let Some((start, end)) = text_field.selection_range() {
@@ -230,21 +230,19 @@ pub fn on_key_input(
     let old_cursor_position = text_field.cursor_position;
     // cursor position changed hided in if to pervert infinite change triggering
     text_field.cursor_position = Some(current_cursor);
-    commands.trigger_targets(RenderWidget::show_cursor(), entity);
+    commands.trigger(RenderWidget::show_cursor(entity));
 
     if text_field.text != text_change.new_text {
         // Send the text change event with the new text
         let mut new_text = text_field.text.clone();
         text_change.apply(&mut new_text);
-        commands.trigger_targets(
-            TextChanged {
-                change: text_change.clone(),
-                new_text,
-                old_cursor_position,
-                new_cursor_position: Some(current_cursor),
-            },
+        commands.trigger(TextChanged {
             entity,
-        );
+            change: text_change.clone(),
+            new_text,
+            old_cursor_position,
+            new_cursor_position: Some(current_cursor),
+        });
 
         // If the text field is not controlled, apply the text change to the text field
         if !text_field.controlled_widget {
@@ -269,11 +267,11 @@ pub fn update_has_focus(
                 // Gained focus
                 commands.entity(entity).insert(HasFocus(true));
 
-                if let Ok(mut text_field) = q_editable_texts.get_mut(entity) {
-                    if text_field.cursor_position.is_none() {
-                        text_field.cursor_position = Some(CharPosition(0));
-                        commands.trigger_targets(RenderWidget::show_cursor(), entity);
-                    }
+                if let Ok(mut text_field) = q_editable_texts.get_mut(entity)
+                    && text_field.cursor_position.is_none()
+                {
+                    text_field.cursor_position = Some(CharPosition(0));
+                    commands.trigger(RenderWidget::show_cursor(entity));
                 }
             }
         } else if has_focus.0 {
@@ -285,7 +283,7 @@ pub fn update_has_focus(
                 text_field.cursor_position = None;
                 text_field.selection_start = None;
 
-                commands.trigger_targets(RenderWidget::default(), entity);
+                commands.trigger(RenderWidget::hide_cursor(entity));
             }
         }
     }
@@ -296,11 +294,11 @@ pub fn on_set_cursor_position(
     mut commands: Commands,
     mut q_editable_texts: Query<&mut EditableTextLine>,
 ) {
-    let entity = trigger.target();
+    let entity = trigger.event().event_target();
     let Ok(mut text_field) = q_editable_texts.get_mut(entity) else {
         return;
     };
 
-    text_field.cursor_position = Some(trigger.0);
-    commands.trigger_targets(RenderWidget::show_cursor(), entity);
+    text_field.cursor_position = Some(trigger.position);
+    commands.trigger(RenderWidget::show_cursor(entity));
 }

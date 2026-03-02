@@ -26,7 +26,7 @@ fn on_secondary_button_down_entity_with_context_menu(
         return;
     }
 
-    let target = trigger.target();
+    let target = trigger.event().event_target();
     let Ok(menu) = query.get(target) else {
         return;
     };
@@ -46,7 +46,7 @@ fn on_secondary_button_down_entity_with_context_menu(
             ZIndex(10),
         ))
         .observe(|trigger: On<Pointer<Press>>, mut commands: Commands| {
-            commands.entity(trigger.target()).despawn();
+            commands.entity(trigger.event().event_target()).despawn();
         })
         .id();
 

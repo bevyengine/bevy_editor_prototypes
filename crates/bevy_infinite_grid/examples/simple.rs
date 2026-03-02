@@ -84,7 +84,7 @@ mod camera_controller {
 
     fn camera_controller(
         time: Res<Time>,
-        mut mouse_events: EventReader<MouseMotion>,
+        mut mouse_events: MessageReader<MouseMotion>,
         mouse_button_input: Res<ButtonInput<MouseButton>>,
         key_input: Res<ButtonInput<KeyCode>>,
         mut query: Query<(&mut Transform, &mut CameraController), With<Camera>>,

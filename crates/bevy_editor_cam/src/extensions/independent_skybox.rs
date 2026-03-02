@@ -7,14 +7,12 @@
 
 use bevy::app::prelude::*;
 use bevy::asset::Handle;
-use bevy::core_pipeline::{prelude::*, Skybox};
+use bevy::camera::{prelude::*, visibility::RenderLayers};
+use bevy::core_pipeline::Skybox;
 use bevy::ecs::prelude::*;
 use bevy::image::Image;
 use bevy::reflect::prelude::*;
-use bevy::render::{
-    prelude::*,
-    view::{Hdr, RenderLayers},
-};
+use bevy::render::view::Hdr;
 use bevy::transform::prelude::*;
 
 /// See the [module](self) docs.
@@ -31,8 +29,7 @@ impl Plugin for IndependentSkyboxPlugin {
                 IndependentSkyboxCamera::update,
             )
                 .chain(),
-        )
-        .register_type::<IndependentSkybox>();
+        );
     }
 }
 
@@ -68,7 +65,7 @@ impl IndependentSkybox {
 impl Default for IndependentSkybox {
     fn default() -> Self {
         Self {
-            skybox: Default::default(),
+            skybox: Handle::default(),
             brightness: 500.0,
             skybox_cam_order_offset: -1_000,
             fov: Default::default(),

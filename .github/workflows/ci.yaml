@@ -10,7 +10,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  RUSTFLAGS: --deny warnings
+  RUSTFLAGS: --deny warnings -C debuginfo=line-tables-only
   RUSTDOCFLAGS: --deny warnings
   # This can be any valid Cargo version requirement, but should start with a caret `^` to opt-in to
   # SemVer-compatible changes. Please keep this in sync with `book.yaml`.
@@ -30,7 +30,33 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install dependencies
-        run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
+
+          # Uninstall unneeded tools
+          # .NET
+          sudo rm -rf /usr/share/dotnet || true
+          sudo apt-get remove -y '^aspnetcore-.*' || true
+          sudo apt-get remove -y '^dotnet-.*' --fix-missing || true
+          # Haskell
+          sudo rm -rf /opt/ghc || true
+          sudo rm -rf /usr/local/.ghcup || true
+          # Android
+          sudo rm -rf /usr/local/lib/android || true
+          # PHP
+          sudo apt-get remove -y 'php.*' --fix-missing || true
+          # Database
+          sudo apt-get remove -y '^mongodb-.*' --fix-missing || true
+          sudo apt-get remove -y '^mysql-.*' --fix-missing || true
+          # Cloud
+          sudo apt-get remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri --fix-missing || true
+          sudo apt-get remove -y google-cloud-sdk --fix-missing || true
+          sudo apt-get remove -y google-cloud-cli --fix-missing || true
+
+          # Clean up unused packages
+          sudo apt-get autoremove -y
+          sudo apt-get clean
 
       - name: Populate target directory from cache
         uses: Leafwing-Studios/cargo-cache@v2

@@ -1,7 +1,7 @@
-use bevy_macro_utils::{fq_std::*, BevyManifest};
+use bevy_macro_utils::{BevyManifest, fq_std::*};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use syn::{parse2, Data, DeriveInput, Fields, Index, Path};
+use syn::{Data, DeriveInput, Fields, Index, Path, parse2};
 
 pub fn derive_construct(item: TokenStream) -> TokenStream {
     match parse2::<DeriveInput>(item) {

@@ -156,7 +156,7 @@ pub(crate) fn check_cursor_overflow(
                     - text_field_node.size().x / 2.0
                     + padding;
                 canvas_node.left = Val::Px(-inner.text_shift);
-                commands.trigger_targets(RenderWidget::default(), entity);
+                commands.trigger(RenderWidget::hide_cursor(entity));
             } else if (cursor_transform.translation.x - text_field_transform.translation.x)
                 < -text_field_node.size().x / 2.0 + padding
             {
@@ -165,13 +165,13 @@ pub(crate) fn check_cursor_overflow(
                     + text_field_node.size().x / 2.0
                     - padding;
                 canvas_node.left = Val::Px(-inner.text_shift);
-                commands.trigger_targets(RenderWidget::default(), entity);
+                commands.trigger(RenderWidget::hide_cursor(entity));
             }
         } else if inner.text_shift != 0.0 {
             info!("Reset shift {:?}", entity);
             inner.text_shift = 0.0;
             canvas_node.left = Val::Px(0.0);
-            commands.trigger_targets(RenderWidget::default(), entity);
+            commands.trigger(RenderWidget::hide_cursor(entity));
         }
     }
 }

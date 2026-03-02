@@ -71,19 +71,19 @@ fn menu_setup(
 
     let mut hover_over_observer = Observer::new(
         |trigger: On<Pointer<Over>>, theme: Res<Theme>, mut query: Query<&mut BackgroundColor>| {
-            query.get_mut(trigger.target()).unwrap().0 = theme.button.hover_color;
+            query.get_mut(trigger.event().event_target()).unwrap().0 = theme.button.hover_color;
         },
     );
     let mut hover_out_observer = Observer::new(
         |trigger: On<Pointer<Out>>, theme: Res<Theme>, mut query: Query<&mut BackgroundColor>| {
-            query.get_mut(trigger.target()).unwrap().0 = theme.menu.background_color;
+            query.get_mut(trigger.event().event_target()).unwrap().0 = theme.menu.background_color;
         },
     );
 
     let mut click_observer = Observer::new(
         |trigger: On<Pointer<Press>>, mut query: Query<&TopBarItem>| {
             #[allow(clippy::match_same_arms)]
-            match query.get_mut(trigger.target()).unwrap() {
+            match query.get_mut(trigger.event().event_target()).unwrap() {
                 TopBarItem::Logo => {
                     // TODO: Implement logo click action
                 }

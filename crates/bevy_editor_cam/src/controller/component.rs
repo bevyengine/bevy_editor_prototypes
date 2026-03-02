@@ -5,12 +5,12 @@ use std::{
     time::Duration,
 };
 
+use bevy::camera::prelude::*;
 use bevy::ecs::prelude::*;
 use bevy::log::prelude::*;
-use bevy::math::{prelude::*, DMat4, DQuat, DVec2, DVec3};
+use bevy::math::{DMat4, DQuat, DVec2, DVec3, prelude::*};
 use bevy::platform::time::Instant;
 use bevy::reflect::prelude::*;
-use bevy::render::prelude::*;
 use bevy::time::prelude::*;
 use bevy::transform::prelude::*;
 use bevy::window::RequestRedraw;
@@ -47,6 +47,8 @@ use super::{
 /// 3. When the motion should end, call  [`EditorCam::end_move`].
 #[derive(Debug, Clone, Reflect, Component)]
 pub struct EditorCam {
+    /// Controls whether any motions are allowed. The ongoing motion will be canceled if set to `false`.
+    pub enabled: bool,
     /// What input motions are currently allowed?
     pub enabled_motion: EnabledMotion,
     /// The type of camera orbit to use.
@@ -83,6 +85,7 @@ pub struct EditorCam {
 impl Default for EditorCam {
     fn default() -> Self {
         EditorCam {
+            enabled: true,
             orbit_constraint: Default::default(),
             zoom_limits: Default::default(),
             smoothing: Default::default(),
@@ -248,11 +251,11 @@ impl EditorCam {
         {
             match motion_inputs {
                 MotionInputs::OrbitZoom {
-                    screenspace_inputs: ref mut movement,
+                    screenspace_inputs: movement,
                     ..
                 } => movement.process_input(screenspace_input, self.smoothing.orbit),
                 MotionInputs::PanZoom {
-                    screenspace_inputs: ref mut movement,
+                    screenspace_inputs: movement,
                     ..
                 } => movement.process_input(screenspace_input, self.smoothing.pan),
                 MotionInputs::Zoom { .. } => (), // When in zoom-only, we ignore pan and zoom
@@ -300,7 +303,7 @@ impl EditorCam {
     /// Called once every frame to compute motions and update the transforms of all [`EditorCam`]s
     pub fn update_camera_positions(
         mut cameras: Query<(&mut EditorCam, &Camera, &mut Transform, &mut Projection)>,
-        mut event: EventWriter<RequestRedraw>,
+        mut event: MessageWriter<RequestRedraw>,
         time: Res<Time>,
     ) {
         for (mut camera_controller, camera, ref mut transform, ref mut projection) in
@@ -318,14 +321,12 @@ impl EditorCam {
         camera: &Camera,
         cam_transform: &mut Transform,
         projection: &mut Projection,
-        redraw: &mut EventWriter<RequestRedraw>,
+        redraw: &mut MessageWriter<RequestRedraw>,
         delta_time: Duration,
     ) {
         let (anchor, orbit, pan, zoom) = match &mut self.current_motion {
             CurrentMotion::Stationary => return,
-            CurrentMotion::Momentum {
-                ref mut velocity, ..
-            } => {
+            CurrentMotion::Momentum { velocity, .. } => {
                 velocity.decay(self.momentum, delta_time);
                 match velocity {
                     Velocity::None => {
@@ -440,7 +441,7 @@ impl EditorCam {
                 // Scale this with the perspective FOV, so zoom speed feels the same regardless.
                 anchor.normalize() * zoom_amount / perspective.fov as f64
             }
-            Projection::Orthographic(ref mut ortho) => {
+            Projection::Orthographic(ortho) => {
                 // Constants are hand tuned to feel equivalent between perspective and ortho. Might
                 // be a better way to do this correctly, if it matters.
                 ortho.scale *= 1.0 - zoom_bounded as f32 * 0.0015;

@@ -2,8 +2,8 @@ use bevy::prelude::*;
 use bevy_editor_styles::Theme;
 
 use crate::{
-    ui::{spawn_divider, spawn_pane, spawn_resize_handle},
     Divider, PaneRootNode, RootPaneLayoutNode, Size,
+    ui::{spawn_divider, spawn_pane, spawn_resize_handle},
 };
 
 pub(crate) fn remove_pane(

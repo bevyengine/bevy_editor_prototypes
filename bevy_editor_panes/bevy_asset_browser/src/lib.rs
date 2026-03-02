@@ -1,13 +1,12 @@
 //! A UI element for browsing assets in the Bevy Editor.
 /// The intent of this system is to provide a simple and frictionless way to browse assets in the Bevy Editor.
 /// The asset browser is a replica of the your asset directory on disk and get's automatically updated when the directory is modified.
-use std::path::PathBuf;
+use std::{cmp::Ordering, path::PathBuf};
 
 use bevy::{
     asset::{
-        embedded_asset,
-        io::{file::FileAssetReader, AssetSourceId},
-        AssetPlugin,
+        AssetPlugin, embedded_asset,
+        io::{AssetSourceId, file::FileAssetReader},
     },
     prelude::*,
 };
@@ -48,6 +47,8 @@ impl Plugin for AssetBrowserPanePlugin {
             .insert_resource(DefaultSourceFilePath(default_source_absolute_file_path))
             .insert_resource(AssetBrowserLocation::default())
             .insert_resource(DirectoryContent::default())
+            .insert_resource(DirectoryContentOrder::ReverseAlphabetical)
+            // .init_resource::<DirectoryContentOrder>()
             .add_systems(Startup, io::task::fetch_directory_content)
             // .add_systems(Update, button_interaction)
             .add_systems(
@@ -68,6 +69,47 @@ impl Plugin for AssetBrowserPanePlugin {
                 )
                     .run_if(location_as_changed),
             );
+    }
+}
+
+fn alphabetical_sort(left: &Entry, right: &Entry) -> Ordering {
+    match (left, right) {
+        (Entry::Folder(left_name), Entry::Folder(right_name))
+        | (Entry::File(left_name), Entry::File(right_name)) => left_name.cmp(right_name),
+        (Entry::File(_), Entry::Folder(_)) => Ordering::Greater,
+        (Entry::Folder(_), Entry::File(_)) => Ordering::Less,
+        // TODO: Figure out whether or not ignoring the order of asset sources is a good idea.
+        _ => Ordering::Equal,
+    }
+}
+
+fn reverse_alphabetical_sort(left: &Entry, right: &Entry) -> Ordering {
+    match (left, right) {
+        (Entry::Folder(left_name), Entry::Folder(right_name))
+        | (Entry::File(left_name), Entry::File(right_name)) => left_name.cmp(right_name).reverse(),
+        (Entry::File(_), Entry::Folder(_)) => Ordering::Greater,
+        (Entry::Folder(_), Entry::File(_)) => Ordering::Less,
+        // TODO: Figure out whether or not ignoring the order of asset sources is a good idea.
+        _ => Ordering::Equal,
+    }
+}
+
+/// How [`DirectoryContent`] should be ordered
+#[derive(Resource, Default, Debug, Clone, PartialEq, Eq)]
+pub enum DirectoryContentOrder {
+    /// Ordered alphabetically with respect to folders
+    #[default]
+    Alphabetical,
+    /// Ordered reverse alphabetically with respect to folders
+    ReverseAlphabetical,
+}
+impl DirectoryContentOrder {
+    /// Sorts a given [`DirectoryContent`] with the current method
+    pub fn sort(&self, content: &mut DirectoryContent) {
+        match self {
+            Self::Alphabetical => content.0.sort_by(alphabetical_sort),
+            Self::ReverseAlphabetical => content.0.sort_by(reverse_alphabetical_sort),
+        }
     }
 }
 

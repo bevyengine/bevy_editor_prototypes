@@ -73,7 +73,7 @@ fn on_drag<T: Draggable>(
     mut commands: Commands,
     mut q_drag_inputs: Query<(&mut DragInput<T>, &mut InputField<T>)>,
 ) {
-    let entity = trigger.target();
+    let entity = trigger.event().event_target();
 
     let Ok((mut drag_input, mut input_field)) = q_drag_inputs.get_mut(entity) else {
         return;
@@ -94,7 +94,10 @@ fn on_drag<T: Draggable>(
             drag_input.drag_accumulate += accumulated_decrease;
         }
 
-        commands.trigger_targets(ValueChanged(new_val), entity);
+        commands.trigger(ValueChanged {
+            entity,
+            value: new_val,
+        });
         if !input_field.controlled {
             input_field.value = new_val;
         }

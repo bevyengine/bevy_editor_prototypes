@@ -1,8 +1,8 @@
-use crate::{AssetBrowserLocation, DirectoryContent, Entry};
+use crate::{AssetBrowserLocation, DirectoryContent, DirectoryContentOrder, Entry};
 use bevy::{
     asset::io::AssetSourceBuilders,
     prelude::*,
-    tasks::{block_on, futures_lite::StreamExt, poll_once, IoTaskPool, Task},
+    tasks::{IoTaskPool, Task, block_on, futures_lite::StreamExt, poll_once},
 };
 
 #[derive(Component)]
@@ -20,9 +20,12 @@ pub(crate) fn fetch_task_is_running(
 pub(crate) fn poll_task(
     mut commands: Commands,
     mut task_query: Query<(Entity, &mut FetchDirectoryContentTask)>,
+    content_order: Res<DirectoryContentOrder>,
 ) {
     let (task_entity, mut task) = task_query.single_mut().unwrap();
-    if let Some(content) = block_on(poll_once(&mut task.0)) {
+    if let Some(mut content) = block_on(poll_once(&mut task.0)) {
+        content_order.sort(&mut content);
+
         commands.entity(task_entity).despawn();
         commands.insert_resource(content);
     }

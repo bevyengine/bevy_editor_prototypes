@@ -4,14 +4,15 @@
 
 use bevy::{
     asset::RenderAssetUsages,
-    ecs::relationship::RelatedSpawnerCommands,
+    camera::visibility::RenderLayers,
+    ecs::template::template,
     prelude::*,
-    render::{
-        render_resource::{Extent3d, Face, TextureDimension, TextureFormat, TextureUsages},
-        view::RenderLayers,
-    },
+    render::render_resource::{Extent3d, Face, TextureDimension, TextureFormat, TextureUsages},
+    scene2::{Scene, bsn},
 };
 use bevy_editor_cam::prelude::EditorCam;
+use bevy_editor_styles::Theme;
+use bevy_pane_layout::components::fit_to_parent;
 
 // That value was picked arbitrarily
 pub const VIEW_GIZMO_TEXTURE_SIZE: u32 = 125;
@@ -34,10 +35,18 @@ pub struct ViewGizmoCamera;
 #[derive(Component)]
 pub struct ViewGizmoCameraTarget(pub Handle<Image>);
 
-pub fn spawn_view_gizmo_target_texture(
-    mut images: ResMut<'_, Assets<Image>>,
-    parent: &mut RelatedSpawnerCommands<ChildOf>,
-) {
+pub fn view_gizmo_node() -> impl Scene {
+    bsn! {
+        :fit_to_parent
+        Node {
+            width: Val::Px({VIEW_GIZMO_TEXTURE_SIZE as f32}),
+            height: Val::Px({VIEW_GIZMO_TEXTURE_SIZE as f32}),
+        }
+        template(|c| view_gizmo_template(c.entity))
+    }
+}
+
+fn view_gizmo_template(entity: &mut EntityWorldMut) -> Result<()> {
     let size = Extent3d {
         width: VIEW_GIZMO_TEXTURE_SIZE,
         height: VIEW_GIZMO_TEXTURE_SIZE,
@@ -54,24 +63,14 @@ pub fn spawn_view_gizmo_target_texture(
     target_texture.texture_descriptor.usage =
         TextureUsages::TEXTURE_BINDING | TextureUsages::COPY_DST | TextureUsages::RENDER_ATTACHMENT;
 
-    let image = images.add(target_texture);
+    let image = entity.resource_mut::<Assets<Image>>().add(target_texture);
 
-    // TODO don't hardcode it to top left
-    // TODO send input events to the image target
-    parent.spawn((
-        ImageNode::new(image.clone()),
-        Node {
-            position_type: PositionType::Absolute,
-            top: Val::ZERO,
-            bottom: Val::ZERO,
-            left: Val::ZERO,
-            right: Val::ZERO,
-            width: Val::Px(VIEW_GIZMO_TEXTURE_SIZE as f32),
-            height: Val::Px(VIEW_GIZMO_TEXTURE_SIZE as f32),
-            ..default()
-        },
+    entity.insert((
         ViewGizmoCameraTarget(image.clone()),
+        ImageNode::new(image.clone()),
     ));
+
+    Ok(())
 }
 
 fn setup_view_gizmo(
@@ -79,18 +78,18 @@ fn setup_view_gizmo(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut gizmo_assets: ResMut<Assets<GizmoAsset>>,
+    theme: Res<Theme>,
 ) {
     info!("Spawning View Gizmo");
     let view_gizmo_pass_layer = RenderLayers::layer(VIEW_GIZMO_LAYER);
     let sphere = meshes.add(Sphere::new(0.2).mesh().uv(32, 18));
 
-    for axis in [
-        Vec3::new(1.0, 0.0, 0.0),
-        Vec3::new(0.0, 1.0, 0.0),
-        Vec3::new(0.0, 0.0, 1.0),
+    for (axis, color) in [
+        (Vec3::X, theme.viewport.x_axis_color),
+        (Vec3::Y, theme.viewport.y_axis_color),
+        (Vec3::Z, theme.viewport.z_axis_color),
     ] {
         let mut gizmo = GizmoAsset::new();
-        let color = LinearRgba::from_vec3(axis);
         gizmo.line(Vec3::ZERO, axis, color);
         commands.spawn((
             Gizmo {
@@ -108,7 +107,7 @@ fn setup_view_gizmo(
         commands.spawn((
             Mesh3d(sphere.clone()),
             MeshMaterial3d(materials.add(StandardMaterial {
-                base_color: color.into(),
+                base_color: color,
                 unlit: true,
                 ..Default::default()
             })),

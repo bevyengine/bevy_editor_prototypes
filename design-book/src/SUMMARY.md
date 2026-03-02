@@ -11,3 +11,4 @@
     - [Best Practices](./best-practices.md)
     - [Writing Style](./writing-style.md)
     - [Pane Layout](./pane-layout.md)
+    - [Themes and Styles](./styles.md)

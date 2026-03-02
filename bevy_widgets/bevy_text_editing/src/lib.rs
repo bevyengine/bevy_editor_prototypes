@@ -20,17 +20,21 @@ pub const TEXT_SELECTION_COLOR: Color = Color::srgb(0.0 / 255.0, 122.0 / 255.0, 
 
 /// An event used to set the text of an editable text widget.
 /// Will be propagated to the first child of the entity it's sent to.
-#[derive(Clone, Component, Event)]
-pub struct SetText(pub String);
-
-impl EntityEvent for SetText {
-    type Traversal = &'static CachedFirstChild;
-    const AUTO_PROPAGATE: bool = true;
+#[derive(Clone, Component, EntityEvent)]
+#[entity_event(propagate = &'static CachedFirstChild)]
+pub struct SetText {
+    /// The first entity child to propagate to
+    pub entity: Entity,
+    /// The text to set
+    pub text: String,
 }
 
 /// Event emitted when the text in an editable text component changes
-#[derive(Clone, Component, Event)]
+#[derive(Clone, Component, EntityEvent)]
+#[entity_event(propagate, auto_propagate)]
 pub struct TextChanged {
+    /// The entity to propagate to
+    pub entity: Entity,
     /// The specific change that occurred to the text
     pub change: TextChange,
     /// The new text content after the change (can be not valid if editable text widget shows different from source-of-truth text)
@@ -41,20 +45,15 @@ pub struct TextChanged {
     pub new_cursor_position: Option<CharPosition>,
 }
 
-impl EntityEvent for TextChanged {
-    type Traversal = &'static ChildOf;
-
-    const AUTO_PROPAGATE: bool = true;
-}
-
 /// An event used to set the cursor position of an editable text widget.
 /// Will be propagated to the first child of the entity it's sent to.
-#[derive(Clone, Event, Component)]
-pub struct SetCursorPosition(pub CharPosition);
-
-impl EntityEvent for SetCursorPosition {
-    type Traversal = &'static CachedFirstChild;
-    const AUTO_PROPAGATE: bool = true;
+#[derive(Clone, Component, EntityEvent)]
+#[entity_event(propagate = &'static CachedFirstChild)]
+pub struct SetCursorPosition {
+    /// The first entity child to propagate to
+    pub entity: Entity,
+    /// The cursor position to set
+    pub position: CharPosition,
 }
 
 /// A component holding a boolean for whether an entity has focus.

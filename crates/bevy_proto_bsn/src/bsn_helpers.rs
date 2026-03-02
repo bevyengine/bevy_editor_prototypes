@@ -13,11 +13,6 @@ use bevy::{
 
 use crate::{Construct, ConstructEntity, ConstructProp, EntityPath};
 
-/// Shorthand for [`Val::Px`].
-pub fn px(value: impl Into<f32>) -> Val {
-    Val::Px(value.into())
-}
-
 /// Shorthand for [`UiRect::all`] + [`Val::Px`].
 pub fn px_all(value: impl Into<f32>) -> UiRect {
     UiRect::all(Val::Px(value.into()))

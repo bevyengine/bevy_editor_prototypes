@@ -11,12 +11,6 @@ use bevy::{
 
 use crate::*;
 
-pub(crate) fn register_construct_impls(app: &mut App) {
-    app.register_type::<ConstructEntity>();
-    app.register_type::<ConstructTextFont>();
-    app.register_type::<ConstructTextFontProps>();
-}
-
 /// Constructable asset handle (because [`Handle<T>`] implements Default in Bevy right now)
 #[derive(Deref, DerefMut, Clone, Reflect, Debug)]
 #[reflect(Construct)]

@@ -11,25 +11,38 @@
 //!   which transforms the user's application into an editor that runs their game.
 //! - Finally, it will be a standalone application that communicates with a running Bevy game via the Bevy Remote Protocol.
 
+use std::f32::consts::TAU;
+use std::time::Duration;
+
 use std::env;
 
 use bevy::app::App as BevyApp;
+use bevy::asset::UnapprovedPathMode;
 use bevy::color::palettes::tailwind;
 use bevy::math::ops::cos;
 use bevy::prelude::*;
+use bevy::{
+    feathers::{FeathersPlugin, dark_theme::create_dark_theme, theme::UiTheme},
+    input_focus::{InputDispatchPlugin, tab_navigation::TabNavigationPlugin},
+    ui_widgets::UiWidgetsPlugins,
+};
 // Re-export Bevy for project use
 pub use bevy;
 
+use bevy::winit::{UpdateMode, WinitSettings};
 use bevy_context_menu::ContextMenuPlugin;
 use bevy_editor_core::EditorCorePlugin;
+use bevy_editor_core::selection::Selectable;
 use bevy_editor_styles::StylesPlugin;
+use bevy_toolbar::ActiveTool;
+use bevy_transform_gizmos::{GizmoTransformable, TransformGizmoPlugin};
 
 // Panes
 use bevy_2d_viewport::Viewport2dPanePlugin;
 use bevy_3d_viewport::Viewport3dPanePlugin;
 use bevy_asset_browser::AssetBrowserPanePlugin;
-use bevy_remote::http::RemoteHttpPlugin;
 use bevy_remote::RemotePlugin;
+use bevy_remote::http::RemoteHttpPlugin;
 
 use crate::load_gltf::LoadGltfPlugin;
 
@@ -42,7 +55,10 @@ pub struct RuntimePlugin;
 
 impl Plugin for RuntimePlugin {
     fn build(&self, bevy_app: &mut BevyApp) {
-        bevy_app.add_plugins(DefaultPlugins);
+        bevy_app.add_plugins(DefaultPlugins.set(AssetPlugin {
+            unapproved_path_mode: UnapprovedPathMode::Deny,
+            ..default()
+        }));
     }
 }
 
@@ -67,7 +83,19 @@ impl Plugin for EditorPlugin {
                 ui::EditorUIPlugin,
                 LoadGltfPlugin,
                 AssetBrowserPanePlugin,
+                MeshPickingPlugin,
+                TransformGizmoPlugin,
+                UiWidgetsPlugins,
+                InputDispatchPlugin,
+                TabNavigationPlugin,
+                FeathersPlugin,
             ))
+            .insert_resource(WinitSettings {
+                focused_mode: UpdateMode::reactive(Duration::from_secs_f64(1.0 / 60.0)),
+                unfocused_mode: UpdateMode::reactive_low_power(Duration::from_secs(1)),
+            })
+            .insert_resource(UiTheme(create_dark_theme()))
+            .init_resource::<ActiveTool>()
             .add_systems(Startup, setup)
             .add_systems(Update, move_cube)
             .register_type::<Cube>()
@@ -126,62 +154,49 @@ struct MoveSpeed {
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut materials_3d: ResMut<Assets<StandardMaterial>>,
 ) {
-    // unnamed object
     commands.spawn((
-        Name::new("MyObject1"),
-        MyObject {
-            vec3: Vec3::new(1.0, 2.0, 3.0),
-            color: Color::from(tailwind::BLUE_500),
-        },
+        Mesh3d(meshes.add(Plane3d::new(Vec3::Y, Vec2::splat(2.5)))),
+        MeshMaterial3d(materials_3d.add(Color::WHITE)),
+        Name::new("Plane"),
+        Selectable,
+        GizmoTransformable,
     ));
 
-    // cube
-    let cube_handle = meshes.add(Cuboid::new(1.0, 1.0, 1.0));
+    let cube_handle = meshes.add(Cuboid::from_size(Vec3::splat(1.)));
     commands.spawn((
-        Name::new("Cube"),
         Mesh3d(cube_handle.clone()),
-        MeshMaterial3d(materials.add(Color::from(tailwind::RED_200))),
-        Transform::from_xyz(0.0, 0.5, 0.0),
+        MeshMaterial3d(materials_3d.add(Color::from(tailwind::BLUE_500))),
+        Transform::from_translation(vec3(1.1, 0.5, -1.3))
+            .with_rotation(Quat::from_rotation_y(TAU * 0.05)),
+        Name::new("Box"),
+        Selectable,
+        GizmoTransformable,
         Cube(1.0),
         children![(
             Name::new("Sub-cube"),
             Mesh3d(cube_handle.clone()),
-            MeshMaterial3d(materials.add(Color::from(tailwind::GREEN_500))),
+            MeshMaterial3d(materials_3d.add(Color::from(tailwind::GREEN_500))),
             Transform::from_xyz(0.0, 1.5, 0.0),
             children![(
                 Name::new("Sub-sub-cube"),
                 Mesh3d(cube_handle),
-                MeshMaterial3d(materials.add(Color::from(tailwind::BLUE_800))),
+                MeshMaterial3d(materials_3d.add(Color::from(tailwind::BLUE_800))),
                 Transform::from_xyz(1.5, 0.0, 0.0),
             )]
         )],
     ));
 
-    // circular base
-    commands.spawn((
-        Name::new("Circular base"),
-        Mesh3d(meshes.add(Circle::new(4.0))),
-        MeshMaterial3d(materials.add(Color::from(tailwind::GREEN_300))),
-        Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2)),
-    ));
-
-    // light
     commands.spawn((
         Name::new("Light"),
         PointLight {
             shadows_enabled: true,
             ..default()
         },
-        Transform::from_xyz(4.0, 8.0, 4.0),
-    ));
-
-    // camera
-    commands.spawn((
-        Name::new("Camera"),
-        Camera3d::default(),
-        Transform::from_xyz(-2.5, 4.5, 9.0).looking_at(Vec3::Y, Vec3::Y),
+        Transform::default().looking_to(vec3(-1., -1., 1.), Vec3::Y),
+        GizmoTransformable,
+        Name::new("DirectionalLight"),
     ));
 }
 

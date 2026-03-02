@@ -29,7 +29,7 @@ struct SceneRoot(Handle<ReflectedBsn>);
 
 fn spawn_and_reload_scene(
     scene_root: Single<Entity, With<SceneRoot>>,
-    mut events: EventReader<AssetEvent<ReflectedBsn>>,
+    mut events: MessageReader<AssetEvent<ReflectedBsn>>,
     bsn_assets: Res<Assets<ReflectedBsn>>,
     mut commands: Commands,
 ) {

@@ -14,11 +14,11 @@ pub fn global_settings_path() -> Option<PathBuf> {
     let config_dir = path.config_dir();
     let path = config_dir.join(SETTINGS_BASE_DIR);
 
-    if !path.exists() {
-        if let Err(e) = std::fs::create_dir_all(&path) {
-            error!("Failed to create global settings directory: {}", e);
-            return None;
-        }
+    if !path.exists()
+        && let Err(e) = std::fs::create_dir_all(&path)
+    {
+        error!("Failed to create global settings directory: {}", e);
+        return None;
     }
     Some(path)
 }

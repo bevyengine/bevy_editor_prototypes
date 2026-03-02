@@ -2,8 +2,8 @@
 
 mod render;
 
-use bevy::render::view::{
-    add_visibility_class, NoFrustumCulling, VisibilityClass, VisibleEntities,
+use bevy::camera::visibility::{
+    NoFrustumCulling, VisibilityClass, VisibleEntities, add_visibility_class,
 };
 use bevy::{prelude::*, render::sync_world::SyncToRenderWorld};
 

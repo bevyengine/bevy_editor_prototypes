@@ -1,7 +1,7 @@
-use bevy::{prelude::*, window::SystemCursorIcon, winit::cursor::CursorIcon};
+use bevy::{feathers::cursor::EntityCursor, prelude::*, window::SystemCursorIcon};
 use bevy_editor_styles::Theme;
 
-use crate::{io, AssetBrowserLocation};
+use crate::{AssetBrowserLocation, io};
 
 use super::source_id_to_string;
 
@@ -83,11 +83,10 @@ pub fn spawn_location_path_ui<'a>(
     )
     .insert(ChildOf(location_path));
 
-    if location.source_id.is_some() {
+    if let Some(source_id) = &location.source_id {
         commands
             .spawn(path_separator_ui(theme.as_ref()))
             .insert(ChildOf(location_path));
-        let source_id = location.source_id.as_ref().unwrap();
         spawn_path_segment_ui(
             commands,
             source_id_to_string(source_id),
@@ -130,6 +129,7 @@ fn spawn_path_segment_ui<'a>(
         BackgroundColor(PATH_SEGMENT_BACKGROUND_COLOR),
         theme.general.border_radius,
         segment_type,
+        EntityCursor::System(SystemCursorIcon::Pointer),
     ));
     segment_ec
         .with_children(|parent| {
@@ -149,7 +149,7 @@ fn spawn_path_segment_ui<'a>(
                   mut location: ResMut<AssetBrowserLocation>,
                   query_children: Query<&Children>,
                   query_segment_info: Query<(&ChildOf, &LocationSegmentType)>| {
-                let segment = trigger.target();
+                let segment = trigger.event().event_target();
                 let (parent, segment_type) = query_segment_info.get(segment).unwrap();
                 match segment_type {
                     LocationSegmentType::Root => {
@@ -177,26 +177,6 @@ fn spawn_path_segment_ui<'a>(
                     }
                 };
                 commands.run_system_cached(io::task::fetch_directory_content);
-            },
-        )
-        .observe(
-            move |_trigger: On<Pointer<Move>>,
-                  window_query: Query<Entity, With<Window>>,
-                  mut commands: Commands| {
-                let window = window_query.single().unwrap();
-                commands
-                    .entity(window)
-                    .insert(CursorIcon::System(SystemCursorIcon::Pointer));
-            },
-        )
-        .observe(
-            move |_trigger: On<Pointer<Out>>,
-                  window_query: Query<Entity, With<Window>>,
-                  mut commands: Commands| {
-                let window = window_query.single().unwrap();
-                commands
-                    .entity(window)
-                    .insert(CursorIcon::System(SystemCursorIcon::Default));
             },
         );
     segment_ec

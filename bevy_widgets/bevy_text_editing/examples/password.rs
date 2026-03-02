@@ -73,7 +73,7 @@ fn update_password(
     mut commands: Commands,
     mut q_passwords: Query<&mut Password>,
 ) {
-    let entity = trigger.target();
+    let entity = trigger.event().event_target();
     let Ok(mut password) = q_passwords.get_mut(entity) else {
         return;
     };
@@ -85,7 +85,10 @@ fn update_password(
     info!("Password: {:?}", password.val);
 
     let asterisks = "*".repeat(password.val.chars().count());
-    commands.trigger_targets(SetText(asterisks), entity);
+    commands.trigger(SetText {
+        entity,
+        text: asterisks,
+    });
 }
 
 fn show_password(

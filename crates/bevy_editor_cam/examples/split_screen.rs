@@ -1,10 +1,6 @@
 //! Renders two cameras to the same window to accomplish "split screen".
 
-use bevy::{
-    prelude::*,
-    render::{camera::Viewport, view::Hdr},
-    window::WindowResized,
-};
+use bevy::{camera::Viewport, prelude::*, render::view::Hdr, window::WindowResized};
 use bevy_editor_cam::prelude::*;
 
 fn main() {
@@ -78,7 +74,7 @@ struct RightCamera;
 
 fn set_camera_viewports(
     windows: Query<&Window>,
-    mut resize_events: EventReader<WindowResized>,
+    mut resize_events: MessageReader<WindowResized>,
     mut left_camera: Query<&mut Camera, (With<LeftCamera>, Without<RightCamera>)>,
     mut right_camera: Query<&mut Camera, With<RightCamera>>,
 ) {

@@ -5,7 +5,7 @@
 //!
 //! # Related Documentation
 //!
-//! - [Bevy UI Guide](https://docs.rs/bevy/latest/bevy/ui/index.html) - Core UI system documentation
+//! - [Bevy UI Guide](bevy::ui) - Core UI system documentation
 //! - [`crate::events::EntityInspectorRows`] - Data source for property information
 //! - [`crate::theme::InspectorTheme`] - Theming system for consistent styling
 //! - [`PropertyPanel`] - Main component marker for the property panel

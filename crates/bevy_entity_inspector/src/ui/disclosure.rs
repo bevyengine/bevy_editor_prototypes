@@ -6,10 +6,10 @@
 //!
 //! # Related Documentation
 //!
-//! - [Bevy Interaction](https://docs.rs/bevy/latest/bevy/ui/enum.Interaction.html) - UI interaction system for click handling
+//! - [Bevy Interaction](bevy::ui::Interaction) - UI interaction system for click handling
 //! - [`DisclosureTriangle`] - Main component for disclosure triangles
 //! - [`DisclosureToggled`] - Event emitted when triangles are clicked
-//! - [`crate::theme::InspectorTheme`] - Theming system for consistent styling
+//! - [`InspectorTheme`](crate::theme::InspectorTheme) - Theming system for consistent styling
 
 use bevy::{ecs::message::Message, prelude::*};
 

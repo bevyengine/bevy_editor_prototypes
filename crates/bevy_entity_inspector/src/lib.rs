@@ -16,9 +16,9 @@
 //! - **Change Detection**: Only updates UI when actual changes occur, eliminating unnecessary rebuilds
 //!
 //! [Bevy]: https://bevyengine.org
-//! [reflection system]: https://docs.rs/bevy/latest/bevy/reflect/index.html
+//! [reflection system]: bevy::reflect
 //! [`bevy_remote`]: https://docs.rs/bevy_remote/latest/bevy_remote/
-//! [Bevy app]: https://docs.rs/bevy/latest/bevy/app/struct.App.html
+//! [Bevy app]: bevy::prelude::App
 //!
 //! ## Architecture
 //!
@@ -76,7 +76,7 @@
 //!     .run();
 //! ```
 //!
-//! [Bevy app]: https://docs.rs/bevy/latest/bevy/app/struct.App.html
+//! [Bevy app]: bevy::prelude::App
 //!
 //! ## Performance
 //!

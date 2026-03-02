@@ -2,7 +2,7 @@
 //!
 //! This example shows how to use the [`InspectorPlugin`] with modular data sources.
 //! The inspector can be configured to use different data sources:
-//! - Remote mode: Connect to a remote Bevy application via [`bevy_remote`](https://docs.rs/bevy_remote/latest/bevy_remote/)
+//! - Remote mode: Connect to a remote Bevy application via [`bevy_remote`]
 //! - Scene files: Load and inspect scene data
 //! - BSN: Load and inspect BSN (Bevy Scene Notation) files
 //!

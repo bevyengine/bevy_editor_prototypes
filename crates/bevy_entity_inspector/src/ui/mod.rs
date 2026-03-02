@@ -11,7 +11,7 @@
 //!
 //! # Related Documentation
 //!
-//! - [Bevy UI Guide](https://docs.rs/bevy/latest/bevy/ui/index.html) - Core UI system documentation
+//! - [Bevy UI Guide](bevy::ui) - Core UI system documentation
 //! - [`InspectorWidgetsPlugin`] - Plugin that enables all UI widgets
 
 use bevy::prelude::*;

@@ -14,7 +14,7 @@
 //!
 //! # Related Documentation
 //!
-//! - [Bevy Reflection Guide](https://docs.rs/bevy/latest/bevy/reflect/index.html) - How to make components reflectable
+//! - [Bevy Reflection Guide](bevy::reflect) - How to make components reflectable
 //! - [`bevy_entity_inspector::ui::property_panel`] - Property panel implementation
 
 use bevy::prelude::*;

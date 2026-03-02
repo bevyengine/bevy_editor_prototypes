@@ -5,7 +5,7 @@
 //!
 //! # Related Documentation
 //!
-//! - [Bevy Systems](https://docs.rs/bevy/latest/bevy/ecs/system/index.html) - Core system documentation
+//! - [Bevy Systems](bevy::ecs::system) - Core system documentation
 //! - [`crate::events::InspectorEvent`] - Events processed by these systems
 //! - [`crate::ui::TreeState`] - UI state management
 //! - [`handle_inspector_events`] - Main event processing system
@@ -27,7 +27,7 @@ pub struct InspectorTreeContainer;
 /// The system is designed to minimize unnecessary UI rebuilds by categorizing events
 /// and applying appropriate update strategies.
 ///
-/// For more information on Bevy systems, see the [Systems Guide](https://docs.rs/bevy/latest/bevy/ecs/system/index.html).
+/// For more information on Bevy systems, see the [Systems Guide](bevy::ecs::system).
 ///
 /// # Event Processing
 ///
@@ -44,7 +44,7 @@ pub struct InspectorTreeContainer;
 ///
 /// # System Parameters
 ///
-/// - `events`: [`MessageReader`](https://docs.rs/bevy/latest/bevy/ecs/event/struct.MessageReader.html) for incoming [`InspectorEvent`]s
+/// - `events`: [`MessageReader`] for incoming [`InspectorEvent`]s
 /// - `inspector_data`: Current entity data for tree reconstruction
 /// - `tree_state`: UI tree state with expansion/selection information
 /// - `tree_container_query`: Query to find tree container entities for UI updates

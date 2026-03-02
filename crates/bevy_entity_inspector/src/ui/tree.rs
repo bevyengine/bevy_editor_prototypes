@@ -6,7 +6,7 @@
 //!
 //! # Related Documentation
 //!
-//! - [Bevy UI Guide](https://docs.rs/bevy/latest/bevy/ui/index.html) - Core UI system documentation
+//! - [Bevy UI Guide](bevy::ui) - Core UI system documentation
 //! - [`TreeNode`] - Individual tree node component with metadata
 //! - [`TreeState`] - Global tree state resource for tracking nodes and selection
 //! - [`crate::TreeNodeType`] - Node type enum for visual styling

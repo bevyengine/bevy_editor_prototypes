@@ -5,7 +5,7 @@
 //!
 //! # Related Documentation
 //!
-//! - [Bevy Color](https://docs.rs/bevy/latest/bevy/color/index.html) - Color system used for theming
+//! - [Bevy Color](bevy::color) - Color system used for theming
 //! - [`InspectorTheme`] - Main theme configuration resource
 //! - [`create_dark_inspector_theme`] - Pre-configured dark theme
 //! - [`create_light_inspector_theme`] - Pre-configured light theme

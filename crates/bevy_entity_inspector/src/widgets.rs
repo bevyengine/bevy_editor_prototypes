@@ -6,9 +6,9 @@
 //!
 //! # Related Documentation
 //!
-//! - [Bevy UI Guide](https://docs.rs/bevy/latest/bevy/ui/index.html) - Core UI system documentation
-//! - [Node Documentation](https://docs.rs/bevy/latest/bevy/ui/struct.Node.html) - Layout system for UI elements
-//! - [`crate::theme::InspectorTheme`] - Theming system for consistent styling
+//! - [Bevy UI Guide](bevy::ui) - Core UI system documentation
+//! - [Node Documentation](bevy::ui::Node) - Layout system for UI elements
+//! - [`InspectorTheme`] - Theming system for consistent styling
 //! - [`InspectorPanel`] - Main panel component marker
 
 use crate::theme::*;

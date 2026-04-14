@@ -1,5 +1,14 @@
 # Bevy Editor Prototypes
 
+**Archived:** this repository has been archived!
+Bevy is still actively working on an Editor, in line with this vision.
+Foundational work continues apace in the [main repository](https://github.com/bevyengine/bevy), as we build out the `.bsn` asset format, UI and helpful tools like camera controllers.
+For active, low-friction experimentation and working prototypes, please check out and contribute to the community-run [jackdaw](https://github.com/jbuehler23/jackdaw/tree/main) project!
+
+Results and components from these and other community experiments will be absorbed into the main Bevy project as they mature.
+
+## Old intro
+
 > [!WARNING]
 > This project is a prototype for a shippable Bevy Editor and is still in heavy development and testing.
 > Everything you see is very much a work-in-progress. Read about what we're building in the [Design Book](https://bevyengine.github.io/bevy_editor_prototypes/)! or [Figma document].

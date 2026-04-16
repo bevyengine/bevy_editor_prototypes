@@ -17,11 +17,10 @@ use bevy_editor_cam::prelude::{DefaultEditorCamPlugins, EditorCam};
 use bevy_editor_styles::Theme;
 use bevy_infinite_grid::{InfiniteGrid, InfiniteGridPlugin, InfiniteGridSettings};
 use bevy_pane_layout::prelude::*;
-use bevy_transform_gizmos::{TransformGizmo, prelude::*};
+use bevy_transform_gizmos::{TransformGizmo, messages::ViewportResized, prelude::*};
 use view_gizmo::ViewGizmoPlugin;
 
 use crate::{selection_box::SelectionBoxPlugin, view_gizmo::view_gizmo_node};
-
 mod selection_box;
 mod view_gizmo;
 
@@ -50,6 +49,7 @@ impl Plugin for Viewport3dPanePlugin {
         }
 
         app.add_plugins((DefaultEditorCamPlugins, ViewGizmoPlugin, SelectionBoxPlugin))
+            .add_message::<ViewportResized>()
             .add_systems(Startup, setup)
             .add_systems(
                 First,
@@ -231,6 +231,7 @@ fn update_render_target_size(
     bodies: Query<&PaneContentNode>,
     children_query: Query<&Children>,
     computed_node_query: Query<&ComputedNode, Changed<ComputedNode>>,
+    mut messages: MessageWriter<ViewportResized>,
     mut images: ResMut<Assets<Image>>,
 ) {
     for (pane_root, viewport) in &query {
@@ -246,7 +247,11 @@ fn update_render_target_size(
         };
         // TODO Convert to physical pixels
         let content_node_size = computed_node.size();
-
+        let size_array = [content_node_size.x, content_node_size.y];
+        messages.write(ViewportResized {
+            pane_entity: pane_root,
+            size: size_array,
+        });
         let camera = camera_query.get_mut(viewport.camera_id).unwrap();
 
         let image_handle = camera.target.as_image().unwrap();

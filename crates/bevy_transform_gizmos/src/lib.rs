@@ -17,9 +17,11 @@ use bevy::{prelude::*, transform::TransformSystems};
 use bevy_editor_core::selection::EditorSelection;
 use mesh::{RotationGizmo, ViewTranslateGizmo};
 
+use messages::ViewportResized;
 use normalization::*;
 
 mod mesh;
+pub mod messages;
 pub mod normalization;
 
 /// Crate prelude.
@@ -103,6 +105,8 @@ pub struct TransformGizmoSettings {
     pub snap_enabled: bool,
     /// Current gizmo mode.
     pub mode: GizmoMode,
+    /// Current gizmo scale.
+    pub viewport_scale: f32,
 }
 
 impl Default for TransformGizmoSettings {
@@ -115,6 +119,7 @@ impl Default for TransformGizmoSettings {
             angle_snap: 15.0,   // 15 degree angle snapping
             scale_snap: 0.1,    // 0.1 scale increment snapping
             snap_enabled: true, // Enable snapping by default
+            viewport_scale: 1.0,
             mode: GizmoMode::default(),
         }
     }
@@ -129,6 +134,8 @@ impl Plugin for TransformGizmoPlugin {
         if !app.is_plugin_added::<MeshPickingPlugin>() {
             app.add_plugins(MeshPickingPlugin);
         }
+        app.add_message::<ViewportResized>();
+
         app.init_resource::<TransformGizmoSettings>()
             .add_plugins(Ui3dNormalizationPlugin)
             .add_message::<TransformGizmoEvent>()
@@ -164,6 +171,7 @@ impl Plugin for TransformGizmoPlugin {
                 (adjust_view_translate_gizmo, gizmo_cam_copy_settings)
                     .chain()
                     .in_set(TransformGizmoSystems::Drag),
+                transform_gizmo_viewport_handler,
             )
                 .chain()
                 .in_set(TransformGizmoSystems::Main)
@@ -661,6 +669,7 @@ fn place_gizmo(
 
 fn propagate_gizmo_elements(
     gizmo: Query<(&GlobalTransform, &Children), With<TransformGizmo>>,
+    settings: Res<TransformGizmoSettings>,
     mut gizmo_parts_query: Query<(&Transform, &mut GlobalTransform), Without<TransformGizmo>>,
 ) {
     if let Ok((gizmo_pos, gizmo_parts)) = gizmo.single() {
@@ -669,7 +678,12 @@ fn propagate_gizmo_elements(
                 error!("Malformed transform gizmo");
                 continue;
             };
-            *g_transform = gizmo_pos.mul_transform(*transform);
+            let scaled_transform = Transform {
+                translation: transform.translation * settings.viewport_scale,
+                rotation: transform.rotation,
+                scale: Vec3::splat(settings.viewport_scale),
+            };
+            *g_transform = gizmo_pos.mul_transform(scaled_transform);
         }
     }
 }
@@ -864,5 +878,16 @@ fn update_gizmo_visibility(
                 *vis = Visibility::Inherited;
             }
         }
+    }
+}
+
+fn transform_gizmo_viewport_handler(
+    mut messages: MessageReader<ViewportResized>,
+    mut settings: ResMut<TransformGizmoSettings>,
+) {
+    for msg in messages.read() {
+        let viewport_height = msg.size[1];
+        let scale = (viewport_height / 600.0).clamp(0.3, 3.0);
+        settings.viewport_scale = scale;
     }
 }

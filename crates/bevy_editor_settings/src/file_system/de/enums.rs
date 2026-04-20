@@ -3,17 +3,18 @@ use bevy::{
     reflect::{DynamicEnum, DynamicVariant, Enum, EnumInfo, VariantInfo},
 };
 
-use super::{structs::LoadStruct, tuple::LoadTuple};
+use super::{structs::LoadStruct, tuple::LoadTuple, StructureLoader};
 
 pub struct LoadEnum<'a> {
     pub enum_info: &'a EnumInfo,
-    pub toml_value: &'a toml::Value,
     pub enm: &'a mut dyn Enum,
 }
 
-impl LoadEnum<'_> {
-    pub fn load_enum(self) {
-        match self.toml_value {
+impl<'a> StructureLoader for LoadEnum<'a> {
+    type Input = &'a toml::Value;
+
+    fn load(self, input: Self::Input) {
+        match input {
             toml::Value::String(str_val) => {
                 if let Some(VariantInfo::Unit(variant)) = self.enum_info.variant(str_val) {
                     let dyn_enum = DynamicEnum::new(variant.name(), DynamicVariant::Unit);
@@ -51,10 +52,9 @@ impl LoadEnum<'_> {
 
                             LoadStruct {
                                 struct_info,
-                                table: map,
                                 strct: &mut dyn_struct,
                             }
-                            .load_struct();
+                            .load(map);
 
                             let dyn_enum = DynamicEnum::new(
                                 variant_info.name(),
@@ -82,10 +82,9 @@ impl LoadEnum<'_> {
 
                             LoadTuple {
                                 tuple_info: tuple_variant_info,
-                                table: array,
                                 tuple: &mut dyn_tuple,
                             }
-                            .load_tuple();
+                            .load(array);
 
                             let dyn_enum = DynamicEnum::new(
                                 variant_info.name(),
@@ -97,7 +96,7 @@ impl LoadEnum<'_> {
                 }
             }
             _ => {
-                warn!("Preferences: Unsupported type: {:?}", self.toml_value);
+                warn!("Preferences: Unsupported type: {:?}", input);
             }
         }
     }
@@ -128,10 +127,9 @@ mod tests {
         let toml_value = toml::Value::String("Variant1".to_string());
         LoadEnum {
             enum_info: enum_test.reflect_type_info().as_enum().unwrap(),
-            toml_value: &toml_value,
             enm: &mut enum_test,
         }
-        .load_enum();
+        .load(&toml_value);
 
         assert_eq!(enum_test, TestEnum::Variant1);
     }
@@ -153,10 +151,9 @@ mod tests {
         let toml_value = enum_test_toml();
         LoadEnum {
             enum_info: enum_test.reflect_type_info().as_enum().unwrap(),
-            toml_value: &toml_value,
             enm: &mut enum_test,
         }
-        .load_enum();
+        .load(&toml_value);
 
         assert_eq!(
             enum_test,
@@ -184,10 +181,9 @@ mod tests {
         let toml_value = enum_test_tuple_toml();
         LoadEnum {
             enum_info: enum_test.reflect_type_info().as_enum().unwrap(),
-            toml_value: &toml_value,
             enm: &mut enum_test,
         }
-        .load_enum();
+        .load(&toml_value);
 
         assert_eq!(enum_test, TestEnum::Variant4(1, 2));
     }

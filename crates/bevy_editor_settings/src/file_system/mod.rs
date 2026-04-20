@@ -4,6 +4,7 @@ use bevy::log::{error, warn};
 use de::{load_preferences, load_toml_file};
 
 pub mod de;
+pub mod ser;
 
 use crate::{GlobalSettingsPath, SettingsType};
 

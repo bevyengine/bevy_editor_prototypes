@@ -4,14 +4,15 @@ use super::{LoadStructure, tuple_utils::TupleLikeInfo};
 
 pub struct LoadTuple<'a> {
     pub tuple_info: &'a dyn TupleLikeInfo,
-    pub table: &'a toml::value::Array,
     pub tuple: &'a mut dyn Tuple,
 }
 
-impl LoadTuple<'_> {
-    pub fn load_tuple(self) {
+impl<'a> StructureLoader for LoadTuple<'a> {
+    type Input = &'a toml::value::Array;
+
+    fn load(self, input: Self::Input) {
         for i in 0..self.tuple_info.field_len() {
-            let Some(toml_value) = self.table.get(i) else {
+            let Some(toml_value) = input.get(i) else {
                 continue;
             };
 
@@ -20,11 +21,10 @@ impl LoadTuple<'_> {
 
             LoadStructure {
                 type_info: field_mut.get_represented_type_info().unwrap(),
-                table: toml_value,
                 structure: field_mut,
                 custom_attributes: Some(field_attrs),
             }
-            .load();
+            .load(toml_value);
         }
     }
 }
@@ -41,16 +41,15 @@ mod tests {
 
     #[tracing_test::traced_test]
     #[test]
-    fn load_tuple() {
+    fn load() {
         let mut tuple = (0, 0);
 
         let toml_value = tuple_test_toml();
         LoadTuple {
             tuple_info: tuple.reflect_type_info().as_tuple().unwrap(),
-            table: toml_value.as_array().unwrap(),
             tuple: &mut tuple,
         }
-        .load_tuple();
+        .load(toml_value.as_array().unwrap());
         assert_eq!(tuple, (1, 2));
     }
 
@@ -60,16 +59,15 @@ mod tests {
 
     #[tracing_test::traced_test]
     #[test]
-    fn load_tuple_struct_struct() {
+    fn load_struct_struct() {
         let mut tuple = ((0, 0), (0, 0));
 
         let toml_value = tuple_struct_struct_toml();
         LoadTuple {
             tuple_info: tuple.reflect_type_info().as_tuple().unwrap(),
-            table: toml_value.as_array().unwrap(),
             tuple: &mut tuple,
         }
-        .load_tuple();
+        .load(toml_value.as_array().unwrap());
 
         assert_eq!(tuple, ((1, 2), (1, 2)));
     }

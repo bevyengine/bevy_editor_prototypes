@@ -7,6 +7,7 @@ edition = "2024"
 
 [dependencies]
 bevy.workspace = true
+bevy_asset_preview.workspace = true
 bevy_editor_styles.workspace = true
 bevy_pane_layout.workspace = true
 bevy_scroll_box.workspace = true

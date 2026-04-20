@@ -7,6 +7,7 @@ use bevy::{
     prelude::*,
     window::SystemCursorIcon,
 };
+use bevy_asset_preview::PreviewAsset;
 use bevy_context_menu::{ContextMenu, ContextMenuOption};
 use bevy_editor_styles::Theme;
 
@@ -177,7 +178,7 @@ pub(crate) fn spawn_file_node<'a>(
 
     // Icon
     commands.spawn((
-        ImageNode::new(asset_server.load("embedded://bevy_asset_browser/assets/file_icon.png")),
+        PreviewAsset(location.path.join(&file_name)),
         Node {
             height: Val::Px(50.0),
             ..default()

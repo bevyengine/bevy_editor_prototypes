@@ -10,6 +10,7 @@ use bevy::{
     },
     prelude::*,
 };
+use bevy_asset_preview::AssetPreviewPlugin;
 use bevy_pane_layout::prelude::*;
 use bevy_scroll_box::ScrollBoxPlugin;
 use ui::top_bar::location_as_changed;
@@ -69,6 +70,8 @@ impl Plugin for AssetBrowserPanePlugin {
                 )
                     .run_if(location_as_changed),
             );
+
+        app.add_plugins(AssetPreviewPlugin);
     }
 }
 

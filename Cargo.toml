@@ -80,3 +80,9 @@ bevy_undo = { path = "crates/bevy_undo" }
 bevy_infinite_grid = { path = "crates/bevy_infinite_grid" }
 bevy_editor_cam = { path = "crates/bevy_editor_cam" }
 bevy_clipboard = { path = "crates/bevy_clipboard" }
+
+# MacOS Native Dependencies
+objc-rs = "0.2.8"
+objc2 = "0.6.2"
+objc2-app-kit = "0.3.1"
+objc2-foundation = "0.3.1"

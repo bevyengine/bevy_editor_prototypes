@@ -4,8 +4,10 @@
 //! such as "File", "Edit", "View", etc.
 
 use bevy::{asset::embedded_asset, prelude::*};
-
 use bevy_editor_styles::Theme;
+
+#[cfg(target_os = "macos")]
+use objc2::MainThreadMarker;
 
 /// The root node for the menu bar.
 #[derive(Component)]
@@ -17,7 +19,17 @@ pub struct MenuBarPlugin;
 impl Plugin for MenuBarPlugin {
     fn build(&self, app: &mut App) {
         embedded_asset!(app, "assets/logo/bevy_logo.png");
-        app.add_systems(Startup, menu_setup.in_set(MenuBarSet));
+
+        #[cfg(target_os = "macos")]
+        {
+            app.insert_non_send_resource(MainThreadMarker::new().unwrap());
+            app.add_systems(Startup, setup_native_macos_menu);
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            app.add_systems(Startup, menu_setup.in_set(MenuBarSet));
+        }
     }
 }
 
@@ -42,7 +54,7 @@ pub enum TopBarItem {
     Help,
 }
 
-/// The setup system for the menu bar.
+/// The setup system for the menu bar (Not Macos).
 fn menu_setup(
     mut commands: Commands,
     root: Query<Entity, With<MenuBarNode>>,
@@ -325,4 +337,112 @@ fn menu_setup(
     commands.spawn(hover_out_observer);
     commands.spawn(hover_over_observer);
     commands.spawn(click_observer);
+}
+
+/// The setup system for the menu bar (macOS native).
+#[allow(unsafe_code)]
+#[cfg(target_os = "macos")]
+fn setup_native_macos_menu(_marker: NonSend<MainThreadMarker>) {
+    use objc2::sel;
+    use objc2_app_kit::{NSApp, NSMenu, NSMenuItem};
+    use objc2_foundation::NSString;
+
+    unsafe {
+        let main_thread =
+            MainThreadMarker::new().expect("setup_native_macos_menu must run on the main thread");
+
+        let app = NSApp(main_thread);
+
+        // Ensure the app is activated so menus are visible
+        app.activate();
+
+        // Main menu bar
+        let menubar = NSMenu::new(main_thread);
+
+        // === App Menu ===
+        let app_menu_item = NSMenuItem::new(main_thread);
+        menubar.addItem(&app_menu_item);
+
+        let app_menu = NSMenu::new(main_thread);
+        app_menu.setTitle(NSString::from_str("App").as_ref());
+        app_menu.addItemWithTitle_action_keyEquivalent(
+            NSString::from_str("Quit").as_ref(),
+            sel!(terminate:).into(),
+            NSString::from_str("q").as_ref(),
+        );
+        app_menu_item.setSubmenu(Some(&app_menu));
+
+        // === File menu ===
+        let file_menu_item = NSMenuItem::new(main_thread);
+        menubar.addItem(&file_menu_item);
+
+        let file_menu = NSMenu::new(main_thread);
+        file_menu.setTitle(NSString::from_str("File").as_ref());
+        file_menu.addItemWithTitle_action_keyEquivalent(
+            NSString::from_str("Save").as_ref(),
+            None,
+            NSString::from_str("s").as_ref(),
+        );
+        file_menu_item.setSubmenu(Some(&file_menu));
+
+        // === Edit menu ===
+        let edit_menu_item = NSMenuItem::new(main_thread);
+        menubar.addItem(&edit_menu_item);
+
+        let edit_menu = NSMenu::new(main_thread);
+        edit_menu.setTitle(NSString::from_str("Edit").as_ref());
+        edit_menu.addItemWithTitle_action_keyEquivalent(
+            NSString::from_str("Undo").as_ref(),
+            sel!(undo:).into(),
+            NSString::from_str("z").as_ref(),
+        );
+        edit_menu.addItemWithTitle_action_keyEquivalent(
+            NSString::from_str("Redo").as_ref(),
+            sel!(redo:).into(),
+            NSString::from_str("Z").as_ref(),
+        );
+        edit_menu_item.setSubmenu(Some(&edit_menu));
+
+        // === Build menu ===
+        let build_menu_item = NSMenuItem::new(main_thread);
+        menubar.addItem(&build_menu_item);
+
+        let build_menu = NSMenu::new(main_thread);
+        build_menu.setTitle(NSString::from_str("Build").as_ref());
+        build_menu.addItemWithTitle_action_keyEquivalent(
+            NSString::from_str("Run").as_ref(),
+            None, // no action yet
+            NSString::from_str("r").as_ref(),
+        );
+        build_menu_item.setSubmenu(Some(&build_menu));
+
+        // === Window menu ===
+        let window_menu_item = NSMenuItem::new(main_thread);
+        menubar.addItem(&window_menu_item);
+
+        let window_menu = NSMenu::new(main_thread);
+        window_menu.setTitle(NSString::from_str("Window").as_ref());
+        window_menu.addItemWithTitle_action_keyEquivalent(
+            NSString::from_str("Minimize").as_ref(),
+            sel!(performMiniaturize:).into(),
+            NSString::from_str("m").as_ref(),
+        );
+        window_menu_item.setSubmenu(Some(&window_menu));
+
+        // === Help menu ===
+        let help_menu_item = NSMenuItem::new(main_thread);
+        menubar.addItem(&help_menu_item);
+
+        let help_menu = NSMenu::new(main_thread);
+        help_menu.setTitle(NSString::from_str("Help").as_ref());
+        help_menu.addItemWithTitle_action_keyEquivalent(
+            NSString::from_str("About").as_ref(),
+            None,
+            NSString::new().as_ref(),
+        );
+        help_menu_item.setSubmenu(Some(&help_menu));
+
+        // Attach to app
+        app.setMainMenu(Some(&menubar));
+    }
 }

@@ -57,9 +57,13 @@ impl Plugin for AssetBrowserPanePlugin {
             )
             .add_systems(
                 Update,
-                ui::directory_content::refresh_ui
+                (
+                    ui::directory_content::sort_directory_content,
+                    ui::directory_content::refresh_ui,
+                )
                     .run_if(directory_content_as_changed)
-                    .after(io::task::poll_task),
+                    .after(io::task::poll_task)
+                    .chain(),
             )
             .add_systems(
                 Update,
@@ -103,15 +107,6 @@ pub enum DirectoryContentOrder {
     /// Ordered reverse alphabetically with respect to folders
     ReverseAlphabetical,
 }
-impl DirectoryContentOrder {
-    /// Sorts a given [`DirectoryContent`] with the current method
-    pub fn sort(&self, content: &mut DirectoryContent) {
-        match self {
-            Self::Alphabetical => content.0.sort_by(alphabetical_sort),
-            Self::ReverseAlphabetical => content.0.sort_by(reverse_alphabetical_sort),
-        }
-    }
-}
 
 /// One entry of [`DirectoryContent`]
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -127,6 +122,15 @@ pub enum Entry {
 /// The content of the directory pointed by [`AssetBrowserLocation`]
 #[derive(Resource, Default, Debug, Clone, PartialEq, Eq)]
 pub struct DirectoryContent(pub Vec<Entry>);
+impl DirectoryContent {
+    /// Sorts the directory by the given [`DirectoryContentOrder`]
+    pub fn sort(&mut self, order: &DirectoryContentOrder) {
+        match order {
+            DirectoryContentOrder::Alphabetical => self.0.sort_by(alphabetical_sort),
+            DirectoryContentOrder::ReverseAlphabetical => self.0.sort_by(reverse_alphabetical_sort),
+        }
+    }
+}
 
 /// Check if the [`DirectoryContent`] has changed, which relate to the content of the current [`AssetBrowserLocation`]
 pub(crate) fn directory_content_as_changed(directory_content: Res<DirectoryContent>) -> bool {

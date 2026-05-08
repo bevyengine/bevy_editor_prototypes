@@ -3,7 +3,9 @@ use bevy_context_menu::{ContextMenu, ContextMenuOption};
 use bevy_editor_styles::Theme;
 use bevy_scroll_box::{ScrollBox, ScrollBoxContent, spawn_scroll_box};
 
-use crate::{AssetBrowserLocation, DefaultSourceFilePath, DirectoryContent, Entry, io};
+use crate::{
+    AssetBrowserLocation, DefaultSourceFilePath, DirectoryContent, DirectoryContentOrder, Entry, io,
+};
 
 use crate::ui::nodes::{spawn_file_node, spawn_folder_node, spawn_source_node};
 
@@ -74,6 +76,13 @@ fn asset_browser_context_menu() -> ContextMenu {
             commands.run_system_cached(open_in_file_manager);
         }),
     ])
+}
+
+pub(crate) fn sort_directory_content(
+    mut directory_content: ResMut<DirectoryContent>,
+    directory_content_order: Res<DirectoryContentOrder>,
+) {
+    directory_content.sort(&directory_content_order);
 }
 
 /// Refresh the UI with the content of the current [`AssetBrowserLocation`]
